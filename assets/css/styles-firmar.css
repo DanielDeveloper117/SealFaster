@@ -1,0 +1,84 @@
+
+/* Estilo general */
+body {
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    overflow-y: auto;
+}
+
+/* Estilo del contenido principal */
+main {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 150px;
+}
+
+
+/* Hacer que el contenido principal ocupe todo el espacio disponible */
+.main-content {
+    flex: 1;
+}
+.container-firma {
+    width: 100%;
+    max-width: 500px; /* opcional para evitar estiramiento excesivo */
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 1rem;
+}
+
+#canvasFirma {
+    display: block;
+    margin: auto;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    /* Evita conflictos con estilo inline */
+    max-width: 100%;
+}
+
+.btn-general {
+width: 100%;
+text-align: center;
+padding: 12px;
+border: none;
+border-radius: 5px;
+background-color: #55AD9B; 
+color: white;
+cursor: pointer;
+font-weight: bold;
+transition: all 0.3s;
+box-shadow: 0 2px 4px rgba(0, 123, 255, 0.2);
+}
+
+.btn-general:hover {
+background-color: #95D2B3; 
+box-shadow: 0 4px 8px rgba(85, 173, 155, 1.2);
+transform: translateY(-4px);
+
+}
+
+.btn-general:active {
+background-color: #95D2B3; 
+}
+/* Estilo del pie de página */
+footer {
+    background: #000; /* Color de fondo */
+    color: #fff;
+    text-align: center;
+    padding: 20px 10px;
+    width: 100%;
+    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+}
+
+footer p {
+    margin: 0;
+    font-size: 1em;
+}
+
+
+
+

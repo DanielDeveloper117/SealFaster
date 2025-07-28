@@ -1,0 +1,14 @@
+{
+    "name": "lenovo/cotizador",
+    "type": "project",
+    "authors": [
+        {
+            "name": "martha"
+        }
+    ],
+    "require": {
+        "phpmailer/phpmailer": "^6.9",
+        "chillerlan/php-qrcode": "^5.0",
+        "endroid/qr-code": "4.0"
+    }
+}

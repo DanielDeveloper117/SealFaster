@@ -1,0 +1,167 @@
+/* Estilos originales */
+header a {
+  text-decoration: none;
+  color: #fff;
+  font-weight: 500;
+}
+header a:hover {
+  text-shadow: 0 0 3px #fff, 0 0 10px #fff, 0 0px 10px #54aa9a, 0 0 10px #56AA9A;
+  text-decoration: underline;
+}
+.pr-0-30 {
+  padding-right: 30px;
+}
+
+.main-container {
+  z-index: -1;
+  display: none; /* Oculta inicialmente */
+}
+
+.img-sealfaster-container {
+  width: 12%;
+  margin-left: 30px;
+  opacity: 0;
+  transform: translateX(-50px); /* Desplazamiento inicial hacia la izquierda */
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+}
+.img-sealfaster-container:hover .light-reflection{
+  box-shadow: -5px 0px 3px #fff, -5px 0 10px #fff, -20px 0px 10px #54aa9a, -5px 0 10px #56AA9A;
+  filter: drop-shadow(0 0 10px #fff);
+  background-color: #54aa9a6f;
+}
+
+/* Clase para activar animación */
+.img-sealfaster-container.slide-in {
+  opacity: 1;
+  transform: translateX(0); /* Vuelve a su posición normal */
+}
+
+.img-sealfaster-container .light-reflection {
+  position: absolute;
+  top: 0px;
+  left: -5px;
+  width: 15%;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0));
+  opacity: 0.6;
+  animation: light-move 0.1s ease-in-out infinite; /* Movimiento de luz con pausa */
+  animation-delay: 0.5s; /* Espera antes de que comience el movimiento */
+  border-radius: 2px;
+}
+
+
+/* Animación de la luz que se mueve de derecha a izquierda con pausa */
+@keyframes light-move {
+  0% {
+    transform: translateX(100%) scaleY(1); /* Empieza fuera de la pantalla (derecha) */
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(0) scaleY(0.9); /* Detiene la animación en el centro */
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(-100%) scaleY(0.8); /* Desplazamiento completo hacia la izquierda */
+    opacity: 0.3;
+  }
+}
+
+/* ANIMACIÓN HEADER */
+header {
+  opacity: 0;
+  transform: translateY(-50px); /* Desplazamiento hacia arriba */
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+/* Clase para activar la animación */
+header.slide-down {
+  opacity: 1;
+  transform: translateY(0); /* Vuelve a su posición original */
+}
+
+#buttonUser{
+  font-size: 35px;
+  cursor: pointer;
+  align-content: end;
+  align-self: end;
+  border-radius: 100px;
+  background-color: transparent;
+  transition: all 0.300s;
+}
+#buttonUser:hover{
+  text-shadow: 0 0 3px #fff, 0 0 10px #fff, 0 0px 10px #54aa9a, 0 0 10px #56AA9A;
+  /* filter: drop-shadow(0px 0px 10px #84A59F); */
+}
+#containerUser {
+  position: relative;
+}
+
+#dropdownUser {
+  padding: 10px;
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+#dropdownUser a{
+  text-decoration: none;
+  color: #212529;
+  font-weight: 500;
+}
+#dropdownUser a:hover{
+  text-shadow: none;
+  text-decoration: underline;
+}
+#dropdownUser a.logout:hover {
+    text-decoration: underline;
+    color: red !important;
+}
+
+@media only screen and (max-width: 768px) {
+  .pr-0-30 {
+      padding-right: 0px;
+  }
+  header{
+    transform: translateX(-100%); /* Oculto a la izquierda */
+    transition: transform 0.3s ease-in-out;
+    width: 42% !important;
+    height: 100vh !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    overflow-y: none;
+  }
+  header.menu-open {
+    transform: translateX(0); /* Desliza hacia dentro */
+  }
+  #btnBurguer {
+    position: fixed;
+    top: 20px;
+    right: 10px;
+    z-index: 1101;
+    font-size: 2rem;
+    color: white;
+    background-color: #212529;
+    border: none;
+    cursor: pointer;
+    display: block !important;
+  }
+  .img-sealfaster-container {
+    width: 80%;
+    margin-left: 0px;
+    justify-self: center;
+  }
+  #dropdownUser {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: fit-content;
+    z-index: 1100;
+  }
+}

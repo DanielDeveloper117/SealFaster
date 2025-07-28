@@ -1,0 +1,93 @@
+/* Imagen de fondo a pantalla completa */
+#containerMain {
+    background-image: url('../../assets/img/general/blanca3.jpg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    height: 100vh;
+    width: 100%;
+    
+    /* Centramos el contenido */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Noto Sans', sans-serif;
+    padding: 20px;
+
+    box-sizing: border-box;
+}
+
+/* Card principal centrada */
+#welcomeCard {
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    max-width: 960px;
+    width: 100%;
+    z-index: 2;
+    padding: 20px;
+}
+#welcome-text{
+    color: #55AD9B;
+}
+
+/* Imagen animada */
+.animate-img {
+    transform: scale(0.9);
+    opacity: 0;
+    transition: all 0.8s ease;
+}
+
+.animate-img.visible {
+    transform: scale(1);
+    opacity: 1;
+}
+/* Responsive general */
+@media screen and (max-width: 991px) {
+    #containerMain {
+        align-items: flex-start;
+        padding-top: 30%;
+    }
+
+    .animate-img.visible {
+        transform: scale(0.9);
+    }
+
+    #welcomeCard {
+        padding: 15px;
+    }
+
+    #containerImg img {
+        max-width: 200px;
+    }
+}
+
+@media screen and (max-width: 576px) {
+    #containerMain {
+        background-position: initial !important;
+        padding: 10px;
+        padding-top: 30%;
+    }
+
+    #welcomeCard {
+        padding: 10px;
+    }
+
+    #containerImg img {
+        max-width: 160px;
+    }
+
+    .card-body {
+        text-align: center;
+    }
+}
+/* DARK MODE */
+@media (prefers-color-scheme: dark) {
+    /* #welcomeCard {
+        background-color: #121212;
+    }
+    .card-body p, .card-body h5{
+        color: #fff;
+    } */
+}

@@ -1,0 +1,36 @@
+#containerUserInfo img {
+    border: 2px solid #55AD9B;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(85, 173, 155, 0.4);
+}
+
+#containerUserInfo ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+#containerUserInfo ul li {
+    background-color: #E7F6F3;
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    border-left: 5px solid #55AD9B;
+    color: #333;
+    font-size: 15px;
+    transition: background-color 0.3s ease;
+}
+
+#containerUserInfo ul li:hover {
+    background-color: #dff2ee;
+}
+h4{
+    color: #55AD9B;
+}
+@media screen and (max-width: 991px) {
+    h4{
+        justify-self: center;
+    }
+    form div{
+        width: 100% !important;
+    }
+}
