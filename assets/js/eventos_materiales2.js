@@ -858,7 +858,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let dataDIBillet = parseFloat($(this).attr(`data-di-billet`));
 
                     $(`#containerBodyModalBillets_m${i}`).css("width", "62%");
-                    $(`#container38_m${i}`).removeClass(`d-none`).css("width", "32%");
+                    $(`#container38_m${i}`).removeClass(`d-none`).css("width", "38%");
                     $(`#containerCircleBillet_m${i}`).removeClass(`d-none`);
                     $(`#circuloSvg_m${i}`).removeClass(`d-none`);
                     $(`#btnQuitarCircle_m${i}`).removeClass(`d-none`);
@@ -958,9 +958,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     $(`#pag1_m${i}`).addClass(`d-none`);
                     $(`#pag2_m${i}`).removeClass(`d-none`);
                     $(`#pag2_m${i}`).addClass(`d-flex`);
-                    $(`html, body`).animate({
-                        scrollTop: $(`#sectionContainerMaterial_m${i}`).offset().top
-                    }, 100); 
+                    // $(`html, body`).animate({
+                    //     scrollTop: $(`#sectionContainerMaterial_m${i}`).offset().top
+                    // }, 100); 
 
                     let diametroInteriorValue = $(`#diametro_interior_mm_m${i}`).val() || 0;
                     let cantidadValue = $(`#inputCantidad_m${i}`).val();

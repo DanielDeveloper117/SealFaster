@@ -248,8 +248,36 @@
             // Mostrar imagen QR en el contenedor del modal
             $("#ContainerQR, #ContainerQR2").html(`<img src="${qrSrc}" width="250" height="250">`);
 
+            $(".btnFirmaPredeterminada").data("id-requisicion", idRequisicion);
+            $(".btnFirmaPredeterminada").data("autoriza", autoriza);
+
             // Iniciar la verificación periódica
             verificarAutorizacionQR(idRequisicion, autoriza);
+        });
+
+        $(".btnFirmaPredeterminada").on("click", function(){
+            const idRequisicionX = $(this).data('id-requisicion');
+            const autorizaX = $(this).data('autoriza');
+            cancelarVerificacionQR();
+            $.ajax({
+                url: '../ajax/autorizar_firma_predeterminada.php',
+                method: 'POST',
+                data: {
+                    id_requisicion: idRequisicionX,
+                    t: autorizaX
+                },
+                success: function(data) {
+                    if (data.success) {
+                        sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                    } else {
+                        sweetAlertResponse("warning", "Advertencia", data.error, "self");
+                    }
+                },
+                error: function () {
+                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar ", "none");
+                    console.error("Error al consultar el estatus de autorización.");
+                }
+            });
         });
 
         function cancelarVerificacionQR() {
@@ -288,6 +316,9 @@
                 break;
                 case 'Produccion':
                     $("#dt-search-0").val("En producción");
+                break;
+                case 'Finalizada':
+                    $("#dt-search-0").val("Finalizada");
                 break;
                 case 'Todo':
                     $("#dt-search-0").val("");

@@ -61,6 +61,10 @@ $pdf = new PDF();
 $pdf->AddPage('P'); // orientación horizontal
 $pdf->AliasNbPages(); // muestra la página actual y el total de páginas
 
+function mm_a_pulgadas($mm) {
+    return round($mm / 25.4, 4);
+}
+
 // Obtener los datos de la cotización
 if (isset($_GET['id_requisicion'])) {
     $id_requisicion = $_GET['id_requisicion'];
@@ -218,7 +222,11 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->Cell(49, 6, 'Tipo medida', 1, 0, 'C', true);
         $pdf->Cell(47, 6, 'D. Interior', 1, 0, 'C', true);
         $pdf->Cell(47, 6, 'D. Exterior', 1, 0, 'C', true);
-        $pdf->Cell(47, 6, 'Altura', 1, 1, 'C', true);
+        if($familiaPerfil=="wipers"){
+            $pdf->Cell(47, 6, 'Altura total', 1, 1, 'C', true);
+        }else{
+            $pdf->Cell(47, 6, 'Altura', 1, 1, 'C', true);
+        }
 
         $pdf->SetFont('Arial', '', 10);
         $pdf->Cell(49, 6, utf8_decode("Sello"), 1, 0, 'C');
@@ -259,6 +267,80 @@ if (isset($_GET['id_requisicion'])) {
             $pdf->Cell(47, 6, utf8_decode($cot['a_sello2'].'mm/'.$cot['a_sello_inch2'].'"'), 1, 1, 'C');
         }
 
+        // ******************************LAS OTRAS ALTURAS************************************************
+
+        $esWisper = $arregoPerfil["es_wiper"];
+        $conEscalon = $arregoPerfil["con_escalon"];
+        $wisperEspecial = $arregoPerfil["es_wisper_especial"];
+        $pdf->SetTextColor(0, 0, 0);
+        $pdf->SetFillColor(220, 220, 220);
+        $pdf->SetFont('Arial', 'B', 10);
+        // altura de caja para solo wispers sin escalon
+        if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
+            $pdf->Cell(49, 6, 'Altura caja', 1, 1, 'C', true);
+        }
+        if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial !== "0"){
+            $pdf->Cell(49, 6, 'Altura caja', 1, 0, 'C', true);
+        }
+        // altura de caja con escalon
+        if($esWisper !== "0" && $conEscalon !== "0"){
+            $pdf->Cell(49, 6, 'Altura caja', 1, 0, 'C', true);
+            $pdf->Cell(47, 6, utf8_decode('Altura escalón'), 1, 1, 'C', true);
+        }
+        // alturas wisper especial
+        if($wisperEspecial !== "0"){
+            $pdf->Cell(47, 6, 'Altura H2', 1, 0, 'C', true);
+            $pdf->Cell(47, 6, 'Altura H3', 1, 1, 'C', true);
+        }
+
+        // ------------ Altura caja
+        if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
+            if ($cot['altura_caja'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(49, 6, utf8_decode($cot['altura_caja'].'mm/'.mm_a_pulgadas($cot['altura_caja']).'"'), 1, 1, 'C');
+        }
+        if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial !== "0"){
+            if ($cot['altura_caja'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(49, 6, utf8_decode($cot['altura_caja'].'mm/'.mm_a_pulgadas($cot['altura_caja']).'"'), 1, 0, 'C');
+        }
+        // ------------- altura de caja con escalon
+        if($esWisper !== "0" && $conEscalon !== "0"){
+            if ($cot['altura_caja'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(49, 6, utf8_decode($cot['altura_caja'].'mm/'.mm_a_pulgadas($cot['altura_caja']).'"'), 1, 0, 'C');
+            if ($cot['altura_escalon'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(47, 6, utf8_decode($cot['altura_escalon'].'mm/'.mm_a_pulgadas($cot['altura_escalon']).'"'), 1, 1, 'C');
+        }
+        // ------------ alturas wisper especial
+        if($wisperEspecial !== "0"){
+            if ($cot['altura_h2'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(47, 6, utf8_decode($cot['altura_h2'].'mm/'.mm_a_pulgadas($cot['altura_h2']).'"'), 1, 0, 'C');
+            if ($cot['altura_h3'] === "0.00") {
+                $pdf->SetFont('Arial', 'I', 10);
+            } else {
+                $pdf->SetFont('Arial', '', 10);
+            }
+            $pdf->Cell(47, 6, utf8_decode($cot['altura_h3'].'mm/'.mm_a_pulgadas($cot['altura_h3']).'"'), 1, 1, 'C');
+        }
+        // ***********************************************************************************************
 
         // === Tabla de materiales ===
         $pdf->SetTextColor(0, 0, 0);
@@ -267,12 +349,12 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->Cell(31, 6, 'Num. Material', 1, 0, 'C', true);
         $pdf->Cell(31, 6, 'Cantidad Pz.', 1, 0, 'C', true);
         $pdf->Cell(34, 6, 'Material', 1, 0, 'C', true);
-        $pdf->Cell(65, 6, 'Claves', 1, 0, 'C', true);
-        $pdf->Cell(29, 6, 'Precio unitario', 1, 1, 'C', true);
+        $pdf->Cell(94, 6, 'Claves', 1, 1, 'C', true);
+        //$pdf->Cell(29, 6, 'Precio unitario', 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', '', 9);
         foreach ($cotizacionData as $cot) {
-            $clavesFormateadas = array_map('trim', explode(',', $cot['billets_string']));
+            $clavesFormateadas = array_map('trim', explode(',', $cot['billets_string2']));
             $CONTEO_CLAVES +=  count($clavesFormateadas);
             // Unimos las claves con saltos de línea para mostrarlas en vertical
             $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
@@ -290,12 +372,13 @@ if (isset($_GET['id_requisicion'])) {
             $x = $pdf->GetX();
             $y = $pdf->GetY();
             // Usamos MultiCell para Claves (esto puede generar varias líneas)
-            $pdf->MultiCell(65, $lineHeight, $clavesVertical, 1, 'C');
+            $pdf->MultiCell(94, $lineHeight, $clavesVertical, 1, 'C');
             // Aseguramos que la siguiente celda esté alineada correctamente después de MultiCell
-            $pdf->SetXY($x + 65, $y);
+            $pdf->SetXY($x + 94, $y);
             // $pdf->Cell(38, 6, utf8_decode($cot['claves']), 1, 0, 'C');
 
-            $pdf->Cell(29, $maxRowHeight, "$" . number_format($cot['total_unitarios'], 2), 1, 1, 'C');
+            $pdf->Cell(0, $maxRowHeight,"", 1, 1, 'C');
+            //$pdf->Cell(29, $maxRowHeight, "$" . number_format($cot['total_unitarios'], 2), 1, 1, 'C');
         }
 
         $pdf->Ln(5); // Separación entre cotizaciones

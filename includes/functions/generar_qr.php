@@ -2,7 +2,7 @@
 require_once(__DIR__ . '/../../config/rutes.php');
 require ROOT_PATH . 'vendor/autoload.php';
 require_once(ROOT_PATH . 'config/config.php');
-
+session_start();
 use Endroid\QrCode\QrCode;
 use Endroid\QrCode\Writer\PngWriter;
 use Endroid\QrCode\Encoding\Encoding;
@@ -29,8 +29,9 @@ try {
     $stmt->bindParam(':autoriza', $_GET['t']);
     $stmt->execute();
 
+    $id_usuario = $_SESSION['id'];
     // Ahora construye la URL incluyendo el token
-    $url = "https://sellosyretenes.com/plataforma/estimador/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}";
+    $url = "https://sellosyretenes.com/plataforma/estimador/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
 
     file_put_contents($log, "URL a codificar: $url\n", FILE_APPEND);
 

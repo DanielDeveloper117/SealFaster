@@ -119,10 +119,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
         ////////////////////////////PHP MAILER -> cotizador a admin ////////////////
+        require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        $mail = getMailer($conn);
         try {
             if($autoriza != "cnc"){
-                require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                $mail = getMailer($conn);
                 $id_requisicion = $_POST['id_requisicion'];
 
                 $clave_encriptacion = 'SRS2024#tides';
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     $token = $_GET['token'];
 
-    if (isset($_GET['id_requisicion'], $_GET['t']) && !empty($_GET['id_requisicion']) && !empty($_GET['t'])) {
+    if (isset($_GET['id_requisicion'], $_GET['t'], $_GET['u']) && !empty($_GET['id_requisicion']) && !empty($_GET['t']) && !empty($_GET['u'])) {
         $id_requisicion = $_GET['id_requisicion'];
         $autoriza = $_GET['t'];
 
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <body>
     <div class="d-flex flex-column justify-content-center align-items-center" >
         <h1 class="mt-2">Firmar requisición</h1>
-        <h4>ID: <?= htmlspecialchars($id_requisicion); ?></h4>
+        <h4>Folio: <?= htmlspecialchars($id_requisicion); ?></h4>
         <main class="d-flex flex-column justify-content-center align-items-center col-11" >
             <div class="d-flex flex-column col-12 justify-content-center align-items-center">
                 <p>Dibuje su firma y toque el boton de Continuar</p>
@@ -225,6 +225,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             </section>
             <section class="d-flex flex-column col-12 justify-content-center align-items-center mt-3">
                 <button type="button" id="btnLimpiar" class="btn btn-secondary mb-2">Limpiar firma</button>
+                <?php if ($autoriza == "g" || $autoriza == "a"): ?>
+                    <div class="form-check mb-3 ">
+                        <input class="form-check-input" type="checkbox" id="checkFirmaPredeterminada">
+                        <label class="form-check-label" for="checkFirmaPredeterminada">
+                            Marcar como firma predeterminada
+                        </label>
+                    </div>
+                <?php endif; ?>
                 <button type="button" id="btnAutorizar" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalEstasSeguro">Autorizar</button>
             </section>
 
@@ -255,6 +263,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     <input type="hidden" name="t" value="<?= htmlspecialchars($autoriza); ?>">
                     <input type="hidden" name="action" value="autorizada">
                     <input type="hidden" name="token" value="<?= htmlspecialchars($token); ?>">
+                    <input type="hidden" id="inputPredeterminada" name="predeterminada" value="0">
                     <button id="btnContinuar" type="button" class="btn-general">Continuar</button>
                 </form>
             </div>
@@ -262,93 +271,106 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
+<div id="nada"></div>
+<script>
+    const checkboxFirma = document.getElementById('checkFirmaPredeterminada') || document.getElementById('nada');
 
-    <script>
-        const container = document.querySelector('.container-firma');
-        const canvas = document.getElementById('canvasFirma');
-        const signaturePad = new SignaturePad(canvas);
-        
-        function ajustarSizeCanvas() {
-            const ancho = 400; // en píxeles reales
-            const alto = 200;  // estándar para firma
-            
-            canvas.width = ancho; // tamaño interno del canvas
-            canvas.height = alto;
-            
-            // también tamaño visual para evitar distorsión
-            canvas.style.width = ancho + 'px';
-            canvas.style.height = alto + 'px';
+    checkboxFirma.addEventListener('change', function () {
+        if (checkboxFirma.checked) {
+            document.querySelector("#inputPredeterminada").value="1";
+        } else {
+            document.querySelector("#inputPredeterminada").value="0";
         }
-        ajustarSizeCanvas();
+    });
+
+    const container = document.querySelector('.container-firma');
+    const canvas = document.getElementById('canvasFirma');
+    const signaturePad = new SignaturePad(canvas);
+    
+    function ajustarSizeCanvas() {
+        const ancho = 400; // en píxeles reales
+        const alto = 200;  // estándar para firma
         
-        // Ajustar al cargar
-        window.addEventListener('load', ajustarSizeCanvas);
+        canvas.width = ancho; // tamaño interno del canvas
+        canvas.height = alto;
+        
+        // también tamaño visual para evitar distorsión
+        canvas.style.width = ancho + 'px';
+        canvas.style.height = alto + 'px';
+    }
+    ajustarSizeCanvas();
+    
+    // Ajustar al cargar
+    window.addEventListener('load', ajustarSizeCanvas);
 
-        // Ajustar también si la ventana se redimensiona (opcional)
-        window.addEventListener('resize', () => {
-            ajustarSizeCanvas();
-            signaturePad.clear(); // Borra la firma si redimensiona, evita deformación
-        });
+    // Ajustar también si la ventana se redimensiona (opcional)
+    window.addEventListener('resize', () => {
+        ajustarSizeCanvas();
+        signaturePad.clear(); // Borra la firma si redimensiona, evita deformación
+    });
 
-        document.getElementById('btnLimpiar').addEventListener('click', () => {
-            signaturePad.clear();
-        });
+    document.getElementById('btnLimpiar').addEventListener('click', () => {
+        signaturePad.clear();
+    });
 
-        document.getElementById('btnContinuar').addEventListener('click', () => {
-            if (signaturePad.isEmpty()) {
-                sweetAlertResponse("warning", "Atención", "Por favor firme antes de autorizar.", "none");
-                return;
+    document.getElementById('btnContinuar').addEventListener('click', () => {
+        if (signaturePad.isEmpty()) {
+            sweetAlertResponse("warning", "Atención", "Por favor firme antes de autorizar.", "none");
+            return;
+        }
+
+        // Convertir la firma base64 a Blob
+        function base64ToBlob(base64) {
+            const parts = base64.split(',');
+            const mime = parts[0].match(/:(.*?);/)[1];
+            const byteChars = atob(parts[1]);
+            const byteNumbers = new Array(byteChars.length);
+            for (let i = 0; i < byteChars.length; i++) {
+                byteNumbers[i] = byteChars.charCodeAt(i);
             }
+            const byteArray = new Uint8Array(byteNumbers);
+            return new Blob([byteArray], { type: mime });
+        }
 
-            // Convertir la firma base64 a Blob
-            function base64ToBlob(base64) {
-                const parts = base64.split(',');
-                const mime = parts[0].match(/:(.*?);/)[1];
-                const byteChars = atob(parts[1]);
-                const byteNumbers = new Array(byteChars.length);
-                for (let i = 0; i < byteChars.length; i++) {
-                    byteNumbers[i] = byteChars.charCodeAt(i);
+        const firmaBase64 = signaturePad.toDataURL('image/png');
+        const blobFirma = base64ToBlob(firmaBase64);
+        const esPredeterminada = document.querySelector("#inputPredeterminada").value;
+
+        const formData = new FormData();
+        formData.append('id_requisicion', <?= json_encode($id_requisicion) ?>);
+        formData.append('autoriza', <?= json_encode($autoriza) ?>);
+        formData.append('firma', blobFirma, 'firma.png');
+        formData.append('predeterminada', esPredeterminada);
+        formData.append('u', <?= $_GET['u']?>);
+
+        $.ajax({
+            url: '../ajax/ajax_guardar_firma.php',
+            type: 'POST',
+            dataType: 'json',
+            data: formData,
+            processData: false,  // importante para FormData
+            contentType: false,  // importante para FormData
+            success: function(response) {
+                if (response.success) {
+                    console.log("✅ Firma guardada correctamente:", response);
+                    // Enviar formulario solo si se guardó la firma
+                    document.getElementById('formContinuarAutorizar').submit();
+                } else {
+                    console.error("⚠️ Error al guardar firma:", response);
+                    sweetAlertResponse("error", "Error", response.error || "Error inesperado al guardar la firma", "none");
                 }
-                const byteArray = new Uint8Array(byteNumbers);
-                return new Blob([byteArray], { type: mime });
+            },
+            error: function(xhr, status, error) {
+                console.error("❌ Error AJAX - Detalles:");
+                console.error("Estado HTTP:", xhr.status);
+                console.error("Texto de estado:", status);
+                console.error("Mensaje del servidor:", error);
+                console.error("Respuesta completa:", xhr.responseText);
+                sweetAlertResponse("error", "Error", "No se pudo guardar la firma", "none");
             }
-
-            const firmaBase64 = signaturePad.toDataURL('image/png');
-            const blobFirma = base64ToBlob(firmaBase64);
-
-            const formData = new FormData();
-            formData.append('id_requisicion', <?= json_encode($id_requisicion) ?>);
-            formData.append('autoriza', <?= json_encode($autoriza) ?>);
-            formData.append('firma', blobFirma, 'firma.png');
-
-            $.ajax({
-                url: '../ajax/ajax_guardar_firma.php',
-                type: 'POST',
-                dataType: 'json',
-                data: formData,
-                processData: false,  // importante para FormData
-                contentType: false,  // importante para FormData
-                success: function(response) {
-                    if (response.success) {
-                        console.log("✅ Firma guardada correctamente:", response);
-                        // Enviar formulario solo si se guardó la firma
-                        document.getElementById('formContinuarAutorizar').submit();
-                    } else {
-                        console.error("⚠️ Error al guardar firma:", response);
-                        sweetAlertResponse("error", "Error", response.error || "Error inesperado al guardar la firma", "none");
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error("❌ Error AJAX - Detalles:");
-                    console.error("Estado HTTP:", xhr.status);
-                    console.error("Texto de estado:", status);
-                    console.error("Mensaje del servidor:", error);
-                    console.error("Respuesta completa:", xhr.responseText);
-                    sweetAlertResponse("error", "Error", "No se pudo guardar la firma", "none");
-                }
-            });
         });
-    </script>
+    });
+</script>
 
 </body>
 </html>

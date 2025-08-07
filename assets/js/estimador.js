@@ -579,6 +579,8 @@ $(document).ready(function() {
             if(window.esWiper !== "0"){
                 $(`#labelAlturaMM_cliente`).text("Altura total (mm)");
                 $(`#labelAlturaInch_cliente`).text("Altura total (inches)");
+                $(`#labelAlturaMM_cliente, #labelAlturaInch_cliente`).css("font-size", "20px");
+                $(`#labelAlturaMM_cliente, #labelAlturaInch_cliente`).css("color", "#00bb8f");
                 $(`#divAlturaCaja`).removeClass("d-none");
                 $("#otrasAlturasTitle").removeClass("d-none");
                 console.log("Si es wiper");

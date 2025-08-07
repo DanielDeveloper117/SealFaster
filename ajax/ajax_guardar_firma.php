@@ -21,20 +21,23 @@ try {
     $autoriza = $_POST['autoriza'];
     $firmaFile = $_FILES['firma'];
 
-    if (empty($id) || empty($autoriza) || $firmaFile['error'] !== UPLOAD_ERR_OK) {
-        echo json_encode(['error' => 'Error con los parámetros o con la carga del archivo.']);
-        exit();
-    }
-
+    $es_predeterminada = $_POST['predeterminada'];
+    $id_usuario = $_POST['u'];
+    
     // Validar existencia de la requisición
     $check = $conn->prepare("SELECT COUNT(*) FROM requisiciones WHERE id_requisicion = :id");
     $check->bindParam(':id', $id, PDO::PARAM_INT);
     $check->execute();
+
     if (!$check->fetchColumn()) {
         echo json_encode(['error' => 'La requisición no existe.']);
         exit();
     }
 
+    if (empty($id) || empty($autoriza) || $firmaFile['error'] !== UPLOAD_ERR_OK) {
+        echo json_encode(['error' => 'Error con los parámetros o con la carga del archivo.']);
+        exit();
+    }
     // Validar tipo MIME de la imagen subida
     $finfo = new finfo(FILEINFO_MIME_TYPE);
     $mime = $finfo->file($firmaFile['tmp_name']);
@@ -43,28 +46,53 @@ try {
         exit();
     }
 
-    // Crear carpeta si no existe
-    $carpeta = ROOT_PATH . 'files/uploads/';
-    if (!is_dir($carpeta)) {
-        mkdir($carpeta, 0775, true);
-    }
+    if($es_predeterminada == "1"){
+        // Crear carpeta si no existe
+        $carpeta = ROOT_PATH . 'files/signatures/';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0775, true);
+        }
+        $nombreArchivo = "{$id_usuario}.png";
+        if ($autoriza === "g") {
+            $sql = "UPDATE requisiciones SET ruta_firma = :ruta WHERE id_requisicion = :id";
+        } elseif ($autoriza === "a") {
+            $sql = "UPDATE requisiciones SET ruta_firma_admin = :ruta WHERE id_requisicion = :id";
+        } elseif ($autoriza === "cnc") {
+            $sql = "UPDATE requisiciones SET ruta_firma_cnc = :ruta WHERE id_requisicion = :id";
+        } else {
+            echo json_encode(['error' => 'Valor inesperado en el campo "autoriza".']);
+            exit();
+        }
+    
+        $rutaCompleta = $carpeta . $nombreArchivo;
+        $rutaBD = 'files/signatures/' . $nombreArchivo;
+    }elseif($es_predeterminada == "0"){
+        // Crear carpeta si no existe
+        $carpeta = ROOT_PATH . 'files/uploads/';
+        if (!is_dir($carpeta)) {
+            mkdir($carpeta, 0775, true);
+        }
+        if ($autoriza === "g") {
+            $nombreArchivo = "firma_gerente_{$id}.png";
+            $sql = "UPDATE requisiciones SET ruta_firma = :ruta WHERE id_requisicion = :id";
+        } elseif ($autoriza === "a") {
+            $nombreArchivo = "firma_admin_{$id}.png";
+            $sql = "UPDATE requisiciones SET ruta_firma_admin = :ruta WHERE id_requisicion = :id";
+        } elseif ($autoriza === "cnc") {
+            $nombreArchivo = "firma_cnc_{$id}.png";
+            $sql = "UPDATE requisiciones SET ruta_firma_cnc = :ruta WHERE id_requisicion = :id";
+        } else {
+            echo json_encode(['error' => 'Valor inesperado en el campo "autoriza".']);
+            exit();
+        }
+    
+        $rutaCompleta = $carpeta . $nombreArchivo;
+        $rutaBD = 'files/uploads/' . $nombreArchivo;
 
-    if ($autoriza === "g") {
-        $nombreArchivo = "firma_gerente_{$id}.png";
-        $sql = "UPDATE requisiciones SET ruta_firma = :ruta WHERE id_requisicion = :id";
-    } elseif ($autoriza === "a") {
-        $nombreArchivo = "firma_admin_{$id}.png";
-        $sql = "UPDATE requisiciones SET ruta_firma_admin = :ruta WHERE id_requisicion = :id";
-    } elseif ($autoriza === "cnc") {
-        $nombreArchivo = "firma_cnc_{$id}.png";
-        $sql = "UPDATE requisiciones SET ruta_firma_cnc = :ruta WHERE id_requisicion = :id";
-    } else {
-        echo json_encode(['error' => 'Valor inesperado en el campo "autoriza".']);
+    }else{
+        echo json_encode(['error' => 'Error al verificar predeterminada.']);
         exit();
     }
-
-    $rutaCompleta = $carpeta . $nombreArchivo;
-    $rutaBD = 'files/uploads/' . $nombreArchivo;
 
     // Eliminar firma anterior si existe
     if (file_exists($rutaCompleta)) {

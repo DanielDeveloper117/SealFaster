@@ -16,7 +16,7 @@
                 $sucursal = $_POST['sucursal'];
                 $cliente = $_POST['cliente'];
                 $fechahora = $_POST['fechahora'];
-                $folio = $_POST['folio'];
+                //$folio = $_POST['folio'];
                 $num_pedido = $_POST['num_pedido'];
                 $factura = $_POST['factura'];
                 $paqueteria = $_POST['paqueteria'];
@@ -31,8 +31,8 @@
 
                 }
 
-                $sql = "INSERT INTO requisiciones (id_vendedor, estatus, cotizaciones, nombre_vendedor, sucursal, cliente, fechahora, folio, num_pedido, factura, paqueteria, comentario) 
-                                        VALUES (:id_vendedor, :estatus, :cotizaciones, :nombre_vendedor, :sucursal, :cliente, :fechahora, :folio , :num_pedido, :factura , :paqueteria , :comentario)";
+                $sql = "INSERT INTO requisiciones (id_vendedor, estatus, cotizaciones, nombre_vendedor, sucursal, cliente, fechahora, num_pedido, factura, paqueteria, comentario) 
+                                        VALUES (:id_vendedor, :estatus, :cotizaciones, :nombre_vendedor, :sucursal, :cliente, :fechahora, :num_pedido, :factura , :paqueteria , :comentario)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':id_vendedor', $id_vendedor);
                 $stmt->bindParam(':estatus', $estatus);
@@ -41,12 +41,20 @@
                 $stmt->bindParam(':sucursal', $sucursal);
                 $stmt->bindParam(':cliente', $cliente);
                 $stmt->bindParam(':fechahora', $fechahora);
-                $stmt->bindParam(':folio', $folio);
+                //$stmt->bindParam(':folio', $folio);
                 $stmt->bindParam(':num_pedido', $num_pedido);
                 $stmt->bindParam(':factura', $factura);
                 $stmt->bindParam(':paqueteria', $paqueteria);
                 $stmt->bindParam(':comentario', $comentario);
                 $stmt->execute();
+
+                // ACTUALIZAR QUE EL FOLIO SEA IGUAL A LA ID REQUISICION
+                $id_requisicion = $conn->lastInsertId();
+                $update = $conn->prepare("UPDATE requisiciones SET folio = :folio WHERE id_requisicion = :id");
+                $update->execute([
+                    'folio' => $id_requisicion,
+                    'id' => $id_requisicion
+                ]);
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -72,7 +80,7 @@
 
                 $mail->addAddress($correoVentasGerencia);
                 $mail->Subject = 'Nueva requisición por autorizar.';
-                $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de producción para autorizarla con su firma.";
+                $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de producción para autorizarla con su firma. Folio: $id_requisicion";
 
                 if (!$mail->send()) {
                     throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
@@ -227,7 +235,7 @@
                 $stmt->execute();
                 $arregloCorreoProduccion = $stmt->fetch(PDO::FETCH_ASSOC);
                 if (!$arregloCorreoProduccion || empty($arregloCorreoProduccion['usuario'])) {
-                    throw new Exception("No se encontró correo de gerencia.");
+                    throw new Exception("No se encontró correo de produccion.");
                 }
                 $clave_encriptacion = 'SRS2024#tides';
                 //$correoProduccion = openssl_decrypt($arregloCorreoProduccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
