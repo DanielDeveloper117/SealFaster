@@ -94,7 +94,7 @@ if (!isset($_SESSION['id'])) {
                         <th>Estatus</th>
                         <th>Vendedor</th>
                         <th>Cliente</th>
-                        <th>Cotizaciones</th>
+                        <!-- <th>Cotizaciones</th> -->
                         <th>Fecha</th>
                         <th>Folio</th>
                         <th>Num. pedido</th>
@@ -165,7 +165,7 @@ if (!isset($_SESSION['id'])) {
                         <td><?= htmlspecialchars($row['estatus']??""); ?></td>
                         <td><?= htmlspecialchars($row['nombre_vendedor']??""); ?></td>
                         <td><?= htmlspecialchars($row['cliente']??""); ?></td>
-                        <td>
+                        <!-- <td>
                             <?php
                                 $cotizaciones = $row['cotizaciones'] ?? '';
                                 $ids = explode(', ', $cotizaciones);
@@ -175,7 +175,7 @@ if (!isset($_SESSION['id'])) {
                                     }
                                 }
                             ?>
-                        </td>
+                        </td> -->
 
                         <td><?= htmlspecialchars($row['fechahora']??""); ?></td>
                         <td><?= htmlspecialchars($row['folio']??""); ?></td>

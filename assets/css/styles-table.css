@@ -190,6 +190,29 @@
 .btn-blue:active {
     background-color: #7084aa;
 }
+.btn-archive {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ffc107; 
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(255, 193, 7, 0.5);
+    text-decoration: none;
+}
+.btn-archive:hover {
+    background-color: #ffcf3f; 
+    box-shadow: 0 4px 8px rgba(193, 149, 17, 1);
+    transform: translateY(-4px);
+
+}
+.btn-archive:active {
+    background-color: #ffcf3f; 
+}
 .span-terracota{
     width: 100%;
     text-align: center;
@@ -247,6 +270,73 @@
     pointer-events: none;
     background-color: #00000021 !important;
     box-shadow: none;
+}
+.btn-purple {
+    text-align: center;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 5px;
+    background-color: #7c50b1;
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(139, 95, 191, 0.2);
+    text-decoration: none;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-purple:hover {
+    background-color: #A37DD6;
+    box-shadow: 0 4px 8px rgba(139, 95, 191, 1);
+    transform: translateY(-4px);
+    color: white;
+    text-decoration: none;
+}
+
+.btn-purple:active {
+    background-color: #7A4FA3;
+    transform: translateY(-1px);
+}
+
+.filtros-activos {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.filtro-tag {
+    display: inline-block;
+    background-color: #A37DD6;
+    color: white;
+    padding: 6px 12px;
+    margin: 3px;
+    border-radius: 15px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.form-check-input:checked {
+    background-color: #55AD9B; /* color de relleno */
+    border-color: #55AD9B;     /* color del borde */
+    box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
+.form-section i, .filtros-activos i {
+    color: #7c50b1;
+}
+.container-actions button{
+    height: auto !important;
+    padding: 5px !important;
+}
+.container-actions i{
+    font-size: 20px !important;
+    color: #fff;
+    font-weight: 600;
 }
 .existencia-barra {
     height: 20px;
@@ -326,11 +416,11 @@ table.dataTable td, table.dataTable th {
 .td-first-actions{
     font-size:12px;
 }
-.td-first-actions button{
+/* .td-first-actions button{
     font-size:13px !important;
     padding:8px !important;
     font-weight:500 !important;
-}
+} */
 #overlay {
     position: fixed; 
     top: 0; 

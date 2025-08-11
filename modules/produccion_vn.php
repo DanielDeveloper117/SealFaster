@@ -297,8 +297,8 @@ if (!isset($_SESSION['id'])) {
                         </div>
                         <div style="width:48%;">
                             <label for="inputComentario" class="lbl-general">Comentario (opcional)</label>
-                            <input id="inputComentario" type="text" maxlength="75" class="input-text" name="comentario">
-                            <small id="contadorComentario" style="display:block; text-align:right; font-size:12px; color:#555;">0 / 76 caracteres</small>
+                            <input id="inputComentario" type="text" maxlength="50" class="input-text" name="comentario">
+                            <small id="contadorComentario" style="display:block; text-align:right; font-size:12px; color:#555;">0 / 50 caracteres</small>
                         </div>
                     </div>
                     <!-- <div class="d-flex justify-content-center mb-3">
@@ -433,7 +433,8 @@ if (!isset($_SESSION['id'])) {
             <div class="mb-4">
                 <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
                 <ul>
-                    <li><strong>Gerencia, dirección y CNC:</strong> pueden ver <em>todas</em> las requisiciones.</li>
+                    <li><strong>Gerencia y dirección:</strong> pueden ver <em>todas</em> las requisiciones.</li>
+                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada por dirección.</li>
                     <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
                 </ul>
             </div>

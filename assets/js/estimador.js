@@ -451,18 +451,45 @@ $(document).ready(function() {
     // PUSH A PROMISES
     function pushPromise(numeroMaterial) {
         return new Promise((resolve) => {
-            let diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
-            let deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
-            let alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
-            let diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
-            let deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
-            let alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
-            let diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
-            let deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
-            let alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
-            let diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
-            let deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
-            let alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+            let diClienteSello = 0.00;
+            let deClienteSello = 0.00;
+            let alturaClienteSello = 0.00; 
+            let diClienteSelloInch = 0.00;
+            let deClienteSelloInch = 0.00;
+            let alturaClienteSelloInch = 0.00;
+            let diClienteSello2 = 0.00;
+            let deClienteSello2 = 0.00;
+            let alturaClienteSello2 = 0.00;
+            let diClienteSelloInch2 = 0.00;
+            let deClienteSelloInch2 = 0.00;
+            let alturaClienteSelloInch2 = 0.00;
+            if(window.TIPO_MEDIDA_SELLO == "Sello"){
+                diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
+                deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
+                alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
+                diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
+                deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
+                alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
+                diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
+                deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
+                alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
+                diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
+                deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
+                alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+            }else{
+                diClienteSello = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
+                deClienteSello = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
+                alturaClienteSello = parseFloat($('#altura_mm_cliente2').val()) || 0.00; 
+                diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
+                deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
+                alturaClienteSelloInch = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+                diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
+                deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
+                alturaClienteSello2 = parseFloat($('#altura_mm_cliente').val()) || 0.00;
+                diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
+                deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
+                alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente').val()) || 0.00;
+            }
 
             $.ajax({
                 url: '../ajax/ajax_guardar_cotizacion.php',
@@ -744,6 +771,8 @@ $(document).ready(function() {
             habilitarInput("#inputAlturaH2Inch");
             habilitarInput("#inputAlturaH3");
             habilitarInput("#inputAlturaH3Inch");
+
+
            
         }else{
             $("#altura_mm_cliente").trigger("input");
@@ -1252,7 +1281,7 @@ $(document).ready(function() {
                     confirmButtonColor: '#55AD9B',
                 }).then((result) => {
                     if (result.isConfirmed || result.dismiss === Swal.DismissReason.close || result.dismiss === Swal.DismissReason.overlay) {
-                        window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
+                        //window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
                         window.location.href = "cotizaciones.php";
 
                         $.post("../ajax/ajax_notificacion.php", {

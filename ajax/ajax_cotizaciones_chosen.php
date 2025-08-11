@@ -8,7 +8,7 @@ try{
     $id_usuario = $_SESSION['id'];
     
     // Preparar la consulta
-    $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
+    $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id  AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
     $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
     $stmtCotizaciones->bindParam(':id', $id_usuario);
     $stmtCotizaciones->execute();

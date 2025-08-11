@@ -9,19 +9,28 @@
         $.ajax({
             url: '../ajax/ajax_cotizaciones_chosen.php', 
             type: 'GET',
-            data: { id_usuario: window.ID_USUARIO_SESSION },
             dataType: 'json',
             success: function(data) {
                 // Verifica que la respuesta tenga datos
                 if (data.length > 0) {
                     $.each(data, function(index, item) {
+                        if(item.di_sello == "0.00"){
+                            item.di_sello = item.di_sello2;
+                        }
+                        if(item.de_sello == "0.00"){
+                            item.de_sello = item.de_sello2;
+                        }
+                        if(item.a_sello == "0.00"){
+                            item.a_sello = item.a_sello2;
+                        }                        
+
                         $("#buscadorCotizaciones").append(
                             `
                             <option id="c_${item.id_cotizacion}" value="${item.id_cotizacion}"
                                     data-id="${item.id_cotizacion}"
                                     data-perfil="${item.perfil_sello}"
                                     data-tipomedida="${item.tipo_medida}"
-                                    data-di="${item.di_sello}"
+                                    data-di="${item.di_sello || item.di_sello2 }"
                                     data-de="${item.de_sello}"
                                     data-a="${item.a_sello}"
                             >${item.id_cotizacion} - ${item.perfil_sello} - ${item.di_sello}/${item.de_sello}/${item.a_sello}</option>
@@ -38,7 +47,7 @@
         });
 
         function actualizarContadorComentario() {
-            $("#contadorComentario").text(`${$("#inputComentario").val().length} / 75 caracteres`);
+            $("#contadorComentario").text(`${$("#inputComentario").val().length} / 50 caracteres`);
         }
         $("#inputComentario").on("input", function () {
             actualizarContadorComentario();

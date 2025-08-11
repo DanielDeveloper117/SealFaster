@@ -63,6 +63,7 @@
                 exit;
             }
             ////////////////////////////PHP MAILER -> cotizador a gerente VN ////////////////
+            //$correo = "desarrollo2.sistemas@sellosyretenes.com"; // pruebas
             try {
                 require_once(ROOT_PATH . 'includes/PHPMailer.php');
                 $mail = getMailer($conn);
@@ -70,21 +71,35 @@
                 $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND rol = 'Gerente'";
                 $stmt = $conn->prepare($sqlCorreoVentasGerencia);
                 $stmt->execute();
-                $arregloCorreoVentasGerencia = $stmt->fetch(PDO::FETCH_ASSOC);
-                if (!$arregloCorreoVentasGerencia || empty($arregloCorreoVentasGerencia['usuario'])) {
-                    throw new Exception("No se encontró correo de gerencia.");
+                $correosGerencia = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!$correosGerencia || count($correosGerencia) === 0) {
+                    throw new Exception("No se encontro ningun correo de gerencia.");
                 }
+
                 $clave_encriptacion = 'SRS2024#tides';
-                //$correoVentasGerencia = openssl_decrypt($arregloCorreoVentasGerencia['usuario'], 'AES-128-ECB', $clave_encriptacion);
-                $correoVentasGerencia = "desarrollo2.sistemas@sellosyretenes.com";
+                $contadorCorreos = 0;
 
-                $mail->addAddress($correoVentasGerencia);
-                $mail->Subject = 'Nueva requisición por autorizar.';
-                $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de producción para autorizarla con su firma. Folio: $id_requisicion";
-
-                if (!$mail->send()) {
-                    throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                foreach ($correosGerencia as $fila) {
+                    if (!empty($fila['usuario'])) {
+                        $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                        if ($correo) {
+                            $mail->addAddress($correo);
+                            $contadorCorreos++;
+                        }
+                    }
                 }
+
+                if ($contadorCorreos === 0) {
+                    throw new Exception("No se pudo agregar ningun destinatario valido.");
+                }
+
+                $mail->Subject = 'Nueva requisicion por autorizar.';
+                $mail->Body = "$nombre_vendedor ha generado una requisicion para el maquinado de sello. Vaya a la seccion de produccion para autorizarla con su firma. Folio: $id_requisicion";
+                // enviar correo
+                // if (!$mail->send()) {
+                //     throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                // }
 
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente. Correo enviado a gerencia.", "self");
@@ -96,7 +111,6 @@
                 });</script>';
                 exit;
             }
-
             ////////////////////////////////////////////////////////////////////////
 
         } elseif ($action === 'update') {
@@ -230,32 +244,51 @@
                 $mail = getMailer($conn);
                 $id_requisicion = $_POST['id_requisicion'];
 
-                $sqlCorreoProduccion = "SELECT usuario FROM login WHERE rol = 'CORREO_PRODUCCION'";
+                $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
                 $stmt = $conn->prepare($sqlCorreoProduccion);
                 $stmt->execute();
-                $arregloCorreoProduccion = $stmt->fetch(PDO::FETCH_ASSOC);
-                if (!$arregloCorreoProduccion || empty($arregloCorreoProduccion['usuario'])) {
-                    throw new Exception("No se encontró correo de produccion.");
+                $correosProduccion = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                if (!$correosProduccion || count($correosProduccion) === 0) {
+                    throw new Exception("No se encontro ningun correo de produccion.");
                 }
+
                 $clave_encriptacion = 'SRS2024#tides';
-                //$correoProduccion = openssl_decrypt($arregloCorreoProduccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
-                $correoProduccion = "desarrollo2.sistemas@sellosyretenes.com";
-                $mail->addAddress($correoProduccion);
+                $contadorCorreos = 0;
+
+                foreach ($correosProduccion as $fila) {
+                    if (!empty($fila['usuario'])) {
+                        $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                        if ($correo) {
+                            $mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
+                            $contadorCorreos++;
+                        }
+                    }
+                }
+
+                if ($contadorCorreos === 0) {
+                    throw new Exception("No se pudo agregar ningun destinatario valido para produccion.");
+                }
+
                 $mail->isHTML(true);
                 $mail->Subject = 'Nueva requisicion para produccion.';
                 $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisicion, la cual ya se encuentra disponible en el modulo de Produccion.<br>Id de requisicion: ".$id_requisicion;
-                $mail->send();
+                // enviar correo
+                // if (!$mail->send()) {
+                //     throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                // }
 
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción.", "self");
+                    sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente a CNC. Estatus de requisicion cambiado a Produccion.", "self");
                 });</script>';
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al enviar correo. '. addslashes($e->getMessage()).' - '.$mail->ErrorInfo .'", "self");
+                    sweetAlertResponse("error", "Error", "Error al enviar correo. '. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit;        
             }
+
             ////////////////////////////////////////////////////////////////////////
             
         }

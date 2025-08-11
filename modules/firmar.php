@@ -47,6 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
 
+            $arregloCorreos = [];
+
             if($autoriza == "g"){
                 $sql = "UPDATE requisiciones SET 
                             estatus = 'Autorizada'
@@ -62,29 +64,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $text_alert = "Requisicion autorizada correctamente. Correo enviado exitosamente a direccion para solicitar su autorizacion.";
                 }
                 $clave_encriptacion = 'SRS2024#tides';
-                //$correo_destinatario = openssl_decrypt($arregloCorreoDireccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
-                $correo_destinatario = "desarrollo2.sistemas@sellosyretenes.com";
+                $correo_destinatario = openssl_decrypt($arregloCorreoDireccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
 
                 $subject = "Nueva requisicion por autorizar.";
                 $body = "Gerencia ha autorizado una requisicion para el maquinado de sello, valla a la seccion de produccion VN para finalizar la autorizacion con su firma."; 
 
             }elseif($autoriza == "a"){
                 $sql = "UPDATE requisiciones SET 
-                            estatus = 'Producción'
+                            estatus = 'Produccion'
                         WHERE id_requisicion = :id_requisicion";
 
-                $sqlCorreoProduccion = "SELECT usuario FROM login WHERE rol = 'CORREO_PRODUCCION'";
+                // Consulta para obtener TODOS los correos de gerentes de producción
+                $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
                 $stmtCorreoProduccion = $conn->prepare($sqlCorreoProduccion);
                 $stmtCorreoProduccion->execute();
-                $arregloCorreoProduccion = $stmtCorreoProduccion->fetch(PDO::FETCH_ASSOC);
-                if (!$arregloCorreoProduccion || empty($arregloCorreoProduccion['usuario'])) {
-                    $text_alert = "Requisicion autorizada correctamente. No se encontró correo de producción.";
-                }else{
+                $correosProduccion = $stmtCorreoProduccion->fetchAll(PDO::FETCH_ASSOC);
+
+                $clave_encriptacion = 'SRS2024#tides';
+                $arregloCorreos = [];
+                foreach ($correosProduccion as $fila) {
+                    if (!empty($fila['usuario'])) {
+                        $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                        if ($correo) {
+                            $arregloCorreos[] = $correo;
+                        }
+                    }
+                }
+
+                if (count($arregloCorreos) === 0) {
+                    $text_alert = "Requisicion autorizada correctamente. No se encontro ningun correo de produccion.";
+                } else {
                     $text_alert = "Requisicion autorizada correctamente. Correo enviado exitosamente a CNC para comenzar el maquinado de sellos.";
                 }
-                $clave_encriptacion = 'SRS2024#tides';
-                //$correo_destinatario = openssl_decrypt($arregloCorreoProduccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
-                $correo_destinatario = "desarrollo2.sistemas@sellosyretenes.com";
 
                 $subject = "Requisicion de maquinado autorizada.";
                 $body = "Direccion ha autorizado una requisicion para el maquinado de sello. La requisicion ya se encuentra disponible en el modulo de Produccion."; 
@@ -121,28 +132,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         ////////////////////////////PHP MAILER -> cotizador a admin ////////////////
         require_once(ROOT_PATH . 'includes/PHPMailer.php');
         $mail = getMailer($conn);
+
         try {
-            if($autoriza != "cnc"){
+            if ($autoriza != "cnc") {
                 $id_requisicion = $_POST['id_requisicion'];
-
-                $clave_encriptacion = 'SRS2024#tides';
-
-                $mail->addAddress($correo_destinatario);
                 $mail->isHTML(true);
                 $mail->Subject = $subject;
                 $mail->Body =  $body."<br>Id de requisicion: ".$id_requisicion;
-                $mail->send();
+
+                if ($autoriza == "a" && !empty($arregloCorreos)) {
+                    // Enviar a todos los correos de producción
+                    foreach ($arregloCorreos as $correo) {
+                        $mail->addAddress($correo); // o addBCC($correo) si deseas ocultarlos entre sí
+                    }
+                } elseif ($autoriza == "g") {
+                    // Enviar a dirección si fue autorización de gerencia
+                    $mail->addAddress($correo_destinatario);
+                }
+                // enviar correo
+                //$mail->send();
             }
 
             echo '<script>document.addEventListener("DOMContentLoaded", function () {
-            sweetAlertResponse("success", "Proceso exitoso", "'.$text_alert.'", "none");
+                sweetAlertResponse("success", "Proceso exitoso", "'.$text_alert.'", "none");
             });</script><h3 class="p-5">Proceso finalizado, puede cerrar esta pestaña.</h3>';
             exit;
+
         } catch (Throwable $e) {
             echo '<script>document.addEventListener("DOMContentLoaded", function () {
-            sweetAlertResponse("warning", "Aviso", "Requisicion autorizada correctamente sin errores, pero hubo un error al enviar correo. '. addslashes($e->getMessage()).' - '.$mail->ErrorInfo .'", "none");
+                sweetAlertResponse("warning", "Aviso", "Requisicion autorizada correctamente sin errores, pero hubo un error al enviar correo. '. addslashes($e->getMessage()).' - '.$mail->ErrorInfo .'", "none");
             });</script><h3 class="p-5">Proceso finalizado, puede cerrar esta pestaña.</h3>';
-            exit;        
+            exit;
         }
         ////////////////////////////////////////////////////////////////////////
     }else{
