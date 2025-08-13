@@ -22,6 +22,7 @@ if (!isset($_SESSION['id'])) {
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    
 
 <?php
@@ -87,98 +88,114 @@ if (!isset($_SESSION['id'])) {
 
 
 
-    try {
-        // Variables de filtro desde GET (sanitizadas)
-        $filtro_familia = isset($_GET['filtro_familia']) && $_GET['filtro_familia'] !== '' ? trim($_GET['filtro_familia']) : null;
-        $filtro_tipo_medida = isset($_GET['filtro_tipo_medida']) && $_GET['filtro_tipo_medida'] !== '' ? trim($_GET['filtro_tipo_medida']) : null;
-        $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
-        $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+try {
+    // Variables de filtro desde GET (sanitizadas)
+    $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
 
-        // Consulta base y parámetros
-        $params = [];
-        $where = [];
+    $filtro_familia = isset($_GET['filtro_familia']) && $_GET['filtro_familia'] !== '' ? trim($_GET['filtro_familia']) : null;
+    $filtro_tipo_medida = isset($_GET['filtro_tipo_medida']) && $_GET['filtro_tipo_medida'] !== '' ? trim($_GET['filtro_tipo_medida']) : null;
+    $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
+    $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
+    $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
 
-        // Solo si hay al menos un filtro, se arma dinámica
-        if ($filtro_familia || $filtro_tipo_medida || $fecha_inicio || $fecha_fin || $archivadas !== null) {
-            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE 1=1";
+    // Consulta base y parámetros
+    $params = [];
+    $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE 1=1";
 
-            // Si el usuario no es admin (ID 71), filtra por su ID
-            if ($_SESSION['id'] != 71) {
-                $sqlCotizaciones .= " AND id_usuario = :id_usuario";
-                $params[':id_usuario'] = $_SESSION['id'];
-            }
-
-            // Filtro por familia
-            if ($filtro_familia) {
-                $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
-                $params[':familia_perfil'] = $filtro_familia;
-            }
-
-            // Filtro por tipo de medida
-            if ($filtro_tipo_medida) {
-                $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
-                $params[':tipo_medida'] = $filtro_tipo_medida;
-            }
-
-            // Filtro por fechas
-            if ($fecha_inicio && $fecha_fin) {
-                $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
-                $params[':fecha_inicio'] = $fecha_inicio;
-                $params[':fecha_fin'] = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $sqlCotizaciones .= " AND fecha >= :fecha_inicio";
-                $params[':fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $sqlCotizaciones .= " AND fecha <= :fecha_fin";
-                $params[':fecha_fin'] = $fecha_fin;
-            }
-
-            // Filtro por archivadas
-            if ($archivadas === '0' || $archivadas === '1') {
-                $sqlCotizaciones .= " AND archivada = :archivada";
-                $params[':archivada'] = (int)$archivadas;
-            }
-
-            if ($archivadas === 'n') {
-                $sqlCotizaciones .= " AND (archivada = '0' OR archivada = '1')";
-            }
-
-            // Orden
-            $sqlCotizaciones .= " GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
-
-            // Ejecutar consulta
-            $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-            $stmtCotizaciones->execute($params);
-            $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
-        } else {
-            // Si no hay parámetros => ejecutar consultas por defecto
-            if ($_SESSION['id'] == 71) {
-                $sqlCotizaciones = "SELECT * FROM cotizacion_materiales GROUP BY id_cotizacion AND archivada = 0 ORDER BY fecha DESC, hora DESC";
-                $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-            } else {
-                $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
-                $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-                $stmtCotizaciones->bindParam(':id', $_SESSION['id']);
-            }
-            $stmtCotizaciones->execute();
-            $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
-        }
-    } catch (Exception $e) {
-        // Si ocurre error => alert y consultas por defecto
-        echo "<script>alert('Ocurrio un error al buscar con los filtros.');</script>";
-
-        if ($_SESSION['id'] == 71) {
-            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales GROUP BY id_cotizacion AND archivada = 0 ORDER BY fecha DESC, hora DESC";
-            $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-        } else {
-            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
-            $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-            $stmtCotizaciones->bindParam(':id', $_SESSION['id']);
-        }
-        $stmtCotizaciones->execute();
-        $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
+    // Filtrar por usuario si no es admin
+    if ($_SESSION['id'] != 71) {
+        $sqlCotizaciones .= " AND id_usuario = :id_usuario";
+        $params[':id_usuario'] = $_SESSION['id'];
     }
+
+    // Filtro por cotizaciones unicas o fusionadas
+    if ($cot === 'u') {
+        // Cotizaciones únicas: id_fusion debe ser NULL
+        $sqlCotizaciones .= " AND id_fusion IS NULL";
+
+        // Filtros adicionales válidos para únicas
+        if ($filtro_familia) {
+            $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
+            $params[':familia_perfil'] = $filtro_familia;
+        }
+        if ($filtro_tipo_medida) {
+            $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
+            $params[':tipo_medida'] = $filtro_tipo_medida;
+        }
+    } elseif ($cot === 'f') {
+        // Cotizaciones fusionadas: id_fusion NO debe ser NULL
+        $sqlCotizaciones .= " AND id_fusion IS NOT NULL";
+
+        // Filtro por familia sí aplica para fusionadas
+        if ($filtro_familia) {
+            $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
+            $params[':familia_perfil'] = $filtro_familia;
+        }
+        // NO aplicar filtro_tipo_medida para fusionadas (ignorar)
+    }
+
+    // Filtros por fechas
+    if ($fecha_inicio && $fecha_fin) {
+        $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
+        $params[':fecha_inicio'] = $fecha_inicio;
+        $params[':fecha_fin'] = $fecha_fin;
+    } elseif ($fecha_inicio) {
+        $sqlCotizaciones .= " AND fecha >= :fecha_inicio";
+        $params[':fecha_inicio'] = $fecha_inicio;
+    } elseif ($fecha_fin) {
+        $sqlCotizaciones .= " AND fecha <= :fecha_fin";
+        $params[':fecha_fin'] = $fecha_fin;
+    }
+
+    // Filtro por archivadas
+    if ($archivadas === '0' || $archivadas === '1') {
+        $sqlCotizaciones .= " AND archivada = :archivada";
+        $params[':archivada'] = (int)$archivadas;
+    } elseif ($archivadas === 'n') {
+        $sqlCotizaciones .= " AND (archivada = '0' OR archivada = '1')";
+    }else{
+        $sqlCotizaciones .= " AND archivada = '0'";
+    }
+
+    // Agrupación y orden según cot
+    if ($cot === 'u') {
+        // Agrupar por id_cotizacion para únicas
+        $sqlCotizaciones .= " GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
+    } else {
+        // Agrupar por id_fusion para fusionadas
+        // NOTA: es posible que quieras seleccionar campos representativos (e.g. MIN(fecha)) al agrupar
+        $sqlCotizaciones .= " GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
+    }
+
+    // Ejecutar consulta
+    $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
+    $stmtCotizaciones->execute($params);
+    $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (Exception $e) {
+    echo "<script>alert('Ocurrio un error al buscar con los filtros.');</script>";
+
+    // Consulta por defecto si hay error
+    if ($_SESSION['id'] == 71) {
+        if ($cot === 'f') {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_fusion IS NOT NULL AND archivada = 0 GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
+        } else {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_fusion IS NULL AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
+        }
+        $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
+    } else {
+        if ($cot === 'f') {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND id_fusion IS NOT NULL AND archivada = 0 GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
+        } else {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND id_fusion IS NULL AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
+        }
+        $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
+        $stmtCotizaciones->bindParam(':id', $_SESSION['id']);
+    }
+    $stmtCotizaciones->execute();
+    $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 ?>
 
@@ -193,11 +210,19 @@ if (!isset($_SESSION['id'])) {
         <div class="titulo mt-1 mb-3">
             <h1>Mis cotizaciónes</h1>
         </div>
-        <div class="table-container">
+        <ul id="cotTabs" class="nav nav-tabs">
+            <li class="nav-item">
+                <a class="nav-link" data-target="unicas" href="#">Cotizaciones únicas</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-target="fusionadas" href="#">Cotizaciones fusionadas</a>
+            </li>
+        </ul>
+
+        <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
             <div class="row">
                 <div class="col-12">
                     <div class=" bg-light rounded">
-                        <!-- Botón con data attributes para Bootstrap modal -->
                         <button type="button" 
                                 class="btn-purple" 
                                 data-bs-toggle="modal" 
@@ -207,138 +232,279 @@ if (!isset($_SESSION['id'])) {
                     </div>
                 </div>
             </div>
-            <table id="cotizacionesTable" class="table table-striped table-bordered" style="width: 100%;">
-                <thead>
-                    <tr>
-                        <th style="background-color:#55ad9b52;">Acciones</th>
-                         <th>Id cotización</th>
-                        <!--<th>Tipo de cliente</th> -->
-                        <!-- <th>Correo del cliente</th> -->
-                        <!-- <th>Estatus</th> -->
-                        <th>Familia</th>
-                        <th>Perfil</th>
-                        <th>Tipo medida</th>
-                        <th>D. Interior</th>
-                        <th>D. Exterior</th>
-                        <th>Altura</th>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <!-- <th>Vendedor</th> -->
-                    </tr>
-                </thead>
-                <tbody>
-                <?php
-                    foreach ($arregloSelectCotizaciones as $row) {
-                        $perfil_sello = $row['perfil_sello'];
-                        $sqlPerfil = "SELECT tipo FROM perfiles WHERE perfil = :perfil";
-                        $stmtPerfil = $conn->prepare($sqlPerfil);
-                        $stmtPerfil->bindParam(':perfil', $perfil_sello);
-                        $stmtPerfil->execute();
-                        $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-                        $familiPerfilR = "";
-                        switch($arregoPerfil['tipo']){
-                            case "rotary":
-                                $familiPerfilR = "Rotary (Rotativo)";
-                            break;
-                            case "piston":
-                                $familiPerfilR = "Piston (Pistón)";
-                            break;
-                            case "backup":
-                                $familiPerfilR = "Backup (Respaldo)";
-                            break;
-                            case "guide":
-                                $familiPerfilR = "Guide (Guía)";
-                            break;
-                            case "wipers":
-                                $familiPerfilR = "Wiper (Limpiador)";
-                            break;
-                            case "rod":
-                                $familiPerfilR = "Rod (Vástago)";
-                            break;
-                            default:
-                                $familiPerfilR = "";        
-                            break;
+            <div id="containerUnicas" class="">
+                <table id="cotizacionesTable" class="table table-striped table-bordered " style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="background-color:#55ad9b52;">Acciones</th>
+                            <th>Id cotización</th>
+                            <th>Familia</th>
+                            <th>Perfil</th>
+                            <th>Tipo medida</th>
+                            <th>D. Interior</th>
+                            <th>D. Exterior</th>
+                            <th>Altura</th>
+                            <th>Tipo cliente</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <!-- <th>Vendedor</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        foreach ($arregloSelectCotizaciones as $row) {
+                            // $perfil_sello = $row['perfil_sello'];
+                            // $sqlPerfil = "SELECT tipo FROM perfiles WHERE perfil = :perfil";
+                            // $stmtPerfil = $conn->prepare($sqlPerfil);
+                            // $stmtPerfil->bindParam(':perfil', $perfil_sello);
+                            // $stmtPerfil->execute();
+                            // $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
+                    ?>
+                        <tr>
+                            <td class="td-first-actions">
+                                <div class="d-flex gap-2 container-actions">
+                                    <?php if ($tipoUsuario != 5): ?>
+                                        <button type="button" class="btn-general btn-version-cotizacion" 
+                                            data-bs-toggle='modal' data-bs-target='#modalVersionCotizacion'
+                                            data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            title="Generar PDF de esta cotización">
+                                            <i class="bi bi-filetype-pdf"></i>
+                                        </button>
+                                       
+                                        <button type="button" class="btn-thunder btn-enviar-correo" 
+                                            data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
+                                            data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
+                                            title="Enviar correo a cliente">
+                                            <i class="bi bi-envelope"></i>
+                                        </button>
+                                        
+                                    <?php else: ?>
+                                        <form action="../includes/functions/generar_cotizacion.php" method="GET" target="_blank">
+                                            <input type="hidden" name="id_cotizacion" value="<?= htmlspecialchars($row['id_cotizacion']); ?>">
+                                            <button type="submit" class="btn-general" >Generar PDF</button>
+                                        </form>
+    
+                                        <button type="button" class="btn-thunder btn-enviar-correoX" 
+                                            data-bs-toggle='modal' data-bs-target='#modalEnviarCorreoX'
+                                            data-id-cotizacionX="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            data-correo-clienteX="<?= htmlspecialchars($row['correo_cliente']); ?>">
+                                            Funcion para cliente externo
+                                        </button>
+                                       
+                                    <?php endif; ?>
+                                                                    
+                                    <button type="button" class="btn-archive btn-archivar-cotizacion" 
+                                        data-bs-toggle='modal' data-bs-target='#modalArchivar'
+                                        data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                        data-archivada="<?= htmlspecialchars($row['archivada']); ?>"
+                                        title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
+                                        <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
+                                    </button>
+                              
+                                </div>
+                                
+                            </td>
+                            <td><?= htmlspecialchars($row['id_cotizacion']); ?></td>
+                            <td><?= htmlspecialchars($row['familia_perfil']); ?></td>
+                            <td><?= htmlspecialchars($row['perfil_sello']); ?></td>
+                            <td><?= htmlspecialchars($row['tipo_medida']); ?></td>
+                            <?php
+                                $di_sello = 0.00;
+                                $de_sello = 0.00;
+                                $a_sello = 0.00;
+                                if($row['tipo_medida'] == "Sello"){
+                                    $di_sello = $row['di_sello'];
+                                    $de_sello = $row['de_sello'];
+                                    $a_sello = $row['a_sello'];
+                                }else{
+                                    $di_sello = $row['di_sello2'];
+                                    $de_sello = $row['de_sello2'];
+                                    $a_sello = $row['a_sello2'];                               
+                                }
+                            ?>
+                            <td><?= htmlspecialchars($di_sello); ?></td>
+                            <td><?= htmlspecialchars($de_sello); ?></td>
+                            <td><?= htmlspecialchars($a_sello); ?></td>
+                            <td><?= htmlspecialchars($row['tipo_cliente']); ?></td>
+                            <td><?= htmlspecialchars($row['fecha']); ?></td>
+                            <td><?= htmlspecialchars($row['hora']); ?></td>
+                            <!-- <td><?= htmlspecialchars($row['vendedor']); ?></td> -->
+                        </tr>
+                    <?php
                         }
-                ?>
-                    <tr>
-                        <td class="td-first-actions">
-                            <div class="d-flex gap-2 container-actions">
-                                <?php if ($tipoUsuario != 5): ?>
-                                    <button type="button" class="btn-general btn-version-cotizacion" 
-                                        data-bs-toggle='modal' data-bs-target='#modalVersionCotizacion'
-                                        data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                        title="Generar PDF de esta cotización">
-                                        <i class="bi bi-filetype-pdf"></i>
+                    ?>
+    
+                    </tbody>
+                </table>
+            </div>
+            <div id="containerFusionadas" class="d-none">
+                <table id="cotizacionesTableFusionadas" class="table table-striped table-bordered" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="background-color:#55ad9b52;">Acciones</th>
+                            <th>Cotizaciónes</th>
+                            <th>Familia</th>
+                            <th>Perfil</th>
+                            <th>Tipo medida</th>
+                            <th>D. Interior</th>
+                            <th>D. Exterior</th>
+                            <th>Altura</th>
+                            <th>Tipo cliente</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php
+                        foreach ($arregloSelectCotizaciones as $row) {
+                            $id_fusion = $row['id_fusion'];
+                            $sqlFusion = "SELECT * FROM cotizacion_materiales WHERE id_fusion = :id_fusion";
+                            $stmtFusion = $conn->prepare($sqlFusion);
+                            $stmtFusion->bindParam(':id_fusion', $id_fusion, PDO::PARAM_INT);
+                            $stmtFusion->execute();
+                            $arregloFusion = $stmtFusion->fetchAll(PDO::FETCH_ASSOC);
+                    ?>
+                        <tr>
+                            <td class="td-first-actions">
+                                <div class="d-flex gap-2 container-actions">
+                                    <?php if ($tipoUsuario != 5): ?>
+                                        <button type="button" class="btn-general btn-version-cotizacionF" 
+                                            data-bs-toggle='modal' data-bs-target='#modalVersionCotizacionF'
+                                            data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
+                                            title="Generar PDF de esta cotización">
+                                            <i class="bi bi-filetype-pdf"></i>
+                                        </button>
+                                       
+                                        <button type="button" class="btn-thunder btn-enviar-correo" 
+                                            data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
+                                            data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
+                                            data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
+                                            title="Enviar correo a cliente">
+                                            <i class="bi bi-envelope"></i>
+                                        </button>
+                                        
+                                    <?php else: ?>
+                                        <form action="../includes/functions/generar_cotizacion_f.php" method="GET" target="_blank">
+                                            <input type="hidden" name="id_fusion" value="<?= htmlspecialchars($row['id_fusion']); ?>">
+                                            <button type="submit" class="btn-general" >Generar PDF</button>
+                                        </form>
+    
+                                        <button type="button" class="btn-thunder btn-enviar-correoX" 
+                                            data-bs-toggle='modal' data-bs-target='#modalEnviarCorreoX'
+                                            data-id-fusionX="<?= htmlspecialchars($row['id_fusion']); ?>"
+                                            data-correo-clienteX="<?= htmlspecialchars($row['correo_cliente']); ?>">
+                                            Funcion para cliente externo
+                                        </button>
+                                       
+                                    <?php endif; ?>
+                                                                    
+                                    <button type="button" class="btn-archive btn-archivar-cotizacion" 
+                                        data-bs-toggle='modal' data-bs-target='#modalArchivar'
+                                        data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
+                                        data-archivada="<?= htmlspecialchars($row['archivada']); ?>"
+                                        title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
+                                        <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
                                     </button>
-                                   
-                                    <button type="button" class="btn-thunder btn-enviar-correo" 
-                                        data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
-                                        data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                        data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
-                                        title="Enviar correo a cliente">
-                                        <i class="bi bi-envelope"></i>
-                                    </button>
-                                    
-                                <?php else: ?>
-                                    <form action="../includes/functions/generar_cotizacion.php" method="GET" target="_blank">
-                                        <input type="hidden" name="id_cotizacion" value="<?= htmlspecialchars($row['id_cotizacion']); ?>">
-                                        <button type="submit" class="btn-general" >Generar PDF</button>
-                                    </form>
+                              
+                                </div>
+                                
+                            </td>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo '<a href="../includes/functions/generar_pdf.php?id_cotizacion='.htmlspecialchars($cot['id_cotizacion']).'" target="_blank">' . htmlspecialchars($cot['id_cotizacion']) . '</a><br>';
+                                    } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['familia_perfil']).'<br>';
+                                    } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['perfil_sello']).'<br>';
+                                    } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['tipo_medida']).'<br>';
+                                    } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                foreach ($arregloFusion as $cot) {
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $di_sello = $cot['di_sello'];
+                                    } else {
+                                        $di_sello = $cot['di_sello2'];
+                                    }
+                                    echo htmlspecialchars($di_sello) . '<br>';
+                                } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                foreach ($arregloFusion as $cot) {
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $de_sello = $cot['de_sello'];
+                                    } else {
+                                        $de_sello = $cot['de_sello2'];
+                                    }
+                                    echo htmlspecialchars($de_sello) . '<br>';
+                                } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                foreach ($arregloFusion as $cot) {
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $a_sello = $cot['a_sello'];
+                                    } else {
+                                        $a_sello = $cot['a_sello2'];
+                                    }
+                                    echo htmlspecialchars($a_sello) . '<br>';
+                                } 
+                                ?>
+                            </td>
 
-                                    <button type="button" class="btn-thunder btn-enviar-correoX" 
-                                        data-bs-toggle='modal' data-bs-target='#modalEnviarCorreoX'
-                                        data-id-cotizacionX="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                        data-correo-clienteX="<?= htmlspecialchars($row['correo_cliente']); ?>">
-                                        Funcion para cliente externo
-                                    </button>
-                                   
-                                <?php endif; ?>
-                                                                
-                                <button type="button" class="btn-archive btn-archivar-cotizacion" 
-                                    data-bs-toggle='modal' data-bs-target='#modalArchivar'
-                                    data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                    data-archivada="<?= htmlspecialchars($row['archivada']); ?>"
-                                    title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
-                                    <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
-                                </button>
-                          
-                            </div>
-                            
-                        </td>
-                        <td><?= htmlspecialchars($row['id_cotizacion']); ?></td>
-                        <!-- <td><?= htmlspecialchars($row['cliente']); ?></td> -->
-                        <!-- <td><?= htmlspecialchars($row['correo_cliente']); ?></td> -->
-                        <!-- <td><?= htmlspecialchars($row['estatus_completado']); ?></td> -->
-                        <td><?= htmlspecialchars($row['familia_perfil']); ?></td>
-                        <td><?= htmlspecialchars($row['perfil_sello']); ?></td>
-                        <td><?= htmlspecialchars($row['tipo_medida']); ?></td>
-                        <?php
-                            $di_sello = 0.00;
-                            $de_sello = 0.00;
-                            $a_sello = 0.00;
-                            if($row['tipo_medida'] == "Sello"){
-                                $di_sello = $row['di_sello'];
-                                $de_sello = $row['de_sello'];
-                                $a_sello = $row['a_sello'];
-                            }else{
-                                $di_sello = $row['di_sello2'];
-                                $de_sello = $row['de_sello2'];
-                                $a_sello = $row['a_sello2'];                               
-                            }
-                        ?>
-                        <td><?= htmlspecialchars($di_sello); ?></td>
-                        <td><?= htmlspecialchars($de_sello); ?></td>
-                        <td><?= htmlspecialchars($a_sello); ?></td>
-                        <td><?= htmlspecialchars($row['fecha']); ?></td>
-                        <td><?= htmlspecialchars($row['hora']); ?></td>
-                        <!-- <td><?= htmlspecialchars($row['vendedor']); ?></td> -->
-                    </tr>
-                <?php
-                    }
-                ?>
-
-                </tbody>
-            </table>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['tipo_cliente']).'<br>';
+                                    } 
+                                ?>
+                            </td>                            
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['fecha']).'<br>';
+                                    } 
+                                ?>
+                            </td>
+                            <td>
+                                <?php 
+                                    foreach ($arregloFusion as $cot) {
+                                        echo htmlspecialchars($cot['hora']).'<br>';
+                                    } 
+                                ?>
+                            </td>
+                            <!-- <td><?= htmlspecialchars($row['vendedor']); ?></td> -->
+                        </tr>
+                    <?php
+                        }
+                    ?>
+    
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </section>
@@ -508,6 +674,39 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
+ <!-- ///////////MODAL SELECCIONAR VERSION DE FORMATO DE UNA COTIZACIONES FUSIONADAS////////////////// -->
+<div class="modal fade" id="modalVersionCotizacionF" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Versión de cotización</h5>
+                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formVersionCotizacionF" action="" method="GET" target="_blank">     
+                    <input type="hidden" id="inputIdCotizacionFormatoF" name="id_fusion">                    
+                    <div class="mb-3">
+                        <label class="lbl-general">Selecciona el formato del archivo:</label><br>
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="formato" id="formatoClienteF" value="cliente" checked>
+                            <label class="form-check-label" for="formatoClienteF">
+                                Formato para cliente
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="formato" id="formatoInternoF" value="interno">
+                            <label class="form-check-label" for="formatoInternoF">
+                                Formato interno
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-general">Generar PDF</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- //////////////////////////MODAL ENVIAR CORREO/////////////////////// -->
 <div class="modal fade" id="modalEnviarCorreo" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -566,212 +765,5 @@ if (!isset($_SESSION['id'])) {
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
-<script>
-    $(document).ready(function() {
-        // Cargar filtros activos al abrir el modal
-        $('#modalFiltrosBusqueda').on('show.bs.modal', function() {
-            cargarFiltrosActuales();
-            mostrarFiltrosActivos();
-        });
-
-        // Validación del formulario
-        $('#formFiltros').on('submit', function(e) {
-            var fechaInicio = $('#filtro_fecha_inicio').val();
-            var fechaFin = $('#filtro_fecha_fin').val();
-            
-            // Validar que la fecha de inicio no sea mayor que la fecha de fin
-            if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
-                e.preventDefault();
-                alert('La fecha de inicio no puede ser mayor que la fecha de fin.');
-                $('#filtro_fecha_inicio').focus();
-                return false;
-            }
-            
-            // El formulario se enviará normalmente si pasa la validación
-            console.log('Formulario válido, enviando...');
-        });
-
-        // Limpiar formulario
-        $('#btnLimpiarFormulario').on('click', function() {
-            $('#formFiltros')[0].reset();
-            $('#filtrosActivosContainer').hide();
-        });
-
-        // Auto-completar fecha fin cuando se selecciona fecha inicio
-        $('#filtro_fecha_inicio').on('change', function() {
-            var fechaInicio = $(this).val();
-            var fechaFin = $('#filtro_fecha_fin').val();
-            
-            if (fechaInicio && !fechaFin) {
-                // Sugerir la fecha actual como fecha fin
-                var hoy = new Date().toISOString().split('T')[0];
-                $('#filtro_fecha_fin').val(hoy);
-            }
-        });
-
-        // Función para cargar filtros desde la URL
-        function cargarFiltrosActuales() {
-            var urlParams = new URLSearchParams(window.location.search);
-            
-            // Cargar valores en el formulario
-            $('#filtro_familia').val(urlParams.get('filtro_familia') || '');
-            $('#filtro_tipo_medida').val(urlParams.get('filtro_tipo_medida') || '');
-            $('#filtro_fecha_inicio').val(urlParams.get('fecha_inicio') || '');
-            $('#filtro_fecha_fin').val(urlParams.get('fecha_fin') || '');
-            $('#archivadas').prop('checked', urlParams.get('archivadas') === '1');
-        }
-
-        // Función para mostrar filtros activos
-        function mostrarFiltrosActivos() {
-            var urlParams = new URLSearchParams(window.location.search);
-            var filtrosActivos = [];
-            
-            // Verificar cada filtro y crear etiquetas
-            if (urlParams.get('filtro_familia')) {
-                var familias = {
-                    'rotary': 'Rotary (Rotativo)',
-                    'piston': 'Piston (Pistón)',
-                    'backup': 'Backup (Respaldo)',
-                    'guide': 'Guide (Guía)',
-                    'wipers': 'Wiper (Limpiador)',
-                    'rod': 'Rod (Vástago)'
-                };
-                var familiaTexto = urlParams.get('filtro_familia') || familias[urlParams.get('filtro_familia')];
-                filtrosActivos.push('Familia: ' + familiaTexto);
-            }
-            
-            if (urlParams.get('filtro_tipo_medida')) {
-                filtrosActivos.push('Tipo: ' + urlParams.get('filtro_tipo_medida'));
-            }
-            
-            if (urlParams.get('fecha_inicio')) {
-                filtrosActivos.push('Desde: ' + urlParams.get('fecha_inicio'));
-            }
-            
-            if (urlParams.get('fecha_fin')) {
-                filtrosActivos.push('Hasta: ' + urlParams.get('fecha_fin'));
-            }
-
-            if (urlParams.get('archivadas') === '0') {
-                filtrosActivos.push('Solo activas');
-            }
-
-            if (urlParams.get('archivadas') === '1') {
-                filtrosActivos.push('Solo archivadas');
-            }
-            
-            // Mostrar los filtros activos
-            if (filtrosActivos.length > 0) {
-                var tagsHtml = filtrosActivos.map(function(filtro) {
-                    return '<span class="filtro-tag">' + filtro + '</span>';
-                }).join(' ');
-                
-                $('#filtrosActivosList').html(tagsHtml);
-                $('#filtrosActivosContainer').show();
-            } else {
-                $('#filtrosActivosContainer').hide();
-            }
-        }
-
-        // Función global para limpiar todos los filtros
-        window.limpiarTodosFiltros = function() {
-            if (confirm('¿Estás seguro de que deseas limpiar todos los filtros?')) {
-                window.location.href = window.location.pathname;
-            }
-        };
-
-        // Mostrar filtros activos al cargar la página
-        mostrarFiltrosActivos();
-    });
-</script>
-<script>
-    $(document).ready(function(){
-        // CLICK para seleccionar versión del formato de cotización
-        $(".btn-version-cotizacion").on('click', function () {
-            const dataIdCotizacion = $(this).data('id-cotizacion');
-            $("#inputIdCotizacionFormato").val(dataIdCotizacion);
-        });
-
-        $("#formVersionCotizacion").on("submit", function (e) {
-            e.preventDefault(); // evita que el form se envíe inmediatamente
-
-            const valorSeleccionado = $('input[name="formato"]:checked').val();
-
-            if (valorSeleccionado === 'cliente') {
-                $(this).attr("action", "../includes/functions/generar_cotizacion.php");
-            } else if (valorSeleccionado === 'interno') {
-                $(this).attr("action", "../includes/functions/generar_pdf.php");
-            } else {
-                alert("Selecciona una opción de formato.");
-                return;
-            }
-
-            // Ahora sí, enviar el formulario con el action actualizado
-            this.submit();
-        });
-
-
-        //CLICK A Enviar correo modal
-        $(".btn-enviar-correo").on('click', function(){
-            //$dataId=$("#btnValidar").data('id');//lo toma y lo almacena en cache
-            $dataIdCotizacion=$(this).data('id-cotizacion');
-            $dataCorreoCliente=$(this).data('correo-cliente');
-
-            $("#inputIdCotizacion").val($dataIdCotizacion);
-            $("#spanIdCotizacion, #spanIdCotizacion2").text($dataIdCotizacion);
-        });
-
-        //CLICK A Enviar a produccion
-        $(".btn-enviar-produccion").on('click', function(){
-            $dataIdCotizacionProduccion=$(this).data('id-cotizacion');
-
-            $("#inputCotizacionProduccion").val($dataIdCotizacionProduccion);
-        });
-    
-        // CLICK para archivar una cotizacion
-        $(".btn-archivar-cotizacion").on('click', function () {
-            const dataIdCotizacionA = $(this).data('id-cotizacion');
-            var dataArchivada = $(this).data('archivada');
-            if(dataArchivada == 0){
-                dataArchivada = 1;
-                $("#infoArchivada").text("Si archiva la cotización no podrá usarla al crear nuevas requisiciones.");
-            }else{
-                dataArchivada = 0;
-                $("#infoArchivada").text("Ya podrá usar la cotizacion al crear nuevas requisiciones.");
-            }
-            $("#inputArchivar").val(dataIdCotizacionA);
-            $("#inputNextValor").val(dataArchivada);
-        });
-
-        $("#btnArchivar").on("click", function(){
-            var idCotizacionArchivar = $("#inputArchivar").val();
-            var nextValue = $("#inputNextValor").val();
-            $.ajax({
-                url: '../ajax/archivar.php',
-                method: 'POST',
-                data: {
-                    id_cotizacion: idCotizacionArchivar,
-                    archivada: nextValue
-                },
-                success: function(data) {
-                    if (data.success) {
-                        sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
-                    } else {
-                        sweetAlertResponse("warning", "Advertencia", data.error, "self");
-                    }
-                },
-                error: function () {
-                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar ", "none");
-                    console.error("Error al consultar el estatus de autorización.");
-                }
-            });
-        });
-
-        // CLICK CERRAR MODAL 
-        $(".btn-close").on("click", function(){
-            $("#formEnviarCorreo, #formEnviarAProduccion")[0].reset();
-        });
-    });
-</script>
 </body>
 </html>

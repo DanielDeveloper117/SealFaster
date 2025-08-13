@@ -37,10 +37,6 @@
             }
         }else if($tipoUsuario == 2){
             $arrayPermitidos = array_merge($arrayPermitidos, [
-                "selectTipoSello.php",
-                "tipo.php",
-                "estimador.php",
-                "cotizaciones.php",
                 "filtros_inventario_cnc.php",
                 "inventario.php",
                 "produccion_cnc.php"

@@ -53,7 +53,7 @@ class PDF extends FPDF {
 session_start();
 
 if (!isset($_SESSION['id'])) {
-    header("Location: ../cerrar_sesion.php");
+    header("Location: ../../auth/cerrar_sesion.php");
     exit;
 }
 
@@ -166,12 +166,12 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFillColor(220, 220, 220);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(12, 6, 'Cant.', 1, 0, 'C', true);
+    $pdf->Cell(11, 6, 'Cant.', 1, 0, 'C', true);
     $pdf->Cell(15, 6, 'Perfil', 1, 0, 'C', true);
-    $pdf->Cell(24, 6, 'Material', 1, 0, 'C', true);
+    $pdf->Cell(23, 6, 'Material', 1, 0, 'C', true);
     $pdf->Cell(12, 6, 'Medida', 1, 0, 'C', true);
-    $pdf->Cell(28, 6, 'D. Interior', 1, 0, 'C', true);
-    $pdf->Cell(28, 6, 'D. Exterior', 1, 0, 'C', true);
+    $pdf->Cell(29, 6, 'D. Interior', 1, 0, 'C', true);
+    $pdf->Cell(29, 6, 'D. Exterior', 1, 0, 'C', true);
     $pdf->Cell(28, 6, 'Altura(s)', 1, 0, 'C', true);
     $pdf->Cell(43, 6, 'Claves', 1, 1, 'C', true);
     foreach ($cotizacion_ids as $id_cotizacion) {
@@ -194,7 +194,7 @@ if (isset($_GET['id_requisicion'])) {
         $familiaPerfil = $arregoPerfil["tipo"];
 
         
-        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetFont('Arial', '', 8);
 
         //*************************ALTURAS******************************** */
         // === Calcular contenido de altura ===
@@ -206,19 +206,24 @@ if (isset($_GET['id_requisicion'])) {
             $alturas = [];
 
             if($cotGeneral['tipo_medida']=="Sello"){
-                $alturas[] = "Total: ".$cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
+                $alturas[] = "Total:";
+                $alturas[] = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
             } else {
-                $alturas[] = "Total: ".$cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
+                $alturas[] = "Total:";
+                $alturas[] = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
             }
 
             if ($cotGeneral['altura_caja'] !== "0.00") {
-                $alturas[] = "Caja: ".$cotGeneral['altura_caja']."mm/".mm_a_pulgadas($cotGeneral['altura_caja']).'"';
+                $alturas[] = "Caja:";
+                $alturas[] = $cotGeneral['altura_caja']."mm/".mm_a_pulgadas($cotGeneral['altura_caja']).'"';
             }
             if ($cotGeneral['altura_h2'] !== "0.00") {
-                $alturas[] = "H2: ".$cotGeneral['altura_h2']."mm/".mm_a_pulgadas($cotGeneral['altura_h2']).'"';
+                $alturas[] = "H2:";
+                $alturas[] = $cotGeneral['altura_h2']."mm/".mm_a_pulgadas($cotGeneral['altura_h2']).'"';
             }
             if ($cotGeneral['altura_h3'] !== "0.00") {
-                $alturas[] = "H3: ".$cotGeneral['altura_h3']."mm/".mm_a_pulgadas($cotGeneral['altura_h3']).'"';
+                $alturas[] = "H3:";
+                $alturas[] = $cotGeneral['altura_h3']."mm/".mm_a_pulgadas($cotGeneral['altura_h3']).'"';
             }
 
             $alturaTexto = utf8_decode(implode("\n", $alturas));
@@ -232,24 +237,24 @@ if (isset($_GET['id_requisicion'])) {
         }
 
         // === Calcular altura total del renglon ===
-        $rowHeight = ($familiaPerfil == "wipers") ? ($numLineasAltura * $lineHeight)*2 : 6;
+        $rowHeight = ($familiaPerfil == "wipers") ? ($numLineasAltura * $lineHeight) : 6;
 
         // === Guardar posicion inicial
         $xStart = $pdf->GetX();
         $yStart = $pdf->GetY();
 
         // === Imprimir todas las celdas del renglón una por una, mismo height ===
-        $pdf->Cell(12, $rowHeight, utf8_decode(""), 1, 0, 'C');
+        $pdf->Cell(11, $rowHeight, utf8_decode("-"), 1, 0, 'C');
         $pdf->Cell(15, $rowHeight, utf8_decode($cotGeneral['perfil_sello']), 1, 0, 'C');
-        $pdf->Cell(24, $rowHeight, utf8_decode(""), 1, 0, 'C');
+        $pdf->Cell(23, $rowHeight, utf8_decode("-"), 1, 0, 'C');
         $pdf->Cell(12, $rowHeight, utf8_decode($cotGeneral['tipo_medida']), 1, 0, 'C');
 
         if($cotGeneral['tipo_medida']=="Sello"){
-            $pdf->Cell(28, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
-            $pdf->Cell(28, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
+            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
+            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
         } else {
-            $pdf->Cell(28, $rowHeight, utf8_decode($cotGeneral['di_sello2'].'mm/'.$cotGeneral['di_sello_inch2'].'"'), 1, 0, 'C');
-            $pdf->Cell(28, $rowHeight, utf8_decode($cotGeneral['de_sello2'].'mm/'.$cotGeneral['de_sello_inch2'].'"'), 1, 0, 'C');
+            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello2'].'mm/'.$cotGeneral['di_sello_inch2'].'"'), 1, 0, 'C');
+            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello2'].'mm/'.$cotGeneral['de_sello_inch2'].'"'), 1, 0, 'C');
         }
 
         // === Celda de altura (usa MultiCell si es wipers)
@@ -263,7 +268,7 @@ if (isset($_GET['id_requisicion'])) {
         }
 
         // === Celda de Claves vacia
-        $pdf->Cell(43, $rowHeight, utf8_decode(""), 1, 1, 'C');
+        $pdf->Cell(43, $rowHeight, utf8_decode("-"), 1, 1, 'C');
         //**************************************************************** */
 
 
@@ -275,42 +280,54 @@ if (isset($_GET['id_requisicion'])) {
 
         //$pdf->Cell(29, 6, 'Precio unitario', 1, 1, 'C', true);
 
-        $pdf->SetFont('Arial', '', 9);
+        $pdf->SetFont('Arial', '', 8);
         foreach ($cotizacionData as $cot) {
-          
-            
-            $clavesFormateadas = array_map('trim', explode(',', $cot['claves']));
-            $CONTEO_CLAVES +=  count($clavesFormateadas);
-            // Unimos las claves con saltos de línea para mostrarlas en vertical
+            // Separar por comas
+            $clavesFormateadas = array_map('trim', explode(',', $cot['billets_string']));
+            $CONTEO_CLAVES += count($clavesFormateadas);
+
+            // Reestructurar cada clave para que la medida esté en otra línea
+            foreach ($clavesFormateadas as &$clave) {
+                // Ejemplo: "040140PTFEBRONCE (0/40) 12 pz" -> "040140PTFEBRONCE\n(0/40) 12 pz"
+                $clave = preg_replace('/\s*(\(\d+\/\d+\)\s*\d+\s*pz)/i', "\n$1", $clave);
+            }
+            unset($clave);
+
+            // Unir con salto de línea cada clave
             $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
-            // Calculamos la altura necesaria según número de líneas
-            $lineHeight = 6; 
-            $numLinesClaves = count($clavesFormateadas);
+
+            // Calcular altura según número de líneas
+            $lineHeight = 6;
+            $numLinesClaves = 0;
+            foreach ($clavesFormateadas as $clave) {
+                $numLinesClaves += substr_count($clave, "\n") + 1;
+            }
             $rowHeightClaves = $numLinesClaves * $lineHeight;
-            // Determinamos la altura máxima entre Claves y Descuentos para el renglón
+
+            // Determinar altura máxima (puede ajustarse si hay otras celdas con más contenido)
             $maxRowHeight = $rowHeightClaves;
-            
-            $pdf->Cell(12, $maxRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+
+            // Celdas previas
+            $pdf->Cell(11, $maxRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
             $pdf->Cell(15, $maxRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-            $pdf->Cell(24, $maxRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
+            $pdf->Cell(23, $maxRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
             $pdf->Cell(12, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(28, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(28, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(29, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(29, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
             $pdf->Cell(28, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
 
-
-            // Guardamos la posición antes de usar MultiCell en Claves
+            // Posición antes del MultiCell
             $x = $pdf->GetX();
             $y = $pdf->GetY();
-            // Usamos MultiCell para Claves (esto puede generar varias líneas)
-            $pdf->MultiCell(43, $lineHeight, $clavesVertical, 1, 'C');
-            // Aseguramos que la siguiente celda esté alineada correctamente después de MultiCell
-            $pdf->SetXY($x + 43, $y);
-            // $pdf->Cell(38, 6, utf8_decode($cot['claves']), 1, 0, 'C');
-            $pdf->Cell(0, $maxRowHeight,"", 1, 1, 'C');
 
-            //$pdf->Cell(29, $maxRowHeight, "$" . number_format($cot['total_unitarios'], 2), 1, 1, 'C');
+            // Claves en varias líneas
+            $pdf->MultiCell(43, $lineHeight, $clavesVertical, 1, 'L');
+
+            // Ajustar posición para que el resto del renglón siga alineado
+            $pdf->SetXY($x + 43, $y);
+            $pdf->Cell(0, $maxRowHeight, "", 1, 1, 'C');
         }
+
 
         // // Separacion entre cotizaciones
         $pdf->Ln(5); 

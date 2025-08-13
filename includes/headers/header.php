@@ -39,8 +39,6 @@
                     # cnc
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
-                        <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a href="../modules/produccion_cnc.php">Producción</a></li>
                     ';
                 

@@ -16,6 +16,18 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 1px solid #0000004a;
 }
+.nav-item{
+    background-color: #f9f9f9 !important;
+    border-bottom: 0px !important;
+}
+.nav-link{
+    border-bottom: 0px !important;
+}
+.active{
+    background-color: #ededed !important;
+    border: 1px solid #0000004a !important;
+    border-bottom: 0px !important;
+}
 .lbl-general {
     pointer-events: none;
     font-weight: bold;

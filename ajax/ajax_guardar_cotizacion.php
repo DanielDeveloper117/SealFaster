@@ -5,7 +5,7 @@ require_once(ROOT_PATH . 'config/config.php');
 try {
     header('Content-Type: application/json');
     // Verificar si los datos se han enviado por POST
-    if (isset($_POST['id_cotizacion'], $_POST['id_usuario'], $_POST['perfil_sello'], $_POST['cantidad_material'], $_POST['material'], 
+    if (isset($_POST['id_cotizacion'], $_POST['id_usuario'], $_POST['familia_perfil'], $_POST['perfil_sello'], $_POST['cantidad_material'], $_POST['material'], 
               $_POST['claves'], $_POST['billets'], 
               $_POST['altura_mm'], $_POST['altura_caja_mm'], $_POST['altura_h2_mm'], $_POST['altura_h3_mm'], 
               $_POST['diametro_interior_mm'], $_POST['diametro_exterior_mm'], 
@@ -17,6 +17,7 @@ try {
         // Obtener los valores enviados por POST
         $id_cotizacion = $_POST['id_cotizacion'];
         $id_usuario = $_POST['id_usuario'];
+        $familia_perfil = $_POST['familia_perfil'];
         $perfil_sello = $_POST['perfil_sello'];
         $cantidad_material = $_POST['cantidad_material'];
         $material = $_POST['material'];
@@ -97,7 +98,7 @@ try {
         // Preparar la consulta SQL para insertar los datos
         $stmt = $conn->prepare("
             INSERT INTO cotizacion_materiales (
-                id_cotizacion, id_usuario, perfil_sello, cantidad_material, material, proveedor, 
+                id_cotizacion, id_usuario, familia_perfil, perfil_sello, cantidad_material, material, proveedor, 
                 claves, billets, billets_string, billets_string2, tipo_medida, 
                 altura, altura_caja, altura_escalon, altura_h2, altura_h3, 
                 diametro_int, diametro_ext, a_sello, di_sello, de_sello, cantidad, 
@@ -106,7 +107,7 @@ try {
                 a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2
                 ) 
             VALUES (
-                :id_cotizacion, :id_usuario, :perfil_sello, :cantidad_material, :material, :proveedor, 
+                :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
                 :claves, :billets, :billets_string, :billets_string2, :tipo_medida, 
                 :altura, :altura_caja, :altura_escalon, :altura_h2, :altura_h3, 
                 :diametro_int, :diametro_ext, :a_sello, :di_sello, :de_sello, :cantidad, 
@@ -118,6 +119,7 @@ try {
         // Vincular los parámetros con los valores
         $stmt->bindParam(':id_cotizacion', $id_cotizacion);
         $stmt->bindParam(':id_usuario', $id_usuario);
+        $stmt->bindParam(':familia_perfil', $familia_perfil);
         $stmt->bindParam(':perfil_sello', $perfil_sello);
         $stmt->bindParam(':cantidad_material', $cantidad_material);
         $stmt->bindParam(':material', $material);

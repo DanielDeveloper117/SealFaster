@@ -573,6 +573,32 @@ $(document).ready(function() {
             window.porcentajeDE_m4 = data.p_de_m4;
             window.porcentajeDE_m5 = data.p_de_m5;
 
+            switch (window.FAMILIA_PERFIL) {
+                case "rotary":
+                    window.FAMILIA_PERFIL = "Rotary (Rotativo)";
+                    break;
+                case "piston":
+                    window.FAMILIA_PERFIL = "Piston (Pistón)";
+                    break;
+                case "backup":
+                    window.FAMILIA_PERFIL = "Backup (Respaldo)";
+                    break;
+                case "guide":
+                    window.FAMILIA_PERFIL = "Guide (Guía)";
+                    break;
+                case "wipers":
+                    window.FAMILIA_PERFIL = "Wiper (Limpiador)";
+                    break;
+                case "rod":
+                    window.FAMILIA_PERFIL = "Rod (Vástago)";
+                    break;
+                default:
+                    window.FAMILIA_PERFIL = "";
+                    break;
+            }
+
+            $(".familia-perfil").val(window.FAMILIA_PERFIL);
+
             console.log("Desperdicio DI: ", window.DI_DESPERDICIO_DEFAULT);
             console.log("Desperdicio DE: ", window.DE_DESPERDICIO_DEFAULT);
 

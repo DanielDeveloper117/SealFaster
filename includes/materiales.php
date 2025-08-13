@@ -292,6 +292,7 @@
         <input type="hidden" class="cliente-codigo" name="codigo_cliente">
         <input type="hidden" class="cliente-correo" name="correo_cliente">
         <input type="hidden" class="tipo-medida" name="tipo_medida">
+        <input type="hidden" class="familia-perfil" name="familia_perfil">
 
         <input type="hidden" id="inputAlturaCaja_m<?= $i ?>" step="0.01" min="0" value="0.00" name="altura_caja_mm" required>
         <input type="hidden" id="inputAlturaEscalon_m<?= $i ?>" step="0.01" min="0" value="0.00" name="altura_escalon_mm" required>

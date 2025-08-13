@@ -33,7 +33,7 @@ class PDF extends FPDF {
 session_start();
 
 if (!isset($_SESSION['id'])) {
-    header("Location: ../cerrar_sesion.php");
+    header("Location: ../../auth/cerrar_sesion.php");
     exit;
 }
 
@@ -99,31 +99,6 @@ if (isset($_GET['id_cotizacion'])) {
         $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
         // DEFINIR VARIABLES DEL SELLO RESULTANTE
         $familiaPerfil = $arregoPerfil["tipo"];
-        $familiPerfilR = "";
-        switch($familiaPerfil){
-            case "rotary":
-                $familiPerfilR = "Rotary (Rotativo)";
-            break;
-            case "piston":
-                $familiPerfilR = "Piston (Pistón)";
-            break;
-            case "backup":
-                $familiPerfilR = "Backup (Respaldo)";
-            break;
-            case "guide":
-                $familiPerfilR = "Guide (Guía)";
-            break;
-            case "wipers":
-                $familiPerfilR = "Wiper (Limpiador)";
-            break;
-            case "rod":
-                $familiPerfilR = "Rod (Vástago)";
-            break;
-            default:
-                $familiPerfilR = "";        
-            break;
-        }
-
 
         // tabla informacion del sello CLIENTE
         $pdf->SetTextColor(0, 0, 0);
@@ -136,7 +111,7 @@ if (isset($_GET['id_cotizacion'])) {
         // altura normal total
         $pdf->Cell(24, 6, 'Altura total', 1, 1, 'C', true);
         
-        $pdf->Cell(40, 6, utf8_decode($familiPerfilR), 1, 0, 'C');
+        $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
         $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
         $di_sello = 0.00;
         $de_sello = 0.00;
