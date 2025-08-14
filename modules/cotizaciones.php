@@ -208,28 +208,30 @@ try {
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
         <div class="titulo mt-1 mb-3">
-            <h1>Mis cotizaciónes</h1>
+            <h1>Mis cotizaciones</h1>
         </div>
         <ul id="cotTabs" class="nav nav-tabs">
             <li class="nav-item">
-                <a class="nav-link" data-target="unicas" href="#">Cotizaciones únicas</a>
+                <a class="nav-link" data-target="unicas" href="#">Individuales</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" data-target="fusionadas" href="#">Cotizaciones fusionadas</a>
+                <a class="nav-link" data-target="fusionadas" href="#">Agrupadas</a>
             </li>
         </ul>
 
         <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
             <div class="row">
-                <div class="col-12">
-                    <div class=" bg-light rounded">
-                        <button type="button" 
-                                class="btn-purple" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modalFiltrosBusqueda">
-                            <i class="bi bi-funnel"></i> Filtros de busqueda
-                        </button>
-                    </div>
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
+                   
+                    <button type="button" 
+                            class="btn-purple" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalFiltrosBusqueda">
+                        <i class="bi bi-funnel"></i> Filtros de busqueda
+                    </button>
+                    <a id="btnInitFusionar" class="btn-unlink" href="#">
+                        <i class="bi bi-link" style="font-size:20px !important;"></i> Fusionar/agrupar cotizaciones
+                    </a>
                 </div>
             </div>
             <div id="containerUnicas" class="">
@@ -263,6 +265,15 @@ try {
                         <tr>
                             <td class="td-first-actions">
                                 <div class="d-flex gap-2 container-actions">
+                                    <?php if (isset($_GET['agru']) && $_GET['agru'] == '1'): ?>
+                                        <input
+                                            type="checkbox"
+                                            class="d-none btn-check-cute"
+                                            val="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            aria-label="Seleccionar cotizacion <?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                        />
+                                    <?php endif; ?>
+
                                     <?php if ($tipoUsuario != 5): ?>
                                         <button type="button" class="btn-general btn-version-cotizacion" 
                                             data-bs-toggle='modal' data-bs-target='#modalVersionCotizacion'
@@ -305,6 +316,7 @@ try {
                                 </div>
                                 
                             </td>
+                            
                             <td><?= htmlspecialchars($row['id_cotizacion']); ?></td>
                             <td><?= htmlspecialchars($row['familia_perfil']); ?></td>
                             <td><?= htmlspecialchars($row['perfil_sello']); ?></td>
@@ -343,6 +355,7 @@ try {
                     <thead>
                         <tr>
                             <th style="background-color:#55ad9b52;">Acciones</th>
+                            <th>Id</th>
                             <th>Cotizaciónes</th>
                             <th>Familia</th>
                             <th>Perfil</th>
@@ -359,7 +372,10 @@ try {
                     <?php
                         foreach ($arregloSelectCotizaciones as $row) {
                             $id_fusion = $row['id_fusion'];
-                            $sqlFusion = "SELECT * FROM cotizacion_materiales WHERE id_fusion = :id_fusion";
+                            $sqlFusion = "SELECT cm.*
+                                        FROM cotizacion_materiales cm
+                                        WHERE cm.id_fusion = :id_fusion
+                                        GROUP BY cm.id_cotizacion";
                             $stmtFusion = $conn->prepare($sqlFusion);
                             $stmtFusion->bindParam(':id_fusion', $id_fusion, PDO::PARAM_INT);
                             $stmtFusion->execute();
@@ -406,10 +422,18 @@ try {
                                         title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
                                         <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
                                     </button>
+
+                                    <button type="button" class="btn-unlink btn-romper-fusion" 
+                                        data-bs-toggle='modal' data-bs-target='#modalUnlink'
+                                        data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
+                                        title="Romper agrupación/fusión">                                    
+                                        <i class="bi bi-link"></i><i class="bi bi-x"></i>
+                                    </button>
                               
                                 </div>
                                 
                             </td>
+                            <td><?= htmlspecialchars($row['id_fusion']); ?></td>
                             <td>
                                 <?php 
                                     foreach ($arregloFusion as $cot) {
@@ -508,6 +532,17 @@ try {
         </div>
     </div>
 </section>
+
+<div id="agrupacionBar" class="agrupacion-bar d-none">
+    <span class="agrupacion-texto">Seleccione las cotizaciones que desea agrupar</span>
+    <div class="d-flex flex-column flex-md-row gap-3">
+        <button id="btnContinuarAgrupar" class="btn-general">Continuar</button>
+        <button id="btnCancelFusion" type="button" class="btn btn-secondary">
+            Cancelar
+        </button>
+    </div>
+</div>
+
 
 <!-- ///////////MODAL SELECCIONAR FILTROS DE BUSQUEDA////////////////// -->
 <div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -757,6 +792,26 @@ try {
                 <p id="infoArchivada"></p>
                 <div class="d-flex col-12 w-100 gap-3">
                     <button id="btnArchivar" type="button" class="btn-general">Continuar</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
+<!-- ///////////MODAL DESEA DESAGRUPAR/UNLINK COTIZACIONES ////////////////// -->
+<div class="modal fade" id="modalUnlink" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">¿Desea continuar?</h5>
+                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input id="inputIdRomperFusion" type="hidden" name="id_fusion">
+                <p>Esta acción desagrupará las cotizaciones de la fusión. Después las cotizaciones estarán disponibles de manera individual.</p>
+                <div class="d-flex col-12 w-100 gap-3">
+                    <button id="btnUnlink" type="button" class="btn-general">Continuar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                 </div>
             </div>

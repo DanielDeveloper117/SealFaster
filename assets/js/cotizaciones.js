@@ -70,20 +70,6 @@ $(document).ready(function() {
         }
     };   
 
-
-
-    // ************ INICIALIZACION **************
-    const urlInicial = new URL(window.location.href);
-    if (!urlInicial.searchParams.has('cot')) {
-        // Agregar cot=u sin eliminar otros parametros
-        urlInicial.searchParams.set('cot', 'u');
-        window.location.replace(urlInicial.toString());
-    }
-
-    const tabs = document.querySelectorAll('#cotTabs .nav-link');
-    const containerUnicas = document.getElementById('containerUnicas');
-    const containerFusionadas = document.getElementById('containerFusionadas');
-
     // Función para crear href con el parámetro cot modificado
     function crearHrefConCot(valorCot) {
         const nuevaUrl = new URL(urlInicial);
@@ -101,6 +87,50 @@ $(document).ready(function() {
             containerUnicas.classList.add('d-none');
         }
     }
+
+    function cancelarAgrupacion() {
+        // Obtener todos los parámetros GET de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Eliminar el parámetro 'agru'
+        urlParams.delete('agru');
+
+        // Reconstruir la URL sin 'agru'
+        const newUrl = window.location.pathname + '?' + urlParams.toString();
+
+        // Recargar la página con la nueva URL
+        window.location.href = newUrl;
+    }
+
+    // ************ INICIALIZACION **************
+    const urlInicial = new URL(window.location.href);
+    if (!urlInicial.searchParams.has('cot')) {
+        // Agregar cot=u sin eliminar otros parametros
+        urlInicial.searchParams.set('cot', 'u');
+        window.location.replace(urlInicial.toString());
+    }
+
+    const tabs = document.querySelectorAll('#cotTabs .nav-link');
+    const containerUnicas = document.getElementById('containerUnicas');
+    const containerFusionadas = document.getElementById('containerFusionadas');
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('agru') === '1') {
+        document.querySelectorAll('.btn-check-cute').forEach(el => {
+            el.classList.remove('d-none');
+            // Forzar reflow para que la transición se aplique correctamente
+            void el.offsetWidth;
+            el.classList.add('show-cute');
+        });
+        const bar = document.getElementById('agrupacionBar');
+        if (bar) {
+            bar.classList.remove('d-none');
+            // Forzar reflow para activar animación
+            void bar.offsetWidth;
+            bar.classList.add('show-bar');
+        }
+    }
+
 
     // Inicializar tabs y mostrar la tabla correcta al cargar
     const cotActual = urlInicial.searchParams.get('cot') || 'u';
@@ -149,6 +179,26 @@ $(document).ready(function() {
 
 
     // ************** EVENTOS DEL DOM **************
+    document.getElementById('btnInitFusionar').addEventListener('click', function(e) {
+        e.preventDefault();
+        let url = new URL(window.location.href);
+        url.searchParams.set('agru', '1');
+        url.searchParams.set('archivadas', '0');
+        window.location.href = url.toString();
+    });
+
+    // Animación “pop” al (des)chequear y hook listo para tu lógica
+    document.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('btn-check-cute')) return;
+
+        // animación breve
+        e.target.classList.add('pop');
+        setTimeout(() => e.target.classList.remove('pop'), 220);
+
+        // aquí puedes disparar tu lógica con el id de cotización:
+        // const id = e.target.dataset.idCotizacion;
+        // const checked = e.target.checked;
+    });
 
     // Cargar filtros activos al abrir el modal
     $('#modalFiltrosBusqueda').on('show.bs.modal', function() {
@@ -281,11 +331,77 @@ $(document).ready(function() {
                 }
             },
             error: function () {
-                sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar ", "none");
+                sweetAlertResponse("error", "Error", "Ocurrio algo inesperado", "none");
                 console.error("Error al consultar el estatus de autorización.");
             }
         });
     });
+    // CLICK para archivar una cotizacion
+    $(".btn-romper-fusion").on('click', function () {
+        const dataIdRomperFusion = $(this).data('id-fusion');
+        $("#inputIdRomperFusion").val(dataIdRomperFusion);
+    });
+    // ROMPER la agrupacion de las cotizaciones
+    $("#btnUnlink").on("click", function(){
+        var idRomperFusion = $("#inputIdRomperFusion").val();
+        $.ajax({
+            url: '../ajax/romper_fusion.php',
+            method: 'POST',
+            data: {
+                id_fusion: idRomperFusion,
+            },
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                } else {
+                    sweetAlertResponse("warning", "Advertencia", data.error, "self");
+                }
+            },
+            error: function () {
+                sweetAlertResponse("error", "Error", "Ocurrio algo inesperado ", "none");
+                console.error("Error al consultar el estatus de autorización.");
+            }
+        });
+    });
+    // CONTINUAR A FUSIONAR LAS COTIZACIONES SELECCIONADAS
+    $("#btnContinuarAgrupar").on("click", function(){
+
+        // Crear arreglo con las id_cotizacion seleccionadas
+        let cotizacionesSeleccionadas = [];
+        $(".btn-check-cute:checked").each(function(){
+            cotizacionesSeleccionadas.push($(this).attr("val"));
+        });
+
+        if(cotizacionesSeleccionadas.length === 0){
+            sweetAlertResponse("warning", "Advertencia", "No seleccionaste ninguna cotización.", "none");
+            return;
+        }
+        if(cotizacionesSeleccionadas.length < 2){
+            sweetAlertResponse("warning", "Advertencia", "Selecciona mínimo 2 cotizaciones.", "none");
+            return;
+        }
+
+        // Enviar las id_cotizacion seleccionadas al backend
+        $.ajax({
+            url: '../ajax/fusionar_cotizaciones.php',
+            method: 'POST',
+            data: {
+                ids_cotizaciones: cotizacionesSeleccionadas
+            },
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "cotizaciones.php?cot=f");
+                } else {
+                    sweetAlertResponse("warning", "Advertencia", data.error, "cotizaciones.php");
+                }
+            },
+            error: function () {
+                sweetAlertResponse("error", "Error", "Ocurrió algo inesperado al procesar.", "none");
+                console.error("Error al enviar las cotizaciones seleccionadas.");
+            }
+        });
+    });
+
     // CLICK CERRAR MODAL 
     $(".btn-close").on("click", function(){
         $("#formEnviarCorreo, #formEnviarAProduccion")[0].reset();
@@ -329,5 +445,9 @@ $(document).ready(function() {
                 api.columns.adjust().draw();
             }, 400);
         }
+    });
+    // CANCELAR AGRUPACION
+    $("#btnCancelFusion").on("click", function(){
+        cancelarAgrupacion();
     });
 });

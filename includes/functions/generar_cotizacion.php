@@ -139,40 +139,23 @@ if (isset($_GET['id_cotizacion'])) {
         // Cabecera de la tabla de materiales
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220); // gris claro
-        $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(20, 6, utf8_decode('# Material'), 1, 0, 'C', true);
-        $pdf->Cell(20, 6, 'Cantidad', 1, 0, 'C', true);
-        $pdf->Cell(42, 6, 'Material', 1, 0, 'C', true);
-        $pdf->Cell(34, 6, 'Total unitarios', 1, 0, 'C', true);
-        $pdf->Cell(29, 6, 'Descuentos', 1, 0, 'C', true);
-        $pdf->Cell(39, 6, 'Total', 1, 1, 'C', true);
+        $pdf->SetFont('Arial', 'B', 10);
+        $pdf->Cell(43, 6, utf8_decode('Num. material'), 1, 0, 'C', true);
+        $pdf->Cell(46, 6, 'Cantidad de piezas', 1, 0, 'C', true);
+        $pdf->Cell(46, 6, 'Material', 1, 0, 'C', true);
+        $pdf->Cell(46, 6, 'Total unitarios', 1, 0, 'C', true);
+        $pdf->Cell(46, 6, 'Descuentos', 1, 0, 'C', true);
+        $pdf->Cell(50, 6, 'Total', 1, 1, 'C', true);
 
         $elTotal = 0;
 
         foreach ($arregloCotizacion as $cotizacion) {
-            
-            $clavesFormateadas = array_map('trim', explode(',', $cotizacion['billets_string2']));
-            // Unimos las claves con saltos de línea para mostrarlas en vertical
-            $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
-            // Calculamos la altura necesaria según número de líneas
-            $lineHeight = 6; 
-            $numLinesClaves = count($clavesFormateadas);
-            $rowHeightClaves = $numLinesClaves * $lineHeight;
-            // Determinamos la altura máxima entre Claves y Descuentos para el renglón
-            $maxRowHeight = $rowHeightClaves;
-            // Fila #, Material, Claves (con MultiCell)
-            $pdf->Cell(20, $maxRowHeight, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
-            $pdf->Cell(20, $maxRowHeight, $cotizacion['cantidad'] . " pz", 1, 0, 'C');            
-            $pdf->Cell(42, $maxRowHeight, utf8_decode($cotizacion['material']), 1, 0, 'C');
-            // Guardamos la posición antes de usar MultiCell en Claves
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-
-            $pdf->Cell(34, $maxRowHeight, "$" . number_format($cotizacion['total_unitarios'], 2), 1, 0, 'C');
-            $pdf->Cell(29, $maxRowHeight, "$" . number_format($cotizacion['total_descuentos'], 2), 1, 0, 'C');
-            // Total final de la fila
-            $pdf->Cell(39, $maxRowHeight, "$" . number_format($cotizacion['total_material'], 2), 1, 1, 'C');
-            // Acumulamos el total
+            $pdf->Cell(43, 6, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
+            $pdf->Cell(46, 6, $cotizacion['cantidad'] . " pz", 1, 0, 'C');            
+            $pdf->Cell(46, 6, utf8_decode($cotizacion['material']), 1, 0, 'C');
+            $pdf->Cell(46, 6, "$" . number_format($cotizacion['total_unitarios'], 2), 1, 0, 'C');
+            $pdf->Cell(46, 6, "$" . number_format($cotizacion['total_descuentos'], 2), 1, 0, 'C');
+            $pdf->Cell(50, 6, "$" . number_format($cotizacion['total_material'], 2), 1, 1, 'C');
             $elTotal += $cotizacion['total_material'];
         }
         $iva = $elTotal*0.16;

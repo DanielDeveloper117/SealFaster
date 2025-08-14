@@ -62,6 +62,7 @@ if (isset($_GET['id_fusion'])) {
             $hora = $arregloSelectCotizacion['hora'];
             $estatus_completado = $arregloSelectCotizacion['estatus_completado'];
 
+            // Información general de la cotización
             $pageWidth = $pdf->GetPageWidth();
             $cellWidth = $pageWidth - 20; // margenes de 10 unidades
 
@@ -75,16 +76,6 @@ if (isset($_GET['id_fusion'])) {
             $pdf->Cell(100, 8, utf8_decode("Cotizado por: ". $vendedor), 0, 0, '', 0);
             $pdf->Ln(6);
 
-            $pdf->SetTextColor(103); // color
-            $pdf->SetFont('Arial', '', 13);
-            $pdf->Cell(100, 8, utf8_decode("Cliente: ". $cliente), 0, 0, '', 0);
-            $pdf->Ln(6);
-
-            $pdf->SetTextColor(103); // color
-            $pdf->SetFont('Arial', '', 13);
-            $pdf->Cell(100, 8, utf8_decode("Tipo de cliente: ". $tipo_cliente), 0, 0, '', 0);
-            $pdf->Ln(6);
-
             $pdf->SetFont('Arial', '', 11);
             $pdf->Cell(38, 8, utf8_decode("Fecha: ". $fecha), 0, 0, '', 0);
             $pdf->Cell(100, 8, utf8_decode("Hora: ". $hora), 0, 0, '', 0);
@@ -96,7 +87,7 @@ if (isset($_GET['id_fusion'])) {
             
             $pdf->SetDrawColor(0, 0, 0); // color negro
             $pdf->SetLineWidth(0.8);
-            $pdf->Line(10, 64, $pageWidth - 10, 64); // linea horizontal
+            $pdf->Line(10, 53, $pageWidth - 10, 53); // linea horizontal
             $pdf->SetLineWidth(0.2);
 
             $sqlPerfil = "SELECT * FROM perfiles WHERE perfil = :perfil";
@@ -104,77 +95,19 @@ if (isset($_GET['id_fusion'])) {
             $stmtPerfil->bindParam(':perfil', $perfil_sello);
             $stmtPerfil->execute();
             $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-            $posicionCaja = 0;
 
-            foreach ($arregloCotizacion as $index => $item) {
-                if (isset($item['altura_caja']) && floatval($item['altura_caja']) != 0.00) {
-                    $posicionCaja = $index;
-                    break;
-                }
-            }
-            $posicionEscalon = 0;
-
-            foreach ($arregloCotizacion as $index => $item) {
-                if (isset($item['altura_escalon']) && floatval($item['altura_escalon']) != 0.00) {
-                    $posicionEscalon = $index;
-                    break;
-                }
-            }
-            $posicionH2 = 0;
-
-            foreach ($arregloCotizacion as $index => $item) {
-                if (isset($item['altura_h2']) && floatval($item['altura_h2']) != 0.00) {
-                    $posicionH2 = $index;
-                    break;
-                }
-            }
-            $posicionH3 = 0;
-
-            foreach ($arregloCotizacion as $index => $item) {
-                if (isset($item['altura_h3']) && floatval($item['altura_h3']) != 0.00) {
-                    $posicionH3 = $index;
-                    break;
-                }
-            }
-
-            $esWisper = $arregoPerfil["es_wiper"];
-            $conEscalon = $arregoPerfil["con_escalon"];
-            $wisperEspecial = $arregoPerfil["es_wisper_especial"];
             // tabla informacion del sello CLIENTE
             $pdf->SetTextColor(0, 0, 0);
             $pdf->SetFillColor(220, 220, 220); // gris claro
             $pdf->SetFont('Arial', 'B', 10);
             $pdf->Cell(40, 6, 'Familia', 1, 0, 'C', true);
-            $pdf->Cell(40, 6, 'Perfil', 1, 0, 'C', true);
             $pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
             $pdf->Cell(24, 6, 'D. Interior', 1, 0, 'C', true);
             $pdf->Cell(24, 6, 'D. Exterior', 1, 0, 'C', true);
             // altura normal total
-            if($esWisper !== "0" || $conEscalon !== "0"){
-                $pdf->Cell(24, 6, 'Altura', 1, 0, 'C', true);
-            }else{
-                $pdf->Cell(24, 6, 'Altura', 1, 1, 'C', true);
-            }
-            // altura de caja para solo wispers sin escalon
-            if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
-                $pdf->Cell(24, 6, 'Altura caja', 1, 1, 'C', true);
-            }
-            if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial !== "0"){
-                $pdf->Cell(24, 6, 'Altura caja', 1, 0, 'C', true);
-            }
-            // altura de caja con escalon
-            if($esWisper !== "0" && $conEscalon !== "0"){
-                $pdf->Cell(24, 6, 'Altura caja', 1, 0, 'C', true);
-                $pdf->Cell(24, 6, 'Altura escalon', 1, 1, 'C', true);
-            }
-            // alturas wisper especial
-            if($wisperEspecial !== "0"){
-                $pdf->Cell(24, 6, 'Altura H2', 1, 0, 'C', true);
-                $pdf->Cell(24, 6, 'Altura H3', 1, 1, 'C', true);
-            }
+            $pdf->Cell(24, 6, 'Altura total', 1, 1, 'C', true);
 
             $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
-            $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["perfil_sello"]), 1, 0, 'C');
             $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
             $di_sello = 0.00;
             $de_sello = 0.00;
@@ -191,29 +124,8 @@ if (isset($_GET['id_fusion'])) {
             $pdf->Cell(24, 6, utf8_decode($di_sello), 1, 0, 'C');
             $pdf->Cell(24, 6, utf8_decode($de_sello), 1, 0, 'C');
             // altura normal total
-            if($esWisper !== "0" || $conEscalon !== "0"){
-                $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 0, 'C');
-            }else{
-                $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 1, 'C');
-            }
-            // altura de caja para solo wispers sin escalon
-            if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionCaja]["altura_caja"]), 1, 1, 'C');
-            }
-            // altura de caja para solo wispers especiales
-            if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial !== "0"){
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionCaja]["altura_caja"]), 1, 0, 'C');
-            }
-            // altura de caja con escalon
-            if($esWisper !== "0" && $conEscalon !== "0"){
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionCaja]["altura_caja"]), 1, 0, 'C');
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionEscalon]["altura_escalon"]), 1, 1, 'C');
-            }
-            // alturas de wisper especial
-            if($wisperEspecial !== "0"){
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionH2]["altura_h2"]), 1, 0, 'C');
-                $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionH3]["altura_h3"]), 1, 1, 'C');
-            }
+            $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 1, 'C');
+
             $pdf->Ln(3);
             $pdf->SetTextColor(0, 0, 0);
             $pdf->SetFont('Arial', 'B', 12);
@@ -222,45 +134,23 @@ if (isset($_GET['id_fusion'])) {
             // Cabecera de la tabla de materiales
             $pdf->SetTextColor(0, 0, 0);
             $pdf->SetFillColor(220, 220, 220); // gris claro
-            $pdf->SetFont('Arial', 'B', 9);
-            $pdf->Cell(20, 6, utf8_decode('# Material'), 1, 0, 'C', true);
-            $pdf->Cell(20, 6, 'Cantidad', 1, 0, 'C', true);
-            $pdf->Cell(42, 6, 'Material', 1, 0, 'C', true);
-            $pdf->Cell(93, 6, 'Billets(s)', 1, 0, 'C', true);
-            $pdf->Cell(34, 6, 'Total unitarios', 1, 0, 'C', true);
-            $pdf->Cell(29, 6, 'Descuentos', 1, 0, 'C', true);
-            $pdf->Cell(39, 6, 'Total', 1, 1, 'C', true);
+            $pdf->SetFont('Arial', 'B', 10);
+            $pdf->Cell(43, 6, utf8_decode('Num. material'), 1, 0, 'C', true);
+            $pdf->Cell(46, 6, 'Cantidad de piezas', 1, 0, 'C', true);
+            $pdf->Cell(46, 6, 'Material', 1, 0, 'C', true);
+            $pdf->Cell(46, 6, 'Total unitarios', 1, 0, 'C', true);
+            $pdf->Cell(46, 6, 'Descuentos', 1, 0, 'C', true);
+            $pdf->Cell(50, 6, 'Total', 1, 1, 'C', true);
 
             $totalCotizacion = 0;
 
             foreach ($arregloCotizacion as $cotizacion) {
-                
-                $clavesFormateadas = array_map('trim', explode(',', $cotizacion['billets_string2']));
-                // Unimos las claves con saltos de línea para mostrarlas en vertical
-                $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
-                // Calculamos la altura necesaria según número de líneas
-                $lineHeight = 6; 
-                $numLinesClaves = count($clavesFormateadas);
-                $rowHeightClaves = $numLinesClaves * $lineHeight;
-                // Determinamos la altura máxima entre Claves y Descuentos para el renglón
-                $maxRowHeight = $rowHeightClaves;
-                // Fila #, Material, Claves (con MultiCell)
-                $pdf->Cell(20, $maxRowHeight, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
-                $pdf->Cell(20, $maxRowHeight, $cotizacion['cantidad'] . " pz", 1, 0, 'C');            
-                $pdf->Cell(42, $maxRowHeight, utf8_decode($cotizacion['material']), 1, 0, 'C');
-                // Guardamos la posición antes de usar MultiCell en Claves
-                $x = $pdf->GetX();
-                $y = $pdf->GetY();
-                // Usamos MultiCell para Claves (esto puede generar varias líneas)
-                $pdf->MultiCell(93, $lineHeight, $clavesVertical, 1, 'C');
-                // Aseguramos que la siguiente celda esté alineada correctamente después de MultiCell
-                $pdf->SetXY($x + 93, $y);
-
-                $pdf->Cell(34, $maxRowHeight, "$" . number_format($cotizacion['total_unitarios'], 2), 1, 0, 'C');
-                $pdf->Cell(29, $maxRowHeight, "$" . number_format($cotizacion['total_descuentos'], 2), 1, 0, 'C');
-                // Total final de la fila
-                $pdf->Cell(39, $maxRowHeight, "$" . number_format($cotizacion['total_material'], 2), 1, 1, 'C');
-                // Acumulamos el total
+                $pdf->Cell(43, 6, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
+                $pdf->Cell(46, 6, $cotizacion['cantidad'] . " pz", 1, 0, 'C');            
+                $pdf->Cell(46, 6, utf8_decode($cotizacion['material']), 1, 0, 'C');
+                $pdf->Cell(46, 6, "$" . number_format($cotizacion['total_unitarios'], 2), 1, 0, 'C');
+                $pdf->Cell(46, 6, "$" . number_format($cotizacion['total_descuentos'], 2), 1, 0, 'C');
+                $pdf->Cell(50, 6, "$" . number_format($cotizacion['total_material'], 2), 1, 1, 'C');
                 $totalCotizacion += $cotizacion['total_material'];
             }
             $iva = $totalCotizacion*0.16;
