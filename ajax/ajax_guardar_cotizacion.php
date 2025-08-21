@@ -8,7 +8,8 @@ try {
     if (isset($_POST['id_cotizacion'], $_POST['id_usuario'], $_POST['familia_perfil'], $_POST['perfil_sello'], $_POST['cantidad_material'], $_POST['material'], 
               $_POST['claves'], $_POST['billets'], 
               $_POST['altura_mm'], $_POST['altura_caja_mm'], $_POST['altura_h2_mm'], $_POST['altura_h3_mm'], 
-              $_POST['diametro_interior_mm'], $_POST['diametro_exterior_mm'], 
+              $_POST['diametro_interior_mm'], $_POST['diametro_exterior_mm'],
+              $_POST['tipo_medida_di'], $_POST['tipo_medida_de'], $_POST['tipo_medida_h'],
               $_POST['a_sello'], $_POST['di_sello'], $_POST['de_sello'], $_POST['cantidad'], 
               $_POST['total_unitarios'], $_POST['desc_cliente'], $_POST['desc_cantidad'], $_POST['desc_mayoreo'], $_POST['total_descuentos'], $_POST['total_material'], 
               $_POST['estatus_completado'], $_POST['vendedor'], $_POST['img'],
@@ -33,6 +34,9 @@ try {
         $altura_h3 = $_POST['altura_h3_mm'];
         $diametro_int = $_POST['diametro_interior_mm'];
         $diametro_ext = $_POST['diametro_exterior_mm'];
+        $tipo_medida_di = $_POST['tipo_medida_di'];
+        $tipo_medida_de = $_POST['tipo_medida_de'];
+        $tipo_medida_h = $_POST['tipo_medida_h'];
         $a_sello = $_POST['a_sello'];
         $di_sello = $_POST['di_sello'];
         $de_sello = $_POST['de_sello'];
@@ -101,7 +105,8 @@ try {
                 id_cotizacion, id_usuario, familia_perfil, perfil_sello, cantidad_material, material, proveedor, 
                 claves, billets, billets_string, billets_string2, tipo_medida, 
                 altura, altura_caja, altura_escalon, altura_h2, altura_h3, 
-                diametro_int, diametro_ext, a_sello, di_sello, de_sello, cantidad, 
+                diametro_int, diametro_ext, 
+                a_sello, tipo_medida_h, di_sello, tipo_medida_di, de_sello, tipo_medida_de, cantidad, 
                 total_unitarios, desc_cliente, desc_cantidad, desc_mayoreo, total_descuentos, total_material, 
                 estatus_completado, vendedor, img, cliente, tipo_cliente, codigo_cliente, correo_cliente,
                 a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2
@@ -110,7 +115,8 @@ try {
                 :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
                 :claves, :billets, :billets_string, :billets_string2, :tipo_medida, 
                 :altura, :altura_caja, :altura_escalon, :altura_h2, :altura_h3, 
-                :diametro_int, :diametro_ext, :a_sello, :di_sello, :de_sello, :cantidad, 
+                :diametro_int, :diametro_ext, 
+                :a_sello, :tipo_medida_h, :di_sello, :tipo_medida_di, :de_sello, :tipo_medida_de, :cantidad, 
                 :total_unitarios, :desc_cliente, :desc_cantidad, :desc_mayoreo, :total_descuentos, :total_material, 
                 :estatus_completado, :vendedor, :img, :cliente, :tipo_cliente, :codigo_cliente, :correo_cliente, 
                 :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2
@@ -137,8 +143,11 @@ try {
         $stmt->bindParam(':diametro_int', $diametro_int);
         $stmt->bindParam(':diametro_ext', $diametro_ext);
         $stmt->bindParam(':a_sello', $a_sello);
+        $stmt->bindParam(':tipo_medida_h', $tipo_medida_h);
         $stmt->bindParam(':di_sello', $di_sello);
+        $stmt->bindParam(':tipo_medida_di', $tipo_medida_di);
         $stmt->bindParam(':de_sello', $de_sello);
+        $stmt->bindParam(':tipo_medida_de', $tipo_medida_de);
         $stmt->bindParam(':cantidad', $cantidad);
         $stmt->bindParam(':total_unitarios', $total_unitarios);
         $stmt->bindParam(':desc_cliente', $desc_cliente);

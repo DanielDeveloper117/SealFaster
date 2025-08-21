@@ -25,7 +25,7 @@ function getMailer(PDO $conn): PHPMailer {
     $mail->Password = 'MA9zxx@#8wN'; // pon aquí tu variable segura
     $mail->SMTPSecure = 'ssl';
     $mail->Port = 465;
-    $mail->setFrom('plat_autorizaciones@sellosyretenes.com', 'Requisición');
+    $mail->setFrom('plat_autorizaciones@sellosyretenes.com', 'Sellos y Retenes de San Luis');
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
 

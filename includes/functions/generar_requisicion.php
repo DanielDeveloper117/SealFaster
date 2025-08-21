@@ -102,7 +102,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFillColor(220, 220, 220); // gris claro
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(28, 6, 'SUCURSAL:', 1, 0, 'R', true);
-    $pdf->SetFont('Arial', '', );
+    $pdf->SetFont('Arial', '', 10);
     $pdf->Cell(162, 6, utf8_decode($arregloRequisicion['sucursal']), 1, 1, 'L', 0);
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(28, 6, 'VENDEDOR:', 1, 0, 'R', true);
@@ -166,13 +166,13 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFillColor(220, 220, 220);
     $pdf->SetFont('Arial', 'B', 9);
-    $pdf->Cell(11, 6, 'Cant.', 1, 0, 'C', true);
+    $pdf->Cell(10, 6, 'Cant.', 1, 0, 'C', true);
     $pdf->Cell(15, 6, 'Perfil', 1, 0, 'C', true);
     $pdf->Cell(23, 6, 'Material', 1, 0, 'C', true);
-    $pdf->Cell(12, 6, 'Medida', 1, 0, 'C', true);
-    $pdf->Cell(29, 6, 'D. Interior', 1, 0, 'C', true);
-    $pdf->Cell(29, 6, 'D. Exterior', 1, 0, 'C', true);
-    $pdf->Cell(28, 6, 'Altura(s)', 1, 0, 'C', true);
+    //$pdf->Cell(12, 6, 'Medida', 1, 0, 'C', true);
+    $pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
+    $pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
+    $pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
     $pdf->Cell(43, 6, 'Claves', 1, 1, 'C', true);
     foreach ($cotizacion_ids as $id_cotizacion) {
         $stmt->bindValue(':id_cotizacion', $id_cotizacion, PDO::PARAM_INT);
@@ -196,76 +196,121 @@ if (isset($_GET['id_requisicion'])) {
         
         $pdf->SetFont('Arial', '', 8);
 
+        $arrayDI = [];
+        $arrayDE = [];
         //*************************ALTURAS******************************** */
         // === Calcular contenido de altura ===
         $lineHeight = 4;
         $alturaTexto = '';
         $numLineasAltura = 1;
 
-        if ($familiaPerfil == "wipers") {
-            $alturas = [];
+        $alturas = [];
+        $alturas[] = "Total:";
+        $arrayDI[] = "";
+        $arrayDE[] = "";
+        $alturas[] = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
 
-            if($cotGeneral['tipo_medida']=="Sello"){
-                $alturas[] = "Total:";
-                $alturas[] = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
-            } else {
-                $alturas[] = "Total:";
-                $alturas[] = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
-            }
 
-            if ($cotGeneral['altura_caja'] !== "0.00") {
-                $alturas[] = "Caja:";
-                $alturas[] = $cotGeneral['altura_caja']."mm/".mm_a_pulgadas($cotGeneral['altura_caja']).'"';
-            }
-            if ($cotGeneral['altura_h2'] !== "0.00") {
-                $alturas[] = "H2:";
-                $alturas[] = $cotGeneral['altura_h2']."mm/".mm_a_pulgadas($cotGeneral['altura_h2']).'"';
-            }
-            if ($cotGeneral['altura_h3'] !== "0.00") {
-                $alturas[] = "H3:";
-                $alturas[] = $cotGeneral['altura_h3']."mm/".mm_a_pulgadas($cotGeneral['altura_h3']).'"';
-            }
+        $arrayDI[] = $cotGeneral['di_sello']."mm/".mm_a_pulgadas($cotGeneral['di_sello']).'"';
 
-            $alturaTexto = utf8_decode(implode("\n", $alturas));
-            $numLineasAltura = count($alturas);
-        } else {
-            if($cotGeneral['tipo_medida']=="Sello"){
-                $alturaTexto = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
-            } else {
-                $alturaTexto = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
-            }
+        $arrayDE[] = $cotGeneral['de_sello']."mm/".mm_a_pulgadas($cotGeneral['de_sello']).'"';
+        
+        if ($cotGeneral['altura_caja'] !== "0.00") {
+            $alturas[] = "Caja:";
+            $alturas[] = $cotGeneral['altura_caja']."mm/".mm_a_pulgadas($cotGeneral['altura_caja']).'"';
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+        }
+        if ($cotGeneral['altura_escalon'] !== "0.00") {
+            $alturas[] = "Escalón:";
+            $alturas[] = $cotGeneral['altura_escalon']."mm/".mm_a_pulgadas($cotGeneral['altura_escalon']).'"';
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+        }
+        if ($cotGeneral['altura_h2'] !== "0.00") {
+            $alturas[] = "H2:";
+            $alturas[] = $cotGeneral['altura_h2']."mm/".mm_a_pulgadas($cotGeneral['altura_h2']).'"';
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+        }
+        if ($cotGeneral['altura_h3'] !== "0.00") {
+            $alturas[] = "H3:";
+            $alturas[] = $cotGeneral['altura_h3']."mm/".mm_a_pulgadas($cotGeneral['altura_h3']).'"';
+            $arrayDI[] = "";
+            $arrayDE[] = "";
+            $arrayDI[] = "";
+            $arrayDE[] = "";
         }
 
+
+        $alturas[] = '              '.$cotGeneral['tipo_medida_h'];
+        $arrayDI[] = $cotGeneral['tipo_medida_di'];
+
+        $arrayDE[] = $cotGeneral['tipo_medida_di'];
+
+        $alturaTexto = utf8_decode(implode("\n", $alturas));
+        $numLineasAltura = count($alturas);
+        //if ($familiaPerfil == "wipers") {
+
+            // if($cotGeneral['tipo_medida']=="Sello"){
+            // } else {
+            //     $alturas[] = "Total:";
+            //     $alturas[] = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
+            // }
+        //} else {
+            // if($cotGeneral['tipo_medida']=="Sello"){
+                //$alturaTexto = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
+            // } else {
+            //     $alturaTexto = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
+            // }
+        //}
+
         // === Calcular altura total del renglon ===
-        $rowHeight = ($familiaPerfil == "wipers") ? ($numLineasAltura * $lineHeight) : 6;
+        //$rowHeight = ($familiaPerfil == "wipers") ? ($numLineasAltura * $lineHeight) : 6;
+        $rowHeight = ($numLineasAltura * $lineHeight) ?? 6;
 
         // === Guardar posicion inicial
         $xStart = $pdf->GetX();
         $yStart = $pdf->GetY();
 
         // === Imprimir todas las celdas del renglón una por una, mismo height ===
-        $pdf->Cell(11, $rowHeight, utf8_decode("-"), 1, 0, 'C');
+        $pdf->Cell(10, $rowHeight, utf8_decode("-"), 1, 0, 'C');
         $pdf->Cell(15, $rowHeight, utf8_decode($cotGeneral['perfil_sello']), 1, 0, 'C');
         $pdf->Cell(23, $rowHeight, utf8_decode("-"), 1, 0, 'C');
-        $pdf->Cell(12, $rowHeight, utf8_decode($cotGeneral['tipo_medida']), 1, 0, 'C');
+        // $pdf->Cell(12, $rowHeight, utf8_decode($cotGeneral['tipo_medida']), 1, 0, 'C');
+        //$pdf->Cell(33, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
+        //$pdf->Cell(33, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
 
-        if($cotGeneral['tipo_medida']=="Sello"){
-            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
-            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
-        } else {
-            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello2'].'mm/'.$cotGeneral['di_sello_inch2'].'"'), 1, 0, 'C');
-            $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello2'].'mm/'.$cotGeneral['de_sello_inch2'].'"'), 1, 0, 'C');
-        }
+        $textoDI = utf8_decode(implode("\n", $arrayDI));
+        $textoDE = utf8_decode(implode("\n", $arrayDE));
+        $alturaTexto = utf8_decode(implode("\n", $alturas));
+        // if($cotGeneral['tipo_medida']=="Sello"){
+        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
+        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
+        // } else {
+        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello2'].'mm/'.$cotGeneral['di_sello_inch2'].'"'), 1, 0, 'C');
+        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello2'].'mm/'.$cotGeneral['de_sello_inch2'].'"'), 1, 0, 'C');
+        // }
 
         // === Celda de altura (usa MultiCell si es wipers)
-        if ($familiaPerfil == "wipers") {
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            $pdf->MultiCell(28, $lineHeight, $alturaTexto, 1, 'L');
-            $pdf->SetXY($x + 28, $y); // mover puntero a la derecha
-        } else {
-            $pdf->Cell(28, $rowHeight, utf8_decode($alturaTexto), 1, 0, 'C');
-        }
+        //if ($familiaPerfil == "wipers") {
+        $x = $pdf->GetX();
+        $y = $pdf->GetY();
+        $pdf->MultiCell(33, $lineHeight, $textoDI, 1, 'C');
+        $pdf->SetXY($x + 33, $y);
+        $pdf->MultiCell(33, $lineHeight, $textoDE, 1, 'C');
+        $pdf->SetXY($x + 66, $y);
+        $pdf->MultiCell(33, $lineHeight, $alturaTexto, 1, 'L');
+        $pdf->SetXY($x + 99, $y);
+        // } else {
+        //     $pdf->Cell(33, $rowHeight, utf8_decode($alturaTexto), 1, 0, 'C');
+        // }
 
         // === Celda de Claves vacia
         $pdf->Cell(43, $rowHeight, utf8_decode("-"), 1, 1, 'C');
@@ -308,13 +353,13 @@ if (isset($_GET['id_requisicion'])) {
             $maxRowHeight = $rowHeightClaves;
 
             // Celdas previas
-            $pdf->Cell(11, $maxRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+            $pdf->Cell(10, $maxRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
             $pdf->Cell(15, $maxRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
             $pdf->Cell(23, $maxRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
-            $pdf->Cell(12, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(29, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(29, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(28, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            // $pdf->Cell(12, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
 
             // Posición antes del MultiCell
             $x = $pdf->GetX();

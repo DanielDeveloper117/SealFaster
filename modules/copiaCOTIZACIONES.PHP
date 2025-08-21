@@ -21,362 +21,185 @@ if (!isset($_SESSION['id'])) {
     <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    
 
 <?php
     require_once(ROOT_PATH . 'vendor/autoload.php');
-    include(ROOT_PATH . 'includes/backend_info_user.php');
+
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
     // si se recibio un formulario con metodo POST
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // guardar id y folio
-        //$idCotizacion = $_POST["id_cotizacion"];
+        $idCotizacion = $_POST["id_cotizacion"];
         set_error_handler(function($severity, $message, $file, $line) {
             throw new ErrorException($message, 0, $severity, $file, $line);
         });
         
         // si se recibio la id
-        //if (isset($idCotizacion)) {
+        if (isset($idCotizacion)) {
             if($_POST["accion"]=="enviar_correo"){
                 $correo_cliente = $_POST["correo_cliente"];
                 $pdf_cotizacion = $_FILES['pdf_cotizacion'];
-                $otro_archivo = $_FILES['otro_archivo'];
-                //$queryUpdate = "UPDATE cotizacion_materiales SET fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
-                ////////////////////////////PHP MAILER -> cotizador/vendedor a cliente ////////////////
+                $queryUpdate = "UPDATE cotizacion_materiales SET fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+                ////////////////////////////PHP MAILER -> cotizador a cliente ////////////////
+                $mail = new PHPMailer(true);
                 try {
-                    if($_POST["remitente"] == "cotizador"){
-                        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                        $mail = getMailer($conn);
-                        $mail->addAddress($correo_cliente);
-                        //$mail->Subject = 'Cotizacion Sello SRS. ID: '.$idCotizacion;
-                        $mail->Subject = 'Cotización de Maquinado de Sello SRS.';
-                        $mail->Body = "Estimado cliente, en este correo se le envía la cotización solicitada.<br>Este es un envío automático, favor de no contestarlo.<br>Cualquier situación comunicarse con el agente de ventas.";
-                        // Adjuntar el archivo directamente desde el array $_FILES
-                        if (is_uploaded_file($pdf_cotizacion['tmp_name'])) {
-                            $mail->addAttachment($pdf_cotizacion['tmp_name'], $pdf_cotizacion['name']);
-                        }
-                        if (is_uploaded_file($otro_archivo['tmp_name'])) {
-                            $mail->addAttachment($otro_archivo['tmp_name'], $otro_archivo['name']);
-                        }
-                        //$stmtUpdate = $conn->prepare($queryUpdate);
-                        //$stmtUpdate->bindParam(':id_cotizacion', $idCotizacion);
-                        //$stmtUpdate->execute();
-                        $mail->send();
-                        // Enviar el correo primero
-
-                        $passMail = "MA9zxx@#8wN";
-                        // Conectarse por IMAP a la cuenta
-                        $imapStream = imap_open(
-                            '{sellosyretenes.com:993/imap/ssl}INBOX.Sent',
-                            'plat_autorizaciones@sellosyretenes.com',
-                            $passMail
-                        );
-
-                        //$asunto = 'Cotizacion Sello SRS. ID: '.$idCotizacion;
-                        $asunto = 'Cotizacion de Maquinado de Sello SRS.';
-                        $cuerpoCorreo = "Estimado cliente, en este correo se le envia la cotizacion del maquinado del sello que ha solicitado.<br>Este es un envio automatico, favor de no contestarlo.<br>Cualquier situacion comunicarse con el agente de ventas.";
-                        // Crear el mensaje completo
-                        $message = "From: plat_autorizaciones@sellosyretenes.com\r\n";
-                        $message .= "To: {$correo_cliente}\r\n";
-                        $message .= "Subject: {$asunto}\r\n";
-                        $message .= "Date: " . date('r') . "\r\n";
-                        $message .= "MIME-Version: 1.0\r\n";
-                        $message .= "Content-Type: text/html; charset=UTF-8\r\n";
-                        $message .= "\r\n";
-                        $message .= $cuerpoCorreo;
-
-                        // Guardarlo en la carpeta "Sent"
-                        imap_append($imapStream, "{sellosyretenes.com:993/imap/ssl}INBOX.Sent", $message);
-                        imap_close($imapStream);
-
-                        echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                        sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente al cliente.", "self");
-                            $.ajax({
-                                url: "../ajax/ajax_notificacion.php",
-                                type: "POST",
-                                data: { mensaje: "Correo enviado con correo del sistema"},
-                                success: function(response) {
-                                    console.log("Notificacion enviada: ", response);
-                                },
-                                error: function(error) {
-                                    console.error("Error al enviar la notificacion: ", error);
-                                }
-                            });
-                        });</script>';
-                        exit;
-
-                    }elseif($_POST["remitente"] == "sesion"){
-                        $correo_sesion = $usuarioUser ?? null;
-                        $mail = new PHPMailer\PHPMailer\PHPMailer(true);
-                        $asunto_correo = $_POST['asunto_correo'] ?? '';
-                        $cuerpo_correo = $_POST['cuerpo_correo'] ?? '';
-                        
-                        if (!$correo_sesion) {
-                            echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                                sweetAlertResponse("error", "Error", "Error de sesion", "self");
-                                });</script>';        
-                            exit;
-                        }
-                        if (!filter_var($correo_sesion, FILTER_VALIDATE_EMAIL) || !filter_var($correo_cliente, FILTER_VALIDATE_EMAIL)) {
-                            echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                            sweetAlertResponse("error", "Error", "Correo invalido.", "self");
-                            });</script>';        
-                            exit;
-                        }
-
-                        // Verificar que el correo del remitente sea del mismo dominio
-                        $dominio_servidor = substr(strrchr($_SERVER['SERVER_NAME'], "."), 1); 
-                        if (!str_ends_with($correo_sesion, $dominio_servidor)) {
-                            echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                            sweetAlertResponse("error", "Error", "No se puede enviar correo desde un dominio externo.", "self");
-                            });</script>';        
-                            exit;
-                        }
-                        // Configuracion para usar sendmail local (sin SMTP ni password)
-                        $mail->isMail();
-                        $mail->CharSet = 'UTF-8';
-                        $mail->setFrom($correo_sesion, 'Sellos y Retenes de San Luis');
-                        $mail->addAddress($correo_cliente);
-                        $mail->Subject = $asunto_correo;
-                        $mail->isHTML(true);
-                        $mail->Body = $cuerpo_correo;
-
-                        // Adjuntar el archivo directamente desde el array $_FILES
-                        if (is_uploaded_file($pdf_cotizacion['tmp_name'])) {
-                            $mail->addAttachment($pdf_cotizacion['tmp_name'], $pdf_cotizacion['name']);
-                        }
-                        if (is_uploaded_file($otro_archivo['tmp_name'])) {
-                            $mail->addAttachment($otro_archivo['tmp_name'], $otro_archivo['name']);
-                        }
-                        //$stmtUpdate = $conn->prepare($queryUpdate);
-                        //$stmtUpdate->bindParam(':id_cotizacion', $idCotizacion);
-                        //$stmtUpdate->execute();
-                        $mail->send();
-                        echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                        sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente al cliente. Nota: este correo no se mostrará en el apartado de correos enviados en tu cuenta de correo.", "self");
-                            $.ajax({
-                                url: "../ajax/ajax_notificacion.php",
-                                type: "POST",
-                                data: { mensaje: "Correo enviado con correo en sesion"},
-                                success: function(response) {
-                                    console.log("Notificacion enviada: ", response);
-                                },
-                                error: function(error) {
-                                    console.error("Error al enviar la notificacion: ", error);
-                                }
-                            });
-                        });</script>';
-                        exit;
-                    }else{
-
+                    $mail->isSMTP();
+                    $mail->Host = 'sellosyretenes.com';
+                    $mail->SMTPAuth = true;
+                    $mail->Username = 'plat_autorizaciones@sellosyretenes.com';
+                    $mail->Password = 'MA9zxx@#8wN';
+                    $mail->SMTPSecure = 'ssl';
+                    $mail->Port = 465;
+                    $mail->setFrom('plat_autorizaciones@sellosyretenes.com', 'Cotizacion');
+                    $mail->addAddress($correo_cliente);
+                    $mail->isHTML(true);
+                    $mail->Subject = 'Cotizacion Sello SRS. ID: '.$idCotizacion;
+                    $mail->Body = "Estimado cliente, en este correo se le envia la cotizacion solicitada.<br>Este es un envio automatico, favor de no contestarlo.<br>Cualquier situacion comunicarse con el agente de ventas.";
+                    // Adjuntar el archivo directamente desde el array $_FILES
+                    if (is_uploaded_file($pdf_cotizacion['tmp_name'])) {
+                        $mail->addAttachment($pdf_cotizacion['tmp_name'], $pdf_cotizacion['name']);
                     }
+                    $stmtUpdate = $conn->prepare($queryUpdate);
+                    $stmtUpdate->bindParam(':id_cotizacion', $idCotizacion);
+                    $stmtUpdate->execute();
+                    $mail->send();
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                    sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente al cliente.", "self");
+                    });</script>';
 
                 } catch (Throwable $e) {
                     echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error al enviar correo'. addslashes($e->getMessage()).' - '.$mail->ErrorInfo .'", "self");
+                    sweetAlertResponse("error", "Error", "Error al enviar correo. '. addslashes($e->getMessage()).' - '.$mail->ErrorInfo .'", "self");
                     });</script>';     
                     exit;        
                 }
                 ////////////////////////////////////////////////////////////////////////
             } 
-        //}else { 
-            //echo "<script>alert('No se recibio id o archivo');</script>";
-        //}
+        }else { 
+            echo "<script>alert('No se recibio id o archivo');</script>";
+        }
+    }
+    
+    include(ROOT_PATH . 'includes/backend_info_user.php');
+
+
+
+try {
+    // Variables de filtro desde GET (sanitizadas)
+    $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
+
+    $filtro_familia = isset($_GET['filtro_familia']) && $_GET['filtro_familia'] !== '' ? trim($_GET['filtro_familia']) : null;
+    $filtro_tipo_medida = isset($_GET['filtro_tipo_medida']) && $_GET['filtro_tipo_medida'] !== '' ? trim($_GET['filtro_tipo_medida']) : null;
+    $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
+    $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
+    $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+
+    // Consulta base y parámetros
+    $params = [];
+    $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE 1=1";
+
+    // Filtrar por usuario si no es admin
+    if ($_SESSION['id'] != 71) {
+        $sqlCotizaciones .= " AND id_usuario = :id_usuario";
+        $params[':id_usuario'] = $_SESSION['id'];
     }
 
-    try {
-        // --------- LECTURA DE GET ----------
-        $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
+    // Filtro por cotizaciones unicas o fusionadas
+    if ($cot === 'u') {
+        // Cotizaciones únicas: id_fusion debe ser NULL
+        $sqlCotizaciones .= " AND id_fusion IS NULL";
 
-        $filtro_familia     = isset($_GET['filtro_familia']) && $_GET['filtro_familia'] !== '' ? trim($_GET['filtro_familia']) : null;
-        $filtro_tipo_medida = isset($_GET['filtro_tipo_medida']) && $_GET['filtro_tipo_medida'] !== '' ? trim($_GET['filtro_tipo_medida']) : null;
-        $fecha_inicio       = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
-        $fecha_fin          = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $archivadas         = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+        // Filtros adicionales válidos para únicas
+        if ($filtro_familia) {
+            $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
+            $params[':familia_perfil'] = $filtro_familia;
+        }
+        if ($filtro_tipo_medida) {
+            $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
+            $params[':tipo_medida'] = $filtro_tipo_medida;
+        }
+    } elseif ($cot === 'f') {
+        // Cotizaciones fusionadas: id_fusion NO debe ser NULL
+        $sqlCotizaciones .= " AND id_fusion IS NOT NULL";
 
-        $isAdmin = ($_SESSION['id'] ?? null) == 71;
-        $params  = [];
+        // Filtro por familia sí aplica para fusionadas
+        if ($filtro_familia) {
+            $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
+            $params[':familia_perfil'] = $filtro_familia;
+        }
+        // NO aplicar filtro_tipo_medida para fusionadas (ignorar)
+    }
 
-        // --------- ARMADO SQL ----------
-        if ($cot === 'u') {
-            // ÚNICAS: fila más reciente por id_cotizacion
-            $sqlCotizaciones = "
-                SELECT cm.*
-                FROM cotizacion_materiales cm
-                INNER JOIN (
-                    SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                    FROM cotizacion_materiales
-                    WHERE id_fusion IS NULL
-            ";
+    // Filtros por fechas
+    if ($fecha_inicio && $fecha_fin) {
+        $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
+        $params[':fecha_inicio'] = $fecha_inicio;
+        $params[':fecha_fin'] = $fecha_fin;
+    } elseif ($fecha_inicio) {
+        $sqlCotizaciones .= " AND fecha >= :fecha_inicio";
+        $params[':fecha_inicio'] = $fecha_inicio;
+    } elseif ($fecha_fin) {
+        $sqlCotizaciones .= " AND fecha <= :fecha_fin";
+        $params[':fecha_fin'] = $fecha_fin;
+    }
 
-            if (!$isAdmin) {
-                $sqlCotizaciones .= " AND id_usuario = :id_usuario";
-                $params[':id_usuario'] = (int)$_SESSION['id'];
-            }
-            if ($filtro_familia) {
-                $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
-                $params[':familia_perfil'] = $filtro_familia;
-            }
-            if ($filtro_tipo_medida) { // solo aplica en únicas
-                $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
-                $params[':tipo_medida'] = $filtro_tipo_medida;
-            }
-            // Fechas
-            if ($fecha_inicio && $fecha_fin) {
-                $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
-                $params[':fecha_inicio'] = $fecha_inicio;
-                $params[':fecha_fin']    = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $sqlCotizaciones .= " AND fecha >= :fecha_inicio";
-                $params[':fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $sqlCotizaciones .= " AND fecha <= :fecha_fin";
-                $params[':fecha_fin'] = $fecha_fin;
-            }
-            // Archivadas (por defecto solo activas)
-            if ($archivadas === '0' || $archivadas === '1') {
-                $sqlCotizaciones .= " AND archivada = :archivada";
-                $params[':archivada'] = (int)$archivadas;
-            } elseif ($archivadas === 'n') {
-                $sqlCotizaciones .= " AND (archivada = '0' OR archivada = '1')";
-            } else {
-                $sqlCotizaciones .= " AND archivada = '0'";
-            }
+    // Filtro por archivadas
+    if ($archivadas === '0' || $archivadas === '1') {
+        $sqlCotizaciones .= " AND archivada = :archivada";
+        $params[':archivada'] = (int)$archivadas;
+    } elseif ($archivadas === 'n') {
+        $sqlCotizaciones .= " AND (archivada = '0' OR archivada = '1')";
+    }else{
+        $sqlCotizaciones .= " AND archivada = '0'";
+    }
 
-            $sqlCotizaciones .= "
-                    GROUP BY id_cotizacion
-                ) t
-                ON cm.id_cotizacion = t.id_cotizacion
-                AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                /* GROUP BY para evitar duplicados si hay mismo timestamp */
-                GROUP BY cm.id_cotizacion
-                ORDER BY t.ultima ASC
-            ";
+    // Agrupación y orden según cot
+    if ($cot === 'u') {
+        // Agrupar por id_cotizacion para únicas
+        $sqlCotizaciones .= " GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
+    } else {
+        // Agrupar por id_fusion para fusionadas
+        // NOTA: es posible que quieras seleccionar campos representativos (e.g. MIN(fecha)) al agrupar
+        $sqlCotizaciones .= " GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
+    }
 
+    // Ejecutar consulta
+    $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
+    $stmtCotizaciones->execute($params);
+    $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
+
+} catch (Exception $e) {
+    echo "<script>alert('Ocurrio un error al buscar con los filtros.');</script>";
+
+    // Consulta por defecto si hay error
+    if ($_SESSION['id'] == 71) {
+        if ($cot === 'f') {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_fusion IS NOT NULL AND archivada = 0 GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
         } else {
-            // FUSIONADAS: fila más reciente por id_fusion (ignorar tipo_medida)
-            $sqlCotizaciones = "
-                SELECT cm.*
-                FROM cotizacion_materiales cm
-                INNER JOIN (
-                    SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                    FROM cotizacion_materiales
-                    WHERE id_fusion IS NOT NULL
-            ";
-
-            if (!$isAdmin) {
-                $sqlCotizaciones .= " AND id_usuario = :id_usuario";
-                $params[':id_usuario'] = (int)$_SESSION['id'];
-            }
-            if ($filtro_familia) {
-                $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
-                $params[':familia_perfil'] = $filtro_familia;
-            }
-            // Fechas
-            if ($fecha_inicio && $fecha_fin) {
-                $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
-                $params[':fecha_inicio'] = $fecha_inicio;
-                $params[':fecha_fin']    = $fecha_fin;
-            } elseif ($fecha_inicio) {
-                $sqlCotizaciones .= " AND fecha >= :fecha_inicio";
-                $params[':fecha_inicio'] = $fecha_inicio;
-            } elseif ($fecha_fin) {
-                $sqlCotizaciones .= " AND fecha <= :fecha_fin";
-                $params[':fecha_fin'] = $fecha_fin;
-            }
-            // Archivadas (por defecto solo activas)
-            if ($archivadas === '0' || $archivadas === '1') {
-                $sqlCotizaciones .= " AND archivada = :archivada";
-                $params[':archivada'] = (int)$archivadas;
-            } elseif ($archivadas === 'n') {
-                $sqlCotizaciones .= " AND (archivada = '0' OR archivada = '1')";
-            } else {
-                $sqlCotizaciones .= " AND archivada = '0'";
-            }
-
-            $sqlCotizaciones .= "
-                    GROUP BY id_fusion
-                ) t
-                ON cm.id_fusion = t.id_fusion
-                AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                GROUP BY cm.id_fusion
-                ORDER BY t.ultima DESC
-            ";
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_fusion IS NULL AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
         }
-
-        // --------- EJECUCIÓN ----------
         $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-        foreach ($params as $k => $v) {
-            $type = is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR;
-            $stmtCotizaciones->bindValue($k, $v, $type);
+    } else {
+        if ($cot === 'f') {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND id_fusion IS NOT NULL AND archivada = 0 GROUP BY id_fusion ORDER BY fecha DESC, hora DESC";
+        } else {
+            $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_usuario = :id AND id_fusion IS NULL AND archivada = 0 GROUP BY id_cotizacion ORDER BY fecha DESC, hora DESC";
         }
-        $stmtCotizaciones->execute();
-        $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
-
-    } catch (Throwable $e) {
-        // Fallback robusto: misma lógica de "más reciente" y orden,
-        // pero sin filtros opcionales (solo usuario/archivada por UX).
-        $isAdmin = ($_SESSION['id'] ?? null) == 71;
-        try {
-            if ($cot === 'f') {
-                $sqlFallback = "
-                    SELECT cm.*
-                    FROM cotizacion_materiales cm
-                    INNER JOIN (
-                        SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                        FROM cotizacion_materiales
-                        WHERE id_fusion IS NOT NULL
-                        ".(!$isAdmin ? " AND id_usuario = :id_usuario " : "")."
-                        AND archivada = 0
-                        GROUP BY id_fusion
-                    ) t
-                    ON cm.id_fusion = t.id_fusion
-                    AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                    GROUP BY cm.id_fusion
-                    ORDER BY t.ultima DESC
-                ";
-            } else {
-                $sqlFallback = "
-                    SELECT cm.*
-                    FROM cotizacion_materiales cm
-                    INNER JOIN (
-                        SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                        FROM cotizacion_materiales
-                        WHERE id_fusion IS NULL
-                        ".(!$isAdmin ? " AND id_usuario = :id_usuario " : "")."
-                        AND archivada = 0
-                        GROUP BY id_cotizacion
-                    ) t
-                    ON cm.id_cotizacion = t.id_cotizacion
-                    AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                    GROUP BY cm.id_cotizacion
-                    ORDER BY t.ultima DESC
-                ";
-            }
-
-            $stmtCotizaciones = $conn->prepare($sqlFallback);
-            if (!$isAdmin) {
-                $stmtCotizaciones->bindValue(':id_usuario', (int)$_SESSION['id'], PDO::PARAM_INT);
-            }
-            $stmtCotizaciones->execute();
-            $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
-
-            // Opcional: notificación visual mínima
-            echo "<script>console.warn('Se cargó vista con consulta de respaldo.');</script>";
-
-        } catch (Throwable $e2) {
-            // Si también falla el fallback, deja el arreglo vacío para no romper la vista
-            $arregloSelectCotizaciones = [];
-            echo "<script>alert('Ocurrió un error al cargar datos.');</script>";
-            // También puedes loguear $e y $e2 en tu sistema de logs
-        }
+        $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
+        $stmtCotizaciones->bindParam(':id', $_SESSION['id']);
     }
-
+    $stmtCotizaciones->execute();
+    $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
 ?>
 
-    <title>Cotizaciones</title>
+    <title>Cotizaciónes</title>
 </head>
 <body>
 
@@ -397,9 +220,10 @@ if (!isset($_SESSION['id'])) {
         </ul>
 
         <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
-            <div class="row mb-3">
+            <div class="row">
                 <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
-                    <button id="btnFiltrosBusqueda" type="button" 
+                   
+                    <button type="button" 
                             class="btn-purple" 
                             data-bs-toggle="modal" 
                             data-bs-target="#modalFiltrosBusqueda">
@@ -408,11 +232,6 @@ if (!isset($_SESSION['id'])) {
                     <a id="btnInitFusionar" class="btn-unlink" href="#">
                         <i class="bi bi-link" style="font-size:20px !important;"></i> Fusionar/agrupar cotizaciones
                     </a>
-                    <button id="btnEnviarCorreo" type="button" class="btn-thunder btn-enviar-correo" 
-                        data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
-                        title="Enviar correo a cliente" style="width:auto !important;">
-                        <i class="bi bi-envelope"></i> Enviar correo a cliente
-                    </button>
                 </div>
             </div>
             <div id="containerUnicas" class="">
@@ -423,7 +242,7 @@ if (!isset($_SESSION['id'])) {
                             <th>Id cotización</th>
                             <th>Familia</th>
                             <th>Perfil</th>
-                            <!-- <th>Tipo medida</th> -->
+                            <th>Tipo medida</th>
                             <th>D. Interior</th>
                             <th>D. Exterior</th>
                             <th>Altura</th>
@@ -463,13 +282,13 @@ if (!isset($_SESSION['id'])) {
                                             <i class="bi bi-filetype-pdf"></i>
                                         </button>
                                        
-                                        <!-- <button type="button" class="btn-thunder btn-enviar-correo" 
+                                        <button type="button" class="btn-thunder btn-enviar-correo" 
                                             data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
                                             data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
                                             data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
                                             title="Enviar correo a cliente">
                                             <i class="bi bi-envelope"></i>
-                                        </button> -->
+                                        </button>
                                         
                                     <?php else: ?>
                                         <form action="../includes/functions/generar_cotizacion.php" method="GET" target="_blank">
@@ -501,27 +320,24 @@ if (!isset($_SESSION['id'])) {
                             <td><?= htmlspecialchars($row['id_cotizacion']); ?></td>
                             <td><?= htmlspecialchars($row['familia_perfil']); ?></td>
                             <td><?= htmlspecialchars($row['perfil_sello']); ?></td>
-                            <!-- <td><?= htmlspecialchars($row['tipo_medida']); ?></td> -->
+                            <td><?= htmlspecialchars($row['tipo_medida']); ?></td>
                             <?php
                                 $di_sello = 0.00;
                                 $de_sello = 0.00;
                                 $a_sello = 0.00;
-                                $di_sello = $row['di_sello'];
-                                $de_sello = $row['de_sello'];
-                                $a_sello = $row['a_sello'];
-                                // if($row['tipo_medida'] == "Sello"){
-                                //     $di_sello = $row['di_sello'];
-                                //     $de_sello = $row['de_sello'];
-                                //     $a_sello = $row['a_sello'];
-                                // }else{
-                                //     $di_sello = $row['di_sello2'];
-                                //     $de_sello = $row['de_sello2'];
-                                //     $a_sello = $row['a_sello2'];                               
-                                // }
+                                if($row['tipo_medida'] == "Sello"){
+                                    $di_sello = $row['di_sello'];
+                                    $de_sello = $row['de_sello'];
+                                    $a_sello = $row['a_sello'];
+                                }else{
+                                    $di_sello = $row['di_sello2'];
+                                    $de_sello = $row['de_sello2'];
+                                    $a_sello = $row['a_sello2'];                               
+                                }
                             ?>
-                            <td><?= htmlspecialchars($di_sello.' '.$row['tipo_medida_di']); ?></td>
-                            <td><?= htmlspecialchars($de_sello.' '.$row['tipo_medida_de']); ?></td>
-                            <td><?= htmlspecialchars($a_sello.' '.$row['tipo_medida_h']); ?></td>
+                            <td><?= htmlspecialchars($di_sello); ?></td>
+                            <td><?= htmlspecialchars($de_sello); ?></td>
+                            <td><?= htmlspecialchars($a_sello); ?></td>
                             <td><?= htmlspecialchars($row['tipo_cliente']); ?></td>
                             <td><?= htmlspecialchars($row['fecha']); ?></td>
                             <td><?= htmlspecialchars($row['hora']); ?></td>
@@ -543,7 +359,7 @@ if (!isset($_SESSION['id'])) {
                             <th>Cotizaciónes</th>
                             <th>Familia</th>
                             <th>Perfil</th>
-                            <!-- <th>Tipo medida</th> -->
+                            <th>Tipo medida</th>
                             <th>D. Interior</th>
                             <th>D. Exterior</th>
                             <th>Altura</th>
@@ -576,13 +392,13 @@ if (!isset($_SESSION['id'])) {
                                             <i class="bi bi-filetype-pdf"></i>
                                         </button>
                                        
-                                        <!-- <button type="button" class="btn-thunder btn-enviar-correo" 
+                                        <button type="button" class="btn-thunder btn-enviar-correo" 
                                             data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
                                             data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
                                             data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
                                             title="Enviar correo a cliente">
                                             <i class="bi bi-envelope"></i>
-                                        </button> -->
+                                        </button>
                                         
                                     <?php else: ?>
                                         <form action="../includes/functions/generar_cotizacion_f.php" method="GET" target="_blank">
@@ -599,11 +415,11 @@ if (!isset($_SESSION['id'])) {
                                        
                                     <?php endif; ?>
                                                                     
-                                    <button type="button" class="btn-archive btn-archivar-cotizacion2" 
-                                        data-bs-toggle='modal' data-bs-target='#modalArchivar2'
+                                    <button type="button" class="btn-archive btn-archivar-cotizacion" 
+                                        data-bs-toggle='modal' data-bs-target='#modalArchivar'
                                         data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
                                         data-archivada="<?= htmlspecialchars($row['archivada']); ?>"
-                                        title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta agrupación' : 'Desarchivar/activar esta agrupación' ?>">                                    
+                                        title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
                                         <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
                                     </button>
 
@@ -639,46 +455,46 @@ if (!isset($_SESSION['id'])) {
                                     } 
                                 ?>
                             </td>
-                            <!-- <td>
+                            <td>
                                 <?php 
                                     foreach ($arregloFusion as $cot) {
                                         echo htmlspecialchars($cot['tipo_medida']).'<br>';
                                     } 
                                 ?>
-                            </td> -->
+                            </td>
                             <td>
                                 <?php 
                                 foreach ($arregloFusion as $cot) {
-                                    // if ($cot['tipo_medida'] == "Sello") {
-                                    //     $di_sello = $cot['di_sello'];
-                                    // } else {
-                                    //     $di_sello = $cot['di_sello2'];
-                                    // }
-                                    echo htmlspecialchars($cot['di_sello'].' '.$cot['tipo_medida_di']) . '<br>';
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $di_sello = $cot['di_sello'];
+                                    } else {
+                                        $di_sello = $cot['di_sello2'];
+                                    }
+                                    echo htmlspecialchars($di_sello) . '<br>';
                                 } 
                                 ?>
                             </td>
                             <td>
                                 <?php 
                                 foreach ($arregloFusion as $cot) {
-                                    // if ($cot['tipo_medida'] == "Sello") {
-                                    //     $de_sello = $cot['de_sello'];
-                                    // } else {
-                                    //     $de_sello = $cot['de_sello2'];
-                                    // }
-                                    echo htmlspecialchars($cot['de_sello'].' '.$cot['tipo_medida_de']) . '<br>';
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $de_sello = $cot['de_sello'];
+                                    } else {
+                                        $de_sello = $cot['de_sello2'];
+                                    }
+                                    echo htmlspecialchars($de_sello) . '<br>';
                                 } 
                                 ?>
                             </td>
                             <td>
                                 <?php 
                                 foreach ($arregloFusion as $cot) {
-                                    // if ($cot['tipo_medida'] == "Sello") {
-                                    //     $a_sello = $cot['a_sello'];
-                                    // } else {
-                                    //     $a_sello = $cot['a_sello2'];
-                                    // }
-                                    echo htmlspecialchars($cot['a_sello'].' '.$cot['tipo_medida_h']) . '<br>';
+                                    if ($cot['tipo_medida'] == "Sello") {
+                                        $a_sello = $cot['a_sello'];
+                                    } else {
+                                        $a_sello = $cot['a_sello2'];
+                                    }
+                                    echo htmlspecialchars($a_sello) . '<br>';
                                 } 
                                 ?>
                             </td>
@@ -710,6 +526,7 @@ if (!isset($_SESSION['id'])) {
                         }
                     ?>
     
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -930,41 +747,27 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <!-- <span class="title-form">Adjunte la cotización con id: <span id="spanIdCotizacion"></span></span> -->
-                <span class="title-form">Adjunte el PDF de la cotización.<span id="spanIdCotizacion"></span></span>
+                <span class="title-form">Adjunte la cotización con id: <span id="spanIdCotizacion"></span></span>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 
                 <form id="formEnviarCorreo" class="d-flex flex-column" action="" method="post" enctype="multipart/form-data">
                     <div id="" class="input-container d-flex flex-column">
-                        <div class="col-md-12 mb-3">
-                            <label for="correoRemitente" class="lbl-general">
-                                Remitente
-                            </label>
-                            <select class="form-select" id="correoRemitente" name="remitente">
-                                <option value="cotizador" selected>plat_autorizaciones@sellosyretenes.com (correo del sistema)</option>
-                                <option value="sesion"><?= htmlspecialchars($usuarioUser) ?></option>
-                            </select>
-                        </div>
+                        <p class="lbl-general">Remitente:</p>
+                        <p>plat_autorizaciones@sellosyretenes.com</p>
                         <p class="lbl-general">Destinatario (correo del cliente):</p>
                         <input type="email" class="input-text" id="inputCorreoCliente" name="correo_cliente" required>
                         <p class="lbl-general">Asunto:</p>
-                        <!-- <p id="pAsunto">Cotizacion de sello SRS. ID: <span id="spanIdCotizacion2"></span></p> -->
-                         <p id="pAsunto">Cotizacion de Maquinado de Sello SRS.<span id="spanIdCotizacion2"></span></p>
-                        <input type="text" class="input-text d-none" id="inputAsuntoCorreo" value="Cotizacion de Maquinado de Sello SRS." name="asunto_correo" required>
+                        <p>Cotizacion de sello SRS. ID: <span id="spanIdCotizacion2"></span></p>
                         <p class="lbl-general">Cuerpo del correo:</p>
-                        <p id="pCuerpo">Estimado cliente, en este correo se le envia la cotizacion que ha solicitado.<br>Este es un envio automatico, favor de no contestarlo.<br>Cualquier situacion comunicarse con el agente de ventas.</p>
-                        <textarea id="inputCuerpoCorreo" class="input-text d-none" name="cuerpo_correo"></textarea>
+                        <p>Estimado cliente, en este correo se le envia la cotizacion que ha solicitado.<br>Este es un envio automatico, favor de no contestarlo.<br>Cualquier situacion comunicarse con el agente de ventas.</p>
                     </div>      
                     <div class="d-flex flex-column mb-3">
                         <label for="inputCotizacionPDF" class="lbl-general">Pdf de cotización</label>
                         <input type="file" id="inputCotizacionPDF" class="input-file" name="pdf_cotizacion" accept="application/pdf" required>
                     </div>              
-                    <div class="d-flex flex-column mb-3">
-                        <label for="inputOtroArchivo" class="lbl-general">Otro archivo (opcional)</label>
-                        <input type="file" id="inputOtroArchivo" class="input-file" name="otro_archivo" accept="*" >
-                    </div>       
+                    
                     <input type="hidden" id="inputIdCotizacion" name="id_cotizacion">
                     <input type="hidden" id="inputAccion" name="accion" value="enviar_correo">
                     <button class="btn-general" type="submit">Enviar</button>
@@ -975,7 +778,7 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
-<!-- ///////////MODAL DESEA ARCHIVAR COTIZACION////////////////// -->
+ <!-- ///////////MODAL DESEA ARCHIVAR COTIZACION////////////////// -->
 <div class="modal fade" id="modalArchivar" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -989,27 +792,6 @@ if (!isset($_SESSION['id'])) {
                 <p id="infoArchivada"></p>
                 <div class="d-flex col-12 w-100 gap-3">
                     <button id="btnArchivar" type="button" class="btn-general">Continuar</button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- //////////////////////////////////////////////////////////////////////// -->
-<!-- ///////////MODAL DESEA ARCHIVAR FUSION////////////////// -->
-<div class="modal fade" id="modalArchivar2" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">¿Desea continuar?</h5>
-                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <input id="inputArchivar2" type="hidden" name="id_fusion">
-                <input id="inputNextValor2" type="hidden" name="archive">
-                <p id="infoArchivada2"></p>
-                <div class="d-flex col-12 w-100 gap-3">
-                    <button id="btnArchivar2" type="button" class="btn-general">Continuar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                 </div>
             </div>

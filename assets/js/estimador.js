@@ -2,7 +2,7 @@ $(document).ready(function() {
     $(`label`).css('pointer-events', 'none');
     //alert("GET: " + window.perfilSello);
 // //////////////////////////////////// @DECLARACION DE VARIABLES
-    window.MEDIDA_AGARRE_MAQUINA = 3.00;
+    window.MEDIDA_AGARRE_MAQUINA = 6.00;
     window.FAMILIA_PERFIL = "";
     window.CANTIDAD_MATERIALES=0;
     window.CON_LABIO_DI = 0;
@@ -55,16 +55,22 @@ $(document).ready(function() {
     window.porcentajeDE_m5 = 1.00;
 
     let boolClienteSeleccionado = false;
-    let boolMedidaSeleccionada = false;
+    let boolMedidaSeleccionadaDI = false;
+    let boolMedidaSeleccionadaDE = false;
+    let boolMedidaSeleccionadaH = false;
 
     window.A_CAJA = 0.00;
 
-    window.TIPO_MEDIDA_SELLO = "Sello";
+    window.TIPO_MEDIDA_SELLO = "Metal";
+
+    window.TIPO_MEDIDA_DI = "Metal";
+    window.TIPO_MEDIDA_DE = "Metal";
+    window.TIPO_MEDIDA_H = "Metal";
 
     let MaterialesCompletados=0;
     window.CANTIDAD_MATERIALES=0;
 
-    
+    window.DIMENSIONES_VALIDAS = false;
 // /////////////////////////////////////////// @FUNCIONES JAVASCRIPT
     function habilitarBoton(elemento) {
         $(elemento).attr("disabled", false).removeClass("btn-disabled").addClass("btn-general");
@@ -131,7 +137,7 @@ $(document).ready(function() {
 
         let anchoSello = ClienteDE - ClienteDI;
         console.log("ancho = ", anchoSello);
-        console.log("Tipo de medida: ", window.TIPO_MEDIDA_SELLO);
+        //console.log("Tipo de medida: ", window.TIPO_MEDIDA_SELLO);
         console.log("Porcentaje labio DI = ", window.P_LABIO_DI);
         console.log("Porcentaje labio DE = ", window.P_LABIO_DE); 
 
@@ -295,13 +301,13 @@ $(document).ready(function() {
         }
         if(window.esWiper !== "0"){
             let autoAlturaCaja = alturaMaterialWisper * window.porcentajeA_caja;
-            $(`#inputAlturaCaja_m${window.esWiper}`).val(autoAlturaCaja.toFixed(2));
+            //$(`#inputAlturaCaja_m${window.esWiper}`).val(autoAlturaCaja.toFixed(2));
 
             let alturaCajaMmToInch = autoAlturaCaja / 25.4;
-            $(`#inputAlturaCajaInch_m${window.esWiper}`).val(alturaCajaMmToInch.toFixed(4));
+            //$(`#inputAlturaCajaInch_m${window.esWiper}`).val(alturaCajaMmToInch.toFixed(4));
 
-            $(`#inputAlturaCaja`).val(autoAlturaCaja.toFixed(2));
-            $(`#inputAlturaCajaInch`).val(alturaCajaMmToInch.toFixed(4));
+            //$(`#inputAlturaCaja`).val(autoAlturaCaja.toFixed(2));
+            //$(`#inputAlturaCajaInch`).val(alturaCajaMmToInch.toFixed(4));
         }else{
             $(`#inputAlturaCaja`).val(0.00);
             $(`#inputAlturaCajaInch`).val(0.0000);
@@ -309,13 +315,13 @@ $(document).ready(function() {
         // CALCULO ALTURA ESCALON
         if(window.conEscalon !== "0" && window.esWisperEspecial === "0"){
             let autoAlturaEscalon = alturaMaterialWisper * window.porcentajeA_escalon;
-            $(`#inputAlturaEscalon_m${window.conEscalon}`).val(autoAlturaEscalon.toFixed(2));
+            //$(`#inputAlturaEscalon_m${window.conEscalon}`).val(autoAlturaEscalon.toFixed(2));
 
             let alturaEscalonMmToInch = autoAlturaEscalon / 25.4;
-            $(`#inputAlturaEscalonInch_m${window.conEscalon}`).val(alturaEscalonMmToInch.toFixed(4));
+            //$(`#inputAlturaEscalonInch_m${window.conEscalon}`).val(alturaEscalonMmToInch.toFixed(4));
 
-            $(`#inputAlturaEscalon`).val(autoAlturaEscalon.toFixed(2));
-            $(`#inputAlturaEscalonInch`).val(alturaEscalonMmToInch.toFixed(4));
+            //$(`#inputAlturaEscalon`).val(autoAlturaEscalon.toFixed(2));
+            //$(`#inputAlturaEscalonInch`).val(alturaEscalonMmToInch.toFixed(4));
         }else{
             $(`#inputAlturaEscalon`).val(0.00);
             $(`#inputAlturaEscalonInch`).val(0.0000);
@@ -323,21 +329,21 @@ $(document).ready(function() {
         // CALCULO ALTURA H2 Y H3 DE WISPER ESPECIAL A12
         if(window.esWisperEspecial !== "0"){
             let autoAlturaH2 = alturaMaterialWisper * window.porcentajeA_h2;
-            $(`#inputAlturaH2_m${window.esWisperEspecial}`).val(autoAlturaH2.toFixed(2));
+            //$(`#inputAlturaH2_m${window.esWisperEspecial}`).val(autoAlturaH2.toFixed(2));
     
             let alturaH2MmToInch = autoAlturaH2 / 25.4;
-            $(`#inputAlturaH2Inch_m${window.esWisperEspecial}`).val(alturaH2MmToInch.toFixed(4));
+            //$(`#inputAlturaH2Inch_m${window.esWisperEspecial}`).val(alturaH2MmToInch.toFixed(4));
 
             let autoAlturaH3 = alturaMaterialWisper * window.porcentajeA_h3;
-            $(`#inputAlturaH3_m${window.esWisperEspecial}`).val(autoAlturaH3.toFixed(2));
+            //$(`#inputAlturaH3_m${window.esWisperEspecial}`).val(autoAlturaH3.toFixed(2));
     
             let alturaH3MmToInch = autoAlturaH3 / 25.4;
-            $(`#inputAlturaH3Inch_m${window.esWisperEspecial}`).val(alturaH3MmToInch.toFixed(4));
+            //$(`#inputAlturaH3Inch_m${window.esWisperEspecial}`).val(alturaH3MmToInch.toFixed(4));
 
-            $(`#inputAlturaH2`).val(autoAlturaH2.toFixed(2));
-            $(`#inputAlturaH2Inch`).val(alturaH2MmToInch.toFixed(4));
-            $(`#inputAlturaH3`).val(autoAlturaH3.toFixed(2));
-            $(`#inputAlturaH3Inch`).val(alturaH3MmToInch.toFixed(4));
+            //$(`#inputAlturaH2`).val(autoAlturaH2.toFixed(2));
+            //$(`#inputAlturaH2Inch`).val(alturaH2MmToInch.toFixed(4));
+            //$(`#inputAlturaH3`).val(autoAlturaH3.toFixed(2));
+           // $(`#inputAlturaH3Inch`).val(alturaH3MmToInch.toFixed(4));
         }else{
             $(`#inputAlturaH2`).val(0.00);
             $(`#inputAlturaH2Inch`).val(0.0000);
@@ -358,68 +364,116 @@ $(document).ready(function() {
             $("#inputAlturaH3").val(),
         ];
 
-        let H2MasH3 = 0.00;
+        let familiaSello = window.FAMILIA_PERFIL_SIMPLE;
+        let perfilSello = window.perfilSello;
+        let selectorTipoMedidaDI = $("#selectorTipoMedidaDI").val();
+        let DI_R = valores[1] || 0.00;
+        let selectorTipoMedidaDE = $("#selectorTipoMedidaDE").val();
+        let DE_R = valores[2] || 0.00;
+        let selectorTipoMedidaH = $("#selectorTipoMedidaH").val();
+        let ALTURA_R = valores[0] || 0.00;
+
+        let SECCION = 0.00;
+        // AQUI VA EL CODIGO DONDE SE MANDA A LLAMAR LA VALIDACION DE MEDIDAS MINIMAS Y MAXIMAS DEL MAQUINADO
+        // ...
+        /////////////////////////////////////////////////////////////////
     
-        if (parseFloat(valores[0]) == 0 || parseFloat(valores[0]) < 0 || parseFloat(valores[2]) == 0 || parseFloat(valores[2]) < 0) {
+        if (parseFloat(ALTURA_R) == 0 || parseFloat(ALTURA_R) < 0 || parseFloat(DE_R) == 0 || parseFloat(DE_R) < 0) {
             $("#containerErrorDimensiones_cliente span").text('La altura y el DE no puede ser 0');
             return false;
         }       
-        if (parseFloat(valores[1]) >= parseFloat(valores[2])) {
+        if (parseFloat(DI_R) >= parseFloat(DE_R)) {
             $("#containerErrorDimensiones_cliente span").text('El DI no puede ser mayor o igual al DE');
             return false; 
-        }
-
-        if(window.esWiper !== "0"){
-            if (parseFloat(valores[3]) > parseFloat(valores[0])) {
-                // console.log("La altura de caja no puede ser mayor a la altura total.");
-                $("#containerErrorDimensiones_cliente span").text('Altura de caja no debe ser mayor a la total');
-                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Altura de caja no debe ser mayor a la total');
-                console.log("altura caja: ", parseFloat(valores[3]));
-                console.log("altura cliente: ", parseFloat(valores[0]));
-                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
-                return false;
-            }
-        }
-       
-        if(window.conEscalon !== "0" && window.esWisperEspecial === "0"){
-            if ((parseFloat(valores[4]) > parseFloat(valores[3])) || (parseFloat(valores[4]) > parseFloat(valores[0]))) {
-                // console.log("La altura escalon no puede ser mayor a la altura caja.");
-                $("#containerErrorDimensiones_cliente span").text('Altura escalon no puede ser mayor a la altura de caja o mayor a la total');
-                $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('Altura escalon no puede ser mayor a la altura de caja o mayor a la total');
-                window["DIMENSIONES_VALIDAS_m" + window.conEscalon] = false;
-                return false;
-            }else{
-
-            }
-        }
-        
-        if(window.esWisperEspecial !== "0"){
-            H2MasH3 = parseFloat(valores[5]) + parseFloat(valores[6]);
-            if ((parseFloat(valores[5]) > parseFloat(valores[3])) || (parseFloat(valores[5]) > parseFloat(valores[0])) || (parseFloat(valores[6]) > parseFloat(valores[3])) || (parseFloat(valores[6]) > parseFloat(valores[0]))) {
-                $("#containerErrorDimensiones_cliente span").text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-                $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-                window["DIMENSIONES_VALIDAS_m" + window.esWisperEspecial] = false;
-                return false;
-            }
-            if((H2MasH3 > parseFloat(valores[3])) || (H2MasH3 > parseFloat(valores[0]))){
-                $("#containerErrorDimensiones_cliente span").text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-                $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-                window["DIMENSIONES_VALIDAS_m" + window.esWisperEspecial] = false;
-                return false;
-            }
-            console.log("suma", H2MasH3);
         }
         // Verificar si alguno de los valores es inválido
         let hayValoresInvalidos = valores.some(function(valor) {
             return valor === null || valor === "" || isNaN(valor) || valor === ".";
         });
-
         if (hayValoresInvalidos) {
-            $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones correctamente');
+            $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones solicitadas correctamente');
+            if(window.esWiper !== "0"){
+                $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones solicitadas correctamente');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Ingrese las dimensiones solicitadas correctamente');
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;  
+            }
+            window.DIMENSIONES_VALIDAS = false;
             return false; 
         }
+        // es un wiper
+        if(window.esWiper !== "0"){
+            if (parseFloat(valores[3]) > parseFloat(ALTURA_R)) {
+                // console.log("La altura de caja no puede ser mayor a la altura total.");
+                $("#containerErrorDimensiones_cliente span").text('Altura de caja no debe ser mayor a la total');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Altura de caja no debe ser mayor a la total');
+                console.log("altura caja: ", parseFloat(valores[3]));
+                console.log("altura cliente: ", parseFloat(ALTURA_R));
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
+                return false;
+            }
+            if(parseFloat(valores[3]) == 0 || parseFloat(valores[3]) <= 0 || isNaN(parseFloat(valores[3])) || parseFloat(valores[3]) == null){
+                $("#containerErrorDimensiones_cliente span").text('Medida de altura de caja no valida');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Medida de altura de caja no valida');
+                console.log("altura caja: ", parseFloat(valores[3]));
+                console.log("altura cliente: ", parseFloat(ALTURA_R));
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
+                return false;
+            }
+        }
+       // tiene escalon pero no es un especial
+        if(window.conEscalon !== "0" && window.esWisperEspecial === "0"){
+            if ((parseFloat(valores[4]) > parseFloat(valores[3])) || (parseFloat(valores[4]) > parseFloat(ALTURA_R))) {
+                // console.log("La altura escalon no puede ser mayor a la altura caja.");
+                $("#containerErrorDimensiones_cliente span").text('Altura escalon no puede ser mayor a la altura de caja o mayor a la total');
+                $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('Altura escalon no puede ser mayor a la altura de caja o mayor a la total');
+                window["DIMENSIONES_VALIDAS_m" + window.conEscalon] = false;
+                return false;
+            }
+            if(parseFloat(valores[4]) == 0 || parseFloat(valores[4]) <= 0 || isNaN(parseFloat(valores[4])) || parseFloat(valores[4]) == null){
+                $("#containerErrorDimensiones_cliente span").text('Medida de altura de escalón no valida');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Medida de altura de escalón no valida');
+                console.log("altura escalón: ", parseFloat(valores[4]));
+                console.log("altura cliente: ", parseFloat(ALTURA_R));
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
+                return false;
+            }
+        }
+        let H2MasH3 = 0.00;
+        // es un especial con h1 y h2        
+        if(window.esWisperEspecial !== "0"){
+            H2MasH3 = parseFloat(valores[5]) + parseFloat(valores[6]);
+            if ((parseFloat(valores[5]) > parseFloat(valores[3])) || (parseFloat(valores[5]) > parseFloat(ALTURA_R)) || (parseFloat(valores[6]) > parseFloat(valores[3])) || (parseFloat(valores[6]) > parseFloat(ALTURA_R))) {
+                $("#containerErrorDimensiones_cliente span").text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
+                $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
+                window["DIMENSIONES_VALIDAS_m" + window.esWisperEspecial] = false;
+                return false;
+            }
+            if((H2MasH3 > parseFloat(valores[3])) || (H2MasH3 > parseFloat(ALTURA_R))){
+                $("#containerErrorDimensiones_cliente span").text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
+                $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
+                window["DIMENSIONES_VALIDAS_m" + window.esWisperEspecial] = false;
+                return false;
+            }
+            if(parseFloat(valores[5]) == 0 || parseFloat(valores[5]) <= 0 || isNaN(parseFloat(valores[5])) || parseFloat(valores[5]) == null){
+                $("#containerErrorDimensiones_cliente span").text('Medida de altura H2 no valida');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Medida de altura H2 no valida');
+                console.log("altura H2: ", parseFloat(valores[5]));
+                console.log("altura cliente: ", parseFloat(ALTURA_R));
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
+                return false;
+            }
+            if(parseFloat(valores[6]) == 0 || parseFloat(valores[6]) <= 0 || isNaN(parseFloat(valores[6])) || parseFloat(valores[6]) == null){
+                $("#containerErrorDimensiones_cliente span").text('Medida de altura H3 no valida');
+                $(`#containerErrorDimensiones_m${window.esWiper} span`).text('Medida de altura H3 no valida');
+                console.log("altura H3: ", parseFloat(valores[6]));
+                console.log("altura cliente: ", parseFloat(ALTURA_R));
+                window["DIMENSIONES_VALIDAS_m" + window.esWiper] = false;
+                return false;
+            }
+            console.log("suma", H2MasH3);
+        }
 
-        if (parseFloat(valores[1]) == 0.00){
+        if (parseFloat(DI_R) == 0.00){
             window.DI_DESPERDICIO_DEFAULT = 0.00;
             window.DE_DESPERDICIO_DEFAULT = 0.00;
         }else{
@@ -431,6 +485,7 @@ $(document).ready(function() {
         $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('');
         $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('');
         // si todo es valido, retornar verdadero
+        window.DIMENSIONES_VALIDAS = true;
         return true; 
     }
 
@@ -463,33 +518,51 @@ $(document).ready(function() {
             let diClienteSelloInch2 = 0.00;
             let deClienteSelloInch2 = 0.00;
             let alturaClienteSelloInch2 = 0.00;
-            if(window.TIPO_MEDIDA_SELLO == "Sello"){
-                diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
-                deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
-                alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
-                diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
-                deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
-                alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
-                diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
-                deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
-                alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
-                diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
-                deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
-                alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
-            }else{
-                diClienteSello = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
-                deClienteSello = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
-                alturaClienteSello = parseFloat($('#altura_mm_cliente2').val()) || 0.00; 
-                diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
-                deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
-                alturaClienteSelloInch = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
-                diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
-                deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
-                alturaClienteSello2 = parseFloat($('#altura_mm_cliente').val()) || 0.00;
-                diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
-                deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
-                alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente').val()) || 0.00;
-            }
+
+            diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
+            deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
+            alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
+            diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
+            deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
+            alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
+            diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
+            deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
+            alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
+            diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
+            deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
+            alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+
+            let tipoMedidaDI = $('#selectorTipoMedidaDI').val();
+            let tipoMedidaDE = $('#selectorTipoMedidaDE').val();
+            let tipoMedidaH = $('#selectorTipoMedidaH').val();
+
+            // if(window.TIPO_MEDIDA_SELLO == "Sello"){
+            //     diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
+            //     deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
+            //     alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
+            //     diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
+            //     deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
+            //     alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
+            //     diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
+            //     deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
+            //     alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
+            //     diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
+            //     deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
+            //     alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+            // }else{
+            //     diClienteSello = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
+            //     deClienteSello = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
+            //     alturaClienteSello = parseFloat($('#altura_mm_cliente2').val()) || 0.00; 
+            //     diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
+            //     deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
+            //     alturaClienteSelloInch = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
+            //     diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
+            //     deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
+            //     alturaClienteSello2 = parseFloat($('#altura_mm_cliente').val()) || 0.00;
+            //     diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
+            //     deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
+            //     alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente').val()) || 0.00;
+            // }
 
             $.ajax({
                 url: '../ajax/ajax_guardar_cotizacion.php',
@@ -501,6 +574,9 @@ $(document).ready(function() {
                     '&a_sello_inch=' + encodeURIComponent(alturaClienteSelloInch) +
                     '&di_sello_inch=' + encodeURIComponent(diClienteSelloInch) +
                     '&de_sello_inch=' + encodeURIComponent(deClienteSelloInch) +
+                    '&tipo_medida_di=' + encodeURIComponent(tipoMedidaDI) +
+                    '&tipo_medida_de=' + encodeURIComponent(tipoMedidaDE) +
+                    '&tipo_medida_h=' + encodeURIComponent(tipoMedidaH) +
                     '&a_sello2=' + encodeURIComponent(alturaClienteSello2) +
                     '&di_sello2=' + encodeURIComponent(diClienteSello2) +
                     '&de_sello2=' + encodeURIComponent(deClienteSello2) +
@@ -537,15 +613,17 @@ $(document).ready(function() {
             if (data == false) {
                 console.log("Perfil no encontrado. Respuesta: ", data.perfil);
             }else{
+                console.log("Familia existe. Respuesta: ", data.tipo);
                 console.log("Perfil existe. Respuesta: ", data.perfil);
             }
             window.FAMILIA_PERFIL = data.tipo;
+            window.FAMILIA_PERFIL_SIMPLE = data.tipo;
             window.CANTIDAD_MATERIALES = data.cantidad_materiales;
             window.CON_LABIO_DI = data.con_labio_di;
             window.CON_LABIO_DE = data.con_labio_de;
             window.P_LABIO_DI = data.p_labio_di;
             window.P_LABIO_DE = data.p_labio_de;
-            window.TIPO_MEDIDA_SELLO = data.tipo_medida;
+            //window.TIPO_MEDIDA_SELLO = data.tipo_medida;
             window.tieneResorte = data.con_resorte;
             window.esWiper = data.es_wiper;
             window.conEscalon = data.con_escalon;
@@ -561,17 +639,17 @@ $(document).ready(function() {
             window.porcentajeA_m4 = data.p_a_m4;
             window.porcentajeA_m5 = data.p_a_m5;
 
-            window.porcentajeDI_m1 = data.p_di_m1;
-            window.porcentajeDI_m2 = data.p_di_m2;
-            window.porcentajeDI_m3 = data.p_di_m3;
-            window.porcentajeDI_m4 = data.p_di_m4;
-            window.porcentajeDI_m5 = data.p_di_m5;
+            // window.porcentajeDI_m1 = data.p_di_m1;
+            // window.porcentajeDI_m2 = data.p_di_m2;
+            // window.porcentajeDI_m3 = data.p_di_m3;
+            // window.porcentajeDI_m4 = data.p_di_m4;
+            // window.porcentajeDI_m5 = data.p_di_m5;
 
-            window.porcentajeDE_m1 = data.p_de_m1;
-            window.porcentajeDE_m2 = data.p_de_m2;
-            window.porcentajeDE_m3 = data.p_de_m3;
-            window.porcentajeDE_m4 = data.p_de_m4;
-            window.porcentajeDE_m5 = data.p_de_m5;
+            // window.porcentajeDE_m1 = data.p_de_m1;
+            // window.porcentajeDE_m2 = data.p_de_m2;
+            // window.porcentajeDE_m3 = data.p_de_m3;
+            // window.porcentajeDE_m4 = data.p_de_m4;
+            // window.porcentajeDE_m5 = data.p_de_m5;
 
             switch (window.FAMILIA_PERFIL) {
                 case "rotary":
@@ -630,15 +708,15 @@ $(document).ready(function() {
             console.log("Tipo de medida: ", window.TIPO_MEDIDA_SELLO);
 
             if(window.esWiper !== "0"){
-                $(`#labelAlturaMM_cliente`).text("Altura total (mm)");
-                $(`#labelAlturaInch_cliente`).text("Altura total (inches)");
-                $(`#labelAlturaMM_cliente, #labelAlturaInch_cliente`).css("font-size", "20px");
+                $(`#labelAlturaMM_cliente`).text("Altura Total (H)");
+                $(`#labelAlturaMM_cliente, #labelAlturaInch_cliente`).css("font-size", "22px");
                 $(`#labelAlturaMM_cliente, #labelAlturaInch_cliente`).css("color", "#00bb8f");
                 $(`#divAlturaCaja`).removeClass("d-none");
-                $("#otrasAlturasTitle").removeClass("d-none");
+                $("#btnOtrasAlturas").removeClass("d-none");
                 console.log("Si es wiper");
 
             }else{
+                $(`#containerbtnOtrasAlturas`).remove();
                 console.log("No es wiper");
             }
             console.log("wiper = ", window.esWiper);
@@ -764,30 +842,56 @@ $(document).ready(function() {
         // $("#selectorCliente_chosen").css("pointer-events", "none");
         // $("#selectorCliente").css("cursor", "not-allowed");
         // $("#selectorCliente_chosen").css("cursor", "not-allowed");
-        $("#selectorTipoMedida").attr("disabled", false);
+        $("#selectorTipoMedidaDI").attr("disabled", false);
+        $("#selectorTipoMedidaDE").attr("disabled", false);
+        $("#selectorTipoMedidaH").attr("disabled", false);
 
     });
     
-    // EVENTO CAMBIAR DE TIPO DE MEDIDA
-    $("#selectorTipoMedida").on("change", function(){
-        let tipoMedida = $(this).val();
-        window.TIPO_MEDIDA_SELLO = tipoMedida;
-        console.log("tipo medida cambio a: ", window.TIPO_MEDIDA_SELLO);
-        if(boolMedidaSeleccionada==false){
-            boolMedidaSeleccionada=true;
+    // EVENTO CAMBIAR DE TIPO DE MEDIDA DEL DIAMETRO INTERIOR
+    $("#selectorTipoMedidaDI").on("change", function(){
+        let tipoMedidaDI = $(this).val();
+        window.TIPO_MEDIDA_DI = tipoMedidaDI;
+        console.log("tipo medida DI cambio a: ", window.TIPO_MEDIDA_DI);
+        if(boolMedidaSeleccionadaDI==false){
+            boolMedidaSeleccionadaDI=true;
             habilitarInput(`#diametro_interior_mm_cliente`);
             habilitarInput(`#diametro_interior_inch_cliente`);
-            habilitarInput(`#diametro_exterior_mm_cliente`);
-            habilitarInput(`#diametro_exterior_inch_cliente`);
-            habilitarInput(`#altura_mm_cliente`);
-            habilitarInput(`#altura_inch_cliente`);
-
             habilitarInput(`#diametro_interior_mm_cliente2`);
             habilitarInput(`#diametro_interior_inch_cliente2`);
+        }else{
+            $("#altura_mm_cliente").trigger("input");
+            resetear_materiales_completados();
+        }
+    });
+    // EVENTO CAMBIAR DE TIPO DE MEDIDA DEL DIAMETRO EXTERIOR
+    $("#selectorTipoMedidaDE").on("change", function(){
+        let tipoMedidaDE = $(this).val();
+        window.TIPO_MEDIDA_DE = tipoMedidaDE;
+        console.log("tipo medida DE cambio a: ", window.TIPO_MEDIDA_DE);
+        if(boolMedidaSeleccionadaDE==false){
+            boolMedidaSeleccionadaDE=true;
+            habilitarInput(`#diametro_exterior_mm_cliente`);
+            habilitarInput(`#diametro_exterior_inch_cliente`);
             habilitarInput(`#diametro_exterior_mm_cliente2`);
             habilitarInput(`#diametro_exterior_inch_cliente2`);
+        }else{
+            $("#altura_mm_cliente").trigger("input");
+            resetear_materiales_completados();
+        }
+    });
+    // EVENTO CAMBIAR DE TIPO DE MEDIDA ALTURA
+    $("#selectorTipoMedidaH").on("change", function(){
+        let tipoMedidaH = $(this).val();
+        window.TIPO_MEDIDA_H = tipoMedidaH;
+        console.log("tipo medida H cambio a: ", window.TIPO_MEDIDA_H);
+        if(boolMedidaSeleccionadaH==false){
+            boolMedidaSeleccionadaH=true;
+            habilitarInput(`#altura_mm_cliente`);
+            habilitarInput(`#altura_inch_cliente`);
             habilitarInput(`#altura_mm_cliente2`);
             habilitarInput(`#altura_inch_cliente2`);
+
             // para wispers
             habilitarInput("#inputAlturaCaja");
             habilitarInput("#inputAlturaCajaInch");
@@ -797,24 +901,20 @@ $(document).ready(function() {
             habilitarInput("#inputAlturaH2Inch");
             habilitarInput("#inputAlturaH3");
             habilitarInput("#inputAlturaH3Inch");
-
-
-           
         }else{
             $("#altura_mm_cliente").trigger("input");
             resetear_materiales_completados();
         }
+        // $(".tipo-medida").val(window.TIPO_MEDIDA_SELLO);
+        // $("#spanTipoMedida").text(window.TIPO_MEDIDA_SELLO);
 
-        $(".tipo-medida").val(window.TIPO_MEDIDA_SELLO);
-        $("#spanTipoMedida").text(window.TIPO_MEDIDA_SELLO);
-
-        if(window.TIPO_MEDIDA_SELLO == "Sello"){
-            $("#lblMedidaPrimaria").text("Digitar medida Sello");
-            $("#lblMedidaSecundaria").text("Digitar medida Metal (opcional)");
-        }else{
-            $("#lblMedidaPrimaria").text("Digitar medida Metal");
-            $("#lblMedidaSecundaria").text("Digitar medida Sello (opcional)");
-        }
+        // if(window.TIPO_MEDIDA_SELLO == "Sello"){
+        //     $("#lblMedidaPrimaria").text("Digitar medida Sello");
+        //     $("#lblMedidaSecundaria").text("Digitar medida Metal (opcional)");
+        // }else{
+        //     $("#lblMedidaPrimaria").text("Digitar medida Metal");
+        //     $("#lblMedidaSecundaria").text("Digitar medida Sello (opcional)");
+        // }
         
     });
 
@@ -849,6 +949,7 @@ $(document).ready(function() {
             valorAlturaCajaMm = 0;
         }
         let alturaCajaMmToInch = valorAlturaCajaMm / 25.4;
+        $('#inputAlturaCajaInch').val(alturaCajaMmToInch.toFixed(4));
         $('#inputAlturaCajaInch_m1').val(alturaCajaMmToInch.toFixed(4));
     });
     // ----------  INCH a MM ------------------------------------
@@ -871,6 +972,7 @@ $(document).ready(function() {
             valorAlturaEscalonMm = 0;
         }
         let alturaEscalonMmToInch = valorAlturaEscalonMm / 25.4;
+        $('#inputAlturaEscalonInch').val(alturaEscalonMmToInch.toFixed(4));
         $('#inputAlturaEscalonInch_m1').val(alturaEscalonMmToInch.toFixed(4));
     });
     // ----------  INCH a MM ------------------------------------
@@ -1066,14 +1168,21 @@ $(document).ready(function() {
         $(`#inputAlturaEscalon_m${window.conEscalon}`).val($("#inputAlturaEscalon").val());
         $(`#inputAlturaH2_m${window.esWisperEspecial}`).val($("#inputAlturaH2").val());
         $(`#inputAlturaH3_m${window.esWisperEspecial}`).val($("#inputAlturaH3").val());
+        let alturaCliente = parseFloat($('#altura_mm_cliente').val()) || 0.00;     
+        
+        autoCalculoDimensiones(window.DI_CLIENTE, window.DE_CLIENTE, alturaCliente);
         resetear_materiales_completados();
-        if (!validarCamposDimensiones() || window["DIMENSIONES_VALIDAS_m" + window.esWiper] == false) {
+        if (!validarCamposDimensiones() || validarCamposDimensiones() == false || window["DIMENSIONES_VALIDAS_m" + window.esWiper] == false) {
             disablarBoton(`#btnSiguiente_m${window.esWiper}`);
             return; 
         }
         habilitarBoton(`#btnSiguiente_m${window.esWiper}`);
         window["DIMENSIONES_VALIDAS_m" + window.esWiper] = true;        
 
+    });
+    //VERIFICAR MEDIDAS OTRA VEZ
+    $("#btnOtrasAlturasClose").on("click", function(){
+        validarCamposDimensiones();
     });
 
     $('#diametro_interior_mm_cliente, #diametro_interior_inch_cliente').on("blur", function() {

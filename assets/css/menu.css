@@ -162,7 +162,7 @@ footer p {
     transition: all 0.3s ease-in-out;
   }
 
-  #navbar.active {
+  #navbar.menu-active {
     left: 0;
   }
 

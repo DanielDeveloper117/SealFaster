@@ -320,8 +320,8 @@ if (!isset($_SESSION['id'])) {
                                         <th scope="col">Remover</th>
                                         <th scope="col">Id cotizacion</th>
                                         <th scope="col">Perfil</th>
-                                        <th scope="col">Tipo medida</th>
-                                        <th scope="col">Medida</th>
+                                        <!-- <th scope="col">Tipo medida</th> -->
+                                        <th scope="col">Medidas</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -554,9 +554,9 @@ function pintarCadenaEstatus(estatusActual) {
             const isCircle = !step.includes('-');
             const pos = isCircle ? parseInt(step) : parseInt(step.split('-')[0]);
             if (pos <= index) {
-                icon.classList.add('active');
+                icon.classList.add('item-chain-active');
             } else {
-                icon.classList.remove('active');
+                icon.classList.remove('item-chain-active');
             }
         }
     });

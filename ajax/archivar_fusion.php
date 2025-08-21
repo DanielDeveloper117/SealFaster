@@ -18,12 +18,12 @@ try {
     }
 
     // Validación corregida: isset y verificar que sean valores válidos (0 o 1)
-    if (isset($_POST['id_cotizacion'], $_POST['archivada']) && 
-        $_POST['id_cotizacion'] !== '' && 
+    if (isset($_POST['id_fusion'], $_POST['archivada']) && 
+        $_POST['id_fusion'] !== '' && 
         in_array($_POST['archivada'], ['0', '1'], true)) {
         
         try {
-            $id_cotizacion = $_POST['id_cotizacion'];
+            $id_fusion = $_POST['id_fusion'];
             $archivada = (int)$_POST['archivada']; // Convertir a entero
             $id_usuario = $_SESSION['id'] ?? null;
 
@@ -34,17 +34,17 @@ try {
 
             $sql = "UPDATE cotizacion_materiales SET 
                         archivada = :archivada
-                    WHERE id_cotizacion = :id_cotizacion AND id_usuario = :id_usuario";
+                    WHERE id_fusion = :id_fusion AND id_usuario = :id_usuario";
 
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':archivada', $archivada, PDO::PARAM_INT);
-            $stmt->bindParam(':id_cotizacion', $id_cotizacion);
+            $stmt->bindParam(':id_fusion', $id_fusion);
             $stmt->bindParam(':id_usuario', $id_usuario);
             $stmt->execute();
 
             // Verificar si se actualizó algún registro
             if ($stmt->rowCount() > 0) {
-                $mensaje = $archivada === 1 ? 'Cotización archivada exitosamente' : 'Cotización desarchivada exitosamente';
+                $mensaje = $archivada === 1 ? 'Agrupacion archivada exitosamente' : 'Agrupacion desarchivada exitosamente';
                 echo json_encode([
                     'success' => true, 
                     'message' => $mensaje
@@ -52,7 +52,7 @@ try {
             } else {
                 echo json_encode([
                     'success' => false, 
-                    'error' => 'No se encontró la cotización o no se realizaron cambios o sesión incorrecta'
+                    'error' => 'No se encontró la agrupación o no se realizaron cambios o sesión incorrecta'
                 ]);
             }
 

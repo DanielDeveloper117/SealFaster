@@ -59,9 +59,11 @@ $(document).ready(function() {
             
             $('#filtrosActivosList').html(tagsHtml);
             $('#filtrosActivosContainer').show();
+            $('#btnFiltrosBusqueda').text(" Filtros de busqueda ("+filtrosActivos.length+")");
         } else {
             $('#filtrosActivosContainer').hide();
         }
+        
     }
     // Función global para limpiar todos los filtros
     window.limpiarTodosFiltros = function() {
@@ -82,39 +84,117 @@ $(document).ready(function() {
         if (cot === 'u') {
             containerUnicas.classList.remove('d-none');
             containerFusionadas.classList.add('d-none');
+            // DATATABLE PARA COTIZACIONES FUSIONADAS
+            $(`#cotizacionesTable`).DataTable({
+                ordering: true,
+                order: [[9, 'desc']],
+                "orderable": true,
+                "searching": true, // función de búsqueda activada
+                search: {
+                    return: false
+                },
+                "autoWidth": true,
+                "language": { 
+                    "decimal" : "",
+                    "emptyTable":"No hay registros",
+                    "info": "Mostrando _END_ de _TOTAL_ registros",
+                    "infoEmpty": "Mostrando 0 de 0 registros",
+                    "infoFiltered": "(Se filtraron _MAX_ registros)",
+                    "infoPostFix":"",
+                    "thousands": ", ",
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "loadingRecords":"Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar: ",
+                    "zeroRecords":"No se encontraron resultados.",
+                    "paginate":{
+                    "first":"<<",
+                    "last":">>",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                    }
+                },
+                "pageLength": 30,
+                "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+                "scrollY": "400px", // Altura del área de desplazamiento vertical
+                "scrollX": true,
+                initComplete: function () {
+                    var api = this.api();
+                    setTimeout(function () {
+                        api.columns.adjust().draw();
+                    }, 400);
+                }
+            });
         } else if (cot === 'f') {
             containerFusionadas.classList.remove('d-none');
             containerUnicas.classList.add('d-none');
+            // DATATABLE PARA COTIZACIONES FUSIONADAS
+            $(`#cotizacionesTableFusionadas`).DataTable({
+                ordering: true,
+                order: [[9, 'desc']],
+                "orderable": true,
+                "searching": true, // función de búsqueda activada
+                search: {
+                    return: false
+                },
+                "autoWidth": true,
+                "language": { 
+                    "decimal" : "",
+                    "emptyTable":"No hay registros",
+                    "info": "Mostrando _END_ de _TOTAL_ registros",
+                    "infoEmpty": "Mostrando 0 de 0 registros",
+                    "infoFiltered": "(Se filtraron _MAX_ registros)",
+                    "infoPostFix":"",
+                    "thousands": ", ",
+                    "lengthMenu": "Mostrar _MENU_ registros",
+                    "loadingRecords":"Cargando...",
+                    "processing": "Procesando...",
+                    "search": "Buscar: ",
+                    "zeroRecords":"No se encontraron resultados.",
+                    "paginate":{
+                    "first":"<<",
+                    "last":">>",
+                    "next": "Siguiente",
+                    "previous": "Anterior"
+                    }
+                },
+                "pageLength": 30,
+                "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+                "scrollY": "400px", // Altura del área de desplazamiento vertical
+                "scrollX": true,
+                initComplete: function () {
+                    var api = this.api();
+                    setTimeout(function () {
+                        api.columns.adjust().draw();
+                    }, 400);
+                }
+            });
         }
     }
 
     function cancelarAgrupacion() {
         // Obtener todos los parámetros GET de la URL
         const urlParams = new URLSearchParams(window.location.search);
-
-        // Eliminar el parámetro 'agru'
         urlParams.delete('agru');
-
         // Reconstruir la URL sin 'agru'
         const newUrl = window.location.pathname + '?' + urlParams.toString();
-
-        // Recargar la página con la nueva URL
         window.location.href = newUrl;
     }
 
     // ************ INICIALIZACION **************
     const urlInicial = new URL(window.location.href);
-    if (!urlInicial.searchParams.has('cot')) {
-        // Agregar cot=u sin eliminar otros parametros
-        urlInicial.searchParams.set('cot', 'u');
-        window.location.replace(urlInicial.toString());
-    }
-
     const tabs = document.querySelectorAll('#cotTabs .nav-link');
     const containerUnicas = document.getElementById('containerUnicas');
     const containerFusionadas = document.getElementById('containerFusionadas');
-
     const params = new URLSearchParams(window.location.search);
+    const cotActual = urlInicial.searchParams.get('cot') || 'u';
+
+    if (!urlInicial.searchParams.has('cot')) {
+        // Agregar cot=u sin eliminar otros parametros
+        urlInicial.searchParams.set('cot', 'u');
+        history.replaceState({}, '', urlInicial.toString());
+    }
+
     if (params.get('agru') === '1') {
         document.querySelectorAll('.btn-check-cute').forEach(el => {
             el.classList.remove('d-none');
@@ -130,11 +210,7 @@ $(document).ready(function() {
             bar.classList.add('show-bar');
         }
     }
-
-
     // Inicializar tabs y mostrar la tabla correcta al cargar
-    const cotActual = urlInicial.searchParams.get('cot') || 'u';
-
     // Set active tab según cotActual
     tabs.forEach((tab, i) => {
         const cotValue = i === 0 ? 'u' : 'f';
@@ -145,10 +221,13 @@ $(document).ready(function() {
             tab.classList.remove('active');
         }
     });
-
-    // Mostrar la tabla correcta según el parámetro cot en la URL
     mostrarTablaPorCot(cotActual);
+    mostrarFiltrosActivos();
+    
+    
+    
 
+    // ************** EVENTOS DEL DOM **************
     // Evento click para cambiar active y mostrar tabla correcta
     tabs.forEach(tab => {
         tab.addEventListener('click', function(e) {
@@ -157,28 +236,13 @@ $(document).ready(function() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
-            // Obtener cot del href clickeado (puedes usar dataset también)
             const url = new URL(this.href);
             const cot = url.searchParams.get('cot') || 'u';
 
-            // Mostrar/ocultar tablas
-            mostrarTablaPorCot(cot);
-
-            // Cambiar URL sin recargar (opcional, si no quieres recargar)
-            //window.history.replaceState(null, '', url.toString());
-
-            // Si quieres recargar para aplicar filtros, usa:
             window.location.href = url.toString();
         });
     });
-
-    // Mostrar filtros activos al cargar la página
-    mostrarFiltrosActivos();
-    
-
-
-
-    // ************** EVENTOS DEL DOM **************
+    // COMENZAR LA FUNCIONALIDAD DE FUSIONAR 
     document.getElementById('btnInitFusionar').addEventListener('click', function(e) {
         e.preventDefault();
         let url = new URL(window.location.href);
@@ -194,10 +258,6 @@ $(document).ready(function() {
         // animación breve
         e.target.classList.add('pop');
         setTimeout(() => e.target.classList.remove('pop'), 220);
-
-        // aquí puedes disparar tu lógica con el id de cotización:
-        // const id = e.target.dataset.idCotizacion;
-        // const checked = e.target.checked;
     });
 
     // Cargar filtros activos al abrir el modal
@@ -217,9 +277,17 @@ $(document).ready(function() {
             $('#filtro_fecha_inicio').focus();
             return false;
         }
-        
-        // El formulario se enviará normalmente si pasa la validación
-        console.log('Formulario válido, enviando...');
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Filtros aplicados" },
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
     });
     // Limpiar formulario de filtros
     $('#btnLimpiarFormulario').on('click', function() {
@@ -238,13 +306,13 @@ $(document).ready(function() {
         }
     });
     // CLICK para seleccionar versión del formato de cotización
-    $(".btn-version-cotizacion").on('click', function () {
-        const dataIdCotizacion = $(this).data('id-cotizacion');
+    $("#cotizacionesTable").on('click', ".btn-version-cotizacion", function () {
+        let dataIdCotizacion = $(this).data('id-cotizacion');
         $("#inputIdCotizacionFormato").val(dataIdCotizacion);
     });
     // enviar el formulario de seleccionar version de formato pdf
     $("#formVersionCotizacion").on("submit", function (e) {
-        e.preventDefault(); // evita que el form se envíe inmediatamente
+        e.preventDefault();
 
         const valorSeleccionado = $('#formVersionCotizacion input[name="formato"]:checked').val();
 
@@ -256,13 +324,23 @@ $(document).ready(function() {
             alert("Selecciona una opción de formato.");
             return;
         }
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Generar cotizacion "+ valorSeleccionado},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
 
-        // Ahora sí, enviar el formulario con el action actualizado
         this.submit();
     });
     // CLICK para seleccionar versión del formato de cotización de las fusionadas
-    $(".btn-version-cotizacionF").on('click', function () {
-        const dataIdFusion = $(this).data('id-fusion');
+    $("#cotizacionesTableFusionadas").on('click', ".btn-version-cotizacionF", function () {
+        let dataIdFusion = $(this).data('id-fusion');
         $("#inputIdCotizacionFormatoF").val(dataIdFusion);
     });
     // enviar el formulario de seleccionar version de formato pdf de las fusionadas 
@@ -286,11 +364,12 @@ $(document).ready(function() {
     //CLICK A Enviar correo modal
     $(".btn-enviar-correo").on('click', function(){
         //$dataId=$("#btnValidar").data('id');//lo toma y lo almacena en cache
-        $dataIdCotizacion=$(this).data('id-cotizacion');
-        $dataCorreoCliente=$(this).data('correo-cliente');
+        //$dataIdCotizacion=$(this).data('id-cotizacion');
+        //$dataCorreoCliente=$(this).data('correo-cliente');
 
-        $("#inputIdCotizacion").val($dataIdCotizacion);
-        $("#spanIdCotizacion, #spanIdCotizacion2").text($dataIdCotizacion);
+        //$("#inputIdCotizacion").val($dataIdCotizacion);
+        //$("#spanIdCotizacion, #spanIdCotizacion2").text($dataIdCotizacion);
+        //$("#inputAsuntoCorreo").val("Cotizacion de sello SRS. ID: "+ $dataIdCotizacion);
     });
     //CLICK A Enviar a produccion
     $(".btn-enviar-produccion").on('click', function(){
@@ -298,8 +377,8 @@ $(document).ready(function() {
 
         $("#inputCotizacionProduccion").val($dataIdCotizacionProduccion);
     });
-    // CLICK para archivar una cotizacion
-    $(".btn-archivar-cotizacion").on('click', function () {
+    // CLICK para saber cual cotizacion archivar
+    $("#cotizacionesTable").on('click', ".btn-archivar-cotizacion", function () {
         const dataIdCotizacionA = $(this).data('id-cotizacion');
         var dataArchivada = $(this).data('archivada');
         if(dataArchivada == 0){
@@ -307,12 +386,12 @@ $(document).ready(function() {
             $("#infoArchivada").text("Si archiva la cotización no podrá usarla al crear nuevas requisiciones.");
         }else{
             dataArchivada = 0;
-            $("#infoArchivada").text("Ya podrá usar la cotizacion al crear nuevas requisiciones.");
+            $("#infoArchivada").text("Después de esta accion ya podrá usar la cotización al crear nuevas requisiciones.");
         }
         $("#inputArchivar").val(dataIdCotizacionA);
         $("#inputNextValor").val(dataArchivada);
     });
-    // archivar una cotizacion dinamicamente
+    // solicitud para archivar la cotizacion seleccionada
     $("#btnArchivar").on("click", function(){
         var idCotizacionArchivar = $("#inputArchivar").val();
         var nextValue = $("#inputNextValor").val();
@@ -335,8 +414,68 @@ $(document).ready(function() {
                 console.error("Error al consultar el estatus de autorización.");
             }
         });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Cotizacion archivada"},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
     });
-    // CLICK para archivar una cotizacion
+    // CLICK para saber cual agrupacion archivar
+    $("#cotizacionesTableFusionadas").on('click', ".btn-archivar-cotizacion2", function () {
+        const dataIdFusionA = $(this).data('id-fusion');
+        var dataArchivada2 = $(this).data('archivada');
+        if(dataArchivada2 == 0){
+            dataArchivada2 = 1;
+            $("#infoArchivada2").text("Ninguna de las cotizaciones de esta agrupación podrá ser usada al crear nuevas requisiciones.");
+        }else{
+            dataArchivada2 = 0;
+            $("#infoArchivada2").text("Despues de esta acción ya podrá usar las cotizaciones de la agrupación al crear nuevas requisiciones.");
+        }
+        $("#inputArchivar2").val(dataIdFusionA);
+        $("#inputNextValor2").val(dataArchivada2);
+    });
+    // solicitud para archivar la agrupacion seleccionada
+    $("#btnArchivar2").on("click", function(){
+        var idFusionArchivar = $("#inputArchivar2").val();
+        var nextValue2 = $("#inputNextValor2").val();
+        $.ajax({
+            url: '../ajax/archivar_fusion.php',
+            method: 'POST',
+            data: {
+                id_fusion: idFusionArchivar,
+                archivada: nextValue2
+            },
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                } else {
+                    sweetAlertResponse("warning", "Advertencia", data.error, "self");
+                }
+            },
+            error: function () {
+                sweetAlertResponse("error", "Error", "Ocurrio algo inesperado", "none");
+                console.error("Error al consultar el estatus de autorización.");
+            }
+        });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Agrupación archivada"},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
+    });
+    // CLICK para saber cual fusion romper
     $(".btn-romper-fusion").on('click', function () {
         const dataIdRomperFusion = $(this).data('id-fusion');
         $("#inputIdRomperFusion").val(dataIdRomperFusion);
@@ -360,6 +499,17 @@ $(document).ready(function() {
             error: function () {
                 sweetAlertResponse("error", "Error", "Ocurrio algo inesperado ", "none");
                 console.error("Error al consultar el estatus de autorización.");
+            }
+        });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Fusion destruida"},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
             }
         });
     });
@@ -400,54 +550,78 @@ $(document).ready(function() {
                 console.error("Error al enviar las cotizaciones seleccionadas.");
             }
         });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Ocurrio una fusion"},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
     });
-
     // CLICK CERRAR MODAL 
     $(".btn-close").on("click", function(){
         $("#formEnviarCorreo, #formEnviarAProduccion")[0].reset();
-    });
-    // DATATABLE PARA COTIZACIONES FUSIONADAS
-    $(`#cotizacionesTableFusionadas`).DataTable({
-        ordering: true, //botones de ordenacion de las columnas
-        "orderable": true,
-        "searching": true, // función de búsqueda activada
-        search: {
-            return: false
-        },
-        "autoWidth": true,
-        "language": { 
-            "decimal" : "",
-            "emptyTable":"No hay registros",
-            "info": "Mostrando _END_ de _TOTAL_ registros",
-            "infoEmpty": "Mostrando 0 de 0 registros",
-            "infoFiltered": "(Se filtraron _MAX_ registros)",
-            "infoPostFix":"",
-            "thousands": ", ",
-            "lengthMenu": "Mostrar _MENU_ registros",
-            "loadingRecords":"Cargando...",
-            "processing": "Procesando...",
-            "search": "Buscar: ",
-            "zeroRecords":"No se encontraron resultados.",
-            "paginate":{
-            "first":"<<",
-            "last":">>",
-            "next": "Siguiente",
-            "previous": "Anterior"
-            }
-        },
-        "pageLength": 30,
-        "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-        "scrollY": "400px", // Altura del área de desplazamiento vertical
-        "scrollX": true,
-        initComplete: function () {
-            var api = this.api();
-            setTimeout(function () {
-                api.columns.adjust().draw();
-            }, 400);
-        }
     });
     // CANCELAR AGRUPACION
     $("#btnCancelFusion").on("click", function(){
         cancelarAgrupacion();
     });
+    // AL CAMBIAR DE REMITENTE EN ENVIAR CORREO A CLIENTE
+    $("#correoRemitente").on("change", function(){
+        let valueRemitente =  $($(this)).val();
+        if(valueRemitente == "cotizador"){
+            $("#pAsunto").removeClass("d-none");
+            $("#inputAsuntoCorreo").addClass("d-none");
+            $("#pCuerpo").removeClass("d-none");
+            $("#inputCuerpoCorreo").addClass("d-none");
+        }else if(valueRemitente == "sesion"){
+            $("#inputAsuntoCorreo").removeClass("d-none");
+            $("#pAsunto").addClass("d-none");
+            $("#inputCuerpoCorreo").removeClass("d-none");
+            $("#pCuerpo").addClass("d-none");
+        }
+    });
+
+    var anchoVentanaInicial = window.innerWidth;
+    var anchoPantallaInicial = screen.width;
+    var zoomInicial = anchoVentanaInicial / anchoPantallaInicial * 100;
+
+    function detectarZoom() {
+        var anchoVentana = window.innerWidth;
+        var anchoPantalla = screen.width;
+        var zoom = anchoVentana / anchoPantalla * 100;
+
+        if ((zoom < 98 || zoom > 100) && anchoPantalla>= 991) {
+            Swal.fire({
+                title: 'Recomendación de visualización',
+                text: 'Para una correcta visualización de las tablas de datos, se recomienda poner el zoom al 100%.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '350px',  // Tamaño pequeño del modal
+                padding: '10px',  // Relleno para que se vea agradable
+                position: 'top-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
+                toast: true, // Mostrar como un "toast", que es una notificación pequeña
+                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+                showConfirmButton: true // Mostrar el botón de confirmación
+            });
+        } else {
+            if(zoomInicial !== zoom){
+                window.location.reload(true);  // Recargar desde el servidor (sin usar la caché)
+            }else{
+            }
+        }
+    }
+    ////////////// EVENTO ZOOM/REDIMENSION DEL NAVEGADOR
+    window.addEventListener('resize', detectarZoom);
+    detectarZoom();
+    if(anchoPantallaInicial<= 991){
+        $("#btnFiltrosBusqueda").html('<i class="bi bi-funnel"></i>');
+        $("#btnInitFusionar").html('<i class="bi bi-link" style="font-size:20px !important;"></i>');
+        $("#btnEnviarCorreo").html('<i class="bi bi-envelope"></i>');
+
+    }
 });

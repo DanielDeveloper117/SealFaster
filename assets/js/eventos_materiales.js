@@ -281,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 };
                 // funcion para validar antes de mostrar btn billets
                 const mostrarBtnBillets = function(validarMaterial, validarProveedor, validarCantidad, dimensionesValidas){
-                    if (isNaN(validarCantidad) || validarCantidad <= 0 || !Number.isInteger(Number(validarCantidad)) || !validarMaterial || !validarProveedor || validarMaterial.trim() === "" || validarProveedor.trim() === "" || dimensionesValidas == false){
+                    if (isNaN(validarCantidad) || validarCantidad <= 0 || !Number.isInteger(Number(validarCantidad)) || !validarMaterial || !validarProveedor || validarMaterial.trim() === "" || validarProveedor.trim() === "" || dimensionesValidas == false || window.DIMENSIONES_VALIDAS == false){
                         $(`#inputCostoOperacion_m${i}, #inputCostoHerramienta_m${i}, #inputCostoMaterial_m${i}, #precioBarra_m${i}`).val(``);
                         $(`#inputDescuentoRC_m${i}, #inputPorcentDescuentoRC_m${i}, #inputDescuentoMayoreo_m${i}, #inputPorcentDescuentoMayoreo_m${i}`).val(``);
                         $(`#totalInput_m${i}, #colPrecio_m${i}, #colMaxUsable_m${i}, #inputTotalUnitarios_m${i}, #inputTotalDescuentos_m${i}, #inputTotalMaterial_m${i}`).val(``);

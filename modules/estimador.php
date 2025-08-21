@@ -230,9 +230,9 @@ if (!isset($_SESSION['id'])) {
             <div class="<?= ($tipoUsuario == 5) ? 'd-none' : '' ?>">
                 <span style="font-weight:600;">Cliente: </span><span id="spanCliente"></span>
             </div>
-            <div>
+            <!-- <div>
                 <span style="font-weight:600;">Tipo de medida: </span><span id="spanTipoMedida"></span>
-            </div>
+            </div> -->
             <div>
                 <span style="font-weight:600;">Medidas del sello (DI/DE/H): </span><span id="spanDimensiones"></span>
             </div>

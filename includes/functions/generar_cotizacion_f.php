@@ -101,32 +101,35 @@ if (isset($_GET['id_fusion'])) {
             $pdf->SetFillColor(220, 220, 220); // gris claro
             $pdf->SetFont('Arial', 'B', 10);
             $pdf->Cell(40, 6, 'Familia', 1, 0, 'C', true);
-            $pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
-            $pdf->Cell(24, 6, 'D. Interior', 1, 0, 'C', true);
-            $pdf->Cell(24, 6, 'D. Exterior', 1, 0, 'C', true);
+            //$pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
+            $pdf->Cell(37, 6, 'D. Interior', 1, 0, 'C', true);
+            $pdf->Cell(37, 6, 'D. Exterior', 1, 0, 'C', true);
             // altura normal total
-            $pdf->Cell(24, 6, 'Altura total', 1, 1, 'C', true);
+            $pdf->Cell(37, 6, 'Altura total', 1, 1, 'C', true);
 
             $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
-            $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
+            //$pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
             $di_sello = 0.00;
             $de_sello = 0.00;
             $a_sello = 0.00;
-            if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
-                $di_sello = $arregloCotizacion[0]["di_sello"];
-                $de_sello = $arregloCotizacion[0]["de_sello"];
-                $a_sello = $arregloCotizacion[0]["a_sello"];
-            }else{
-                $di_sello = $arregloCotizacion[0]["di_sello2"];
-                $de_sello = $arregloCotizacion[0]["de_sello2"];
-                $a_sello = $arregloCotizacion[0]["a_sello2"];                               
-            }
-            $pdf->Cell(24, 6, utf8_decode($di_sello), 1, 0, 'C');
-            $pdf->Cell(24, 6, utf8_decode($de_sello), 1, 0, 'C');
+            $di_sello = $arregloCotizacion[0]["di_sello"];
+            $de_sello = $arregloCotizacion[0]["de_sello"];
+            $a_sello = $arregloCotizacion[0]["a_sello"];
+            // if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
+            //     $di_sello = $arregloCotizacion[0]["di_sello"];
+            //     $de_sello = $arregloCotizacion[0]["de_sello"];
+            //     $a_sello = $arregloCotizacion[0]["a_sello"];
+            // }else{
+            //     $di_sello = $arregloCotizacion[0]["di_sello2"];
+            //     $de_sello = $arregloCotizacion[0]["de_sello2"];
+            //     $a_sello = $arregloCotizacion[0]["a_sello2"];                               
+            // }
+            $pdf->Cell(37, 6, utf8_decode($di_sello.' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
+            $pdf->Cell(37, 6, utf8_decode($de_sello.' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
             // altura normal total
-            $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 1, 'C');
+            $pdf->Cell(37, 6, utf8_decode($a_sello.' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
 
-            $pdf->Ln(3);
+            $pdf->Ln(8);
             $pdf->SetTextColor(0, 0, 0);
             $pdf->SetFont('Arial', 'B', 12);
             $pdf->Cell(100, 8, utf8_decode("Materiales del perfil"), 0, 0, '', 0);
@@ -229,11 +232,11 @@ if (isset($_GET['id_fusion'])) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(36, 6, utf8_decode('Id cotización'), 1, 0, 'C', true);
     $pdf->Cell(36, 6, 'Familia', 1, 0, 'C', true);
-    $pdf->Cell(36, 6, 'Perfil', 1, 0, 'C', true);
-    $pdf->Cell(34, 6, 'Tipo de medida', 1, 0, 'C', true);
-    $pdf->Cell(30, 6, 'D. Interior', 1, 0, 'C', true);
-    $pdf->Cell(30, 6, 'D. Exterior', 1, 0, 'C', true);
-    $pdf->Cell(30, 6, 'Altura', 1, 0, 'C', true);
+    $pdf->Cell(34, 6, 'Perfil', 1, 0, 'C', true);
+    //$pdf->Cell(34, 6, 'Tipo de medida', 1, 0, 'C', true);
+    $pdf->Cell(42, 6, 'D. Interior', 1, 0, 'C', true);
+    $pdf->Cell(42, 6, 'D. Exterior', 1, 0, 'C', true);
+    $pdf->Cell(42, 6, 'Altura', 1, 0, 'C', true);
     $pdf->Cell(45, 6, utf8_decode('Total cotización'), 1, 1, 'C', true);
 
     $GRAN_TOTAL = 0.0;
@@ -261,16 +264,19 @@ if (isset($_GET['id_fusion'])) {
         // tomar datos de cabecera desde la primera fila
         $r0 = $rows[0];
 
+        $di = $r0['di_sello'];
+        $de = $r0['de_sello'];
+        $a  = $r0['a_sello'];
         // elegir medidas segun tipo_medida
-        if ($r0['tipo_medida'] === 'Sello') {
-            $di = $r0['di_sello'];
-            $de = $r0['de_sello'];
-            $a  = $r0['a_sello'];
-        } else {
-            $di = $r0['di_sello2'];
-            $de = $r0['de_sello2'];
-            $a  = $r0['a_sello2'];
-        }
+        // if ($r0['tipo_medida'] === 'Sello') {
+        //     $di = $r0['di_sello'];
+        //     $de = $r0['de_sello'];
+        //     $a  = $r0['a_sello'];
+        // } else {
+        //     $di = $r0['di_sello2'];
+        //     $de = $r0['de_sello2'];
+        //     $a  = $r0['a_sello2'];
+        // }
 
         // calcular subtotal correcto: suma de total_material (sin IVA por material)
         $subtotal = 0.0;
@@ -285,11 +291,11 @@ if (isset($_GET['id_fusion'])) {
         // imprimir fila del resumen
         $pdf->Cell(36, 6, utf8_decode($r0['id_cotizacion']), 1, 0, 'C');
         $pdf->Cell(36, 6, utf8_decode($r0['familia_perfil']), 1, 0, 'C');
-        $pdf->Cell(36, 6, utf8_decode($r0['perfil_sello']), 1, 0, 'C');
-        $pdf->Cell(34, 6, utf8_decode($r0['tipo_medida']), 1, 0, 'C');
-        $pdf->Cell(30, 6, utf8_decode($di), 1, 0, 'C');
-        $pdf->Cell(30, 6, utf8_decode($de), 1, 0, 'C');
-        $pdf->Cell(30, 6, utf8_decode($a), 1, 0, 'C');
+        $pdf->Cell(34, 6, utf8_decode($r0['perfil_sello']), 1, 0, 'C');
+        //$pdf->Cell(34, 6, utf8_decode($r0['tipo_medida']), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($di.' '.$r0["tipo_medida_di"]), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($de.' '.$r0["tipo_medida_de"]), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($a.' '.$r0["tipo_medida_h"]), 1, 0, 'C');
         $pdf->Cell(45, 6, "$" . number_format($total, 2), 1, 1, 'C');
 
         // acumular gran total (incluye IVA por cotizacion)

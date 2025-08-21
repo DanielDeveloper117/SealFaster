@@ -284,10 +284,10 @@ if (!isset($_SESSION['id'])) {
                             <p id="pInvalida" class="d-none p-invalida" style="margin-bottom:0px;">Clave no valida, revise el archivo excel de claves validas.</p>
                             <p id="pValida" class="d-none p-valida" style="margin-bottom:0px;"></p>
                         </div>
-                        <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success">
+                        <!-- <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success">
                             Descargar Excel de claves validas
                             <i class ="bi bi-download"></i>
-                        </a>
+                        </a> -->
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">

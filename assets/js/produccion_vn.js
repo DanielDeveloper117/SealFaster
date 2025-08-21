@@ -83,11 +83,11 @@
                         <td><button type="button" class="btn btn-danger btn-sm btnEliminarFila">X</button></td>
                         <td>${id}</td>
                         <td>${perfil}</td>
-                        <td>${tipoMedida}</td>
                         <td>${di}/${de}/${a}</td>
                     </tr>
                 `);
-
+                        
+                        // <td>${tipoMedida}</td>
                 // Actualizar input oculto con los IDs separados por coma
                 $('#inputCotizaciones').val(cotizacionesSeleccionadas.join(', '));
             }
@@ -212,10 +212,11 @@
                         <td><button type="button" class="btn btn-danger btn-sm btnEliminarFila">X</button></td>
                         <td>${id}</td>
                         <td>${perfil}</td>
-                        <td>${tipoMedida}</td>
+                        
                         <td>${di}/${de}/${a}</td>
                     </tr>
                 `);
+                // <td>${tipoMedida}</td>
             });
 
             actualizarContadorComentario();
@@ -335,5 +336,18 @@
             }
             // Disparar el evento de búsqueda manualmente
             $("#dt-search-0").trigger("keyup");
+        });
+        $("#btnGuardar").on("click", function(){
+            $.ajax({
+                url: "../ajax/ajax_notificacion.php",
+                type: "POST",
+                data: { mensaje: "Se ha generado una requisicion"},
+                success: function(response) {
+                    console.log("Notificacion enviada: ", response);
+                },
+                error: function(error) {
+                    console.error("Error al enviar la notificacion: ", error);
+                }
+            });
         });
     });

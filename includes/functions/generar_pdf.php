@@ -149,14 +149,14 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->Cell(40, 6, 'Familia', 1, 0, 'C', true);
         $pdf->Cell(40, 6, 'Perfil', 1, 0, 'C', true);
-        $pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
-        $pdf->Cell(24, 6, 'D. Interior', 1, 0, 'C', true);
-        $pdf->Cell(24, 6, 'D. Exterior', 1, 0, 'C', true);
+        //$pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
+        $pdf->Cell(37, 6, 'D. Interior', 1, 0, 'C', true);
+        $pdf->Cell(37, 6, 'D. Exterior', 1, 0, 'C', true);
         // altura normal total
         if($esWisper !== "0" || $conEscalon !== "0"){
-            $pdf->Cell(24, 6, 'Altura', 1, 0, 'C', true);
+            $pdf->Cell(37, 6, 'Altura', 1, 0, 'C', true);
         }else{
-            $pdf->Cell(24, 6, 'Altura', 1, 1, 'C', true);
+            $pdf->Cell(37, 6, 'Altura', 1, 1, 'C', true);
         }
         // altura de caja para solo wispers sin escalon
         if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
@@ -168,7 +168,7 @@ if (isset($_GET['id_cotizacion'])) {
         // altura de caja con escalon
         if($esWisper !== "0" && $conEscalon !== "0"){
             $pdf->Cell(24, 6, 'Altura caja', 1, 0, 'C', true);
-            $pdf->Cell(24, 6, 'Altura escalon', 1, 1, 'C', true);
+            $pdf->Cell(26, 6, utf8_decode('Altura escalón'), 1, 1, 'C', true);
         }
         // alturas wisper especial
         if($wisperEspecial !== "0"){
@@ -178,26 +178,30 @@ if (isset($_GET['id_cotizacion'])) {
 
         $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
         $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["perfil_sello"]), 1, 0, 'C');
-        $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
+        //$pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
         $di_sello = 0.00;
         $de_sello = 0.00;
         $a_sello = 0.00;
-        if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
-            $di_sello = $arregloCotizacion[0]["di_sello"];
-            $de_sello = $arregloCotizacion[0]["de_sello"];
-            $a_sello = $arregloCotizacion[0]["a_sello"];
-        }else{
-            $di_sello = $arregloCotizacion[0]["di_sello2"];
-            $de_sello = $arregloCotizacion[0]["de_sello2"];
-            $a_sello = $arregloCotizacion[0]["a_sello2"];                               
-        }
-        $pdf->Cell(24, 6, utf8_decode($di_sello), 1, 0, 'C');
-        $pdf->Cell(24, 6, utf8_decode($de_sello), 1, 0, 'C');
+        $di_sello = $arregloCotizacion[0]["di_sello"];
+        $de_sello = $arregloCotizacion[0]["de_sello"];
+        $a_sello = $arregloCotizacion[0]["a_sello"];
+
+        // if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
+        //     $di_sello = $arregloCotizacion[0]["di_sello"];
+        //     $de_sello = $arregloCotizacion[0]["de_sello"];
+        //     $a_sello = $arregloCotizacion[0]["a_sello"];
+        // }else{
+        //     $di_sello = $arregloCotizacion[0]["di_sello2"];
+        //     $de_sello = $arregloCotizacion[0]["de_sello2"];
+        //     $a_sello = $arregloCotizacion[0]["a_sello2"];                               
+        // }
+        $pdf->Cell(37, 6, utf8_decode($di_sello.' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
+        $pdf->Cell(37, 6, utf8_decode($de_sello.' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
         // altura normal total
         if($esWisper !== "0" || $conEscalon !== "0"){
-            $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 0, 'C');
+            $pdf->Cell(37, 6, utf8_decode($a_sello.' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
         }else{
-            $pdf->Cell(24, 6, utf8_decode($a_sello), 1, 1, 'C');
+            $pdf->Cell(37, 6, utf8_decode($a_sello.' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 1, 'C');
         }
         // altura de caja para solo wispers sin escalon
         if($esWisper !== "0" && $conEscalon == "0" && $wisperEspecial == "0"){
@@ -210,7 +214,7 @@ if (isset($_GET['id_cotizacion'])) {
         // altura de caja con escalon
         if($esWisper !== "0" && $conEscalon !== "0"){
             $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionCaja]["altura_caja"]), 1, 0, 'C');
-            $pdf->Cell(24, 6, utf8_decode($arregloCotizacion[$posicionEscalon]["altura_escalon"]), 1, 1, 'C');
+            $pdf->Cell(26, 6, utf8_decode($arregloCotizacion[$posicionEscalon]["altura_escalon"]), 1, 1, 'C');
         }
         // alturas de wisper especial
         if($wisperEspecial !== "0"){
