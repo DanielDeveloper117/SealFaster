@@ -456,7 +456,7 @@ if (!isset($_SESSION['id'])) {
                                     <?php endif; ?>
 
                                     <?php if ($tipoUsuario != 5): ?>
-                                        <button type="button" class="btn-general btn-version-cotizacion" 
+                                        <button type="button" class="btn-pdf btn-version-cotizacion" 
                                             data-bs-toggle='modal' data-bs-target='#modalVersionCotizacion'
                                             data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
                                             title="Generar PDF de esta cotización">
@@ -474,7 +474,7 @@ if (!isset($_SESSION['id'])) {
                                     <?php else: ?>
                                         <form action="../includes/functions/generar_cotizacion.php" method="GET" target="_blank">
                                             <input type="hidden" name="id_cotizacion" value="<?= htmlspecialchars($row['id_cotizacion']); ?>">
-                                            <button type="submit" class="btn-general" >Generar PDF</button>
+                                            <button type="submit" class="btn-pdf" >Generar PDF</button>
                                         </form>
     
                                         <button type="button" class="btn-thunder btn-enviar-correoX" 
@@ -569,7 +569,7 @@ if (!isset($_SESSION['id'])) {
                             <td class="td-first-actions">
                                 <div class="d-flex gap-2 container-actions">
                                     <?php if ($tipoUsuario != 5): ?>
-                                        <button type="button" class="btn-general btn-version-cotizacionF" 
+                                        <button type="button" class="btn-pdf btn-version-cotizacionF" 
                                             data-bs-toggle='modal' data-bs-target='#modalVersionCotizacionF'
                                             data-id-fusion="<?= htmlspecialchars($row['id_fusion']); ?>"
                                             title="Generar PDF de esta cotización">
@@ -587,7 +587,7 @@ if (!isset($_SESSION['id'])) {
                                     <?php else: ?>
                                         <form action="../includes/functions/generar_cotizacion_f.php" method="GET" target="_blank">
                                             <input type="hidden" name="id_fusion" value="<?= htmlspecialchars($row['id_fusion']); ?>">
-                                            <button type="submit" class="btn-general" >Generar PDF</button>
+                                            <button type="submit" class="btn-pdf" >Generar PDF</button>
                                         </form>
     
                                         <button type="button" class="btn-thunder btn-enviar-correoX" 

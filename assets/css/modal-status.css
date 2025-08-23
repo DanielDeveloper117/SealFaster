@@ -3,7 +3,7 @@
     align-items: flex-start;
     justify-content: center;
     flex-wrap: nowrap;
-    gap: 0.3rem;
+    gap: 1rem;
     font-size: 2.5rem;
     color: #ccc;
 }

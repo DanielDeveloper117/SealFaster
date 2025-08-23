@@ -111,6 +111,29 @@
     padding: 12px;
     border: none;
     border-radius: 5px;
+    background-color: #607d8b; /* gris azulado */
+    color: white;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(96, 125, 139, 0.4);
+    text-decoration: none;
+}
+.btn-archive:hover {
+    background-color: #546e7a; /* más oscuro */
+    box-shadow: 0 4px 8px rgba(69, 90, 100, 0.6);
+    transform: translateY(-4px);
+}
+.btn-archive:active {
+    background-color: #455a64; /* presionado */
+}
+
+.btn-amber {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
     background-color: #ffc107; 
     color: white;
     cursor: pointer;
@@ -119,13 +142,13 @@
     box-shadow: 0 2px 4px rgba(255, 193, 7, 0.5);
     text-decoration: none;
 }
-.btn-archive:hover {
+.btn-amber:hover {
     background-color: #ffcf3f; 
     box-shadow: 0 4px 8px rgba(193, 149, 17, 1);
     transform: translateY(-4px);
     
 }
-.btn-archive:active {
+.btn-amber:active {
     background-color: #ffcf3f; 
 }
 .btn-purple {
@@ -181,6 +204,70 @@
 .btn-unlink:active {
     background-color: #1fc2d0;
 }
+.btn-pdf {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #B71C1C; /* rojo mas oscuro en hover */
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(198, 40, 40, 0.25); /* sombra mas discreta */
+}
+.btn-pdf:hover {
+    background-color: #C62828; /* rojo adobe mas opaco */
+    box-shadow: 0 4px 8px rgba(183, 28, 28, 1); /* sombra tenue */
+    transform: translateY(-4px);
+}
+.btn-pdf:active {
+    background-color: #8E1919; /* rojo profundo al presionar */
+    transform: translateY(0);
+}
+.btn-auth {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #1b8b56; /* verde seleccionado */
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(27, 139, 86, 0.3);
+}
+.btn-auth:hover {
+    background-color: #157144; /* tono más oscuro en hover */
+    box-shadow: 0 4px 8px rgba(21, 113, 68, 0.5);
+    transform: translateY(-4px);
+}
+.btn-auth:active {
+    background-color: #0f5238; /* tono profundo al presionar */
+    transform: translateY(0);
+}
+.btn-eliminar{
+    width: 100%;
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #ca4747 !important;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    border-radius: .25rem;
+}
+.btn-eliminar:hover{
+    background-color: #f24242f0 !important;
+}
+
 
 
 /* ===== Cute Check (estilo botón tipo Bootstrap) ===== */
@@ -260,27 +347,9 @@
   50%  { transform: scale(1.12); }
   100% { transform: scale(1); }
 }
+/* ===== end Cute Check  ===== */
 
 
-.btn-eliminar{
-    width: 100%;
-    display: inline-block;
-    font-weight: 400;
-    line-height: 1.5;
-    color: #ffffff;
-    text-align: center;
-    text-decoration: none;
-    vertical-align: middle;
-    cursor: pointer;
-    background-color: #ca4747 !important;
-    border: 1px solid transparent;
-    padding: .375rem .75rem;
-    font-size: 1rem;
-    border-radius: .25rem;
-}
-.btn-eliminar:hover{
-    background-color: #f24242f0 !important;
-}
 
 .form-general {
     background-color: #f9f9f9;
@@ -385,10 +454,19 @@
 .span-terracota{
     width: 100%;
     text-align: center;
-    padding: 12px;
+    /* padding: 12px; */
     border: none;
     border-radius: 5px;
     color: #d0441b;
+    font-weight: bold;
+}
+.span-status{
+    width: 100%;
+    text-align: center;
+    /* padding: 12px; */
+    border: none;
+    border-radius: 5px;
+    color: #55AD9B;
     font-weight: bold;
 }
 .horizontal-divider{

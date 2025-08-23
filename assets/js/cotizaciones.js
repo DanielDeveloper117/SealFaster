@@ -87,7 +87,7 @@ $(document).ready(function() {
             // DATATABLE PARA COTIZACIONES FUSIONADAS
             $(`#cotizacionesTable`).DataTable({
                 ordering: true,
-                order: [[9, 'desc']],
+                order: [[8, 'desc']],
                 "orderable": true,
                 "searching": true, // función de búsqueda activada
                 search: {
@@ -131,7 +131,7 @@ $(document).ready(function() {
             // DATATABLE PARA COTIZACIONES FUSIONADAS
             $(`#cotizacionesTableFusionadas`).DataTable({
                 ordering: true,
-                order: [[9, 'desc']],
+                order: [[8, 'desc']],
                 "orderable": true,
                 "searching": true, // función de búsqueda activada
                 search: {

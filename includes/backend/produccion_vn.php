@@ -58,7 +58,7 @@
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al intentar agregar registro. '. addslashes($e->getMessage()).'", "self");
+                sweetAlertResponse("error", "Error", "Error al intentar agregar registro'. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit;
             }
@@ -173,7 +173,7 @@
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al intentar actualizar registro. '. addslashes($e->getMessage()).'", "self");
+                sweetAlertResponse("error", "Error", "Error al intentar actualizar registro'. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit;
             }
@@ -192,7 +192,7 @@
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Ocurrió un error al eliminar la requisición. ' . addslashes($e->getMessage()) . '", "self");
+                    sweetAlertResponse("error", "Error", "Ocurrió un error al eliminar la requisición' . addslashes($e->getMessage()) . '", "self");
                 });</script>';
                 exit;
             }
@@ -200,7 +200,8 @@
             try{
                 $id_requisicion = $_POST['id_requisicion'];
 
-                $queryUpdateRequisicion = "UPDATE requisiciones SET estatus = 'Producción' WHERE id_requisicion = :id_requisicion";
+                //$queryUpdateRequisicion = "UPDATE requisiciones SET estatus = 'Producción' WHERE id_requisicion = :id_requisicion";
+                $queryUpdateRequisicion = "UPDATE requisiciones SET estatus = 'Autorizada' WHERE id_requisicion = :id_requisicion";
                 $stmtUpdateRequisicion = $conn->prepare($queryUpdateRequisicion);
                 $stmtUpdateRequisicion->bindParam(':id_requisicion', $id_requisicion);
                 $stmtUpdateRequisicion->execute();
@@ -215,7 +216,9 @@
                 $cotizacion_ids = explode(', ', $result['cotizaciones']);
 
                 // Preparar la consulta
-                $sql = "UPDATE cotizacion_materiales SET estatus_completado = 'Producción', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+                //$sql = "UPDATE cotizacion_materiales SET estatus_completado = 'Producción', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+                $sql = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+
                 $stmt = $conn->prepare($sql);
 
                 // Ejecutar para cada id
@@ -234,7 +237,7 @@
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al intentar actualizar estatus de cotización. '. addslashes($e->getMessage()).'", "self");
+                sweetAlertResponse("error", "Error", "Error al intentar actualizar estatus de cotización'. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit;
             }
@@ -243,7 +246,7 @@
                 require_once(ROOT_PATH . 'includes/PHPMailer.php');
                 $mail = getMailer($conn);
                 $id_requisicion = $_POST['id_requisicion'];
-
+                // aqui poner el correo de inventarios
                 $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
                 $stmt = $conn->prepare($sqlCorreoProduccion);
                 $stmt->execute();
@@ -284,7 +287,7 @@
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error al enviar correo. '. addslashes($e->getMessage()).'", "self");
+                    sweetAlertResponse("error", "Error", "Error al enviar correo'. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit;        
             }

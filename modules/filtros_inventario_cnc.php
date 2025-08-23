@@ -38,7 +38,7 @@ if (!isset($_SESSION['id'])) {
             <div class="d-flex flex-row justify-content-between col-12 gap-5 mt-5">
                 <button type="button" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalConsultar">Buscar por material</button>
                 <button type="button" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalClave">Buscar por clave</button>
-                <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 1){echo 'inventario.php';}else{echo 'inventario_vn.php';}?>" 
+                <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){echo 'inventario.php';}else{echo 'inventario_vn.php';}?>" 
                     class="btn-general" target="_blank" style="text-decoration:none;">Todo el inventario</a>
                 <button type="button" id="btnAgregar2" class="btn-general <?php if($tipoUsuario != 2 && $tipoUsuario != 0 && $tipoUsuario != 1){echo 'd-none';}?>" 
                     data-bs-toggle="modal" data-bs-target="#modalInventario">Agregar Registro</button>
@@ -68,7 +68,7 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 1){
+                        if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){
                             echo 'inventario.php';
                         }else{
                             echo 'inventario_vn.php';
@@ -104,7 +104,7 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 1){
+                        if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){
                             echo 'inventario.php';
                         }else{
                             echo 'inventario_vn.php';

@@ -367,15 +367,64 @@ $(document).ready(function() {
         let familiaSello = window.FAMILIA_PERFIL_SIMPLE;
         let perfilSello = window.perfilSello;
         let selectorTipoMedidaDI = $("#selectorTipoMedidaDI").val();
-        let DI_R = valores[1] || 0.00;
         let selectorTipoMedidaDE = $("#selectorTipoMedidaDE").val();
-        let DE_R = valores[2] || 0.00;
         let selectorTipoMedidaH = $("#selectorTipoMedidaH").val();
+        let DI_R = valores[1] || 0.00;
+        let DE_R = valores[2] || 0.00;
         let ALTURA_R = valores[0] || 0.00;
 
         let SECCION = 0.00;
         // AQUI VA EL CODIGO DONDE SE MANDA A LLAMAR LA VALIDACION DE MEDIDAS MINIMAS Y MAXIMAS DEL MAQUINADO
-        // ...
+        let esAdvertencia = false;
+        // Calcular seccion radial
+        SECCION = (parseFloat(DE_R) - parseFloat(DI_R)) / 2;
+
+        // Validaciones CNC
+        if (parseFloat(DI_R) < 5.00) {
+            $("#containerErrorDimensiones_cliente span").text('El DI debe ser mayor a 5.00 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+
+        if (parseFloat(DE_R) > 850.00) {
+            $("#containerErrorDimensiones_cliente span").text('El DE debe ser menor a 850.00 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+        // Seccion radial minima
+        if (SECCION < 2.25) {
+            $("#containerErrorDimensiones_cliente span").text('La seccion radial no puede ser menor a 2.25 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+        // Seccion radial maxima
+        if (SECCION > 45.00) {
+            $("#containerErrorDimensiones_cliente span").text('La seccion radial no puede ser mayor a 45 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+
+        // Para H < 50.8 el DI debe ser > 20, condicional de rechazo
+        if (parseFloat(ALTURA_R) < 50.8 && parseFloat(DI_R) <= 20.00) {
+            $("#containerErrorDimensiones_cliente span").text('Para alturas menores a 50.8 mm, el DI debe ser mayor a 20 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+
+        // Para H < 9 el DI debe ser > 5, condicional de rechazo
+        if (parseFloat(ALTURA_R) < 9.00 && parseFloat(DI_R) <= 5.00) {
+            $("#containerErrorDimensiones_cliente span").text('Para alturas menores a 9 mm, el DI debe ser mayor a 5 mm. Favor de consultar si es posible el maquinado.');
+            esAdvertencia = true;
+            //window.DIMENSIONES_VALIDAS = false;
+            //return false;
+        }
+
+
         /////////////////////////////////////////////////////////////////
     
         if (parseFloat(ALTURA_R) == 0 || parseFloat(ALTURA_R) < 0 || parseFloat(DE_R) == 0 || parseFloat(DE_R) < 0) {
@@ -480,10 +529,15 @@ $(document).ready(function() {
             window.DI_DESPERDICIO_DEFAULT = 3.00;
             window.DE_DESPERDICIO_DEFAULT = 3.00;
         }
-        $("#containerErrorDimensiones_cliente span").text('');
+        if(esAdvertencia = false){
+            $("#containerErrorDimensiones_cliente span").text('');
+        }else{
+
+        }
         $(`#containerErrorDimensiones_m${window.esWisper} span`).text('');
         $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('');
         $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('');
+
         // si todo es valido, retornar verdadero
         window.DIMENSIONES_VALIDAS = true;
         return true; 
@@ -1432,5 +1486,16 @@ $(document).ready(function() {
         });
     });
 
-
+    Swal.fire({
+      title: 'Informacion importante',
+      text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiones. No se asegura la precison de las mismas.',
+      icon: 'info',
+      confirmButtonText: 'Entendido',
+      width: '400px',  // Tamaño pequeño del modal
+      padding: '10px',  // Relleno para que se vea agradable
+      position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
+      toast: true, // Mostrar como un "toast", que es una notificación pequeña
+      timer: 5300, // El modal desaparece automáticamente después de 5 segundos (opcional)
+      showConfirmButton: true // Mostrar el botón de confirmación
+  });
 });

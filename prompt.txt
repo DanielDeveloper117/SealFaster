@@ -1,0 +1,99 @@
+Muy bien, hagamos un análisis completo como si estuviéramos en el taller con el operador CNC, revisando los puntos ciegos que tu validación actual no cubre, y dejando lista la retroalimentación.
+
+🔎 Puntos ciegos detectados
+1. Altura máxima (H)
+
+Solo hay reglas relativas (H < 50.8 con DI > 20, H < 9 con DI > 5), pero no hay un límite absoluto para H.
+
+¿Qué pasa si el cliente pide un sello con H = 200 mm?
+
+En la práctica, los portaherramientas y el cabezal tienen limitación de profundidad, así que debe haber un límite físico (ejemplo: H máx = 100 mm, o según máquina).
+
+2. Altura mínima (H)
+
+¿Qué pasa si H = 0.2 mm?
+
+El sistema lo aceptaría, pero en CNC esa pieza es imposible de sujetar o de tornear sin romper la herramienta.
+
+Deberíamos definir un H mínimo (ejemplo: ≥ 2 mm o ≥ 1 mm según estándar de producción).
+
+3. Relación entre DE y DI (pared mínima)
+
+Ya validas que DI < DE, pero no revisas si la diferencia es demasiado chica.
+
+Ejemplo: DI = 99.5 mm, DE = 100 mm → sección radial = 0.25 mm.
+
+Esa pared tan fina no es maquinable, se rompe en el torneado.
+
+Debería existir un mínimo de sección radial (ejemplo: ≥ 2 mm).
+
+4. Relación altura vs diámetro (proporciones críticas)
+
+Una pieza muy alta con diámetro pequeño puede vibrar o no sujetarse bien.
+
+Ejemplo: DI = 10 mm, DE = 15 mm, H = 60 mm.
+
+Aunque pase reglas de DI, DE y S, la geometría es irreal para tornear.
+
+Podríamos sugerir una relación altura/diámetro máximo aceptable (ejemplo: H ≤ 2 × S, o H ≤ 3 × DI).
+
+5. Tolerancias de la máquina real
+
+La validación no contempla:
+
+Diámetro máximo torneable (capacidad del plato).
+
+Diámetro mínimo de sujeción (mandril no agarra menos de cierto diámetro).
+
+Altura máxima de herramienta.
+
+Estos límites dependen de la máquina, pero el software debería permitir configurarlos.
+
+6. Unión de reglas que se contradicen
+
+Actualmente las condiciones están independientes, pero en la práctica hay zonas grises:
+
+H = 10 mm, DI = 15 mm.
+
+La regla de H < 50.8 pide DI > 20 (falla).
+
+La regla de H < 9 pide DI > 5 (no aplica porque H=10).
+
+Resultado: pieza rechazada aunque sí podría ser maquinable.
+
+Esto puede frustrar al usuario.
+
+Necesitamos aclarar si la regla de H < 50.8 && DI > 20 es obligatoria siempre, o solo aplica en un rango de diámetros grandes.
+
+7. Sección radial mínima no definida
+
+Solo se valida que S ≤ 45, pero no que S sea viable por debajo (ejemplo: S = 0.5 mm).
+
+En la práctica no se puede tornear un sello con pared tan delgada.
+
+Propongo mínimo: S ≥ 2 mm.
+
+📌 Resumen de validaciones actuales vs sugeridas
+Regla	Estado actual	Puntos ciegos / sugerencias
+DI mínimo	DI > 5 mm	Bien, pero se debería confirmar si con H muy bajo puede ser menor.
+DE máximo	DE < 850 mm	Bien, pero depende de la máquina.
+H relativa	H < 50.8 → DI > 20 / H < 9 → DI > 5	Puede excluir casos intermedios válidos (ej. H=10, DI=15). Necesita revisión.
+Sección máxima	S ≤ 45 mm	Bien, pero falta S mínima.
+H máximo	No validado	Definir un límite absoluto.
+H mínimo	No validado	Definir un mínimo práctico (ej. 2 mm).
+Proporción H/DI	No validado	Evitar piezas demasiado largas respecto a diámetro.
+Sección mínima	No validado	Definir (ej. ≥ 2 mm).
+✅ Conclusión
+
+La validación que tienes funciona bien como primer filtro, pero no cubre casos extremos que en taller CNC serían imposibles.
+Lo ideal es que antes de cerrar reglas finales, el operador confirme:
+
+H mínimo y máximo posibles.
+
+Sección mínima viable.
+
+Relación H/DI aceptable.
+
+Si las reglas de H vs DI aplican siempre o solo en ciertos perfiles/familias.
+
+¿Quieres que arme una propuesta de tabla de límites (DI min, DE max, H min/max, S min/max, relación H/DI) lista para llevar al operador CNC y que él mismo la ajuste?

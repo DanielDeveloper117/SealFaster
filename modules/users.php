@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $codigoVerificacion = generarCodigoVerificacion();
         
         if ($action === 'insert') {
-            try{
+            try {
                 $usuario = $_POST['usuario'];
                 $password = $_POST['password'];
                 $nombre = $_POST['nombre'];
@@ -55,27 +55,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $lider = $_POST['lider'];
                 $activo = $_POST['activo'];
                 $rol = $_POST['rol'];
-                // Verificar el valor de lider antes de continuar
-                if ($lider !== '0' && $lider !== '1' && $lider !== '2' && $lider !== '3' && $lider !== '4' && $lider !== '5') {
+
+                // Validar lider
+                if (!in_array($lider, ['0','1','2','3','4','5','6'])) {
                     echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error, datos no validos.", "self");
+                        sweetAlertResponse("error", "Error", "Error, datos no validos", "self");
                     });</script>';
                     exit;     
                 }
 
-                // Convertir el valor de lider a entero
                 $lider = (int)$lider;
-                // Encriptación
+
+                // Encriptacion
                 $clave_encriptacion = 'SRS2024#tides';
                 $usuario_encriptado = openssl_encrypt($usuario, 'AES-128-ECB', $clave_encriptacion);
                 $password_encriptada = openssl_encrypt($password, 'AES-128-ECB', $clave_encriptacion);
                 $nombre_encriptado = openssl_encrypt($nombre, 'AES-128-ECB', $clave_encriptacion);
                 $area_encriptada = openssl_encrypt($area, 'AES-128-ECB', $clave_encriptacion);
 
-                // Insertar datos en la base de datos
+                // 1. Validar duplicado
+                $check = $conn->prepare("SELECT COUNT(*) FROM login WHERE usuario = :usuario");
+                $check->bindParam(':usuario', $usuario_encriptado, PDO::PARAM_STR);
+                $check->execute();
+                $existe = $check->fetchColumn();
+
+                if ($existe > 0) {
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        sweetAlertResponse("warning", "Duplicado", "El usuario ya existe, ingrese un correo diferente.", "self");
+                    });</script>';
+                    exit;
+                }
+
+                // 2. Insertar si no existe
                 $stmt = $conn->prepare("INSERT INTO login 
-                (usuario, password, nombre, area, fechalogin, horalogin, activo, lider, codigoVerificacion, rol) 
-                VALUES (:usuario, :password, :nombre, :area, CURDATE(), CURTIME(), :activo, :lider, :codigoVerificacion, :rol)");
+                    (usuario, password, nombre, area, fechalogin, horalogin, activo, lider, codigoVerificacion, rol) 
+                    VALUES (:usuario, :password, :nombre, :area, CURDATE(), CURTIME(), :activo, :lider, :codigoVerificacion, :rol)");
                 $stmt->bindParam(':usuario', $usuario_encriptado, PDO::PARAM_STR);
                 $stmt->bindParam(':password', $password_encriptada, PDO::PARAM_STR);
                 $stmt->bindParam(':nombre', $nombre_encriptado, PDO::PARAM_STR);
@@ -85,18 +99,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->bindParam(':codigoVerificacion', $codigoVerificacion, PDO::PARAM_STR);
                 $stmt->bindParam(':rol', $rol, PDO::PARAM_STR);
                 $stmt->execute();
+
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente.", "self");
                 });</script>';
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error al intentar agregar registro. ' . addslashes($e->getMessage()) . '", "self");
+                    sweetAlertResponse("error", "Error", "Error al intentar agregar registro: ' . addslashes($e->getMessage()) . '", "self");
                 });</script>';
                 exit;
             }
-
-        } elseif ($action === 'update') {
+        }elseif ($action === 'update') {
             try{
                 $usuario = $_POST['usuario'];
                 $password = $_POST['password'];
@@ -109,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Verificar el valor de lider antes de continuar
                 if ($lider !== '0' && $lider !== '1'&& $lider !== '2' && $lider !== '3' && $lider !== '4' && $lider !== '5') {
                     echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error, datos no validos.", "self");
+                    sweetAlertResponse("error", "Error", "Error, datos no validos", "self");
                     });</script>';
                     exit;     
                 }
@@ -150,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Error al intentar actualizar el registro. ' . addslashes($e->getMessage()) . '", "self");
+                    sweetAlertResponse("error", "Error", "Error al intentar actualizar el registro' . addslashes($e->getMessage()) . '", "self");
                 });</script>';
                 exit;
             }
@@ -169,7 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al intentar eliminar registro. '. addslashes($e->getMessage()).'", "self");
+                sweetAlertResponse("error", "Error", "Error al intentar eliminar registro'. addslashes($e->getMessage()).'", "self");
                 });</script>';
                 exit; 
             }
@@ -247,6 +261,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             case 4:
                                 $tipoUsuarioFrontend = "COMPRAS";
                             break;
+                            case 6:
+                                $tipoUsuarioFrontend = "INVENTARIOS";
+                            break;
                             default:
                                 $tipoUsuarioFrontend = "Desconocido";
                             break;
@@ -316,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
                             <label for="inputUser" class="lbl-general">Usuario/correo</label>
-                            <input id="inputUser" type="text" class="input-text" name="usuario" placeholder="" required>
+                            <input id="inputUser" type="email" class="input-text" name="usuario" placeholder="" required>
                         </div>
                         <div class="" style="width:48%;">
                             <label for="inputNombre" class="lbl-general">Nombre</label>
@@ -334,6 +351,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="Ingenieria">Ingenieria</option>
                                 <option value="Direccion">Direccion</option>
                                 <option value="Compras">Compras</option>
+                                <option value="Inventarios">Inventarios</option>
                                 <option value="Cliente Externo">Cliente Externo</option>
                             </select>
                         </div>
@@ -352,6 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="2">CNC</option>
                                 <option value="3">VENTAS</option>
                                 <option value="4">COMPRAS</option>
+                                <option value="6">INVENTARIOS</option>
                                 <option value="5">EXTERNO</option>
                             </select>
                         </div>

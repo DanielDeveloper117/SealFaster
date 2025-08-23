@@ -63,7 +63,7 @@ if (!isset($_SESSION['id'])) {
             </div> -->
         </div>
         <div class="table-container">
-            <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
+            <!-- <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
                 <div>
                     <label for="selectorEstatus">Filtro estatus:</label>
                     <select id="selectorEstatus" class="input-selector mt-2">
@@ -85,7 +85,7 @@ if (!isset($_SESSION['id'])) {
                     </select>
     
                 </div>
-            </div> 
+            </div>  -->
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -109,58 +109,66 @@ if (!isset($_SESSION['id'])) {
                 ?>
                     <tr>
                         <td class="td-first-actions">
-                            <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                                <input type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
-                                <button type="submit" class="btn-general">Ver PDF</button>
-                            </form>
-                            <div class="mt-1">
-                                <?php 
-                                    if($rol_usuario=="Gerente" && $row['estatus']=="Producción"){
-                                        echo '
-                                            <button type="button" class="btn-thunder btn-editar-medidas" 
+                            <div class="d-flex gap-2 container-actions">
+                                <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
+                                    <input type="hidden" name="id_requisicion" value="<?php echo htmlspecialchars($row['id_requisicion'] ?? ""); ?>">
+                                    <button type="submit" class="btn-pdf"
+                                        title="Generar PDF de esta cotización">
+                                        <i class="bi bi-filetype-pdf" style="padding-left:5px;padding-right:5px;"></i>
+                                    </button>
+                                </form>
+
+                                <?php
+                                if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente" && $row['estatus'] == "Autorizada") {
+                                    echo '<button type="button" class="btn-thunder btn-editar-medidas" 
                                             data-bs-toggle="modal" data-bs-target="#modalEditarMedidas"
                                             data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            >Editar medidas</button>
-                                        ';
-                                    }                                
+                                            title="Editar medidas de las cotizaciones">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>';
+                                }
                                 ?>
-                            </div>
-                            <div class="mt-1">
+                            
                                 <?php
-                                    if($row['estatus']=="Producción" && $rol_usuario=="Gerente"){
-                                        echo '
-                                            <button type="button" class="btn-blue btn-cnc-firma" 
+                                if ($tipo_usuario === "Inventarios" && $row['estatus'] == "Autorizada") {
+                                    echo '<button class="btn-thunder btn-control-almacen" 
+                                            data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                            data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            title="Agregar clave a control de almacen">
+                                            <i class="bi bi-plus-square"></i>
+                                        </button>';
+                                }
+                                ?>
+                            
+                                <?php
+                                if ($tipo_usuario === "CNC" && $row['estatus'] == "Producción" && $rol_usuario == "Gerente") {
+                                    echo '<button type="button" class="btn-blue btn-cnc-firma" 
                                             data-bs-toggle="modal" data-bs-target="#modalCncFirma"
                                             data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                             data-autoriza="cnc"
-                                            >Comenzar maquinado</button>
-                                        ';
-                                    }elseif($row['estatus']=="Producción" && $rol_usuario!="Gerente"){
-                                        echo '<span class="span-terracota">En revisión</span>';
-                                    }
+                                            title="Cambiar estatus a comenzar maquinado">
+                                            <i class="bi bi-file-play"></i>
+                                        </button>';
+                                } elseif ($tipo_usuario === "CNC" && $row['estatus'] == "Producción" && $rol_usuario != "Gerente") {
+                                    echo '<span class="span-terracota">En revision</span>';
+                                }
+                                ?>
+
+                                <?php
+                                if ($rol_usuario == "Gerente" && $row['estatus'] == "En producción") {
+                                    echo '<button type="button" class="btn-terracota btn-finalizar" 
+                                            data-bs-toggle="modal" data-bs-target="#modalFinalizar"
+                                            data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            title="Finalizar maquinado">
+                                            <i class="bi bi-check-square"></i>
+                                        </button>';
+                                } elseif ($rol_usuario != "Gerente" && $row['estatus'] == "En producción") {
+                                    echo '<span class="span-terracota">Gerencia debe finalizarla</span>';
+                                }
                                 ?>
                             </div>
-                            <div class="mt-1">
-                                <?php if ($row['estatus'] == "En producción"): ?>
-                                    <button class="btn-thunder btn-control-almacen" 
-                                        data-bs-toggle="modal" data-bs-target="#modalControlAlmacen"
-                                        data-id_requisicion="<?= htmlspecialchars($row['id_requisicion']); ?>"
-                                    >Agregar clave</button>
-                                <?php endif; ?>
-                            </div>
-
-                            <div class="mt-1">
-                                <?php if ($rol_usuario=="Gerente" && $row['estatus'] == "En producción"): ?>
-                                    <button type="button" class="btn-terracota btn-finalizar" 
-                                        data-bs-toggle="modal" data-bs-target="#modalFinalizar"
-                                        data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']); ?>"
-                                    >Finalizar</button>
-                                <?php elseif ($rol_usuario!="Gerente" && $row['estatus'] == "En producción"): ?>
-                                    <span class="span-terracota">Gerencia debe finalizarla</span>
-                                <?php endif; ?>
-                            </div>
-
                         </td>
+
                         <td><?= htmlspecialchars($row['id_requisicion']??""); ?></td>
                         <td><?= htmlspecialchars($row['estatus']??""); ?></td>
                         <td><?= htmlspecialchars($row['nombre_vendedor']??""); ?></td>
@@ -252,14 +260,18 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- //////////////////////////MODAL AGREGAR CONTROL ALMACEN/////////////////////// -->
-<div class="modal fade" id="modalControlAlmacen" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+
+
+
+
+<!-- //////////////////////////MODAL AGREGAR CONTROL ALMACEN INVENTARIO/////////////////////// -->
+<div class="modal fade" id="modalControlAlmacenInventario" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="d-flex justify-content-between" style="width:90%;">
                     <h5 id="titleModal" class="modal-title" id="modalLabel">CONTROL DE ALMACEN</h5>
-                    <button id="btnVerTabla" type="button" class="btn btn-primary">
+                    <button id="btnTablaControlAlmacen" type="button" class="btn btn-primary">
                     Ver barras
                     </button>
                 </div>
@@ -327,9 +339,8 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-
-<!-- //////////////////////////MODAL TABLA CONTROL ALMACEN /////////////////////// -->
-<div class="modal fade" id="modalTableControAlmacen" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<!-- //////////////////////////MODAL TABLA CONTROL ALMACEN INVENTARIO/////////////////////// -->
+<div class="modal fade" id="modalTableControAlmacenInventario" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 85% !important;">
         <div class="modal-content">
             <div class="modal-header">
@@ -361,6 +372,116 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 
+
+
+
+<!-- //////////////////////////MODAL AGREGAR CONTROL ALMACEN CNC/////////////////////// -->
+<div class="modal fade" id="modalControlAlmacenCNC" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex justify-content-between" style="width:90%;">
+                    <h5 id="titleModal" class="modal-title" id="modalLabel">CONTROL DE ALMACEN</h5>
+                    <button id="btnVerTablaCNC" type="button" class="btn btn-primary">
+                    Ver barras
+                    </button>
+                </div>
+                <button id="btnCloseModal" type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formControlAlmacen" action="" method="POST">                        
+                    <input type="hidden" id="inputIdRequisicion" name="id_requisicion">
+                    <div class="d-flex justify-content-between">
+                        <div class="" style="width:35%;">
+                            <label for="inputCantidadBarras" class="lbl-general">CANTIDAD DE BARRAS</label>
+                            <input id="inputCantidadBarras" type="number" class="input-text"  min="0" step="1" name="cantida_barras" required>
+                        </div>
+                        <div class="" style="width:63%;">
+                            <label for="inputClave" class="lbl-general">CLAVE</label>
+                            <input type="text" class="input-text" id="inputClave" name="clave" placeholder="Ingrese una clave valida" required>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column justify-content-between mb-3">
+                        <div class="d-flex flex-column justify-content-between ">
+                            <p id="pInvalida2" class="d-none p-invalida2" style="margin-bottom:0px;">La clave debe ser valida para optimizar el control de almacen.</p>
+                            <p id="pInvalida" class="d-none p-invalida" style="margin-bottom:0px;">Clave no valida, revise el archivo excel de claves validas.</p>
+                            <p id="pValida" class="d-none p-valida" style="margin-bottom:0px;"></p>
+                        </div>
+                        <!-- <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success">
+                            Descargar Excel de claves validas
+                            <i class ="bi bi-download"></i>
+                        </a> -->
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:48%;">
+                            <label for="inputEntrada" class="lbl-general">MM ENTRADA</label>
+                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrada" required>
+                        </div>
+                        <div class="" style="width:48%;">
+                            <label for="inputSalida" class="lbl-general">MM SALIDA</label>
+                            <input id="inputSalida" type="number" class="input-text"  min="0" step="0.01" name="mm_salida" required>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:48%;">
+                            <label for="inputTotalSellos" class="lbl-general">LONG. TOTAL DE SELLOS</label>
+                            <input id="inputTotalSellos" type="number" class="input-text"  min="0" step="0.01" name="total_sellos" required>
+                        </div>
+                        <div class="" style="width:48%;">
+                            <label for="inputMermaCorte" class="lbl-general">MERMA POR CORTE</label>
+                            <input id="inputMermaCorte" type="number" class="input-text"  min="0" step="0.01" name="merma_corte" required>
+                        </div>                        
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:48%;">
+                            <label for="inputScrapPz" class="lbl-general">SCRAP PZ</label>
+                            <input id="inputScrapPz" type="number" class="input-text"  min="0" step="0.01" name="scrap_pz" required>
+                        </div>
+                        <div class="" style="width:48%;">
+                            <label for="inputScrapMm" class="lbl-general">SCRAP MM</label>
+                            <input id="inputScrapMm" type="number" class="input-text"  min="0" step="0.01" name="scrap_mm" required>
+                            <p id="pInvalida3" class="d-none p-invalida">Ese Lote pedimento ya existe.</p>
+                        </div>                        
+                    </div>
+
+                    <button id="btnAgregarBarra" type="button" class="btn-disabled" tabindex="-1">Agregar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////MODAL TABLA CONTROL ALMACEN CNC /////////////////////// -->
+<div class="modal fade" id="modalTableControAlmacenCNC" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog" style="max-width: 85% !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">Barras de control de almacen</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="width:100%;">
+                    <table id="miniTableBarras" class="table table-bordered border border-2 tabla-billets">
+                        <thead>
+                            <tr><th scope="col"></th>
+                                <th scope="col">BARRAS</th>
+                                <th scope="col">CLAVE</th>
+                                <th scope="col">MM ENTRADA</th>
+                                <th scope="col">MM SALIDA</th>
+                                <th scope="col">LONG. TOTAL SELLOS</th>
+                                <th scope="col">MERMA POR CORTE</th>
+                                <th scope="col">SCRAP PZ</th>
+                                <th scope="col">SCRAP MM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <!-- //////////////////////////MODAL FINALIZAR REQUISICION /////////////////////// -->
 <div class="modal fade" id="modalFinalizar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">

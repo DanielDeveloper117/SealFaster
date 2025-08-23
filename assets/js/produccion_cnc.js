@@ -207,7 +207,6 @@ $(document).ready(function(){
                                 <table class="tabla-medidas table table-bordered border border-2 tabla-billets" data-id_cotizacion="${item.id_cotizacion}">
                                     <thead>
                                         <tr>
-                                            <th>Tipo de medida</th>
                                             <th>DI MM</th>
                                             <th>DI INCH</th>
                                             <th>DE MM</th>
@@ -218,7 +217,6 @@ $(document).ready(function(){
                                     </thead>
                                     <tbody>
                                         <tr>
-                                            <td>Sello</td>
                                             <td><input type="number" class="input-text di_sello" name="di_sello" value="${item.di_sello || ''}" step="0.01" min="0"></td>
                                             <td><input type="number" class="input-text di_sello_inch" name="di_sello_inch" value="${item.di_sello_inch || ''}" step="0.0001" min="0"></td>
                                             <td><input type="number" class="input-text de_sello" name="de_sello" value="${item.de_sello || ''}" step="0.01" min="0"></td>
@@ -226,19 +224,48 @@ $(document).ready(function(){
                                             <td><input type="number" class="input-text a_sello" name="a_sello" value="${item.a_sello || ''}" step="0.01" min="0"></td>
                                             <td><input type="number" class="input-text a_sello_inch" name="a_sello_inch" value="${item.a_sello_inch || ''}" step="0.0001" min="0"></td>
                                         </tr>
-                                        <tr>
-                                            <td>Metal</td>
-                                            <td><input type="number" class="input-text di_sello2" name="di_sello2" value="${item.di_sello2 || ''}" step="0.01" min="0"></td>
-                                            <td><input type="number" class="input-text di_sello2_inch" name="di_sello_inch2" value="${item.di_sello_inch2 || ''}" step="0.0001" min="0"></td>
-                                            <td><input type="number" class="input-text de_sello2" name="de_sello2" value="${item.de_sello2 || ''}" step="0.01" min="0"></td>
-                                            <td><input type="number" class="input-text de_sello2_inch" name="de_sello_inch2" value="${item.de_sello_inch2 || ''}" step="0.0001" min="0"></td>
-                                            <td><input type="number" class="input-text a_sello2" name="a_sello2" value="${item.a_sello2 || ''}" step="0.01" min="0"></td>
-                                            <td><input type="number" class="input-text a_sello2_inch" name="a_sello_inch2" value="${item.a_sello_inch2 || ''}" step="0.0001" min="0"></td>
-                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         `);
+                        // $('#modalEditarMedidas .modal-body').append(`
+                        //     <div style="width:100%; margin-bottom:20px;">
+                        //         <h5 class="modal-title">Id cotización: <span>${item.id_cotizacion}</span></h5>
+                        //         <table class="tabla-medidas table table-bordered border border-2 tabla-billets" data-id_cotizacion="${item.id_cotizacion}">
+                        //             <thead>
+                        //                 <tr>
+                        //                     <th>Tipo de medida</th>
+                        //                     <th>DI MM</th>
+                        //                     <th>DI INCH</th>
+                        //                     <th>DE MM</th>
+                        //                     <th>DE INCH</th>
+                        //                     <th>A MM</th>
+                        //                     <th>A INCH</th>
+                        //                 </tr>
+                        //             </thead>
+                        //             <tbody>
+                        //                 <tr>
+                        //                     <td>Sello</td>
+                        //                     <td><input type="number" class="input-text di_sello" name="di_sello" value="${item.di_sello || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text di_sello_inch" name="di_sello_inch" value="${item.di_sello_inch || ''}" step="0.0001" min="0"></td>
+                        //                     <td><input type="number" class="input-text de_sello" name="de_sello" value="${item.de_sello || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text de_sello_inch" name="de_sello_inch" value="${item.de_sello_inch || ''}" step="0.0001" min="0"></td>
+                        //                     <td><input type="number" class="input-text a_sello" name="a_sello" value="${item.a_sello || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text a_sello_inch" name="a_sello_inch" value="${item.a_sello_inch || ''}" step="0.0001" min="0"></td>
+                        //                 </tr>
+                        //                 <tr>
+                        //                     <td>Metal</td>
+                        //                     <td><input type="number" class="input-text di_sello2" name="di_sello2" value="${item.di_sello2 || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text di_sello2_inch" name="di_sello_inch2" value="${item.di_sello_inch2 || ''}" step="0.0001" min="0"></td>
+                        //                     <td><input type="number" class="input-text de_sello2" name="de_sello2" value="${item.de_sello2 || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text de_sello2_inch" name="de_sello_inch2" value="${item.de_sello_inch2 || ''}" step="0.0001" min="0"></td>
+                        //                     <td><input type="number" class="input-text a_sello2" name="a_sello2" value="${item.a_sello2 || ''}" step="0.01" min="0"></td>
+                        //                     <td><input type="number" class="input-text a_sello2_inch" name="a_sello_inch2" value="${item.a_sello_inch2 || ''}" step="0.0001" min="0"></td>
+                        //                 </tr>
+                        //             </tbody>
+                        //         </table>
+                        //     </div>
+                        // `);
                     });
                 } else {
                     $('#modalEditarMedidas .modal-body').append('<p>No hay cotizaciones disponibles para esta requisición.</p>');
@@ -416,8 +443,8 @@ $(document).ready(function(){
         verificarBtnAgregarBarra();
     });
     // CLICK VER TABLA DE BARRAS
-    $("#btnVerTabla").on("click", function(){
-        $('#modalTableControAlmacen').modal('show');
+    $("#btnTablaControlAlmacen").on("click", function(){
+        $('#modalTableControAlmacenInventario').modal('show');
         // AJAX para llenar la tabla de barras
         ajaxTablaControlAlmacen();
     });

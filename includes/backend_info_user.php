@@ -40,6 +40,9 @@ if ($arregloUser) {
         case 4:
             $tipo_usuario = "Comprador";
         break;
+        case 6:
+            $tipo_usuario = "Inventarios";
+        break;
         case 0:
             $tipo_usuario = "Sistemas";
         break;

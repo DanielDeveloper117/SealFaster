@@ -106,6 +106,19 @@
                 $accesoRestringido = False; 
             }
 
+        }else if($tipoUsuario == 6){
+            $arrayPermitidos = array_merge($arrayPermitidos, [
+                "filtros_inventario_cnc.php",
+                "inventario.php",
+                "produccion_cnc.php"
+            ]);
+            if(!in_array($selfFile, $arrayPermitidos)){
+                $accesoRestringido = True;
+            }else{
+                //header de general/lider/sistemas
+                $accesoRestringido = False; 
+            }
+
         }else{
             echo "<script type='text/javascript'>
                     $(document).ready(function(){

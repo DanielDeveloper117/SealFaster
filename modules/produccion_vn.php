@@ -32,7 +32,7 @@ if (!isset($_SESSION['id'])) {
           include(ROOT_PATH . 'includes/backend_info_user.php');
     ?>
 
-    <title>Producción</title>
+    <title>Requisiciones</title>
 </head>
 <body>
 
@@ -55,11 +55,15 @@ if (!isset($_SESSION['id'])) {
         <div class="titulo mt-1 mb-3">
             <h1>Requisiciones para Maquinado de Sellos</h1>
             <div class="d-flex flex-row justify-content-between col-3 gap-5 mt-5">
-                <button type="button" id="btnAgregar" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalAgregarEditar">Nueva requisicion</button>
+                <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
+                    data-bs-toggle="modal" data-bs-target="#modalAgregarEditar">
+                    <i class="bi bi-file-plus" style="font-size:24px;"></i>
+                    Nueva requisición
+                </button>
             </div>
         </div>
         <div class="table-container">
-            <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
+            <!-- <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
                 <div>
                     <label for="selectorEstatus">Filtro estatus:</label>
                     <select id="selectorEstatus" class="input-selector mt-2">
@@ -68,14 +72,14 @@ if (!isset($_SESSION['id'])) {
                             if($tipo_usuario=="Vendedor" && $rol_usuario=="Gerente"){
                                 echo '<option value="Autorizar1">Autorizacion de gerencia pendiente</option>';
                                 echo '<option value="Autorizada1">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">En producción</option>';
+                                echo '<option value="Produccion">Maquinado CNC</option>';
                             }elseif($tipo_usuario=="Administrador"){
                                 echo '<option value="Autorizar2">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">En producción</option>';
+                                echo '<option value="Produccion">Maquinado CNC</option>';
                             }else{
                                 echo '<option value="Pendiente">Autorizacion de gerencia pendiente</option>';
                                 echo '<option value="Autorizada1">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">En producción</option>';
+                                echo '<option value="Produccion">Maquinado CNC</option>';
                             }
                         ?>
                         <option value="Finalizada">Finalizada</option>
@@ -83,7 +87,7 @@ if (!isset($_SESSION['id'])) {
                     </select>
     
                 </div>
-            </div> 
+            </div>  -->
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -106,81 +110,89 @@ if (!isset($_SESSION['id'])) {
                 ?>
                     <tr>
                         <td class="td-first-actions">
-                            <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                                <input type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
-                                <button type="submit" class="btn-general">Generar PDF</button>
-                            </form>
-                            <div class="mt-1">
-                                <?php if (($row['estatus'] == "Pendiente" ) && $row['id_vendedor'] == $_SESSION['id']): ?>
-                                    <button class="btn-thunder edit-btn" 
-                                        data-id_requisicion="<?= $row['id_requisicion']; ?>"
-                                        data-folio="<?= $row['folio']; ?>"
-                                        data-nombre_vendedor="<?= $row['nombre_vendedor']; ?>"
-                                        data-sucursal="<?= $row['sucursal']; ?>"
-                                        data-cliente="<?= $row['cliente']; ?>"
-                                        data-num_pedido="<?= $row['num_pedido']; ?>"
-                                        data-factura="<?= $row['factura']; ?>"
-                                        data-paqueteria="<?= $row['paqueteria']; ?>"
-                                        data-comentario="<?= $row['comentario']; ?>"
-                                        data-cotizaciones="<?= $row['cotizaciones']; ?>"
-                                    >Editar</button>
-                                <?php endif; ?>
-                            </div>
-                            <div class="mt-1">
-                                <?php if($row['estatus']=="Producción"){
-                                        echo '<span class="span-terracota">Producción pendiente</span>';
-                                    }else if($row['estatus']=="En producción"){
-                                        echo '<span class="span-terracota">Maquinando sellos</span>';
-                                    }else if($row['estatus']=="Autorizada"){
-                                        if($tipo_usuario=="Administrador"){
-                                            echo '
-                                            <button type="button" class="btn-terracota btn-admin-autoriza" 
-                                            data-bs-toggle="modal" data-bs-target="#modalAdminAutoriza"
-                                            data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            data-autoriza="a"
-                                            >Autorizar maquinado</button>
-                                            ';
-                                            
-                                        }else{
-                                            echo '<span class="span-terracota">Dirección debe autorizar</span>';
-                                        }
-                                    }else if($row['estatus']=="Pendiente"){
-                                        if($tipo_usuario=="Vendedor"){
-                                            if($rol_usuario=="Gerente"){ 
-                                                echo '
-                                                    <button type="button" class="btn-terracota btn-gerente-autoriza" 
-                                                        data-bs-toggle="modal" data-bs-target="#modalGerenteAutoriza"
-                                                        data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                        data-autoriza="g"
-                                                    >Autorizar</button>
-                                                    ';
-                                            }else{
-                                                echo '<span class="span-terracota">Gerencia debe autorizar</span>';
-                                                            
-                                            }
-                    
-                                        }else if($tipo_usuario=="Administrador"){
-                                            echo '
-                                                <button type="button" class="btn-terracota btn-admin-autoriza" 
+                            <div class="d-flex gap-2 container-actions">
+                                <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
+                                    <input type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
+                                    <button type="submit" class="btn-pdf"
+                                        title="Generar PDF de esta cotización">
+                                        <i class="bi bi-filetype-pdf" style="padding-left:5px;padding-right:5px;"></i>
+                                    </button>
+                                </form>
+
+                                <?php
+                                if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
+                                    echo '<button class="btn-thunder edit-btn"
+                                            data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            data-folio="' . htmlspecialchars($row['folio']) . '"
+                                            data-nombre_vendedor="' . htmlspecialchars($row['nombre_vendedor']) . '"
+                                            data-sucursal="' . htmlspecialchars($row['sucursal']) . '"
+                                            data-cliente="' . htmlspecialchars($row['cliente']) . '"
+                                            data-num_pedido="' . htmlspecialchars($row['num_pedido']) . '"
+                                            data-factura="' . htmlspecialchars($row['factura']) . '"
+                                            data-paqueteria="' . htmlspecialchars($row['paqueteria']) . '"
+                                            data-comentario="' . htmlspecialchars($row['comentario']) . '"
+                                            data-cotizaciones="' . htmlspecialchars($row['cotizaciones']) . '"
+                                            title="Editar requisición">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>';
+                                }
+                                ?>
+
+                                <?php
+                                $estatusString = "";
+                                switch ($row['estatus']) {
+                                    case "Pendiente":
+                                        $estatusString = "Pendiente";
+                                        if ($tipo_usuario === "Vendedor" && $rol_usuario === "Gerente") {
+                                            echo '<button type="button" class="btn-auth btn-gerente-autoriza" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalGerenteAutoriza"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-autoriza="g"
+                                                    title="Autorizar maquinado de sellos">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>';
+                                        } elseif ($tipo_usuario === "Administrador") {
+                                            echo '<button type="button" class="btn-auth btn-admin-autoriza" 
                                                     data-bs-toggle="modal" data-bs-target="#modalAdminAutoriza"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-autoriza="a"
-                                                >Autorizar maquinado</button>
-                                            ';
-                                    
+                                                    title="Autorizar maquinado de sellos">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>';
+                                        } else {
+                                            //echo '<span class="span-status">Pendiente de autorizar</span>';
                                         }
-                                    }else{
-                                       
-                                    }
+                                        break;
+                                    case "Autorizada":
+                                        $estatusString = "Autorizada";
+                                        //echo '<span class="span-status">Autorizada</span>';
+                                        break;
+                                    case "Producción":
+                                        $estatusString = "Producción";
+                                        //echo '<span class="span-status">Producción pendiente</span>';
+                                        break;
+
+                                    case "En producción":
+                                        $estatusString = "Maquinado";
+                                        //echo '<span class="span-status">Maquinando sellos</span>';
+                                        break;
+                                    default:
+                                        // Nada que mostrar
+                                        break;
+                                }
                                 ?>
                             </div>
+
+
+
                         </td>
                         <!-- <td><?= htmlspecialchars($row['id_requisicion']??""); ?></td> -->
                         <td><?= htmlspecialchars($row['folio']??""); ?></td>
                         <td>
-                            <div class="d-flex align-items-center gap-2">
-                                <small><?= htmlspecialchars($row['estatus'] ?? '') ?></small>
-                                <button class="btn btn-sm btn-outline-success" onclick="pintarCadenaEstatus('<?= $row['estatus'] ?? '' ?>')" data-bs-toggle="modal" data-bs-target="#modalEstatusInfo">
+                            <div class="d-flex align-items-center gap-1">
+                                <span class="span-status"><?= htmlspecialchars($estatusString ?? '') ?></span>
+                                <button class="btn btn-sm btn-outline-success" onclick="pintarCadenaEstatus('<?= $row['estatus'] ?? '' ?>')" 
+                                    data-bs-toggle="modal" data-bs-target="#modalEstatusInfo">
                                     <i class="bi bi-info-circle"></i>
                                 </button>
 
@@ -396,7 +408,7 @@ if (!isset($_SESSION['id'])) {
                                 <div class="d-flex flex-column justify-content-center">
                                     <h5>¿Autorizar con firma predeterminada?</h5>
                                     <img src="'.$rutaCompleta.'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-general" 
+                                    <button type="button" class="btnFirmaPredeterminada btn-pdf" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
                             ';
@@ -434,7 +446,7 @@ if (!isset($_SESSION['id'])) {
                 <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
                 <ul>
                     <li><strong>Gerencia y dirección:</strong> pueden ver <em>todas</em> las requisiciones.</li>
-                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada por dirección.</li>
+                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada.</li>
                     <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
                 </ul>
             </div>
@@ -451,18 +463,18 @@ if (!isset($_SESSION['id'])) {
                     <tbody>
                         <tr>
                             <td>Pendiente</td>
-                            <td>Ventas gerencia debe autorizar la requisición. Si autoriza dirección primero, el estatus pasa directamente a producción.</td>
+                            <td>Ventas gerencia o dirección deben autorizar la requisición.</td>
                         </tr>
                         <tr>
-                            <td>Autorización</td>
-                            <td>Gerencia ha autorizado. Dirección tiene pendiente de autorizar.</td>
+                            <td>Autorizada</td>
+                            <td>Requisición autorizada. Inventarios debe dar salida a billets.</td>
                         </tr>
                         <tr>
                             <td>Producción</td>
-                            <td>El maquinado del sello está pendiente para producción.</td>
+                            <td>El maquinado del sello está pendiente de comenzar.</td>
                         </tr>
                         <tr>
-                            <td>En producción</td>
+                            <td>Maquinado CNC</td>
                             <td>El sello está siendo maquinado actualmente.</td>
                         </tr>
                         <tr>
@@ -489,21 +501,21 @@ if (!isset($_SESSION['id'])) {
                 <!-- Estatus: Autorizada -->
                 <div class="d-flex flex-column align-items-center position-relative">
                     <i class="bi bi-check-circle-fill icon" data-step="2"></i>
-                    <span class="label">Autorizacion</span>
+                    <span class="label">Autorizada</span>
                 </div>
                 <i class="bi bi-dash icon" data-step="2-3"></i>
 
                 <!-- Estatus: Produccion -->
                 <div class="d-flex flex-column align-items-center position-relative">
                     <i class="bi bi-check-circle-fill icon" data-step="3"></i>
-                    <span class="label">Produccion</span>
+                    <span class="label">Producción</span>
                 </div>
                 <i class="bi bi-dash icon" data-step="3-4"></i>
 
                 <!-- Estatus: En producción -->
                 <div class="d-flex flex-column align-items-center position-relative">
                     <i class="bi bi-check-circle-fill icon" data-step="4"></i>
-                    <span class="label">En prod.</span>
+                    <span class="label">Maquinado CNC</span>
                 </div>
                 <i class="bi bi-dash icon" data-step="4-5"></i>
 
@@ -544,7 +556,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });  
 function pintarCadenaEstatus(estatusActual) {
-    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'En producción', 'Finalizada'];
+    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'Maquinado', 'Finalizada'];
     const index = orden.findIndex(e => e.toLowerCase() === estatusActual.toLowerCase());
 
     const icons = document.querySelectorAll('#cadenaEstatusModal .icon');

@@ -59,19 +59,19 @@ if (!isset($_SESSION['id'])) {
         //         console.error("Error al enviar la notificacion: ", error);
         //     }
         // });
+        //   Swal.fire({
+        //     title: 'Novedades',
+        //     text: 'Ahora puede seleccionar el tipo de medida (Sello, Metal o Muestra) para cada medida individualmente, también se mostrarán en las requisiciones. Se corrigieron bugs al generar PDF y al archivar cotizaciones.',
+        //     icon: 'info',
+        //     confirmButtonText: 'Entendido',
+        //     width: '400px',  // Tamaño pequeño del modal
+        //     padding: '10px',  // Relleno para que se vea agradable
+        //     position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
+        //     toast: true, // Mostrar como un "toast", que es una notificación pequeña
+        //     //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+        //     showConfirmButton: true // Mostrar el botón de confirmación
+        // });
     });
-    Swal.fire({
-      title: 'Novedades',
-      text: 'Ahora puede seleccionar el tipo de medida (Sello, Metal o Muestra) para cada medida individualmente, también se mostrarán en las requisiciones. Se corrigieron bugs al generar PDF y al archivar cotizaciones.',
-      icon: 'info',
-      confirmButtonText: 'Entendido',
-      width: '400px',  // Tamaño pequeño del modal
-      padding: '10px',  // Relleno para que se vea agradable
-      position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
-      toast: true, // Mostrar como un "toast", que es una notificación pequeña
-      //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
-      showConfirmButton: true // Mostrar el botón de confirmación
-  });
 </script>
 </body>
 </html>

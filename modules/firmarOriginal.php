@@ -49,21 +49,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $arregloCorreos = [];
 
-            if($autoriza == "g" || $autoriza == "a"){
-
+            if($autoriza == "g"){
                 $sql = "UPDATE requisiciones SET 
                             estatus = 'Autorizada'
                         WHERE id_requisicion = :id_requisicion";
 
-                //cambiar a correo de inventario
-                $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
-                $stmtCorreoInventarios = $conn->prepare($sqlCorreoInventarios);
-                $stmtCorreoInventarios->execute();
-                $correosInventarios = $stmtCorreoInventarios->fetchAll(PDO::FETCH_ASSOC);
+                $sqlCorreoDireccion = "SELECT usuario FROM login WHERE rol = 'CORREO_DIRECCION'";
+                $stmtCorreoDireccion = $conn->prepare($sqlCorreoDireccion);
+                $stmtCorreoDireccion->execute();
+                $arregloCorreoDireccion = $stmtCorreoDireccion->fetch(PDO::FETCH_ASSOC);
+                if (!$arregloCorreoDireccion || empty($arregloCorreoDireccion['usuario'])) {
+                    $text_alert = "Requisicion autorizada correctamente. No se encontró correo de dirección.";
+                }else{
+                    $text_alert = "Requisicion autorizada correctamente. Correo enviado exitosamente a direccion para solicitar su autorizacion.";
+                }
+                $clave_encriptacion = 'SRS2024#tides';
+                $correo_destinatario = openssl_decrypt($arregloCorreoDireccion['usuario'], 'AES-128-ECB', $clave_encriptacion);
+
+                $subject = "Nueva requisicion por autorizar.";
+                $body = "Gerencia ha autorizado una requisicion para el maquinado de sello, valla a la seccion de produccion VN para finalizar la autorizacion con su firma."; 
+
+            }elseif($autoriza == "a"){
+                $sql = "UPDATE requisiciones SET 
+                            estatus = 'Produccion'
+                        WHERE id_requisicion = :id_requisicion";
+
+                // Consulta para obtener TODOS los correos de gerentes de producción
+                $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
+                $stmtCorreoProduccion = $conn->prepare($sqlCorreoProduccion);
+                $stmtCorreoProduccion->execute();
+                $correosProduccion = $stmtCorreoProduccion->fetchAll(PDO::FETCH_ASSOC);
 
                 $clave_encriptacion = 'SRS2024#tides';
                 $arregloCorreos = [];
-                foreach ($correosInventarios as $fila) {
+                foreach ($correosProduccion as $fila) {
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
@@ -73,13 +92,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 if (count($arregloCorreos) === 0) {
-                    $text_alert = "Requisicion autorizada correctamente. No se encontro ningun correo de inventarios.";
+                    $text_alert = "Requisicion autorizada correctamente. No se encontro ningun correo de produccion.";
                 } else {
-                    $text_alert = "Requisicion autorizada correctamente. Correo enviado exitosamente inventario para dar salida a billets.";
+                    $text_alert = "Requisicion autorizada correctamente. Correo enviado exitosamente a CNC para comenzar el maquinado de sellos.";
                 }
 
                 $subject = "Requisicion de maquinado autorizada.";
-                $body = "Se ha autorizado una requisicion para el maquinado de sello. La requisicion ya se encuentra disponible en el modulo de Produccion para dar salida a billets."; 
+                $body = "Direccion ha autorizado una requisicion para el maquinado de sello. La requisicion ya se encuentra disponible en el modulo de Produccion."; 
             }elseif($autoriza == "cnc"){
                 $sql = "UPDATE requisiciones SET 
                             estatus = 'En producción',
@@ -98,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $stmt = $conn->prepare($sql);
             $stmt->bindParam(':id_requisicion', $id_requisicion);
-            //$stmt->execute();
+            $stmt->execute();
 
             $eliminarToken = $conn->prepare("DELETE FROM tokens_autorizacion WHERE token = :token");
             $eliminarToken->bindParam(':token', $token);

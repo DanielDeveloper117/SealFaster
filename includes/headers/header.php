@@ -24,7 +24,7 @@
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
-                        <li><a class="" href="../modules/produccion_vn.php">Producción VN</a></li>
+                        <li><a class="" href="../modules/produccion_vn.php">Requisiciónes</a></li>
                         <li><a class="" href="../modules/produccion_cnc.php">Producción CNC</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros cotizador</a></li>
                         <li><a class="" href="../modules/precios.php" >Precios</a></li>
@@ -41,7 +41,6 @@
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/produccion_cnc.php">Producción</a></li>
                     ';
-                
                 break;
                 case 3:
                     # ventas
@@ -49,7 +48,7 @@
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
-                        <li><a href="../modules/produccion_vn.php">Producción</a></li>
+                        <li><a href="../modules/produccion_vn.php">Requisiciones</a></li>
                     ';
                 break;
                 case 0:
@@ -68,6 +67,13 @@
                     # compras
                     echo '
                         <li><a class="" href="../modules/precios_compras.php" >Claves</a></li>
+                    ';
+                break;
+                case 6:
+                    # Inventarios
+                    echo '
+                        <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
+                        <li><a href="../modules/produccion_cnc.php">Requisiciónes</a></li>
                     ';
                 break;
                 case 5:

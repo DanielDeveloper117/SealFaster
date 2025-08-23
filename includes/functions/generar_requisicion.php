@@ -9,14 +9,24 @@ class PDF extends FPDF {
         //tipo fuente, negrita(B-I-U-BIU), tamañoTexto
         $this->SetFont('Arial', '', 8); 
         // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
-        $this->Cell(30, 0, utf8_decode("Emisión: Marzo 2024"), 0, 0, '', 0);
+        $fechaEmision = new DateTime();
+        $fechaVigencia = (clone $fechaEmision)->modify('+1 year');
+        $meses = [
+            'January' => 'Enero', 'February' => 'Febrero', 'March' => 'Marzo',
+            'April' => 'Abril', 'May' => 'Mayo', 'June' => 'Junio',
+            'July' => 'Julio', 'August' => 'Agosto', 'September' => 'Septiembre',
+            'October' => 'Octubre', 'November' => 'Noviembre', 'December' => 'Diciembre'
+        ];
+        $textoEmision = "Emision: " . $meses[$fechaEmision->format('F')] . " " . $fechaEmision->format('Y');
+        $textoVigencia = "Vigencia: " . $meses[$fechaVigencia->format('F')] . " " . $fechaVigencia->format('Y');
+        $this->Cell(30, 0, utf8_decode($textoEmision), 0, 0, '', 0);
         $this->SetFont('Arial', '', 12); 
         $this->Cell(45);
         $this->Cell(30, 0, utf8_decode("DEPARTAMENTO"), 0, 0, '', 0);
         $this->Cell(68);
         $this->SetFont('Arial', '', 8); 
-        $this->Cell(30, 0, utf8_decode("Versión: 001"), 0, 1, '', 0);
-        $this->Cell(30, 8, utf8_decode("Vigencia: Marzo 2025"), 0, 0, 'L', 0);
+        $this->Cell(30, 0, utf8_decode("Version: 001"), 0, 1, '', 0);
+        $this->Cell(30, 8, utf8_decode($textoVigencia), 0, 0, 'L', 0);
         $this->Cell(42);
         $this->SetFont('Arial', '', 14); 
         $this->Cell(30, 10, utf8_decode("Sellos Maquinados"), 0, 0, '', 0);
@@ -412,9 +422,9 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(80, 8, '_____________________________________', 0, 1, 'C');
 
     // Descripciones debajo
-    $pdf->Cell(80, 2, 'SOLICITA', 0, 0, 'C');
+    $pdf->Cell(80, 2, 'AUTORIZA GERENCIA', 0, 0, 'C');
     $pdf->Cell(20, 1, '', 0, 0);
-    $pdf->Cell(80, 2, 'AUTORIZA', 0, 1, 'C');
+    $pdf->Cell(80, 2, utf8_decode('AUTORIZA DIRECCIÓN'), 0, 1, 'C');
 
     // Espacio antes de la segunda fila
     // $pdf->Ln(22);

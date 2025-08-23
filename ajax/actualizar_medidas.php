@@ -17,8 +17,7 @@ try {
 
     // Lista de campos a actualizar
     $campos = [
-        'di_sello', 'di_sello_inch', 'de_sello', 'de_sello_inch', 'a_sello', 'a_sello_inch',
-        'di_sello2', 'di_sello_inch2', 'de_sello2', 'de_sello_inch2', 'a_sello2', 'a_sello_inch2'
+        'di_sello', 'di_sello_inch', 'de_sello', 'de_sello_inch', 'a_sello', 'a_sello_inch'
     ];
 
     $datos = [];
@@ -34,13 +33,7 @@ try {
         de_sello = :de_sello,
         de_sello_inch = :de_sello_inch,
         a_sello = :a_sello,
-        a_sello_inch = :a_sello_inch,
-        di_sello2 = :di_sello2,
-        di_sello_inch2 = :di_sello_inch2,
-        de_sello2 = :de_sello2,
-        de_sello_inch2 = :de_sello_inch2,
-        a_sello2 = :a_sello2,
-        a_sello_inch2 = :a_sello_inch2
+        a_sello_inch = :a_sello_inch
         WHERE id_cotizacion = :id_cotizacion";
 
     $stmt = $conn->prepare($sql);
