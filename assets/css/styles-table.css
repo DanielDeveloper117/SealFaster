@@ -248,6 +248,32 @@
     background-color: #0f5238; /* tono profundo al presionar */
     transform: translateY(0);
 }
+.btn-cancel {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #ff1100; /* rojo principal */
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+    box-shadow: 0 2px 4px rgba(255, 17, 0, 0.2); /* sombra roja */
+}
+
+.btn-cancel:hover {
+    background-color: #d20d00; /* rojo más oscuro en hover */
+    box-shadow: 0 4px 8px rgba(210, 13, 0, 1.2); /* sombra más intensa */
+    transform: translateY(-5px);
+}
+
+.btn-cancel:active {
+    background-color: #a30a00; /* rojo profundo al presionar */
+    box-shadow: 0 2px 6px rgba(163, 10, 0, 1.2);
+    transform: translateY(0px);
+}
+
 .btn-eliminar{
     width: 100%;
     display: inline-block;
@@ -267,7 +293,28 @@
 .btn-eliminar:hover{
     background-color: #f24242f0 !important;
 }
-
+.btn-disabled{
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    color: #555;
+    pointer-events: none;
+    background-color: #00000021 !important;
+    box-shadow: none;
+}
+.btn-disabled2{
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    color: #555;
+    box-shadow: none;
+    background-color: #00000021;
+    cursor: default !important;
+    font-weight: bold;
+}
 
 
 /* ===== Cute Check (estilo botón tipo Bootstrap) ===== */
@@ -488,18 +535,6 @@
     color:#fff;
     background-color: #55AD9B !important;
 }
-.btn-disabled{
-    width: 100%;
-    padding: 10px;
-    border: none;
-    border-radius: 5px;
-    margin-bottom: 15px;
-    color: #555;
-    pointer-events: none;
-    background-color: #00000021 !important;
-    box-shadow: none;
-}
-
 .filtros-activos {
     background-color: #f8f9fa;
     border: 1px solid #dee2e6;

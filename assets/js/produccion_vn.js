@@ -95,21 +95,17 @@
             // Limpiar selección de Chosen
             $(this).val('').trigger("chosen:updated");
         });
-
         // Delegamos el evento por si las filas se agregan dinámicamente
         $(document).on('click', '.btnEliminarFila', function () {
-            const fila = $(this).closest('tr');
-            const idAEliminar = fila.find('td:eq(1)').text().trim(); // Asegura eliminar espacios
+            let fila = $(this).closest('tr');
+            let idAEliminar = fila.find('td:eq(1)').text().trim(); // Asegura eliminar espacios
             let idCotizacionOption = "#c_" + idAEliminar;
             $(idCotizacionOption).removeClass('d-none');
             $('#buscadorCotizaciones').trigger("chosen:updated");
-
             // Eliminar del arreglo (usa == para tolerar cadena vs número)
             cotizacionesSeleccionadas = cotizacionesSeleccionadas.filter(id => id != idAEliminar);
-
             // Actualizar el input oculto
             $('#inputCotizaciones').val(cotizacionesSeleccionadas.join(','));
-
             // Eliminar la fila visualmente
             fila.remove();
         });
@@ -148,7 +144,6 @@
             $('#inputCotizaciones').val('');
             cotizacionesSeleccionadas = [];
         });
-
         // CLICK A EDITAR UN REGISTRO
         $('#productionTable').on('click', '.edit-btn', function() {
             establecerFechaHoraLegible('inputFecha');
@@ -184,8 +179,8 @@
             // Limpiar selección actual
             cotizacionesSeleccionadas = [];
 
-            const cotizacionesStr = $dataCotizaciones || "";
-            const cotizacionesArray = cotizacionesStr.split(',').map(id => id.trim()).filter(id => id !== '');
+            let cotizacionesStr = $dataCotizaciones || "";
+            let cotizacionesArray = cotizacionesStr.split(',').map(id => id.trim()).filter(id => id !== '');
 
             cotizacionesSeleccionadas = cotizacionesArray;
 
@@ -223,7 +218,6 @@
         });
 
         let intervaloQR = null;
-
         function verificarAutorizacionQR(idRequisicion, autoriza) {
             cancelarVerificacionQR(); // siempre cancelamos anterior antes de empezar nuevo
             intervaloQR = setInterval(() => {
@@ -248,12 +242,11 @@
             }, 4000);
         }
 
-
         // CLICK A Generar QR para autorizar
-        $(".btn-gerente-autoriza, .btn-admin-autoriza").on('click', function () {
-            const idRequisicion = $(this).data('id-requisicion');
-            const autoriza = $(this).data('autoriza');
-            const qrSrc = `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`;
+        $("#productionTable").on('click', ".btn-gerente-autoriza, .btn-admin-autoriza",function () {
+            let idRequisicion = $(this).data('id-requisicion');
+            let autoriza = $(this).data('autoriza');
+            let qrSrc = `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`;
 
             // Mostrar imagen QR en el contenedor del modal
             $("#ContainerQR, #ContainerQR2").html(`<img src="${qrSrc}" width="250" height="250">`);
@@ -264,7 +257,6 @@
             // Iniciar la verificación periódica
             verificarAutorizacionQR(idRequisicion, autoriza);
         });
-
         $(".btnFirmaPredeterminada").on("click", function(){
             const idRequisicionX = $(this).data('id-requisicion');
             const autorizaX = $(this).data('autoriza');
@@ -301,12 +293,38 @@
         $('#modalGerenteAutoriza, #modalAdminAutoriza').on('hidden.bs.modal', function () {
             cancelarVerificacionQR();
         });
-
         // CLICK CERRAR MODAL 
         $(".btn-close").on("click", function(){
             $(".form-post")[0].reset();
         });
-
+        // CLICK CANCELAR REQUISICION
+        $("#productionTable").on('click', ".btn-cancelar", function () {
+            let dataIdRequisicionCancelar = $(this).data('id-requisicion');
+            $('#inputRequisicionCancelar').val(dataIdRequisicionCancelar);
+            $("#modalCancelar .modal-body strong").text(dataIdRequisicionCancelar);
+        });
+        $("#btnContinuarCancelar").on('click', function () {
+            let idRequisicionCancelar = $('#inputRequisicionCancelar').val();
+            $.ajax({
+                url: '../ajax/cancelar_requisicion.php',
+                method: 'POST',
+                data: {
+                    id_requisicion: idRequisicionCancelar
+                },
+                success: function(data) {
+                    if (data.success) {
+                        sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                    } else {
+                        sweetAlertResponse("warning", "Advertencia", data.error, "self");
+                    }
+                },
+                error: function () {
+                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar", "none");
+                    console.error("Error al consultar el estatus de autorización.");
+                }
+            });
+        });
+        
         $("#selectorEstatus").on("change", function(){
             $("#dt-search-0").val("");
 

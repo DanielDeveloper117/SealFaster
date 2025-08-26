@@ -21,7 +21,9 @@ try {
         throw new Exception("Parámetro 'id_requisicion' no es un número válido.");
     }
 
-    $sql = "UPDATE requisiciones SET operador_cnc = :operador_cnc WHERE id_requisicion = :id_requisicion";
+    $sql = "UPDATE requisiciones SET operador_cnc = :operador_cnc, 
+            estatus = 'En producción',
+            inicio_maquinado = NOW() WHERE id_requisicion = :id_requisicion";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':operador_cnc', $operador_cnc);
     $stmt->bindValue(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
@@ -29,7 +31,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => "Operador CNC agregado correctamente."
+        'message' => "Operador CNC agregado correctamente. El estatus ha cambiado a Maquinado de sellos."
     ]);
 } catch (Exception $e) {
     echo json_encode([

@@ -91,7 +91,7 @@ if (!isset($_SESSION['id'])) {
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th style="background-color:#55ad9b52;">Acciones</th>
+                        <th></th>
                         <!-- <th>Id</th> -->
                         <th>Folio</th>
                         <th>Estatus</th>
@@ -114,8 +114,8 @@ if (!isset($_SESSION['id'])) {
                                 <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
                                     <input type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
                                     <button type="submit" class="btn-pdf"
-                                        title="Generar PDF de esta cotización">
-                                        <i class="bi bi-filetype-pdf" style="padding-left:5px;padding-right:5px;"></i>
+                                        title="Generar PDF de esta requisición">
+                                        <i class="bi bi-filetype-pdf"></i>
                                     </button>
                                 </form>
 
@@ -135,6 +135,11 @@ if (!isset($_SESSION['id'])) {
                                             title="Editar requisición">
                                             <i class="bi bi-pencil-square"></i>
                                         </button>';
+                                }else{
+                                    echo '<button class="btn-disabled2"
+                                            title="No se puede editar esta requisición">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>';                                    
                                 }
                                 ?>
 
@@ -160,21 +165,52 @@ if (!isset($_SESSION['id'])) {
                                                     <i class="bi bi-check-circle"></i>
                                                 </button>';
                                         } else {
-                                            //echo '<span class="span-status">Pendiente de autorizar</span>';
                                         }
                                         break;
                                     case "Autorizada":
                                         $estatusString = "Autorizada";
-                                        //echo '<span class="span-status">Autorizada</span>';
+                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                            echo '<button type="button" class="btn-cancel btn-cancelar" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalCancelar"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Cancelar maquinado de sellos">
+                                                    <i class="bi bi-ban"></i>
+                                                </button>';
+                                        }
                                         break;
                                     case "Producción":
                                         $estatusString = "Producción";
-                                        //echo '<span class="span-status">Producción pendiente</span>';
+                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                            echo '<button type="button" class="btn-disabled2" 
+                                                    title="No se puede cancelar una requisición en producción">
+                                                    <i class="bi bi-ban"></i>
+                                                </button>';
+                                        }else{
+
+                                        }
                                         break;
 
                                     case "En producción":
                                         $estatusString = "Maquinado";
-                                        //echo '<span class="span-status">Maquinando sellos</span>';
+                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                            echo '<button type="button" class="btn-disabled2" 
+                                                    title="No se puede cancelar una requisición en producción">
+                                                    <i class="bi bi-ban"></i>
+                                                </button>';
+                                        }else{
+
+                                        }
+                                        break;
+                                    case "Finalizada":
+                                        $estatusString = "Finalizada";
+                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                            echo '<button type="button" class="btn-disabled2" 
+                                                    title="No se puede cancelar una requisición en producción">
+                                                    <i class="bi bi-ban"></i>
+                                                </button>';
+                                        }else{
+
+                                        }
                                         break;
                                     default:
                                         // Nada que mostrar
@@ -182,9 +218,6 @@ if (!isset($_SESSION['id'])) {
                                 }
                                 ?>
                             </div>
-
-
-
                         </td>
                         <!-- <td><?= htmlspecialchars($row['id_requisicion']??""); ?></td> -->
                         <td><?= htmlspecialchars($row['folio']??""); ?></td>
@@ -198,7 +231,7 @@ if (!isset($_SESSION['id'])) {
 
                             </div>
                         </td>
-                       <td><?= htmlspecialchars($row['cliente']??""); ?></td>
+                        <td><?= htmlspecialchars($row['cliente']??""); ?></td>
                         <td>
                             <?php
                                 $cotizaciones = $row['cotizaciones'] ?? '';
@@ -420,8 +453,25 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
-
-<!-- Modal Bootstrap -->
+<!-- //////////////////////////MODAL: ENVIAR ESTAS SEGURO DE CANCELAR? /////////////////////// -->
+<div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">¿Desea continuar?</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Esta acción cancelará la requisición con Folio: <strong></strong></p>
+                <form action="" method="POST">
+                    <input id="inputRequisicionCancelar" type="hidden" name="id_requisicion">
+                    <button id="btnContinuarCancelar" type="button" class="btn-general">Continuar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /////////////////////////////MODAL DETALLES DEL ESTATUS DE REQUISICION //////////////////////////////// -->
 <div class="modal fade" id="modalEstatusInfo" tabindex="-1" aria-labelledby="modalEstatusLabel" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow-lg">
@@ -430,18 +480,15 @@ if (!isset($_SESSION['id'])) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-
-        <!-- BOTON MOSTRAR/OCULTAR -->
+        <!-- boton mostrar/ocultar detalles -->
         <div class="text-start my-3">
             <button id="toggleDetalles" class="btn btn-outline-secondary btn-sm">
                 Ver detalles del estatus de requisiciones
             </button>
         </div>
-
-        <!-- CONTENEDOR OCULTO CON DETALLES -->
+        <!-- contenedor oculto de visibilidad y tabla informativa -->
         <div id="contenedorDetalles" class="overflow-hidden" style="max-height: 0; transition: max-height 0.6s ease;">
-            
-            <!-- VISIBILIDAD -->
+            <!-- visibilidad -->
             <div class="mb-4">
                 <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
                 <ul>
@@ -450,8 +497,7 @@ if (!isset($_SESSION['id'])) {
                     <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
                 </ul>
             </div>
-
-            <!-- TABLA SIMPLE -->
+            <!-- tabla informativa -->
             <div class="table-responsive mb-4">
                 <table class="table table-bordered align-middle">
                     <thead class="table-light">
@@ -484,11 +530,8 @@ if (!isset($_SESSION['id'])) {
                     </tbody>
                 </table>
             </div>
-
         </div>
-
-
-        <!-- PROGRESO VISUAL -->
+        <!-- progreso de estatus -->
         <div class="text-center mt-4 mb-4" style="font-size: 12px !important;">
             <div id="cadenaEstatusModal" class="status-chain">
                 <!-- Estatus: Pendiente -->
@@ -526,9 +569,6 @@ if (!isset($_SESSION['id'])) {
                 </div>
             </div>
         </div>
-
-
-
       </div>
       <div class="modal-footer">
       </div>
@@ -556,7 +596,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
 });  
 function pintarCadenaEstatus(estatusActual) {
-    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'Maquinado', 'Finalizada'];
+    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'En producción', 'Finalizada'];
     const index = orden.findIndex(e => e.toLowerCase() === estatusActual.toLowerCase());
 
     const icons = document.querySelectorAll('#cadenaEstatusModal .icon');
