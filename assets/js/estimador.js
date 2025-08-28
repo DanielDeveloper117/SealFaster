@@ -354,6 +354,7 @@ $(document).ready(function() {
 
     // VALIDAR LAS DIMENSIONES
     function validarCamposDimensiones() {
+        // **************** valores importantes para limitantes ********
         let valores = [
             $("#altura_mm_cliente").val(),
             $("#diametro_interior_mm_cliente").val(),
@@ -363,75 +364,165 @@ $(document).ready(function() {
             $("#inputAlturaH2").val(),
             $("#inputAlturaH3").val(),
         ];
-
         let familiaSello = window.FAMILIA_PERFIL_SIMPLE;
         let perfilSello = window.perfilSello;
-        let selectorTipoMedidaDI = $("#selectorTipoMedidaDI").val();
-        let selectorTipoMedidaDE = $("#selectorTipoMedidaDE").val();
-        let selectorTipoMedidaH = $("#selectorTipoMedidaH").val();
+        console.log("el PERFIL ES: ",window.perfilSello);
+        let tipoDurezaMateriales = $("#selectorDurezaMateriales").val(); // blandos, duros y todos
+        console.log("DUREZA ES: ",tipoDurezaMateriales);
         let DI_R = valores[1] || 0.00;
         let DE_R = valores[2] || 0.00;
         let ALTURA_R = valores[0] || 0.00;
-
         let SECCION = 0.00;
-        // AQUI VA EL CODIGO DONDE SE MANDA A LLAMAR LA VALIDACION DE MEDIDAS MINIMAS Y MAXIMAS DEL MAQUINADO
-        let esAdvertencia = false;
         // Calcular seccion radial
         SECCION = (parseFloat(DE_R) - parseFloat(DI_R)) / 2;
+        let esAdvertencia = false; // si solo es rechazo de advertencia en limitantes de dimensiones, no aplica return false;
+        // *********** no importan para limitantes de dimensiones ********
+        // let selectorTipoMedidaDI = $("#selectorTipoMedidaDI").val();
+        // let selectorTipoMedidaDE = $("#selectorTipoMedidaDE").val();
+        // let selectorTipoMedidaH = $("#selectorTipoMedidaH").val();
+        
+        // *******AQUI VA EL CODIGO DE NUEVA VALIDACION/LIMITANTES DE MEDIDAS MINIMAS Y MAXIMAS DEL MAQUINADO, SI UNA SE CUMPLE SE RECHAZA Y RETORNA FALSE ********
 
-        // Validaciones CNC
-        if (parseFloat(DI_R) < 5.00) {
-            $("#containerErrorDimensiones_cliente span").text('El DI debe ser mayor a 5.00 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
+        // Lista de perfiles que aplican limitantes CNC
+        const perfilesConLimitantes = [
+            'R04-A', 'R05-A', 'R06-P', 'R06-R', 'R07-P', 'R07-R', 'R08-A', 'R15-P',
+            'K01-P', 'K01-PE', 'K01-R', 'K01-RE', 'K05-P', 'K05-R', 'K06-P', 'K06-R', 'K16-A', 'K16-B', 'K35-P',
+            'S01-P', 'S01-R', 'S05-P', 'S05-R', 'S06-P', 'S06-R', 'S08-P', 'S08-PE', 'S08-R', 'S16-A', 'S17-P', 'S17-R', 'S35-P'
+        ];
+
+        // Definicion de limitantes por dureza y herramienta
+        const limitantesHerramientas = {
+            blandos: {
+                112: { DI_MIN: 5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 10 },
+                212: { DI_MIN: 7.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 17 },
+                103: { DI_MIN: 11, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 13 },
+                104: { DI_MIN: 11, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 13 },
+                113: { DI_MIN: 16.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 31.5 },
+                114: { DI_MIN: 16.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 31.5 },
+                139: { DI_MIN: 14.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 50.8 },
+                102: { DI_MIN: 23, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 50.8 },
+                201: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 55 },
+                202: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 55 },
+            },
+            duros: {
+                112: { DI_MIN: 5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 7 },
+                212: { DI_MIN: 7.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 14 },
+                103: { DI_MIN: 11, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 10 },
+                104: { DI_MIN: 11, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 10 },
+                113: { DI_MIN: 16.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 28.5 },
+                114: { DI_MIN: 16.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 28.5 },
+                139: { DI_MIN: 14.5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 47.8 },
+                102: { DI_MIN: 23, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 47.8 },
+                201: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 52 },
+                202: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 52 },
+            }
+        };
+
+        function obtenerHerramientaSegunDimensiones(dureza, DI_R, DE_R, ALTURA_R, SECCION) {
+            const herramientas = limitantesHerramientas[dureza];
+            for (const numHerramienta in herramientas) {
+                const lim = herramientas[numHerramienta];
+
+                if (DI_R >= lim.DI_MIN && DI_R <= lim.DI_MAX) {
+                    if (DE_R >= lim.DE_MIN && DE_R <= lim.DE_MAX) {
+                        if (ALTURA_R >= lim.H_MIN && ALTURA_R <= lim.H_MAX) {
+                            return { numHerramienta, limitante: lim };
+                        }
+                    }
+                }
+            }
+            return null;
         }
 
-        if (parseFloat(DE_R) > 850.00) {
-            $("#containerErrorDimensiones_cliente span").text('El DE debe ser menor a 850.00 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
-        }
-        // Seccion radial minima
-        if (SECCION < 2.25) {
-            $("#containerErrorDimensiones_cliente span").text('La seccion radial no puede ser menor a 2.25 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
-        }
-        // Seccion radial maxima
-        if (SECCION > 45.00) {
-            $("#containerErrorDimensiones_cliente span").text('La seccion radial no puede ser mayor a 45 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
-        }
+        // dentro de validarCamposDimensiones
+        if (perfilesConLimitantes.includes(perfilSello) &&
+        (tipoDurezaMateriales == "blandos" || tipoDurezaMateriales == "duros")) {
 
-        // Para H < 50.8 el DI debe ser > 20, condicional de rechazo
-        if (parseFloat(ALTURA_R) < 50.8 && parseFloat(DI_R) <= 20.00) {
-            $("#containerErrorDimensiones_cliente span").text('Para alturas menores a 50.8 mm, el DI debe ser mayor a 20 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
+            const resultado = obtenerHerramientaSegunDimensiones(tipoDurezaMateriales, DI_R, DE_R, ALTURA_R, SECCION);
+
+            if (!resultado) {
+                // Mensaje simple (para usuario sin conocimientos)
+                let mensajeSimple = "No se encontro herramienta disponible para estas dimensiones.";
+
+                // Mensaje tecnico (para operador CNC)
+                let mensajeTecnico = "No se encontro herramienta para estas dimensiones.<br>";
+                mensajeTecnico += `Material: ${tipoDurezaMateriales}<br>`;
+                mensajeTecnico += `Dimensiones dadas: DI=${DI_R}, DE=${DE_R}, H=${ALTURA_R}, Seccion=${SECCION}<br><br>`;
+                mensajeTecnico += "Rangos de herramientas disponibles:<br>";
+
+                const herramientas = limitantesHerramientas[tipoDurezaMateriales];
+                for (const numHerramienta in herramientas) {
+                    const lim = herramientas[numHerramienta];
+                    mensajeTecnico += `Herramienta ${numHerramienta}: `;
+                    mensajeTecnico += `DI [${lim.DI_MIN}-${lim.DI_MAX}], `;
+                    mensajeTecnico += `DE [${lim.DE_MIN}-${lim.DE_MAX}], `;
+                    mensajeTecnico += `H [${lim.H_MIN}-${lim.H_MAX}], `;
+                    mensajeTecnico += `Seccion [${lim.SECCION_MIN}-${lim.SECCION_MAX}]<br>`;
+                }
+                $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
+                //$("#containerErrorDimensiones_cliente span").html(mensajeSimple);
+                $("#containerErrorDimensiones_cliente span").html(mensajeTecnico);
+
+                window.DIMENSIONES_VALIDAS = false;
+                return false;
+            }
+
+            // Si se encontró herramienta válida
+            const { numHerramienta, limitante } = resultado;
+            console.log("Herramienta seleccionada automaticamente:", numHerramienta);
+            console.log("Limitante aplicada:", limitante);
+
+            // Mensaje técnico cuando las dimensiones son válidas
+            let mensajeTecnicoValido = `Dimensiones validas.<br>`;
+            mensajeTecnicoValido += `Herramienta a usar: ${numHerramienta}<br>`;
+            mensajeTecnicoValido += `Rango de dimensiones permitido por esta herramienta:<br>`;
+            mensajeTecnicoValido += `DI [${limitante.DI_MIN}-${limitante.DI_MAX}], `;
+            mensajeTecnicoValido += `DE [${limitante.DE_MIN}-${limitante.DE_MAX}], `;
+            mensajeTecnicoValido += `H [${limitante.H_MIN}-${limitante.H_MAX}], `;
+            mensajeTecnicoValido += `Seccion [${limitante.SECCION_MIN}-${limitante.SECCION_MAX}]`;
+            $("#containerErrorDimensiones_cliente span").css("color", "#28a745");
+            $("#containerErrorDimensiones_cliente span").html(mensajeTecnicoValido);
+
+
+            let violaciones = [];
+
+            function agregarViolacion(tipo, valor, min, max) {
+                violaciones.push(`Para ${tipoDurezaMateriales}, el ${tipo} debe estar entre ${min} y ${max} mm (valor: ${valor})`);
+            }
+
+            if (DI_R < limitante.DI_MIN || DI_R > limitante.DI_MAX) {
+                agregarViolacion("Diametro interior", DI_R, limitante.DI_MIN, limitante.DI_MAX);
+            }
+            if (DE_R < limitante.DE_MIN || DE_R > limitante.DE_MAX) {
+                agregarViolacion("Diametro exterior", DE_R, limitante.DE_MIN, limitante.DE_MAX);
+            }
+            if (SECCION < limitante.SECCION_MIN || SECCION > limitante.SECCION_MAX) {
+                agregarViolacion("Seccion radial", SECCION, limitante.SECCION_MIN, limitante.SECCION_MAX);
+            }
+            if (ALTURA_R < limitante.H_MIN) {
+                agregarViolacion("Altura", ALTURA_R, limitante.H_MIN, limitante.H_MAX);
+            }
+            if (ALTURA_R > limitante.H_MAX) {
+                agregarViolacion("Altura", ALTURA_R, limitante.H_MIN, limitante.H_MAX);
+            }
+
+            // if (violaciones.length > 0) {
+            //     $("#containerErrorDimensiones_cliente span").html(violaciones.join("<br>"));
+            //     esAdvertencia = true;
+            // }
         }
-
-        // Para H < 9 el DI debe ser > 5, condicional de rechazo
-        if (parseFloat(ALTURA_R) < 9.00 && parseFloat(DI_R) <= 5.00) {
-            $("#containerErrorDimensiones_cliente span").text('Para alturas menores a 9 mm, el DI debe ser mayor a 5 mm. Favor de consultar si es posible el maquinado.');
-            esAdvertencia = true;
-            //window.DIMENSIONES_VALIDAS = false;
-            //return false;
-        }
+        // ********************************************************************************************************************************************************
 
 
-        /////////////////////////////////////////////////////////////////
-    
+        // ********************************************************************************************************************************************************
+        // ******** otras validaciones estaticas importantes, no modificar ********
         if (parseFloat(ALTURA_R) == 0 || parseFloat(ALTURA_R) < 0 || parseFloat(DE_R) == 0 || parseFloat(DE_R) < 0) {
+            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
             $("#containerErrorDimensiones_cliente span").text('La altura y el DE no puede ser 0');
             return false;
         }       
         if (parseFloat(DI_R) >= parseFloat(DE_R)) {
+            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
             $("#containerErrorDimensiones_cliente span").text('El DI no puede ser mayor o igual al DE');
             return false; 
         }
@@ -440,6 +531,7 @@ $(document).ready(function() {
             return valor === null || valor === "" || isNaN(valor) || valor === ".";
         });
         if (hayValoresInvalidos) {
+            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
             $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones solicitadas correctamente');
             if(window.esWiper !== "0"){
                 $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones solicitadas correctamente');
@@ -521,7 +613,6 @@ $(document).ready(function() {
             }
             console.log("suma", H2MasH3);
         }
-
         if (parseFloat(DI_R) == 0.00){
             window.DI_DESPERDICIO_DEFAULT = 0.00;
             window.DE_DESPERDICIO_DEFAULT = 0.00;
@@ -529,15 +620,16 @@ $(document).ready(function() {
             window.DI_DESPERDICIO_DEFAULT = 3.00;
             window.DE_DESPERDICIO_DEFAULT = 3.00;
         }
-        if(esAdvertencia = false){
-            $("#containerErrorDimensiones_cliente span").text('');
-        }else{
-
-        }
+        // ************************************************************************
+        // ******** si las dimensiones son validas
+        // if(esAdvertencia == false){
+        //     $("#containerErrorDimensiones_cliente span").text('');
+        // }else{
+        //     $("#containerErrorDimensiones_cliente span").html(mensajeTecnicoValido);
+        // }
         $(`#containerErrorDimensiones_m${window.esWisper} span`).text('');
         $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('');
         $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('');
-
         // si todo es valido, retornar verdadero
         window.DIMENSIONES_VALIDAS = true;
         return true; 
@@ -556,7 +648,6 @@ $(document).ready(function() {
             console.log("Materiales completados: ", MaterialesCompletados, "/",window.CANTIDAD_MATERIALES);  
         }
     }
-
     // PUSH A PROMISES
     function pushPromise(numeroMaterial) {
         return new Promise((resolve) => {
@@ -656,7 +747,7 @@ $(document).ready(function() {
     }
 
 
-// //////////////////////////////////////// @LLAMADAS AJAX INICIALES
+// //////////////////////////////////////// @LLAMADAS AJAX INICIALES/INICIALIZACIONES
     // llamada ajax para obtener la informacion del PERFIL
     $.ajax({
         url: '../ajax/ajax_perfil.php',
@@ -803,6 +894,9 @@ $(document).ready(function() {
             }
 
             console.log("Materiales del perfil: ", window.CANTIDAD_MATERIALES);  
+            if(window.CANTIDAD_MATERIALES == 1){
+                $("#todosMaterialesOption").remove();
+            }
         },
         error: function (xhr, status, error) {
             console.error('Error al realizar la petición AJAX', status, error);
@@ -853,7 +947,6 @@ $(document).ready(function() {
 
 
 
-
 // ///////////////////////////////////////// @OTRAS INICIALIZACIONES
 
     const idCotizacion = idRandom();
@@ -901,7 +994,47 @@ $(document).ready(function() {
         $("#selectorTipoMedidaH").attr("disabled", false);
 
     });
-    
+    // EVENTO CAMBIAR DUREZA DE MATERIALES, REINICIAR TODO
+    $("#selectorDurezaMateriales").on("change", function(){
+        resetear_materiales_completados();
+        validarCamposDimensiones();
+        for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
+            $(`#inputCantidad_m${i}`).trigger("input");
+            disablarBoton(`#btnBillets_m${i}`);
+            $(`#selectorMaterial_m${i}`).html(
+                `<option value="" disabled selected>Seleccione una opcion</option>`
+            );
+        }
+        let durezaMateriales = $(this).val();
+        const blandos = ["H-ECOPUR","ECOSIL","ECORUBBER 1","ECORUBBER 2","ECORUBBER 3","ECOPUR"];
+        const duros = ["ECOTAL","ECOMID","ECOFLON 1","ECOFLON 2","ECOFLON 3"];
+        const todosMateriales = [...blandos, ...duros];
+        if(durezaMateriales === "blandos"){
+            for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
+                blandos.forEach(element => {
+                    $(`#selectorMaterial_m${i}`).append(
+                        `<option value="${element}">${element}</option>`
+                    );
+                });
+            }
+        }else if(durezaMateriales === "duros"){
+            for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
+                duros.forEach(element => {
+                    $(`#selectorMaterial_m${i}`).append(
+                        `<option value="${element}">${element}</option>`
+                    );
+                });
+            }
+        }else{
+            for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
+                todosMateriales.forEach(element => {
+                    $(`#selectorMaterial_m${i}`).append(
+                        `<option value="${element}">${element}</option>`
+                    );
+                });
+            }
+        }
+    });  
     // EVENTO CAMBIAR DE TIPO DE MEDIDA DEL DIAMETRO INTERIOR
     $("#selectorTipoMedidaDI").on("change", function(){
         let tipoMedidaDI = $(this).val();
@@ -1434,6 +1567,7 @@ $(document).ready(function() {
 
     // GUARDAR LA COTIZACION DESIDIENDO CUALES FORMULARIOS VA A ENVIAR
     $("#btnGuardarCotizacion").on("click", function () {
+        $(this).addClass("d-none");
         let promises = [];
 
         for (let i = 1; i <= 5; i++) {
@@ -1486,16 +1620,43 @@ $(document).ready(function() {
         });
     });
 
-    Swal.fire({
-      title: 'Informacion importante',
-      text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiones. No se asegura la precison de las mismas.',
-      icon: 'info',
-      confirmButtonText: 'Entendido',
-      width: '400px',  // Tamaño pequeño del modal
-      padding: '10px',  // Relleno para que se vea agradable
-      position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
-      toast: true, // Mostrar como un "toast", que es una notificación pequeña
-      timer: 5300, // El modal desaparece automáticamente después de 5 segundos (opcional)
-      showConfirmButton: true // Mostrar el botón de confirmación
-  });
+    // Verificar si ya existe la preferencia en localStorage
+    if (!localStorage.getItem("ocultarInfoValidacion")) {
+        Swal.fire({
+            title: 'Informacion importante',
+            text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiónes. No se asegura la precisión de las mismas.',
+            icon: 'info',
+            confirmButtonText: 'Entendido',
+            width: '400px',
+            padding: '10px',
+            position: 'bottom-end',
+            toast: true,
+            showConfirmButton: true,
+            showCloseButton: false,
+            input: 'checkbox',
+            inputPlaceholder: 'No mostrar nuevamente',
+            inputAttributes: {
+            id: 'noMostrarCheckbox'
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+            // Guardar preferencia en localStorage
+            localStorage.setItem("ocultarInfoValidacion", "1");
+            }
+        });
+    }
+
+    // Swal.fire({
+    //     title: 'Informacion importante',
+    //     text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiones. No se asegura la precison de las mismas.',
+    //     icon: 'info',
+    //     confirmButtonText: 'Entendido',
+    //     width: '400px',  // Tamaño pequeño del modal
+    //     padding: '10px',  // Relleno para que se vea agradable
+    //     position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
+    //     toast: true, // Mostrar como un "toast", que es una notificación pequeña
+    //     timer: 5300, // El modal desaparece automáticamente después de 5 segundos (opcional)
+    //     showConfirmButton: true // Mostrar el botón de confirmación
+    // });
+
 });

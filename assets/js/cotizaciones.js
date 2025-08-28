@@ -395,6 +395,7 @@ $(document).ready(function() {
     $("#btnArchivar").on("click", function(){
         var idCotizacionArchivar = $("#inputArchivar").val();
         var nextValue = $("#inputNextValor").val();
+        $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/archivar.php',
             method: 'POST',
@@ -444,6 +445,7 @@ $(document).ready(function() {
     $("#btnArchivar2").on("click", function(){
         var idFusionArchivar = $("#inputArchivar2").val();
         var nextValue2 = $("#inputNextValor2").val();
+        $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/archivar_fusion.php',
             method: 'POST',
@@ -483,6 +485,7 @@ $(document).ready(function() {
     // ROMPER la agrupacion de las cotizaciones
     $("#btnUnlink").on("click", function(){
         var idRomperFusion = $("#inputIdRomperFusion").val();
+        $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/romper_fusion.php',
             method: 'POST',
@@ -530,7 +533,7 @@ $(document).ready(function() {
             sweetAlertResponse("warning", "Advertencia", "Selecciona mínimo 2 cotizaciones.", "none");
             return;
         }
-
+        $(this).addClass("d-none");
         // Enviar las id_cotizacion seleccionadas al backend
         $.ajax({
             url: '../ajax/fusionar_cotizaciones.php',

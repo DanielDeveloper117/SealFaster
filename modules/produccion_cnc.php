@@ -453,7 +453,7 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
                     <h5 class="modal-title">Claves de requisición con folio: <span></span></h5>
-                    <table class="tabla-medidas table table-bordered border border-2 tabla-billets" data-id_cotizacion="${item.id_cotizacion}">
+                    <table class="table table-bordered border border-2 tabla-billets">
                         <thead>
                             <tr>
                                 <th style="width: 8%;">Cantidad</th>

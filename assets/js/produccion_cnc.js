@@ -544,6 +544,7 @@ $(document).ready(function(){
     $("#btnGuardarOperador").on('click', function () {
         let inputOperadorCNC = $("#inputOperadorCNC").val();
         let inputIdRequisicionOperador = $("#inputIdRequisicionOperador").val();
+        $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/guardar_operadorcnc.php',
             type: 'POST',
@@ -621,7 +622,7 @@ $(document).ready(function(){
             };
             datos.push(fila);
         });
-
+        $(this).addClass("d-none");
         // Enviar al servidor
         $.ajax({
             url: '../ajax/finalizar_requisicion.php',
@@ -659,6 +660,7 @@ $(document).ready(function(){
     });
     $("#btnDarSalidaBillets").on('click', function () {
         let inputIdRequisicionSalida = $("#inputRequisicionDarSalida").val();
+        $(this).addClass("d-none");
         // Enviar al servidor
         $.ajax({
             url: '../ajax/entregar_barras.php',

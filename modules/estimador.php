@@ -165,7 +165,15 @@ if (!isset($_SESSION['id'])) {
             </div> 
         </section>
     <?php endif; ?>
-
+    <div class="section-container">
+        <label for="selectorDurezaMateriales" class="form-label">Dureza de materiales</label>
+        <select id="selectorDurezaMateriales" class="form-select" name="material" required>
+            <option value="" disabled selected>Seleccione una opcion</option>
+            <option value="blandos">Materiales blandos</option>
+            <option value="duros">Materiales duros</option>
+            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+        </select>
+    </div>
     <?php
     $archivoEventos = "eventos_materiales.js";
     $archivoPrevisualizacion = "tabla_previsualizacion.php";

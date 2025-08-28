@@ -169,7 +169,7 @@ if (!isset($_SESSION['id'])) {
                                         break;
                                     case "Autorizada":
                                         $estatusString = "Autorizada";
-                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                        if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-cancel btn-cancelar" 
                                                     data-bs-toggle="modal" data-bs-target="#modalCancelar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
@@ -180,7 +180,7 @@ if (!isset($_SESSION['id'])) {
                                         break;
                                     case "Producción":
                                         $estatusString = "Producción";
-                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                        if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-disabled2" 
                                                     title="No se puede cancelar una requisición en producción">
                                                     <i class="bi bi-ban"></i>
@@ -192,7 +192,7 @@ if (!isset($_SESSION['id'])) {
 
                                     case "En producción":
                                         $estatusString = "Maquinado";
-                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                        if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-disabled2" 
                                                     title="No se puede cancelar una requisición en producción">
                                                     <i class="bi bi-ban"></i>
@@ -203,7 +203,7 @@ if (!isset($_SESSION['id'])) {
                                         break;
                                     case "Finalizada":
                                         $estatusString = "Finalizada";
-                                        if ($rol_usuario === "Administrador" || $rol_usuario === "Gerente") {
+                                        if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-disabled2" 
                                                     title="No se puede cancelar una requisición en producción">
                                                     <i class="bi bi-ban"></i>
@@ -405,7 +405,7 @@ if (!isset($_SESSION['id'])) {
                                 <div class="d-flex flex-column justify-content-center">
                                     <h5>¿Autorizar con firma predeterminada?</h5>
                                     <img src="'.$rutaCompleta.'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-general" 
+                                    <button type="button" class="btnFirmaPredeterminada btn-auth" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
                             ';
@@ -441,7 +441,7 @@ if (!isset($_SESSION['id'])) {
                                 <div class="d-flex flex-column justify-content-center">
                                     <h5>¿Autorizar con firma predeterminada?</h5>
                                     <img src="'.$rutaCompleta.'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-pdf" 
+                                    <button type="button" class="btnFirmaPredeterminada btn-auth" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
                             ';
@@ -465,7 +465,7 @@ if (!isset($_SESSION['id'])) {
                 <p>Esta acción cancelará la requisición con Folio: <strong></strong></p>
                 <form action="" method="POST">
                     <input id="inputRequisicionCancelar" type="hidden" name="id_requisicion">
-                    <button id="btnContinuarCancelar" type="button" class="btn-general">Continuar</button>
+                    <button id="btnContinuarCancelar" type="button" class="btn-cancel">Continuar</button>
                 </form>
             </div>
         </div>

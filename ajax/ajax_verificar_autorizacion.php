@@ -26,7 +26,7 @@ try {
     $stmt->execute();
     $estatus = $stmt->fetchColumn();
 
-    if ($autoriza === 'gerente' && $estatus === 'Autorizada') {
+    if (($autoriza === 'gerente' || $autoriza === 'admin') && $estatus === 'Autorizada') {
         echo 'true';
     } elseif ($autoriza === 'admin' && $estatus === 'Producción') {
         echo 'true';

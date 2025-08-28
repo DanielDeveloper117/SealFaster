@@ -261,6 +261,8 @@
             const idRequisicionX = $(this).data('id-requisicion');
             const autorizaX = $(this).data('autoriza');
             cancelarVerificacionQR();
+            $(".btnFirmaPredeterminada").addClass("d-none");
+            $(this).addClass("d-none");
             $.ajax({
                 url: '../ajax/autorizar_firma_predeterminada.php',
                 method: 'POST',
@@ -279,7 +281,8 @@
                     sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar ", "none");
                     console.error("Error al consultar el estatus de autorización.");
                 }
-            });
+            });        
+
         });
 
         function cancelarVerificacionQR() {
@@ -305,6 +308,7 @@
         });
         $("#btnContinuarCancelar").on('click', function () {
             let idRequisicionCancelar = $('#inputRequisicionCancelar').val();
+            $(this).addClass("d-none");
             $.ajax({
                 url: '../ajax/cancelar_requisicion.php',
                 method: 'POST',
@@ -355,6 +359,7 @@
             // Disparar el evento de búsqueda manualmente
             $("#dt-search-0").trigger("keyup");
         });
+        // NOTIFICACION AL GUARDAR
         $("#btnGuardar").on("click", function(){
             $.ajax({
                 url: "../ajax/ajax_notificacion.php",

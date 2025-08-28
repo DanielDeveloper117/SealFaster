@@ -54,11 +54,64 @@ try {
     $stmt->bindValue(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmt->execute();
 
+    ////////////////////////////PHP MAILER -> cotizador a CNC ////////////////
+    try {
+        require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        $mail = getMailer($conn);
+
+        $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
+        $stmt = $conn->prepare($sqlCorreoProduccion);
+        $stmt->execute();
+        $correosProduccion = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$correosProduccion || count($correosProduccion) === 0) {
+            throw new Exception("No se encontro ningún correo de producción.");
+        }
+
+        $clave_encriptacion = 'SRS2024#tides';
+        $contadorCorreos = 0;
+
+        foreach ($correosProduccion as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                $correo = trim($correo);
+                if ($correo) {
+                    //$mail->addAddress($correo);
+                    $contadorCorreos++;
+                }
+            }
+        }
+
+        if ($contadorCorreos === 0) {
+            throw new Exception("No se pudo agregar ningún destinatario valido para producción.");
+        }
+
+        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // Correo principal visible
+
+        $mail->Subject = 'Nueva requisición para producción';
+        $mail->Body = "Inventarios ha liberado una nueva requisición de maquinado de sellos con las barras solicitadas.<br>
+                    Se ha cambiado el estatus a <b>Producción</b>.<br>
+                    Folio de requisición: <b>".$id_requisicion."</b>";
+
+        if (!$mail->send()) {
+            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        }
+
+    } catch (Throwable $e) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Error al enviar correo: " . $e->getMessage()
+        ]);
+        exit;
+    }
+    //////////////////////////////////////////////////////////////////////
+
+
     // Verificar si se actualizó
     if ($stmt->rowCount() > 0) {
         echo json_encode([
             'success' => true,
-            'message' => "Estatus cambiado correctamente a Producción."
+            'message' => "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción."
         ]);
     } else {
         echo json_encode([

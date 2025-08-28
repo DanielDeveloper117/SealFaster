@@ -28,6 +28,7 @@ function getMailer(PDO $conn): PHPMailer {
     $mail->setFrom('plat_autorizaciones@sellosyretenes.com', 'Sellos y Retenes de San Luis');
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
+    $mail->Encoding = 'base64';
 
     return $mail;
 }

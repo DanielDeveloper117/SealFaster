@@ -363,23 +363,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
 // //////////////////////////////////////// @LLAMADAS AJAX INICIALES
                 // Realizar la solicitud AJAX para mostrar todos los materiales
-                $.ajax({
-                    url: '../ajax/ajax_materiales_parametros2.php',
-                    type: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        if (data.length > 0) {
-                            $.each(data, function(index, item) {
-                                $(`#selectorMaterial_m${i}`).append(
-                                    `<option value="${item.caso}">${item.caso}</option>`
-                                );
-                            });
-                        }
-                    },
-                    error: function() {
-                        console.error('Error al realizar la petición AJAX');
-                    }
-                });
+                // $.ajax({
+                //     url: '../ajax/ajax_materiales_parametros2.php',
+                //     type: 'GET',
+                //     dataType: 'json',
+                //     success: function(data) {
+                //         if (data.length > 0) {
+                //             $.each(data, function(index, item) {
+                //                 $(`#selectorMaterial_m${i}`).append(
+                //                     `<option value="${item.caso}">${item.caso}</option>`
+                //                 );
+                //             });
+                //         }
+                //     },
+                //     error: function() {
+                //         console.error('Error al realizar la petición AJAX');
+                //     }
+                // });
 
 
 
