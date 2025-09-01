@@ -24,7 +24,8 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Inventario CNC</title>
 

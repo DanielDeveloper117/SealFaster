@@ -21,7 +21,8 @@ if (!isset($_SESSION['id'])) {
     <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
+     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Inventario CNC</title>
 </head>

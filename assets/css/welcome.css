@@ -1,0 +1,377 @@
+        /* Efecto de partículas dinámicas */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                radial-gradient(2px 2px at 20px 30px, rgba(85, 173, 155, 0.3), transparent),
+                radial-gradient(3px 3px at 40px 70px, rgba(149, 210, 179, 0.2), transparent),
+                radial-gradient(1px 1px at 90px 40px, rgba(85, 173, 155, 0.4), transparent),
+                radial-gradient(2px 2px at 130px 80px, rgba(45, 74, 45, 0.3), transparent),
+                radial-gradient(3px 3px at 160px 30px, rgba(85, 173, 155, 0.2), transparent);
+            background-repeat: repeat;
+            background-size: 200px 100px;
+            pointer-events: none;
+            z-index: 0;
+            animation: twinkle 4s ease-in-out infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.1); }
+        }
+
+        /* Container principal */
+        #containerMain {
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Card de bienvenida principal */
+        #welcomeCard {
+            background: var(--glass-bg);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            border: 1px solid var(--border-color);
+            box-shadow: 
+                0 25px 50px var(--shadow-color),
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            max-width: 960px;
+            width: 100%;
+            padding: 3rem;
+            position: relative;
+            overflow: hidden;
+            animation: cardEntrance 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            transform: translateY(50px) scale(0.95);
+            opacity: 0;
+        }
+
+        @keyframes cardEntrance {
+            to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Efectos avanzados en la card */
+        #welcomeCard::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: conic-gradient(from 0deg at 50% 50%, 
+                transparent, 
+                rgba(85, 173, 155, 0.1), 
+                transparent, 
+                rgba(149, 210, 179, 0.05), 
+                transparent);
+            animation: rotate 30s linear infinite;
+            border-radius: 25px;
+        }
+
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #welcomeCard > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Borde animado superior */
+        #welcomeCard::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                var(--glow-color), 
+                rgba(149, 210, 179, 0.8), 
+                var(--glow-color), 
+                transparent);
+            border-radius: 25px 25px 0 0;
+            animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: translateX(-100%); opacity: 0; }
+            50% { transform: translateX(100%); opacity: 1; }
+        }
+
+        /* Container de imagen */
+        #containerImg {
+            position: relative;
+            z-index: 2;
+        }
+
+        /* Imagen con efectos avanzados */
+        .animate-img {
+            transform: scale(0.8) rotateY(15deg);
+            opacity: 0;
+            filter: blur(10px) brightness(0.7);
+            transition: all 1.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+        }
+
+        .animate-img::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: -5px;
+            right: -5px;
+            bottom: -5px;
+            background: linear-gradient(45deg, 
+                var(--glow-color), 
+                rgba(149, 210, 179, 0.8), 
+                var(--glow-color));
+            border-radius: 25px;
+            z-index: -1;
+            animation: borderGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes borderGlow {
+            0% { filter: blur(10px) opacity(0.5); }
+            100% { filter: blur(20px) opacity(1); }
+        }
+
+        .animate-img.visible {
+            transform: scale(1) rotateY(0deg);
+            opacity: 1;
+            filter: blur(0px) brightness(1);
+        }
+
+        .animate-img:hover {
+            transform: scale(1.05) rotateY(-5deg);
+            box-shadow: 0 30px 60px rgba(85, 173, 155, 0.4);
+        }
+
+        /* Container del contenido */
+        #containerCardBody {
+            position: relative;
+            z-index: 2;
+        }
+
+        .card-body {
+            padding: 2rem;
+            position: relative;
+        }
+
+        .card-body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-surface);
+            border-radius: 15px;
+            opacity: 0.3;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-body:hover::before {
+            opacity: 0.6;
+        }
+
+        /* Texto con efectos de gradiente */
+        #welcome-text {
+            background: linear-gradient(180deg, var(--glow-color), #95D2B3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            text-shadow: 0px 0px 15px rgba(85, 173, 155, 0.5);
+            animation: textGlow 4s cubic-bezier(0.4, 0, 1, 1) infinite alternate;
+        }
+
+        @keyframes textGlow {
+            0% { filter: brightness(1); }
+            100% { filter: brightness(1.2); }
+        }
+
+        /* Párrafos con animación de entrada */
+        .card-body p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeInUp 0.8s ease-out forwards;
+        }
+
+        .card-body p:nth-child(2) { animation-delay: 0.3s; }
+        .card-body p:nth-child(3) { animation-delay: 0.6s; }
+        .card-body p:nth-child(4) { animation-delay: 0.9s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .card-body h5 {
+            color: var(--text-primary);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            position: relative;
+            opacity: 0;
+            animation: slideInRight 1s ease-out 0.5s forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(-30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* Efectos hover mejorados */
+        #welcomeCard:hover {
+            transform: translateY(-10px);
+            box-shadow: 
+                0 35px 70px var(--shadow-color),
+                0 0 0 1px rgba(255, 255, 255, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        /* Responsive design optimizado */
+        @media screen and (max-width: 991px) {
+            #containerMain {
+                align-items: flex-start;
+                padding-top: 10vh;
+                padding: 15px;
+            }
+
+            #welcomeCard {
+                padding: 2rem;
+                margin-top: 5vh;
+            }
+
+            .animate-img.visible {
+                transform: scale(0.95) rotateY(0deg);
+            }
+
+            #containerImg img {
+                max-width: 250px;
+            }
+
+            #welcome-text {
+                font-size: 1.75rem;
+                text-align: center;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+        }
+
+        @media screen and (max-width: 576px) {
+            #containerMain {
+                padding: 10px;
+                padding-top: 15vh;
+            }
+
+            #welcomeCard {
+                padding: 1.5rem;
+                border-radius: 20px;
+            }
+
+            #containerImg img {
+                max-width: 200px;
+            }
+
+            .card-body {
+                text-align: center;
+                padding: 1rem;
+            }
+
+            #welcome-text {
+                font-size: 1.5rem;
+            }
+
+            .card-body p {
+                font-size: 1rem;
+            }
+
+            /* Ajustar efectos para móvil */
+            .animate-img::before {
+                display: none;
+            }
+
+            body::after {
+                display: none;
+            }
+        }
+
+        /* Animaciones adicionales para interactividad */
+        .floating-element {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Loading states y micro interacciones */
+        .loading-shimmer {
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(85, 173, 155, 0.1), 
+                transparent);
+            animation: loading 2s ease-in-out infinite;
+        }
+
+        @keyframes loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        /* Mejoras de accesibilidad y UX */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+            
+            body::before,
+            body::after,
+            #welcomeCard::before,
+            #welcomeCard::after {
+                animation: none;
+            }
+        }
+
+        /* Estados de focus para accesibilidad */
+        #welcomeCard:focus-within {
+            outline: 2px solid var(--glow-color);
+            outline-offset: 4px;
+        }

@@ -19,67 +19,57 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-formulario.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-welcome.css'); ?>">
 
     <title>Inicio</title>
 
 </head>
-<body>
+<body style="padding-top: 0px !important;">
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
-
-<div class="d-flex flex-column justify-content-between align-items-center" style="height:100vh; width:100%;">
-    <main class="container main-animated mt-2 mb-2" style="position:relative; z-index:-1;">
-
-        <section class="d-flex flex-column">
-            <p class="speech-bubble">Nos alegra verte de nuevo. Ahora puedes acceder a todas las funcionalidades disponibles del Cotizador SealFaster para tu usuario. ¡Mucha suerte!</p>
-            <img class="img-speach" src="../assets/img/general/speech2.jpg" alt="">
-            <!-- Imagen de bienvenida -->
-            <div class="mb-4 d-flex col-12 justify-content-between align-items-start">
-                <div class="sello-img col-3">
-                    <img src="../assets/img/general/sellocoti.png" class="img-fluid" alt="Bienvenida">
-                </div>
-                <div class="d-flex flex-column col-8 pt-4">
-                    <?php include(ROOT_PATH . 'includes/info_user.php'); ?>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <footer>
-        <p>&copy; <?= date("Y"); ?> Sellos y Retenes de San Luis S.A. de C.V. Todos los derechos reservados.</p>
-    </footer>
+<div></div>
+<div id="containerMain">
+    <div id="welcomeCard" class="d-flex justify-content-center">
+      <div class="d-flex flex-column flex-md-row align-items-center">
+        <div id="containerImg" class="col-md-4 text-center">
+          <img src="../assets/img/general/sellocoti.png" class="img-fluid rounded-start p-3 animate-img" alt="Bienvenida">
+        </div>
+        <div id="containerCardBody" class="">
+          <div class="card-body">
+            <?php include(ROOT_PATH . 'includes/info_user.php'); ?>
+          </div>
+        </div>
+      </div>
+    </div>
 </div>
+
+<?php include(ROOT_PATH . 'includes/footer.php'); ?>
+
 <script>
     $(document).ready(function(){
+        document.querySelector('.animate-img').classList.add('visible');
         // $.ajax({
-        //     url: "ajax_notificacion.php",
+        //     url: "../ajax/ajax_notificacion.php",
         //     type: "POST",
         //     data: { mensaje: "El usuario ha cargado welcome. <?= $usuario_desencriptado; ?>" },
         //     success: function(response) {
-        //         console.log("Notificación enviada: ", response);
+        //         console.log("Notificacion enviada: ", response);
         //     },
         //     error: function(error) {
-        //         console.error("Error al enviar la notificación: ", error);
+        //         console.error("Error al enviar la notificacion: ", error);
         //     }
         // });
-
-        // window.addEventListener("focus", function() {
-        //     console.log("El usuario está en la ventana de la página.");
-            
-        //     $.ajax({
-        //         url: "ajax_notificacion.php",
-        //         type: "POST",
-        //         data: { mensaje: "Focus en welcome" },
-        //         success: function(response) {
-        //             console.log("Notificación enviada: ", response);
-        //         },
-        //         error: function(error) {
-        //             console.error("Error al enviar la notificación: ", error);
-        //         }
-        //     });
+        //   Swal.fire({
+        //     title: 'Novedades',
+        //     text: 'Ahora puede seleccionar el tipo de medida (Sello, Metal o Muestra) para cada medida individualmente, también se mostrarán en las requisiciones. Se corrigieron bugs al generar PDF y al archivar cotizaciones.',
+        //     icon: 'info',
+        //     confirmButtonText: 'Entendido',
+        //     width: '400px',  // Tamaño pequeño del modal
+        //     padding: '10px',  // Relleno para que se vea agradable
+        //     position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
+        //     toast: true, // Mostrar como un "toast", que es una notificación pequeña
+        //     //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+        //     showConfirmButton: true // Mostrar el botón de confirmación
         // });
     });
 </script>

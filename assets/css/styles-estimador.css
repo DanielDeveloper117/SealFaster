@@ -1,12 +1,24 @@
 #containerSections{
-  margin: 30px;
+  margin: 30px; 
+              padding: 2rem 0;
+            position: relative;
 }
 .section-container{
   border-radius: 10px;
   padding: 2%;
   width: 100%;
   border-bottom: 2px solid #55ad9b85;
-  background-color: #fff;
+  background-color: #fff; 
+              /* background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 
+                0 20px 40px var(--shadow-color),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 2%; */
+
+
 }
 .img-dimensions2{
   height:auto;
@@ -348,7 +360,7 @@ label{
       margin: 5px;
     }
     .section-container{
-      padding: 0px;
+      padding: 10px;
     }
     h2,h4,h5{
       justify-self: center;

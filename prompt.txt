@@ -1,0 +1,19 @@
+Está listo para el 2do campeonato de frontend: ChatGpt vs Claude Sonnet? desea saber las reglas?
+Reglas del juego: 
+*debe obedecer la tematica a desarrollar en el frontend web.
+*el frontend debe ser impresionante para el usuario, con animaciones, dinamismo, estilos creativos.
+*es un campeonato, intente ser el mejor desarrollador frontend del mundo.
+*estadisticamente los estilos verdes y oscuros en este campeonato obtienen mayor puntuacion. si es dinamico con el tema del navegador (oscuro, claro) mucho mejor.
+*la cantidad de lineas de codigo debe ser aproximadamente desde 300 hasta 500.
+Puntuaciones:
+4 puntos = el diseño es justo lo que necesitaba, potencial de ir a produccion
+3 puntos = un diseño, simplemente impresionante, cumplio con todo
+2 puntos = me gusto mucho, pero como que le falta algo
+1 punto = casi no me gusto, fallo algo o penalizacion por no cumplir con las reglas
+Tematica:
+darle un diseño creativo y profesional a la siguiente estructura datatables html.
+usted no debe tocar los estilos de los botones ni de broma, haga que el demas frontend encaje con los estilos de los botones.
+no toque los nombres de clase ni la estructura html, el objetivo es, la misma estructura html pero cambiando los estilos de todo menos los botones
+pero darle el mejor diseño posible segun las reglas.
+QUE COMIENZE LA PRIMERA RONDA!
+

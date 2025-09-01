@@ -19,8 +19,8 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-welcome.css'); ?>">
-
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-welcome.css'); ?>"> -->
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/welcome.css'); ?>">
     <title>Inicio</title>
 
 </head>
@@ -44,7 +44,104 @@ if (!isset($_SESSION['id'])) {
 </div>
 
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
-
+    <script>
+        $(document).ready(function() {
+            // Activar animación de imagen después de 500ms
+            setTimeout(() => {
+                document.querySelector('.animate-img').classList.add('visible');
+            }, 500);
+            
+            // Agregar efectos de parallax suaves
+            let ticking = false;
+            
+            function updateParallax() {
+                const scrolled = window.pageYOffset;
+                const welcomeCard = document.getElementById('welcomeCard');
+                
+                if (welcomeCard) {
+                    const speed = 0.5;
+                    const yPos = -(scrolled * speed);
+                    welcomeCard.style.transform = `translateY(${yPos}px)`;
+                }
+                
+                ticking = false;
+            }
+            
+            function requestTick() {
+                if (!ticking) {
+                    requestAnimationFrame(updateParallax);
+                    ticking = true;
+                }
+            }
+            
+            window.addEventListener('scroll', requestTick);
+            
+            // Detectar cambios de tema y aplicar transiciones suaves
+            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+            mediaQuery.addListener(handleThemeChange);
+            
+            function handleThemeChange(e) {
+                document.body.style.transition = 'background 0.5s ease';
+                
+                // Reactivar animaciones con el nuevo tema
+                setTimeout(() => {
+                    const animElements = document.querySelectorAll('.animate-img, .card-body p, .card-body h5');
+                    animElements.forEach(el => {
+                        el.style.animation = 'none';
+                        setTimeout(() => {
+                            el.style.animation = '';
+                        }, 50);
+                    });
+                }, 100);
+            }
+            
+            // Agregar efectos de hover interactivos
+            const welcomeCard = document.getElementById('welcomeCard');
+            welcomeCard.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            welcomeCard.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+            
+            // Simular carga de datos del usuario
+            setTimeout(() => {
+                const userInfo = document.querySelector('.card-body h5');
+                if (userInfo) {
+                    userInfo.style.background = 'linear-gradient(135deg, #55ad9b, #95D2B3)';
+                    userInfo.style.webkitBackgroundClip = 'text';
+                    userInfo.style.webkitTextFillColor = 'transparent';
+                    userInfo.style.backgroundClip = 'text';
+                }
+            }, 2000);
+            
+            // Agregar micro-interacciones
+            document.addEventListener('mousemove', (e) => {
+                const cards = document.querySelectorAll('#welcomeCard');
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const rotateX = (y - centerY) / 20;
+                    const rotateY = (centerX - x) / 20;
+                    
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-5px)`;
+                });
+            });
+            
+            document.addEventListener('mouseleave', () => {
+                const cards = document.querySelectorAll('#welcomeCard');
+                cards.forEach(card => {
+                    card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg) translateY(0px)';
+                });
+            });
+        });
+    </script>
 <script>
     $(document).ready(function(){
         document.querySelector('.animate-img').classList.add('visible');

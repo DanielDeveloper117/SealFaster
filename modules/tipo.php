@@ -87,7 +87,7 @@ if (isset($_GET['tipo'])) {
     function display_seals($title, $chunks, $dir, $tipo) {
         echo '
             <div class="d-flex col-12 justify-content-center mt-4">
-                <div class="d-flex col-10 justify-content-between">
+                <div class="titulo d-flex col-10 justify-content-between">
                     <h2>Seleccione un perfil ' . $title . '</h2>
                     <a id="btnBack" href="selectTipoSello.php" class="btn-general"
                     ><- Regresar</a>

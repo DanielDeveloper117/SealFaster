@@ -26,10 +26,10 @@ if (!isset($_SESSION['id'])) {
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
     
-    <div class="d-flex col-12 justify-content-center mt-3">
+    <div class="titulo d-flex col-12 justify-content-center mt-3">
         <h1>Seleccione familia del perfil</h1>
     </div>
-    <section class="d-flex flex-column col-12 justify-content-center align-items-center" style="margin-top:10px; padding-bottom:100px;">        
+    <section class="d-flex flex-column col-12 justify-content-center align-items-center">        
         <div id="containerFamily" class="d-flex flex-column flex-md-row col-11 align-items-center align-items-md-stretch gap-3">
             <a class="card" href="tipo.php?tipo=rotary">
                 <img src="../assets/img/family/rotary/rotary.jpg" alt="">

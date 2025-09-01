@@ -25,7 +25,8 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
+     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>">
 
     <?php include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
