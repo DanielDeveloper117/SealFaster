@@ -617,6 +617,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
+                                                                data-proveedor="${item.proveedor}"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
 
                                                             <button type="button" class="btn-general btn-circulo-billet_m${i}" 
@@ -658,6 +659,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
+                                                                data-proveedor="${item.proveedor}"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
 
                                                             <button type="button" class="btn-general btn-circulo-billet_m${i}" 
@@ -757,6 +759,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let dataInterior = $(this).attr(`data-interior`);
                     let dataExterior = $(this).attr(`data-exterior`);
                     let lotePedimentoSeleccionado = $(this).attr(`data-lote`);
+                    let proveedorBillet = $(this).attr(`data-proveedor`);
 
                     let clavesAnterior = $(`#inputClaves_m${i}`).val() || "";
                     let billetsAnterior = $(`#inputBillets_m${i}`).val() || ""; 
@@ -837,18 +840,18 @@ document.addEventListener("DOMContentLoaded", function () {
                             type: 'GET',
                             data: { 
                                 di: diametroInteriorValue,
-                                materialValue: materialValue
+                                materialValue: materialValue,
+                                proveedor: proveedorBillet
                             },
                             dataType: 'json',
                             success: function(data) {
-                                // Verifica que la respuesta tenga datos
-                                if (data.length > 0) {
-                                    // calcular precio de la barra
-                                    multiploUtilidad = parseFloat(data[0].valor);
+                                if (data && data.valor !== undefined) {
+                                    multiploUtilidad = parseFloat(data.valor);
                                     console.log(`Multiplo Utilidad = `, multiploUtilidad);
-
                                 } else {
-                                    $(`#miniTableCostoBarra_m${i} tbody`).append(`<tr><td colspan="4" style="color:#dc3545;">La clave ${claveSeleccionada} no fue encontrada para calcular el precio.</td></tr>`);
+                                    $(`#miniTableCostoBarra_m${i} tbody`).append(
+                                        `<tr><td colspan="4" style="color:#dc3545;">La clave ${claveSeleccionada} no fue encontrada para calcular el precio.</td></tr>`
+                                    );
                                 }
                             },
                             error: function() {

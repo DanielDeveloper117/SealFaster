@@ -189,11 +189,13 @@ if (!isset($_SESSION['id'])) {
         // --------- LECTURA DE GET ----------
         $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
 
-        $filtro_familia     = isset($_GET['filtro_familia']) && $_GET['filtro_familia'] !== '' ? trim($_GET['filtro_familia']) : null;
-        $filtro_tipo_medida = isset($_GET['filtro_tipo_medida']) && $_GET['filtro_tipo_medida'] !== '' ? trim($_GET['filtro_tipo_medida']) : null;
-        $fecha_inicio       = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
-        $fecha_fin          = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $archivadas         = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+        $familia     = isset($_GET['familia']) && $_GET['familia'] !== '' ? trim($_GET['familia']) : null;
+        $tipo_medida = isset($_GET['tipo_medida']) && $_GET['tipo_medida'] !== '' ? trim($_GET['tipo_medida']) : null;
+        $tipo_cliente = isset($_GET['tipo_cliente']) && $_GET['tipo_cliente'] !== '' ? trim($_GET['tipo_cliente']) : null;
+        $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
+        $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
+        $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+        $default = isset($_GET['default']) ? (int)$_GET['default'] : 0;
 
         $isAdmin = ($_SESSION['id'] ?? null) == 71;
         $params  = [];
@@ -214,15 +216,20 @@ if (!isset($_SESSION['id'])) {
                 $sqlCotizaciones .= " AND id_usuario = :id_usuario";
                 $params[':id_usuario'] = (int)$_SESSION['id'];
             }
-            if ($filtro_familia) {
+            if ($familia) {
                 $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
-                $params[':familia_perfil'] = $filtro_familia;
+                $params[':familia_perfil'] = $familia;
             }
-            if ($filtro_tipo_medida) { // solo aplica en únicas
+            if ($tipo_medida) { // solo aplica en únicas
                 $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
-                $params[':tipo_medida'] = $filtro_tipo_medida;
+                $params[':tipo_medida'] = $tipo_medida;
             }
-            // Fechas
+            if ($tipo_cliente) { // solo aplica en únicas
+                $sqlCotizaciones .= " AND tipo_cliente = :tipo_cliente";
+                $params[':tipo_cliente'] = $tipo_cliente;
+            }
+
+            // Filtros de Fechas
             if ($fecha_inicio && $fecha_fin) {
                 $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
                 $params[':fecha_inicio'] = $fecha_inicio;
@@ -233,7 +240,22 @@ if (!isset($_SESSION['id'])) {
             } elseif ($fecha_fin) {
                 $sqlCotizaciones .= " AND fecha <= :fecha_fin";
                 $params[':fecha_fin'] = $fecha_fin;
+            } elseif ($default > 0) { 
+                // Solo se ejecuta si NO hay fecha especifica
+                switch ($default) {
+                    case 1: // hoy
+                        $sqlCotizaciones .= " AND fecha = CURDATE()";
+                        break;
+                    case 2: // esta semana
+                        $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
+                        break;
+                    case 3: // este mes
+                        $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) 
+                                            AND MONTH(fecha) = MONTH(CURDATE())";
+                        break;
+                }
             }
+
             // Archivadas (por defecto solo activas)
             if ($archivadas === '0' || $archivadas === '1') {
                 $sqlCotizaciones .= " AND archivada = :archivada";
@@ -269,11 +291,11 @@ if (!isset($_SESSION['id'])) {
                 $sqlCotizaciones .= " AND id_usuario = :id_usuario";
                 $params[':id_usuario'] = (int)$_SESSION['id'];
             }
-            if ($filtro_familia) {
+            if ($familia) {
                 $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
-                $params[':familia_perfil'] = $filtro_familia;
+                $params[':familia_perfil'] = $familia;
             }
-            // Fechas
+            // Filtros de Fechas
             if ($fecha_inicio && $fecha_fin) {
                 $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
                 $params[':fecha_inicio'] = $fecha_inicio;
@@ -284,7 +306,22 @@ if (!isset($_SESSION['id'])) {
             } elseif ($fecha_fin) {
                 $sqlCotizaciones .= " AND fecha <= :fecha_fin";
                 $params[':fecha_fin'] = $fecha_fin;
+            } elseif ($default > 0) { 
+                // Solo se ejecuta si NO hay fecha especifica
+                switch ($default) {
+                    case 1: // hoy
+                        $sqlCotizaciones .= " AND fecha = CURDATE()";
+                        break;
+                    case 2: // esta semana
+                        $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
+                        break;
+                    case 3: // este mes
+                        $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) 
+                                            AND MONTH(fecha) = MONTH(CURDATE())";
+                        break;
+                }
             }
+
             // Archivadas (por defecto solo activas)
             if ($archivadas === '0' || $archivadas === '1') {
                 $sqlCotizaciones .= " AND archivada = :archivada";
@@ -380,6 +417,11 @@ if (!isset($_SESSION['id'])) {
     <title>Cotizaciones</title>
 </head>
 <body>
+<div id="overlay">
+    <div class="loading-message">
+        <span>Cargando cotizaciones, por favor, espere...</span>    
+    </div>
+</div>
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
@@ -422,14 +464,14 @@ if (!isset($_SESSION['id'])) {
                         <tr>
                             <th style="background-color:#55ad9b52;"></th>
                             <th>Id cotización</th>
-                            <th>Familia</th>
+                            <th>Familia Perfil</th>
                             <th>Perfil</th>
                             <!-- <th>Tipo medida</th> -->
-                            <th>D. Interior</th>
-                            <th>D. Exterior</th>
-                            <th>Altura</th>
+                            <th>Diametro Interior</th>
+                            <th>Diametro Exterior</th>
+                            <th>Altura Total</th>
                             <th>Tipo cliente</th>
-                            <th>Fecha</th>
+                            <th>Fecha de cotización</th>
                             <th>Hora</th>
                             <!-- <th>Vendedor</th> -->
                         </tr>
@@ -542,14 +584,14 @@ if (!isset($_SESSION['id'])) {
                             <th style="background-color:#55ad9b52;"></th>
                             <th>Id</th>
                             <th>Cotizaciónes</th>
-                            <th>Familia</th>
+                            <th>Familia Perfil</th>
                             <th>Perfil</th>
                             <!-- <th>Tipo medida</th> -->
-                            <th>D. Interior</th>
-                            <th>D. Exterior</th>
-                            <th>Altura</th>
+                            <th>Diametro Interior</th>
+                            <th>Diametro Exterior</th>
+                            <th>Altura Total</th>
                             <th>Tipo cliente</th>
-                            <th>Fecha</th>
+                            <th>Fecha de cotización</th>
                             <th>Hora</th>
                         </tr>
                     </thead>
@@ -643,7 +685,7 @@ if (!isset($_SESSION['id'])) {
                             <!-- <td>
                                 <?php 
                                     foreach ($arregloFusion as $cot) {
-                                        echo htmlspecialchars($cot['tipo_medida']).'<br>';
+                                        //echo htmlspecialchars($cot['tipo_medida']).'<br>';
                                     } 
                                 ?>
                             </td> -->
@@ -655,7 +697,7 @@ if (!isset($_SESSION['id'])) {
                                     // } else {
                                     //     $di_sello = $cot['di_sello2'];
                                     // }
-                                    echo htmlspecialchars($cot['di_sello'].' '.$cot['tipo_medida_di']) . '<br>';
+                                    echo htmlspecialchars($cot['di_sello']) . '<br>';
                                 } 
                                 ?>
                             </td>
@@ -667,7 +709,7 @@ if (!isset($_SESSION['id'])) {
                                     // } else {
                                     //     $de_sello = $cot['de_sello2'];
                                     // }
-                                    echo htmlspecialchars($cot['de_sello'].' '.$cot['tipo_medida_de']) . '<br>';
+                                    echo htmlspecialchars($cot['de_sello']) . '<br>';
                                 } 
                                 ?>
                             </td>
@@ -679,7 +721,7 @@ if (!isset($_SESSION['id'])) {
                                     // } else {
                                     //     $a_sello = $cot['a_sello2'];
                                     // }
-                                    echo htmlspecialchars($cot['a_sello'].' '.$cot['tipo_medida_h']) . '<br>';
+                                    echo htmlspecialchars($cot['a_sello']) . '<br>';
                                 } 
                                 ?>
                             </td>
@@ -753,10 +795,10 @@ if (!isset($_SESSION['id'])) {
                         <div class="row">
                             <!-- Familia de Perfil -->
                             <div class="col-md-6 mb-3">
-                                <label for="filtro_familia" class="lbl-general">
-                                    <i class="bi bi-collection"></i> Familia de Perfil
+                                <label for="familia" class="lbl-general">
+                                    <i class="bi bi-collection"></i> Familia del Perfil
                                 </label>
-                                <select class="form-select" id="filtro_familia" name="filtro_familia">
+                                <select class="form-select" id="familia" name="familia">
                                     <option value="">Todas las familias</option>
                                     <option value="Rotary (Rotativo)">Rotary (Rotativo)</option>
                                     <option value="Piston (Pistón)">Piston (Pistón)</option>
@@ -768,14 +810,26 @@ if (!isset($_SESSION['id'])) {
                             </div>
 
                             <!-- Tipo de Medida -->
-                            <div class="col-md-6 mb-3">
-                                <label for="filtro_tipo_medida" class="lbl-general">
+                            <div class="d-none col-md-6 mb-3">
+                                <label for="tipo_medida" class="lbl-general">
                                     <i class="bi bi-rulers"></i> Tipo de Medida
                                 </label>
-                                <select class="form-select" id="filtro_tipo_medida" name="filtro_tipo_medida">
+                                <select class="form-select" id="tipo_medida" name="tipo_medida">
                                     <option value="">Todos los tipos</option>
                                     <option value="Sello">Sello</option>
                                     <option value="Metal">Metal</option>
+                                </select>
+                            </div>
+                            <!-- Tipo de cliene -->
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo_cliente" class="lbl-general">
+                                    <i class="bi bi-person-workspace"></i> Tipo de Cliente
+                                </label>
+                                <select class="form-select" id="tipo_cliente" name="tipo_cliente">
+                                    <option value="">Todos los tipos</option>
+                                    <option value="PUBLICO">PUBLICO</option>
+                                    <option value="MASTER">MASTER</option>
+                                    <option value="DISTRIBUIDOR">DISTRIBUIDOR</option>
                                 </select>
                             </div>
                         </div>
@@ -786,18 +840,18 @@ if (!isset($_SESSION['id'])) {
                         <h5> Filtros por fecha</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="filtro_fecha_inicio" class="lbl-general">
+                                <label for="fecha_inicio" class="lbl-general">
                                     <i class="bi bi-calendar-check"></i> Fecha desde
                                 </label>
-                                <input type="date" class="form-control" id="filtro_fecha_inicio" name="fecha_inicio">
+                                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio">
                                 <small class="form-text text-muted">Fecha de inicio del rango</small>
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="filtro_fecha_fin" class="lbl-general">
+                                <label for="fecha_fin" class="lbl-general">
                                     <i class="bi bi-calendar-x"></i> Fecha hasta
                                 </label>
-                                <input type="date" class="form-control" id="filtro_fecha_fin" name="fecha_fin">
+                                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin">
                                 <small class="form-text text-muted">Fecha de fin del rango</small>
                             </div>
 
@@ -838,8 +892,44 @@ if (!isset($_SESSION['id'])) {
                                     </div>
                                 </div>
                             </div>
-
+                            <div class="checkbox-container col-md-6 mb-3">
+                                <label class="form-check-label" >
+                                    <i class="bi bi-table"></i> <strong>Default al cargar la tabla</strong>
+                                </label>
+                                <?php $default = $_GET['default'] ?? '0'; // valor por defecto ?>
+                                <div class="form-check">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="0" 
+                                            <?= ($default == '0') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault">
+                                            Todas
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="1" 
+                                            <?= ($default == '1') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault">
+                                            Solo las de hoy
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="2" 
+                                            <?= ($default == '2') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault">
+                                            Solo de esta semana
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="3" 
+                                            <?= ($default == '3') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault">
+                                            Solo de este mes
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
                     </div>
 
                     <!-- Botones del formulario -->

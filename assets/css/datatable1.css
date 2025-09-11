@@ -618,9 +618,7 @@ tr.no-usable{
     font-size: 15px;
     font-weight: 500;
 }
-.tabla-billets th { 
-    /* background-color: #ced4da; */
-}
+
 .container-img-material{
     width:20%;
 }
@@ -631,7 +629,6 @@ tr.no-usable{
     border:1px solid #55ad9b; 
     padding:5px;
 }
-
 #overlay {
     position: fixed; 
     top: 0; 
@@ -641,6 +638,7 @@ tr.no-usable{
     display: flex;
     justify-content: center;
     align-items: center; 
+    z-index: 1000;
 }
 .loading-message {
     color: white;
@@ -918,6 +916,7 @@ tr.no-usable{
         }
         .table tbody tr td{
             background-color: var(--bg-table-row);
+            white-space: nowrap;
         }
         .tabla-billets tr td{
             background-color: #9effaa1a !important;

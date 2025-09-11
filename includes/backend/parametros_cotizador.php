@@ -199,6 +199,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 showSweetAlertError("coECOFLON3");
             }
         break;
+        case "mup":
+            if (isset($_POST['valor'])) {
+                foreach ($_POST['valor'] as $id => $valor) {
+                    $sql = "UPDATE parametros2 SET valor = :valor WHERE id = :id AND descripcion = 'MultiplicadorUtilidadProveedor'";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bindParam(':valor', $valor);
+                    $stmt->bindParam(':id', $id);
+                    $stmt->execute();
+                }
+                showSweetAlertSuccess("mup");
+
+            }else{
+                showSweetAlertError("mup");
+            }
+        break;
         case "muH-ECOPUR":
             if (isset($_POST['valor'])) {
                 foreach ($_POST['valor'] as $id => $valor) {
@@ -550,6 +565,12 @@ if(isset($_GET["c"])){
                 "#btnTabCostosOperacionECOFLON3"
             ];
         break;
+        case "mup":
+            $aQuienTrigger = [
+                "#btnTabMU",
+                "#btnTabMultiplosUtilidadProveedores"
+            ];
+        break;
         case "muH-ECOPUR":
             $aQuienTrigger = [
                 "#btnTabMU",
@@ -708,6 +729,11 @@ $sqlCostosOperacionECOFLON3 = "SELECT * FROM parametros2 WHERE caso = 'coECOFLON
 $stmtCostosOperacionECOFLON3 = $conn->prepare($sqlCostosOperacionECOFLON3);
 $stmtCostosOperacionECOFLON3->execute();
 $arregloCostosOperacionECOFLON3 = $stmtCostosOperacionECOFLON3->fetchAll(PDO::FETCH_ASSOC);
+// Obtener los multiplos de utilidad por proveedor
+$sqlMultiplosUtilidadProveedores = "SELECT * FROM parametros2 WHERE descripcion = 'MultiplicadorUtilidadProveedor' ORDER BY id ASC";
+$stmtMultiplosUtilidadProveedores = $conn->prepare($sqlMultiplosUtilidadProveedores);
+$stmtMultiplosUtilidadProveedores->execute();
+$arregloMultiplosUtilidadProveedores = $stmtMultiplosUtilidadProveedores->fetchAll(PDO::FETCH_ASSOC);
 // Obtener los multiplos de utilidad H-ECOPUR
 $sqlMultiplosUtilidadHECOPUR = "SELECT * FROM parametros2 WHERE caso = 'muH-ECOPUR' ORDER BY limite_superior ASC";
 $stmtMultiplosUtilidadHECOPUR = $conn->prepare($sqlMultiplosUtilidadHECOPUR);

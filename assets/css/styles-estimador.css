@@ -280,7 +280,7 @@ label{
 }
 #btnCotizar, #btnPrevisualizar{
   height:65px;
-  font-size:25px;
+  font-size:23px;
 }
 .modal-footer{
   padding: 4px !important;
@@ -343,13 +343,24 @@ label{
     overflow-x: auto !important;
 }
 #btnGuardarCotizacion{
+  justify-self: center;
+  width: auto;
   height:65px;
-  font-size:25px;
+  font-size:20px;
 }
 .card-dimension{
   background-color: #92ccc0;
   border-radius: 10px;
   padding: 15px;
+}
+#sectionCotizar div{
+  justify-self: end;
+}
+#modalQuestionMaterials label{
+  align-self: baseline;
+}
+#modalQuestionMaterials ul{
+  text-align: start;
 }
 @media screen and (max-width: 991px) {
     .input-span-total-final {

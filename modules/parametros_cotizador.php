@@ -63,6 +63,7 @@ if (!isset($_SESSION['id'])) {
                 <i id="iconArrowRight2" class="bi bi-caret-right align-content-center"></i>
             </div>
             <div id="containerMaterialsMU" class="container-materials d-none">
+                <button type="button" id="btnTabMultiplosUtilidadProveedores" class="btn-tab-material" data-mostrar="mup">Proveedores</button>
                 <button type="button" id="btnTabMultiplosUtilidadHECOPUR" class="btn-tab-material" data-mostrar="muH-ECOPUR">H-ECOPUR</button>
                 <button type="button" id="btnTabMultiplosUtilidadECOTAL" class="btn-tab-material" data-mostrar="muECOTAL">ECOTAL</button>
                 <button type="button" id="btnTabMultiplosUtilidadECOSIL" class="btn-tab-material" data-mostrar="muECOSIL">ECOSIL</button>
@@ -366,6 +367,33 @@ if (!isset($_SESSION['id'])) {
                             <div class="col-5">
                                 <label class="lbl-general">
                                     <?= $registro['limite_inferior']; ?> < DI <= <?= $registro['limite_superior']; ?>
+                                </label>
+                            </div>
+                            <div class="col-2">
+                                <input class="input-text" type="number" min="0" step="0.01" 
+                                        name="valor[<?= $registro['id']; ?>]" 
+                                        value="<?= $registro['valor']; ?>" required>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    <div class="d-flex col-12 justify-content-end mt-4">
+                        <div class="col-3 d-flex justify-content-end" >
+                            <button type="submit" class="btn-general" data-target="guardar" >Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div id="containerMultiploUtilidadProveedores" class="mb-5 px-5 d-none">
+                <div class="mb-4">
+                    <h4>Multiplos de utilidad por proveedor</h4>
+                </div>
+                <form id="formMultiplosUtilidadProveedores" action="" method="POST">
+                    <input type="hidden" name="formulario" value="mup">
+                    <?php foreach ($arregloMultiplosUtilidadProveedores as $registro): ?>
+                        <div class="d-flex flex-row justify-content-evenly align-items-center">
+                            <div class="col-5">
+                                <label class="lbl-general">
+                                    <?= $registro['caso']; ?>
                                 </label>
                             </div>
                             <div class="col-2">

@@ -6,20 +6,23 @@ $(document).ready(function() {
         var urlParams = new URLSearchParams(window.location.search);
         
         // Cargar valores en el formulario
-        $('#filtro_familia').val(urlParams.get('filtro_familia') || '');
-        $('#filtro_tipo_medida').val(urlParams.get('filtro_tipo_medida') || '');
+        $('#filtro_familia').val(urlParams.get('familia') || '');
+        $('#filtro_tipo_medida').val(urlParams.get('tipo_medida') || '');
+        $('#filtro_tipo_cliente').val(urlParams.get('tipo_cliente') || '');
         $('#filtro_fecha_inicio').val(urlParams.get('fecha_inicio') || '');
         $('#filtro_fecha_fin').val(urlParams.get('fecha_fin') || '');
         $('#archivadas').prop('checked', urlParams.get('archivadas') === '1');
+        
     }
     // Función para mostrar filtros activos
     function mostrarFiltrosActivos() {
         var urlParams = new URLSearchParams(window.location.search);
         var filtrosActivos = [];
         
-        // Verificar cada filtro y crear etiquetas
-        if (urlParams.get('filtro_familia')) {
-            var familias = {
+        // --- Familia ---
+        const familiaSelect = document.getElementById('familia');
+        if (urlParams.get('familia')) {
+            const familias = {
                 'rotary': 'Rotary (Rotativo)',
                 'piston': 'Piston (Pistón)',
                 'backup': 'Backup (Respaldo)',
@@ -27,20 +30,37 @@ $(document).ready(function() {
                 'wipers': 'Wiper (Limpiador)',
                 'rod': 'Rod (Vástago)'
             };
-            var familiaTexto = urlParams.get('filtro_familia') || familias[urlParams.get('filtro_familia')];
+            let familiaValor = urlParams.get('familia');
+            let familiaTexto = familias[familiaValor.toLowerCase()] || familiaValor;
             filtrosActivos.push('Familia: ' + familiaTexto);
+
+            if (familiaSelect) familiaSelect.value = familiaValor;
         }
         
-        if (urlParams.get('filtro_tipo_medida')) {
-            filtrosActivos.push('Tipo: ' + urlParams.get('filtro_tipo_medida'));
+        // --- Tipo de medida ---
+        const tipoMedidaSelect = document.getElementById('tipo_medida');
+        if (urlParams.get('tipo_medida')) {
+            filtrosActivos.push('Tipo: ' + urlParams.get('tipo_medida'));
+            if (tipoMedidaSelect) tipoMedidaSelect.value = urlParams.get('tipo_medida');
+        }
+
+        // --- Tipo de cliente ---
+        const tipoClienteSelect = document.getElementById('tipo_cliente');
+        if (urlParams.get('tipo_cliente')) {
+            filtrosActivos.push('Tipo cliente: ' + urlParams.get('tipo_cliente'));
+            if (tipoClienteSelect) tipoClienteSelect.value = urlParams.get('tipo_cliente');
         }
         
+        // --- Fechas ---
+        const fechaInicioInput = document.getElementById('fecha_inicio');
+        const fechaFinInput = document.getElementById('fecha_fin');
         if (urlParams.get('fecha_inicio')) {
             filtrosActivos.push('Desde: ' + urlParams.get('fecha_inicio'));
+            if (fechaInicioInput) fechaInicioInput.value = urlParams.get('fecha_inicio');
         }
-        
         if (urlParams.get('fecha_fin')) {
             filtrosActivos.push('Hasta: ' + urlParams.get('fecha_fin'));
+            if (fechaFinInput) fechaFinInput.value = urlParams.get('fecha_fin');
         }
 
         if (urlParams.get('archivadas') === '0') {
@@ -49,6 +69,14 @@ $(document).ready(function() {
 
         if (urlParams.get('archivadas') === '1') {
             filtrosActivos.push('Solo archivadas');
+        }
+
+        if (!fechaInicioInput && !fechaFinInput) {
+            // Solo mostrar default si no hay fechas específicas
+            const defaultVal = urlParams.get('default') || '0';
+            if (defaultVal === '1') filtrosActivos.push('Solo de hoy');
+            if (defaultVal === '2') filtrosActivos.push('Esta semana');
+            if (defaultVal === '3') filtrosActivos.push('Este mes');
         }
         
         // Mostrar los filtros activos
@@ -131,7 +159,7 @@ $(document).ready(function() {
             // DATATABLE PARA COTIZACIONES FUSIONADAS
             $(`#cotizacionesTableFusionadas`).DataTable({
                 ordering: true,
-                order: [[8, 'desc']],
+                order: [[9, 'desc']],
                 "orderable": true,
                 "searching": true, // función de búsqueda activada
                 search: {
@@ -192,7 +220,25 @@ $(document).ready(function() {
     if (!urlInicial.searchParams.has('cot')) {
         // Agregar cot=u sin eliminar otros parametros
         urlInicial.searchParams.set('cot', 'u');
+
+        const savedDefault = localStorage.getItem("filtroDefault") || 0;
+        if (savedDefault !== null) {
+            // Buscar el input con ese valor
+            const radio = document.querySelector(`input[name="default"][value="${savedDefault}"]`);
+            if (radio) {
+                radio.checked = true;
+            }
+        }
+        // Solo si no hay fecha especifica y no hay default en la URL
+        if (!urlInicial.searchParams.has('default')) {
+            urlInicial.searchParams.set('default', savedDefault);
+            window.location.replace(urlInicial.toString());
+            return;
+        }
+        console.log("localstorage: ", savedDefault);
+
         history.replaceState({}, '', urlInicial.toString());
+        
     }
 
     if (params.get('agru') === '1') {
@@ -221,10 +267,37 @@ $(document).ready(function() {
             tab.classList.remove('active');
         }
     });
+
     mostrarTablaPorCot(cotActual);
     mostrarFiltrosActivos();
     
-    
+    $("#overlay").addClass("d-none");
+
+        // Verificar si ya existe la preferencia en localStorage
+    if (!localStorage.getItem("FiltrosActualizados")) {
+        Swal.fire({
+            title: 'Actualizacion',
+            text: 'Filtros de busqueda actualizados. Nuevo filtro de carga por default de cotizaciones.',
+            icon: 'info',
+            confirmButtonText: 'Entendido',
+            width: '400px',
+            padding: '10px',
+            position: 'bottom-end',
+            toast: true,
+            showConfirmButton: true,
+            showCloseButton: false,
+            input: 'checkbox',
+            inputPlaceholder: 'No mostrar nuevamente',
+            inputAttributes: {
+            id: 'noMostrarCheckbox'
+            }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+                // Guardar preferencia en localStorage
+                localStorage.setItem("FiltrosActualizados", "1");
+            }
+        });
+    }
     
 
     // ************** EVENTOS DEL DOM **************
@@ -240,6 +313,12 @@ $(document).ready(function() {
             const cot = url.searchParams.get('cot') || 'u';
 
             window.location.href = url.toString();
+        });
+    });
+    // Cuando cambie el radio, guardarlo en localstorage
+    document.querySelectorAll('input[name="default"]').forEach(radio => {
+        radio.addEventListener('change', function () {
+            localStorage.setItem("filtroDefault", this.value);
         });
     });
     // COMENZAR LA FUNCIONALIDAD DE FUSIONAR 

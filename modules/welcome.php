@@ -7,6 +7,10 @@ if (!isset($_SESSION['id'])) {
     header("Location: ../auth/cerrar_sesion.php");
     exit;
 }
+// if($_SESSION["id"] != 71){
+//     header("Location: ../auth/cerrar_sesion.php");
+//     exit;
+// }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -32,7 +36,7 @@ if (!isset($_SESSION['id'])) {
     <div id="welcomeCard" class="d-flex justify-content-center">
       <div class="d-flex flex-column flex-md-row align-items-center">
         <div id="containerImg" class="col-md-4 text-center">
-          <img src="../assets/img/general/sellocoti.png" class="img-fluid rounded-start p-3 animate-img" alt="Bienvenida">
+          <img src="../assets/img/general/sellocoti.png" class="img-fluid p-3 animate-img" alt="Bienvenida">
         </div>
         <div id="containerCardBody" class="">
           <div class="card-body">

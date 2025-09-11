@@ -1,5 +1,6 @@
 <?php
     include(ROOT_PATH . 'includes/backend_info_user.php');
+
 ?>
 <!-- USUARIO CNC -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
@@ -23,7 +24,7 @@
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
+                        <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/produccion_vn.php">Requisiciónes</a></li>
                         <li><a class="" href="../modules/produccion_cnc.php">Producción CNC</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros cotizador</a></li>
@@ -47,7 +48,7 @@
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
+                        <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a href="../modules/produccion_vn.php">Requisiciones</a></li>
                     ';
                 break;
@@ -56,7 +57,7 @@
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
+                        <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros cotizador</a></li>
                         <li><a class="" href="../modules/precios.php" >Precios</a></li>
                         <li><a class="" href="../modules/desencriptar.php" >Desencriptar</a></li>
@@ -80,7 +81,7 @@
                     # externo
                     echo '
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
+                        <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                     ';
                 break;
                 default:
@@ -88,7 +89,7 @@
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
-                        <li><a href="../modules/cotizaciones.php">Cotizaciones</a></li>
+                        <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                     ';
                 break;
             } 

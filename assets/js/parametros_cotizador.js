@@ -37,6 +37,7 @@ $(document).ready(function() {
             "#containerCostoOperacionECOFLON1",
             "#containerCostoOperacionECOFLON2",
             "#containerCostoOperacionECOFLON3",
+            "#containerMultiploUtilidadProveedores",
             "#containerMultiploUtilidadHECOPUR",
             "#containerMultiploUtilidadECOTAL",
             "#containerMultiploUtilidadECOSIL",
@@ -107,6 +108,10 @@ $(document).ready(function() {
                 actualizarParametro("coECOFLON3");
                 break;
             // Multiplos de Utilidad
+            case "mup": 
+                $("#containerMultiploUtilidadProveedores").removeClass("d-none");
+                actualizarParametro("mup");
+                break;
             case "muH-ECOPUR": 
                 $("#containerMultiploUtilidadHECOPUR").removeClass("d-none");
                 actualizarParametro("muH-ECOPUR");

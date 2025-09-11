@@ -790,18 +790,18 @@ document.addEventListener("DOMContentLoaded", function () {
                             type: 'GET',
                             data: { 
                                 di: diametroInteriorValue,
-                                materialValue: materialValue
+                                materialValue: materialValue,
+                                proveedor: proveedorBillet
                             },
                             dataType: 'json',
                             success: function(data) {
-                                // Verifica que la respuesta tenga datos
-                                if (data.length > 0) {
-                                    // calcular precio de la barra
-                                    multiploUtilidad = parseFloat(data[0].valor);
+                                if (data && data.valor !== undefined) {
+                                    multiploUtilidad = parseFloat(data.valor);
                                     console.log(`Multiplo Utilidad = `, multiploUtilidad);
-
                                 } else {
-                                    $(`#miniTableCostoBarra_m${i} tbody`).append(`<tr><td colspan="4" style="color:#dc3545;">La clave ${claveSeleccionada} no fue encontrada para calcular el precio.</td></tr>`);
+                                    $(`#miniTableCostoBarra_m${i} tbody`).append(
+                                        `<tr><td colspan="4" style="color:#dc3545;">La clave ${claveSeleccionada} no fue encontrada para calcular el precio.</td></tr>`
+                                    );
                                 }
                             },
                             error: function() {

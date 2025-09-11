@@ -134,45 +134,55 @@ if (!isset($_SESSION['id'])) {
 
 <section id="containerSections" class="d-flex flex-column">
     <section id="sectionSelectorCM" class="section-container d-none">
-             <div class="mb-3">
-                <h4 for="selectorCantidadMateriales" class="form-label">Cantidad de materiales</h4>
-                <select id="selectorCantidadMateriales" class="form-select" name="cantidad_materiales" style="font-size: 18px;">
-                    <option value="" disabled selected>Seleccione una cantidad</option>
-                    <option value="1">1</option>
-                    <option value="2">2</option>
-                    <option value="3">3</option>
-                    <option value="4">4</option>
-                    <option value="5">5</option>
-                </select>
-            </div> 
+        <div class="mb-3">
+            <h4 for="selectorCantidadMateriales" class="form-label">Cantidad de materiales</h4>
+            <select id="selectorCantidadMateriales" class="form-select" name="cantidad_materiales" style="font-size: 18px;">
+                <option value="" disabled selected>Seleccione una cantidad</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div> 
     </section>
+    <div class="d-flex flex-column flex-md-row col-12 mb-3 gap-3">
 
-    <?php if ($tipoUsuario == 5): ?>
-        <input id="isFive" type="hidden" value="1">
-        <select id="selectorCliente" class="d-none">
-            <option selected value="CLIENTE PUBLICO GENERAL" data-clasificacion="PUBLICO" data-descuento="0.00" data-codigo="09-0003" data-correo="sistemas3@sellosyretenes.com">
-                CLIENTE PUBLICO GENERAL - PUBLICO
-            </option>
-        </select>
-    <?php else: ?>
-        <input id="isFive" type="hidden" value="0">
-        <section id="sectionSelectorCliente" class="section-container mb-3">
-            <div class="mb-3 d-flex flex-column">
-                <h4>Cliente</h4>
-                <select id="selectorCliente">
-                    <option value="" disabled selected>Seleccione un cliente</option>
-                </select>
-            </div> 
-        </section>
-    <?php endif; ?>
-    <div class="section-container mb-3">
-        <label for="selectorDurezaMateriales" class="form-label">Dureza de materiales</label>
-        <select id="selectorDurezaMateriales" class="form-select" name="material" required>
-            <option value="" disabled selected>Seleccione una opcion</option>
-            <option value="blandos">Materiales blandos</option>
-            <option value="duros">Materiales duros</option>
-            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-        </select>
+        <?php if ($tipoUsuario == 5): ?>
+            <input id="isFive" type="hidden" value="1">
+            <select id="selectorCliente" class="d-none">
+                <option selected value="CLIENTE PUBLICO GENERAL" data-clasificacion="PUBLICO" data-descuento="0.00" data-codigo="09-0003" data-correo="sistemas3@sellosyretenes.com">
+                    CLIENTE PUBLICO GENERAL - PUBLICO
+                </option>
+            </select>
+        <?php else: ?>
+            <input id="isFive" type="hidden" value="0">
+            <section id="sectionSelectorCliente" class="section-container">
+                <div class="mb-3 d-flex flex-column  col-12 col-md-12">
+                    <h4>Cliente</h4>
+                    <select id="selectorCliente">
+                        <option value="" disabled selected>Seleccione un cliente</option>
+                    </select>
+                </div> 
+            </section>
+        <?php endif; ?>
+        <div id="sectionDureza" class="section-container">
+            <div class="d-flex col-12">
+                <div class="col-11 col-md-11 flex-column">
+
+                    <h5 class="mb-3">Dureza de materiales</h5>
+                    <select id="selectorDurezaMateriales" class="form-select" name="material" required>
+                        <option value="" disabled selected>Seleccione una opcion</option>
+                        <option value="blandos">Materiales blandos</option>
+                        <option value="duros">Materiales duros</option>
+                        <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                    </select>
+                </div>
+                <div class="align-self-end">
+                    <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:20px;"></i>
+                </div>
+            </div>
+        </div>
     </div>
     <?php
     $archivoEventos = "eventos_materiales.js";
@@ -188,9 +198,9 @@ if (!isset($_SESSION['id'])) {
         $archivoPrevisualizacion = "tabla_previsualizacion.php";
     }
     ?>
-    <section id="sectionCotizar" class="section-container d-none">
-        <div class="mb-3">
-            <button type="button" id="btnCotizar" class="btn-disabled d-none mt-4">Complete todos los materiales para cotizar</button>
+    <section id="sectionCotizar" class="section-container">
+        <div class="col-12 col-md-3">
+            <button type="button" id="btnCotizar" class="btn-disabled mt-1 mb-0">Cotizar</button>
         </div> 
     </section>
     <section id="sectionTotalFinal" class="section-container d-none">
@@ -276,11 +286,48 @@ if (!isset($_SESSION['id'])) {
                 </div>  
             </div>
         </div>
-        <div class="mb-3 d-flex col-12 justify-content-between">
-            <button type="button" id="btnGuardarCotizacion" class="btn-general mt-4">Guardar cotización y generar PDF</button>
+        <div class="mb-3 d-flex col-12 justify-content-center">
+            <button type="button" id="btnGuardarCotizacion" class="btn-general">Guardar cotización y generar PDF</button>
         </div>
     </section>
 </section>
+<!-- Modal Question Wiper Especial-->
+<div class="modal fade" id="modalQuestionMaterials" tabindex="-1" aria-labelledby="modalQuestionMaterialsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-md"> <!-- puedes usar modal-md o modal-lg -->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Información de los materiales</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body text-center">
+        <div class="d-flex col-12 justify-content-evenly">
+            <div class="d-flex flex-column col-5">
+                <label for="">Materiales blandos:</label>
+                <ul>
+                    <li>H-ECOPUR</li>
+                    <li>ECOSIL</li>
+                    <li>ECORUBBER 1</li>
+                    <li>ECORUBBER 2</li>
+                    <li>ECORUBBER 3</li>
+                    <li>ECOPUR</li>
+                </ul>
+            </div>
+            <div class="d-flex flex-column col-5">
+                <label for="">Materiales duros:</label>
+                <ul>
+                    <li>ECOTAL</li>
+                    <li>ECOMID</li>
+                    <li>ECOFLON 1</li>
+                    <li>ECOFLON 2</li>
+                    <li>ECOFLON 3</li>
+                </ul>
+            </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 
 <script>

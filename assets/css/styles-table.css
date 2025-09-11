@@ -641,7 +641,11 @@ tr.no-usable{
 table.dataTable {
     width: 100%;
 }
-table.dataTable td, table.dataTable th {
+table.dataTable th {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+table.dataTable td{
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

@@ -425,8 +425,10 @@ $(document).ready(function() {
 
                 if (DI_R >= lim.DI_MIN && DI_R <= lim.DI_MAX) {
                     if (DE_R >= lim.DE_MIN && DE_R <= lim.DE_MAX) {
-                        if (ALTURA_R >= lim.H_MIN && ALTURA_R <= lim.H_MAX) {
-                            return { numHerramienta, limitante: lim };
+                        if (SECCION >= lim.SECCION_MIN && SECCION <= lim.SECCION_MAX) {
+                            if (ALTURA_R >= lim.H_MIN && ALTURA_R <= lim.H_MAX) {
+                                return { numHerramienta, limitante: lim };
+                            }
                         }
                     }
                 }
@@ -442,10 +444,10 @@ $(document).ready(function() {
 
             if (!resultado) {
                 // Mensaje simple (para usuario sin conocimientos)
-                let mensajeSimple = "No se encontro herramienta disponible para estas dimensiones.";
+                let mensajeSimple = "No se encontró herramienta para maquinar tales dimensiones.";
 
                 // Mensaje tecnico (para operador CNC)
-                let mensajeTecnico = "No se encontro herramienta para estas dimensiones.<br>";
+                let mensajeTecnico = "No se encontró herramienta para maquinar tales dimensiones.<br>";
                 mensajeTecnico += `Material: ${tipoDurezaMateriales}<br>`;
                 mensajeTecnico += `Dimensiones dadas: DI=${DI_R}, DE=${DE_R}, H=${ALTURA_R}, Seccion=${SECCION}<br><br>`;
                 mensajeTecnico += "Rangos de herramientas disponibles:<br>";
@@ -460,8 +462,8 @@ $(document).ready(function() {
                     mensajeTecnico += `Seccion [${lim.SECCION_MIN}-${lim.SECCION_MAX}]<br>`;
                 }
                 $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
-                //$("#containerErrorDimensiones_cliente span").html(mensajeSimple);
-                $("#containerErrorDimensiones_cliente span").html(mensajeTecnico);
+                $("#containerErrorDimensiones_cliente span").html(mensajeSimple);
+                //$("#containerErrorDimensiones_cliente span").html(mensajeTecnico);
 
                 window.DIMENSIONES_VALIDAS = false;
                 return false;
@@ -472,7 +474,8 @@ $(document).ready(function() {
             console.log("Herramienta seleccionada automaticamente:", numHerramienta);
             console.log("Limitante aplicada:", limitante);
 
-            // Mensaje técnico cuando las dimensiones son válidas
+            // Mensaje técnico cuando las dimensiones son 
+            let mensajeSencilloValido = `Dimensiones validas.`;
             let mensajeTecnicoValido = `Dimensiones validas.<br>`;
             mensajeTecnicoValido += `Herramienta a usar: ${numHerramienta}<br>`;
             mensajeTecnicoValido += `Rango de dimensiones permitido por esta herramienta:<br>`;
@@ -481,7 +484,7 @@ $(document).ready(function() {
             mensajeTecnicoValido += `H [${limitante.H_MIN}-${limitante.H_MAX}], `;
             mensajeTecnicoValido += `Seccion [${limitante.SECCION_MIN}-${limitante.SECCION_MAX}]`;
             $("#containerErrorDimensiones_cliente span").css("color", "#28a745");
-            $("#containerErrorDimensiones_cliente span").html(mensajeTecnicoValido);
+            $("#containerErrorDimensiones_cliente span").html(mensajeSencilloValido);
 
 
             let violaciones = [];
@@ -643,7 +646,7 @@ $(document).ready(function() {
             console.log("Todos los materiales han sido completados");
         }else{
             disablarBoton("#btnCotizar");
-            $("#btnCotizar").text("Complete todos los materiales para cotizar");
+            //$("#btnCotizar").text("Complete todos los materiales para cotizar");
             // console.log("Aun no estan completados todos los materiales", window.CANTIDAD_MATERIALES);
             console.log("Materiales completados: ", MaterialesCompletados, "/",window.CANTIDAD_MATERIALES);  
         }
@@ -950,9 +953,9 @@ $(document).ready(function() {
 // ///////////////////////////////////////// @OTRAS INICIALIZACIONES
 
     const idCotizacion = idRandom();
-    $("#btnCotizar").removeClass("d-none");
-    $("#sectionTotalFinal").removeClass("d-none");
-    $("#sectionCotizar").removeClass("d-none");
+    //$("#btnCotizar").removeClass("d-none");
+    //$("#sectionTotalFinal").removeClass("d-none");
+    //$("#sectionCotizar").removeClass("d-none");
 
 
 
@@ -1454,10 +1457,13 @@ $(document).ready(function() {
         $("#inputTotalCotizacion, #inputTotalCotizacion2").val(totalConIva.toFixed(2));
         console.log("Total con iva = ", totalConIva.toFixed(2));
 
-        $("#btnPrevisualizar").removeClass("d-none");
+        //$("#btnPrevisualizar").removeClass("d-none");
 
         // Mostrar total con animación
         $("#inputTotalCotizacion").addClass("glow-effect");
+        setTimeout(() => {
+            $("#btnPrevisualizar").trigger("click");
+        }, 200);
     });
 
     // ESCUCHAR EL BOTON PREVISUALIZAR
@@ -1497,6 +1503,7 @@ $(document).ready(function() {
         for (let i = 1; i <= 5; i++) {
             $(`#sectionContainerMaterial_m${i}`).fadeOut(500);
         }
+        $('#sectionDureza').fadeOut(500);
         $('#sectionCotizar').fadeOut(500);
         $('#sectionTotalFinal').fadeOut(500);
    
@@ -1545,6 +1552,7 @@ $(document).ready(function() {
         for (let i = 1; i <= 5; i++) {
             $(`#sectionContainerMaterial_m${i}`).fadeIn(1000);
         }
+        $('#sectionDureza').fadeIn(1000);
         $('#sectionCotizar').fadeIn(1000);
         $('#sectionTotalFinal').fadeIn(1000);
 
@@ -1605,7 +1613,8 @@ $(document).ready(function() {
                 }).then((result) => {
                     if (result.isConfirmed || result.dismiss === Swal.DismissReason.close || result.dismiss === Swal.DismissReason.overlay) {
                         //window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
-                        window.location.href = "cotizaciones.php";
+                        const savedDefault = localStorage.getItem('filtroDefault') || '0';
+                        window.location.href = `cotizaciones.php?cot=u&default=${savedDefault}`;
 
                         $.post("../ajax/ajax_notificacion.php", {
                             mensaje: "Se ha generado una cotización: " + idCotizacion
@@ -1619,6 +1628,7 @@ $(document).ready(function() {
             }
         });
     });
+
 
     // Verificar si ya existe la preferencia en localStorage
     if (!localStorage.getItem("ocultarInfoValidacion")) {
