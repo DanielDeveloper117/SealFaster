@@ -12,9 +12,9 @@
         <img src="../assets/img/general/sealfaster.png" alt="Logo SealFaster" />
     </div>
 
-  <button id="burgerBtn" class="bi bi-list"></button>
+    <button id="burgerBtn" class="bi bi-list"></button>
 
-  <nav id="navbar">
+    <nav id="navbar">
     <ul class="nav-links">
         <li><a href="../modules/welcome.php">Inicio</a></li>
         <?php
@@ -27,8 +27,9 @@
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/produccion_vn.php">Requisiciónes</a></li>
                         <li><a class="" href="../modules/produccion_cnc.php">Producción CNC</a></li>
-                        <li><a class="" href="../modules/parametros_cotizador.php" >Parametros cotizador</a></li>
-                        <li><a class="" href="../modules/precios.php" >Precios</a></li>
+                        <li><a class="" href="../modules/parametros_cotizador.php" >Parametros</a></li>
+                        <li><a class="" href="../modules/precios.php">Claves</a></li>
+                        <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li>
                         <!-- <li><a class="" href="../modules/ingresar.php">Parametros sellos</a></li>
                         <li><a class="" href="../modules/desencriptar.php" >Desencriptar</a></li> -->
                         <li><a class="" href="../modules/users.php" >Usuarios</a></li>
@@ -58,8 +59,9 @@
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
-                        <li><a class="" href="../modules/parametros_cotizador.php" >Parametros cotizador</a></li>
-                        <li><a class="" href="../modules/precios.php" >Precios</a></li>
+                        <li><a class="" href="../modules/parametros_cotizador.php" >Parametros</a></li>
+                        <li><a class="" href="../modules/precios.php">Claves</a></li>
+                        <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li>
                         <li><a class="" href="../modules/desencriptar.php" >Desencriptar</a></li>
                         <li><a class="" href="../modules/users.php" >Usuarios</a></li>
                     ';
@@ -67,7 +69,7 @@
                 case 4:
                     # compras
                     echo '
-                        <li><a class="" href="../modules/precios_compras.php" >Claves</a></li>
+                        <li><a class="" href="../modules/precios_compras.php" >Precios pendientes</a></li>
                     ';
                 break;
                 case 6:
@@ -98,14 +100,14 @@
     </ul>
 
     <div class="user-menu">
-      <i class="bi bi-person-circle" id="userIcon"></i>
-      <div id="userDropdown">
+        <i class="bi bi-person-circle" id="userIcon"></i>
+        <div id="userDropdown">
         <span><?= htmlspecialchars($nombreUser); ?></span>
         <a href="../modules/configuracion.php">Mi cuenta</a>
         <a href="../modules/configuracion.php#config">Configuración</a>
         <a href="../auth/cerrar_sesion.php" class="logout">Cerrar sesión</a>
-      </div>
+        </div>
     </div>
-  </nav>
+    </nav>
 </div>
 

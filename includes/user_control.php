@@ -28,6 +28,7 @@
                 "produccion_cnc.php",
                 "parametros_cotizador.php",
                 "precios.php",
+                "precios_compras.php",
                 "users.php"
             ]);
             if(!in_array($selfFile, $arrayPermitidos)){
@@ -71,6 +72,8 @@
                 "tipo.php",
                 "estimador.php",
                 "cotizaciones.php",
+                "precios.php",
+                "precios_compras.php",
                 "desencriptar.php",
                 "users.php"
             ]);
@@ -102,7 +105,7 @@
             if(!in_array($selfFile, $arrayPermitidos)){
                 $accesoRestringido = True;
             }else{
-                //header de general/lider/sistemas
+                //header de compras
                 $accesoRestringido = False; 
             }
 
@@ -115,7 +118,7 @@
             if(!in_array($selfFile, $arrayPermitidos)){
                 $accesoRestringido = True;
             }else{
-                //header de general/lider/sistemas
+                //header de inventarios
                 $accesoRestringido = False; 
             }
 

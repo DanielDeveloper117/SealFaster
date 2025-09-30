@@ -1,44 +1,103 @@
 $(document).ready(function(){        
     window.NOMBRE_TABLA = $('table').attr("id");
-    $(`#${NOMBRE_TABLA}`).DataTable({
-        ordering: true, //botones de ordenacion de las columnas
-        "orderable": true,
-        "searching": true, // función de búsqueda activada
-        search: {
-            return: false
-        },
-        "autoWidth": true,
-        "language": { 
-            "decimal" : "",
-            "emptyTable":"No hay registros",
-            "info": "Mostrando _END_ de _TOTAL_ registros",
-            "infoEmpty": "Mostrando 0 de 0 registros",
-            "infoFiltered": "(Se filtraron _MAX_ registros)",
-            "infoPostFix":"",
-            "thousands": ", ",
-            "lengthMenu": "Mostrar _MENU_ registros",
-            "loadingRecords":"Cargando...",
-            "processing": "Procesando...",
-            "search": "Buscar: ",
-            "zeroRecords":"No se encontraron resultados.",
-            "paginate":{
-            "first":"<<",
-            "last":">>",
-            "next": "Siguiente",
-            "previous": "Anterior"
+    if(window.NOMBRE_TABLA == "inventarioTable"){
+        $(`#${NOMBRE_TABLA}`).DataTable({
+            ordering: true, //botones de ordenacion de las columnas
+            "orderable": true,
+            "searching": true, // función de búsqueda activada
+            search: {
+                return: false
+            },
+            "autoWidth": true,
+            "language": { 
+                "decimal" : "",
+                "emptyTable":"No hay registros",
+                "info": "Mostrando _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando 0 de 0 registros",
+                "infoFiltered": "(Se filtraron _MAX_ registros)",
+                "infoPostFix":"",
+                "thousands": ", ",
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "loadingRecords":"Cargando...",
+                "processing": "Procesando...",
+                "search": "Buscar: ",
+                "zeroRecords":"No se encontraron resultados.",
+                "paginate":{
+                "first":"<<",
+                "last":">>",
+                "next": "Siguiente",
+                "previous": "Anterior"
+                }
+            },
+            "pageLength": 30,
+            "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+            "scrollY": "400px", // Altura del área de desplazamiento vertical
+            "scrollX": true,
+            dom: 'Blfrtip',
+            buttons: [
+                {
+                    extend: 'excelHtml5',
+                    title: 'Inventario CNC',
+                    text: 'Exportar a Excel',
+                    exportOptions: {
+                        columns: ':visible',
+                        modifier: {
+                            search: 'none',
+                            order: 'applied',
+                            page: 'all'
+                        }
+                    }
+                }
+            ],
+            initComplete: function () {
+                var api = this.api();
+                setTimeout(function () {
+                    api.columns.adjust().draw();
+                }, 400);
+          
             }
-        },
-        "pageLength": 30,
-        "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-        "scrollY": "400px", // Altura del área de desplazamiento vertical
-        "scrollX": true,
-        initComplete: function () {
-            var api = this.api();
-            setTimeout(function () {
-                api.columns.adjust().draw();
-            }, 400);
-        }
-    });
+        });
+    }else{
+        $(`#${NOMBRE_TABLA}`).DataTable({
+            ordering: true, //botones de ordenacion de las columnas
+            "orderable": true,
+            "searching": true, // función de búsqueda activada
+            search: {
+                return: false
+            },
+            "autoWidth": true,
+            "language": { 
+                "decimal" : "",
+                "emptyTable":"No hay registros",
+                "info": "Mostrando _END_ de _TOTAL_ registros",
+                "infoEmpty": "Mostrando 0 de 0 registros",
+                "infoFiltered": "(Se filtraron _MAX_ registros)",
+                "infoPostFix":"",
+                "thousands": ", ",
+                "lengthMenu": "Mostrar _MENU_ registros",
+                "loadingRecords":"Cargando...",
+                "processing": "Procesando...",
+                "search": "Buscar: ",
+                "zeroRecords":"No se encontraron resultados.",
+                "paginate":{
+                "first":"<<",
+                "last":">>",
+                "next": "Siguiente",
+                "previous": "Anterior"
+                }
+            },
+            "pageLength": 30,
+            "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+            "scrollY": "400px", // Altura del área de desplazamiento vertical
+            "scrollX": true,
+            initComplete: function () {
+                var api = this.api();
+                setTimeout(function () {
+                    api.columns.adjust().draw();
+                }, 400);
+            }
+        });
+    }
 
     var anchoVentanaInicial = window.innerWidth;
     var anchoPantallaInicial = screen.width;

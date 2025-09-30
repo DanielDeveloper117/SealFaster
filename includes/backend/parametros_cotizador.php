@@ -199,6 +199,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 showSweetAlertError("coECOFLON3");
             }
         break;
+        case "muc":
+            if (isset($_POST['valor'])) {
+                foreach ($_POST['valor'] as $id => $valor) {
+                    $sql = "UPDATE parametros2 SET valor = :valor WHERE id = :id AND descripcion = 'MultiplicadorUtilidadPersonalizado'";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->bindParam(':valor', $valor);
+                    $stmt->bindParam(':id', $id);
+                    $stmt->execute();
+                }
+                showSweetAlertSuccess("muc");
+
+            }else{
+                showSweetAlertError("muc");
+            }
+        break;
         case "mup":
             if (isset($_POST['valor'])) {
                 foreach ($_POST['valor'] as $id => $valor) {
@@ -565,6 +580,12 @@ if(isset($_GET["c"])){
                 "#btnTabCostosOperacionECOFLON3"
             ];
         break;
+        case "muc":
+            $aQuienTrigger = [
+                "#btnTabMU",
+                "#btnTabMultiplosUtilidadCustom"
+            ];
+        break;
         case "mup":
             $aQuienTrigger = [
                 "#btnTabMU",
@@ -729,6 +750,11 @@ $sqlCostosOperacionECOFLON3 = "SELECT * FROM parametros2 WHERE caso = 'coECOFLON
 $stmtCostosOperacionECOFLON3 = $conn->prepare($sqlCostosOperacionECOFLON3);
 $stmtCostosOperacionECOFLON3->execute();
 $arregloCostosOperacionECOFLON3 = $stmtCostosOperacionECOFLON3->fetchAll(PDO::FETCH_ASSOC);
+// Obtener los multiplos de utilidad por proveedor
+$sqlMultiplosUtilidadCustom = "SELECT * FROM parametros2 WHERE descripcion = 'MultiplicadorUtilidadPersonalizado' ORDER BY id ASC";
+$stmtMultiplosUtilidadCustom = $conn->prepare($sqlMultiplosUtilidadCustom);
+$stmtMultiplosUtilidadCustom->execute();
+$arregloMultiplosUtilidadCustom = $stmtMultiplosUtilidadCustom->fetchAll(PDO::FETCH_ASSOC);
 // Obtener los multiplos de utilidad por proveedor
 $sqlMultiplosUtilidadProveedores = "SELECT * FROM parametros2 WHERE descripcion = 'MultiplicadorUtilidadProveedor' ORDER BY id ASC";
 $stmtMultiplosUtilidadProveedores = $conn->prepare($sqlMultiplosUtilidadProveedores);

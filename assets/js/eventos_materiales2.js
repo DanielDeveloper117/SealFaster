@@ -319,6 +319,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 // //////////////////////////////////////// @LLAMADAS AJAX INICIALES
+                $(`#selectorMaterial_m${i}`).select2({
+                    width: "100%",
+                    minimumResultsForSearch: Infinity  // Esto desactiva completamente la búsqueda
+                });
+                $(`#selectorProveedor_m${i}`).select2({
+                    width: "100%",
+                    minimumResultsForSearch: Infinity  // Esto desactiva completamente la búsqueda
+                });
                 // Realizar la solicitud AJAX para mostrar todos los materiales
                 // $.ajax({
                 //     url: '../ajax/ajax_materiales_parametros2.php',
@@ -436,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         window.DE_DESPERDICIO_DEFAULT = 1.00;
                     }else{
                         window.DI_DESPERDICIO_DEFAULT = 3.00;
-                        window.DE_DESPERDICIO_DEFAULT = 3.00;
+                        window.DE_DESPERDICIO_DEFAULT = 1.00;
                     }
                     console.log(`Desperdicio default DI = `, window.DI_DESPERDICIO_DEFAULT);
                     console.log(`Desperdicio default DE = `, window.DE_DESPERDICIO_DEFAULT);    
@@ -683,6 +691,287 @@ document.addEventListener("DOMContentLoaded", function () {
                                             $(this).text(`Mas billets de ${clave} (${contadorClaves[clave]-1})`);
                                         }
                                     });
+                                    $(`#containerSimulador__m${i}`).addClass(`d-none`);
+
+                                } else {
+                                    $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (0 resultados)`);
+                                    $(`#tablaBillets_m${i} tbody`).append(
+                                        '<tr><td colspan="6">No se encontraron billets coincidentes</td></tr>'
+                                    );
+                                    $(`#containerSimulador__m${i}`).removeClass(`d-none`);
+                                   
+                                }
+
+                                $(`#circuloSvg_m${i}`).addClass(`d-none`);
+                                $(`#spanPorcentDesp_m${i}`).text(`0.00`);
+                            },
+                            error: function() {
+                                console.error('Error al realizar la petición AJAX');
+                                $(`#tablaBillets_m${i} tbody`).append('<tr><td colspan="4">Error en ajax</td></tr>');
+                            }
+                        });
+                    }
+                });
+                // CUANDO EL USUARIO BUSCA UNA CLAVE PARA SIMULAR COTIZACION
+                $(`#btnBuscarClave_m${i}`).on(`click`, function() {
+                    let claveSimulacion = $(`#inputBuscarClave_m${i}`).val();
+                    let alturaSeleccionada = parseFloat($(`#altura_mm_m${i}`).val());
+                    alturaSeleccionada = parseFloat(alturaSeleccionada);
+                    let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
+                    let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
+                    let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
+                    let dInteriorNecesario = 0.00;
+                    let dExteriorNecesario = 0.00;
+
+                    console.log(`Aplicando calculos al Material _m${i}`);
+                    if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
+                        window.DI_DESPERDICIO_DEFAULT = 1.00;
+                        window.DE_DESPERDICIO_DEFAULT = 1.00;
+                    }else{
+                        window.DI_DESPERDICIO_DEFAULT = 3.00;
+                        window.DE_DESPERDICIO_DEFAULT = 1.00;
+                    }
+                    console.log(`Desperdicio default DI = `, window.DI_DESPERDICIO_DEFAULT);
+                    console.log(`Desperdicio default DE = `, window.DE_DESPERDICIO_DEFAULT);    
+
+                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_DESPERDICIO_DEFAULT))).toFixed(2);
+                    
+                    if(dInteriorNecesario >= dInteriorSeleccionado){
+                        dInteriorNecesario = 0.00;
+                    }
+
+                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_DESPERDICIO_DEFAULT))).toFixed(2);
+
+                    $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
+                    $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);
+                    $(`#spanDeCliente_m${i}`).text(dExteriorSeleccionado);
+                    $(`#spanAlturaNecesario_m${i}`).text(alturaNecesario);
+                    console.log(`Altura con desbaste dureza y desperdicio por agarre cnc: `, alturaNecesario);
+                    
+                    $(`#spanDiNecesario_m${i}`).text(dInteriorNecesario);
+                    $(`#spanDeNecesario_m${i}`).text(dExteriorNecesario);
+
+                    console.log(`DI necesario calculado = `, dInteriorNecesario);
+                    console.log(`DE necesario calculado = `, dExteriorNecesario);
+
+                    $(`#spanPorcentAprov_m${i}`).text(`0.00`);
+
+                    window.unirBilletsSeleccionados();
+
+                    console.log(`Excluir billets en la consulta: `, window.billetsSeleccionados);
+
+                    if (claveSimulacion) {
+                        // Realizar la llamada AJAX para obtener los billets filtrados
+                        $.ajax({
+                            url: '../ajax/clave_simulacion.php', 
+                            type: 'GET',
+                            data: { 
+                                clave: claveSimulacion,
+                                stock: alturaNecesario,
+                            },
+                            dataType: 'json',
+                            success: function(data) {
+                                $(`#tablaBillets_m${i} tbody`).empty();
+
+                                // Verifica que la respuesta tenga datos
+                                if (data.length > 0) {
+
+                                    $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (${data.length} resultados)`);
+
+                                    let clavesUnicas = {}; // Almacena las claves ya insertadas
+                                    let contadorClaves = {}; // Contador de repeticiones de Clave
+
+                                    // Primera pasada: contar las repeticiones
+                                    $.each(data, function(index, item) {
+                                        if (contadorClaves[item.Clave]) {
+                                            contadorClaves[item.Clave]++; // Incrementa si ya existe
+                                        } else {
+                                            contadorClaves[item.Clave] = 1; // Inicializa en 1 si es la primera vez
+                                        }
+                                    });
+
+                                    // Primero calculamos y agregamos el porcentaje de aprovechamiento a cada billet
+                                    data.forEach(function(item) {
+                                        let dataDEBillet = parseFloat(item.exterior);
+                                        let dataDEResultante = parseFloat(dExteriorSeleccionado);
+                                        let dataDIResultante = parseFloat(dInteriorSeleccionado);
+                                        let dataDIBillet = parseFloat(item.interior);
+
+                                        function calcularRadio(valor) {
+                                            return (valor / dataDEBillet) * 50;
+                                        }
+
+                                        let dimensiones = {
+                                            exterior: 50,
+                                            azul: calcularRadio(dataDEResultante),
+                                            gris: calcularRadio(dataDIResultante),
+                                            blanco: calcularRadio(dataDIBillet)
+                                        };
+
+                                        let desperdicioPorcentaje = ((Math.pow(dimensiones.exterior, 2) - Math.pow(dimensiones.azul, 2)) +
+                                                                    (Math.pow(dimensiones.gris, 2) - Math.pow(dimensiones.blanco, 2))) /
+                                                                    Math.pow(dimensiones.exterior, 2) * 100;
+
+                                        let porcentajeAprovechamiento = 100 - desperdicioPorcentaje;
+                                        item.porcentajeAprovechamiento = porcentajeAprovechamiento;
+                                    });
+
+                                    // Ordenamos los billets por mayor porcentaje de aprovechamiento
+                                    data.sort(function(a, b) {
+                                        return b.porcentajeAprovechamiento - a.porcentajeAprovechamiento;
+                                    });
+
+                                    // Segunda pasada: agregar claves únicas y renglón extra si es necesario
+                                    $.each(data, function(index, item) {
+                                        let dataStockBillet = item.stock;
+                                        let cabenEnBillet = setLeCaben(item.stock);
+                                        let dataDEBillet = parseFloat(item.exterior);
+                                        let dataDEResultante = parseFloat(dExteriorSeleccionado);
+                                        let dataDIResultante = parseFloat(dInteriorSeleccionado);
+                                        let dataDIBillet = parseFloat(item.interior);
+                                        let porcentValid = "";
+
+                                        function calcularRadio(valor) {
+                                            return (valor / dataDEBillet) * 50;
+                                        }
+
+                                        // Recuperamos el porcentaje calculado previamente
+                                        let porcentajeAprovechamiento = item.porcentajeAprovechamiento;
+                                        if(porcentajeAprovechamiento < 0 || porcentajeAprovechamiento > 100){
+                                            porcentajeAprovechamiento = 0.00;
+                                            porcentValid = "d-none";
+                                        }
+                                        console.log("el porcentaje2 es: ",porcentValid);
+
+                                        // Si la clave no ha sido insertada aún, la agrega
+                                        if (!clavesUnicas[item.Clave]) {
+                                            $(`#tablaBillets_m${i} tbody`).append(
+                                                `<tr id="fila_${cleanAttrId(item.Clave)}_m${i}" style="border-top:3px solid #95D2B3 !important;">
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                                title="Seleccionar este billet"
+                                                                data-clave="${item.Clave}"
+                                                                data-altura="${item.stock}"
+                                                                data-interior="${item.interior}"
+                                                                data-exterior="${item.exterior}"
+                                                                data-lote="${item.lote_pedimento}"
+                                                                data-proveedor="${item.proveedor}"
+                                                            ><i class="icon-item bi bi-check2-square"></i></button>
+
+                                                            <button type="button" class="btn-general btn-circulo-billet_m${i} ${porcentValid}" 
+                                                                title="Ver representacion de porcentaje de aprovechamiento"
+                                                                data-altura-resultante="${alturaSeleccionada}"
+                                                                data-di-resultante="${dInteriorSeleccionado}"
+                                                                data-de-resultante="${dExteriorSeleccionado}"
+
+                                                                data-altura-necesario="${alturaNecesario}"
+                                                                data-di-necesario="${dInteriorNecesario}"
+                                                                data-de-necesario="${dExteriorNecesario}"
+
+                                                                data-di-billet="${item.interior}"
+                                                                data-de-billet="${item.exterior}"
+                                                            ><div class="d-flex justify-content-center align-items-center"><i class="icon-item bi bi-vinyl"></i><i class="bi bi-percent"></i></div></button>
+                                                        </div>
+                                                    </td>
+                                                    <td>${item.Clave}</td>
+                                                    <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
+                                                    <td >${dataStockBillet}</td>
+                                                    <td >${cabenEnBillet}</td>
+                                                    <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
+                                                    <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
+                                                </tr>`
+                                            );
+
+                                            // Marcar esta clave como insertada
+                                            clavesUnicas[item.Clave] = true;
+                                        } else {
+                                            // Si la clave está repetida, la agrega oculta con d-none
+                                            $(`#tablaBillets_m${i} tbody`).append(
+                                                `<tr class="fila-repetida" data-clave="${item.Clave}" style="display:none;">
+                                                    <td>
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                                title="Seleccionar este billet"
+                                                                data-clave="${item.Clave}"
+                                                                data-altura="${item.stock}"
+                                                                data-interior="${item.interior}"
+                                                                data-exterior="${item.exterior}"
+                                                                data-lote="${item.lote_pedimento}"
+                                                                data-proveedor="${item.proveedor}"
+                                                            ><i class="icon-item bi bi-check2-square"></i></button>
+
+                                                            <button type="button" class="btn-general btn-circulo-billet_m${i} ${porcentValid}"" 
+                                                                title="Ver representacion de porcentaje de desperdicio"
+                                                                data-altura-resultante="${alturaSeleccionada}"
+                                                                data-di-resultante="${dInteriorSeleccionado}"
+                                                                data-de-resultante="${dExteriorSeleccionado}"
+
+                                                                data-altura-necesario="${alturaNecesario}"
+                                                                data-di-necesario="${dInteriorNecesario}"
+                                                                data-de-necesario="${dExteriorNecesario}"
+
+                                                                data-di-billet="${item.interior}"
+                                                                data-de-billet="${item.exterior}"
+                                                            ><div class="d-flex justify-content-center align-items-center"><i class="icon-item bi bi-vinyl"></i><i class="bi bi-percent"></i></div></button>
+                                                        </div>
+                                                    </td>
+                                                    <td>${item.Clave}</td>
+                                                    <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
+                                                    <td >${dataStockBillet}</td>
+                                                    <td >${cabenEnBillet}</td>
+                                                    <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
+                                                    <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>
+                                                </tr>`
+                                            );
+                                        }
+
+                                        // Si es el último elemento o si la clave cambia, agrega el botón después de las repetidas
+                                        if (
+                                            index === data.length - 1 || // Último elemento
+                                            (data[index + 1] && data[index + 1].Clave !== item.Clave) // Cambia de clave
+                                        ) {
+                                            // Si la clave tiene más de 1 repetición, agrega el botón después
+                                            if (contadorClaves[item.Clave] > 1) {
+                                                
+                                                $(`#tablaBillets_m${i} tbody`).append(
+                                                    `<tr id="row_${cleanAttrId(item.Clave)}" class="row-ver-mas">
+                                                        <td colspan="7" class="p-0">
+                                                            <button id="btn_${cleanAttrId(item.Clave)}_m${i}" type="button" class="btn-ver-mas" data-clave="${item.Clave}">
+                                                                Mas billets de ${item.Clave} (${contadorClaves[item.Clave]-1})
+                                                            </button>
+                                                        </td>
+                                                    </tr>`
+                                                );
+                                            }
+                                        }
+                                    });
+
+                                    // .slideDown .slideUp
+                                    // Evento para "Ver más / Ver menos"
+                                    $(`#tablaBillets_m${i} tbody`).on('click', '.btn-ver-mas', function() {
+                                        let clave = $(this).data('clave'); // Obtener clave
+                                        let filasRepetidas = $(`.fila-repetida[data-clave="${clave}"]`);
+                                        
+                                        if (filasRepetidas.css('display') === 'none') {
+                                            filasRepetidas.each(function(index) {
+                                                setTimeout(() => {
+                                                    $(this).fadeIn(400); // Aplicar fadeIn de manera secuencial
+                                                }, 50 * index); // Retraso basado en el índice
+                                            });
+
+                                            $(this).text(`Ver menos billets de ${clave}`);
+                                        } else {
+                                            // Invertir el orden para aplicar el fadeOut de la última a la primera
+                                            filasRepetidas.get().reverse().forEach(function(fila, index) {
+                                                setTimeout(() => {
+                                                    $(fila).fadeOut(400); // Aplicar fadeOut de manera secuencial
+                                                }, 50 * index); // Retraso basado en el índice
+                                            });
+
+                                            $(this).text(`Mas billets de ${clave} (${contadorClaves[clave]-1})`);
+                                        }
+                                    });
 
                                 } else {
                                     $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (0 resultados)`);
@@ -700,7 +989,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             }
                         });
                     }
-                });
+                });             
                 // SELECCIONAR BILLET DE TABLA BILLETS, CALCULO PB y OBTENER MULTIPLO DE UTILIDAD
                 $(`#tablaBillets_m${i}`).on('click', `.btn-seleccionar-billet_m${i}`, function() {
                     let cabenEnBillet;
@@ -815,9 +1104,12 @@ document.addEventListener("DOMContentLoaded", function () {
                         console.log(`Precio Final de la Barra = ((precioBarra)(multiploUtilidad)) = `, precioBarraUtilidad);
                         
                         let obj = window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`].find(item => item.lote_pedimento === lotePedimentoSeleccionado);
+                        console.log("El obj es: ", obj);
+                        console.log("El lote es: ", lotePedimentoSeleccionado);
                         let ocupaEnBillet = 0;
                         if (obj) {
                             ocupaEnBillet = obj.ocupa; 
+                            console.log("El obj.ocupa es: ", obj.ocupa);
                         } else {
                             console.warn(`Lote no encontrado`);
                         }

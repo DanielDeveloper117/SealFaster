@@ -66,8 +66,9 @@ try {
         $a_sello_inch2 = $_POST['a_sello_inch2'];
         $di_sello_inch2 = $_POST['di_sello_inch2'];
         $de_sello_inch2 = $_POST['de_sello_inch2'];
-        // Convertimos las claves en array, eliminando espacios en blanco
-        $claves_array = array_map('trim', explode(',', $claves));
+        
+        // Convertimos las entradas completas en array, manteniendo el formato original
+        $entries_array = array_map('trim', explode(',', $billets_string));
 
         // Preparamos la consulta PDO
         $stmt = $conn->prepare("SELECT proveedor FROM parametros WHERE clave = :clave");
@@ -75,21 +76,22 @@ try {
         // Creamos un array para almacenar los resultados con proveedor
         $billets_array_with_proveedor = [];
 
-        foreach ($claves_array as $clave) {
+        foreach ($entries_array as $entry) {
+            // Extraemos la clave del entry (primer segmento antes del espacio)
+            $parts = explode(' ', $entry, 2);
+            $clave = $parts[0];
+            
+            // Buscamos el proveedor para esta clave específica
             $stmt->execute([':clave' => $clave]);
-            $proveedor = $stmt->fetchColumn(); // fetchColumn() devuelve el valor directamente
-
-            // Si no se encuentra proveedor, puedes asignar uno por defecto o dejar vacío
+            $proveedor = $stmt->fetchColumn();
+            
+            // Si no se encuentra proveedor, asignamos uno por defecto
             if (!$proveedor) {
-                $proveedor = "SIN_PROVEEDOR";
+                $proveedor = "Desconocido";
             }
-
-            // Buscamos en billets_string la sección que comienza con esta clave
-            $matches = [];
-            if (preg_match('/' . preg_quote($clave, '/') . '.*?(?=(,|$))/', $billets_string, $matches)) {
-                $entry = $matches[0]; // Ej: "TU.F1.31860 (40/67) 2 pz"
-                $billets_array_with_proveedor[] = $proveedor . ' ' . $entry;
-            }
+            
+            // Agregamos el entry con su proveedor correspondiente
+            $billets_array_with_proveedor[] = $proveedor . ' ' . $entry;
         }
 
         // Unimos el nuevo array en una sola cadena

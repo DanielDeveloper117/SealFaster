@@ -13,14 +13,34 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
+
+    <!-- DataTables -->
+        <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
+        <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
+    <!-- DataTables Buttons -->
+    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
+
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+
+    <!-- JSZip para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Botones HTML5 -->
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
@@ -31,7 +51,15 @@ if (!isset($_SESSION['id'])) {
 
 </head>
 <body class="scroll-disablado">
-
+<style>
+    .buttons-excel{
+        display: none !important;
+    }
+    .dt-scroll{
+        margin-top:10px !important;
+        margin-bottom:10px !important;
+    }
+</style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
@@ -135,10 +163,22 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
         <div class="titulo mt-3 mb-3">
             <h1>Inventario CNC</h1>
             <div class="d-flex flex-row justify-content-start col-3">
-                <button type="button" id="btnAgregar" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalInventario">Agregar Registro</button>
+                <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
+                        data-bs-toggle="modal" data-bs-target="#modalInventario">
+                    <i class="bi bi-file-plus" style="font-size:24px;"></i>
+                    Agregar Registro
+                </button>
             </div>
         </div>
         <div class="table-container">
+            <div class="row mb-3">
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8 ">
+                    <button id="btnExportarDatos" type="button" 
+                            class="btn btn-success" >
+                        <i class="bi bi-file-earmark-spreadsheet"></i> Exportar datos
+                    </button>
+                </div>
+            </div>
             <table id="inventarioTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -225,6 +265,14 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $(document).ready(function(){
         $("#overlay").addClass("d-none");
         $("body").removeClass("scroll-disablado");
+
+        $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
+        $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
+
+        $('#btnExportarDatos').on('click', function() {
+            $(".buttons-excel").trigger("click");
+        });
+
     });
 </script>
 </body>

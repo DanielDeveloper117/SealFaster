@@ -1,15 +1,27 @@
-Está listo para el 2do campeonato de frontend: ChatGpt vs Claude Sonnet? desea saber las reglas?
+*estadisticamente los estilos verdes y oscuros en este campeonato obtienen mayor puntuacion. si es dinamico con el tema del navegador (oscuro, claro) mucho mejor.
+Está listo para el campeonato de frontend: ChatGpt 5 vs Claude Sonnet 4 vs Gemini Flash 2.5 vs DeepSeek? desea saber las reglas?
 Reglas del juego: 
 *debe obedecer la tematica a desarrollar en el frontend web.
 *el frontend debe ser impresionante para el usuario, con animaciones, dinamismo, estilos creativos.
 *es un campeonato, intente ser el mejor desarrollador frontend del mundo.
-*estadisticamente los estilos verdes y oscuros en este campeonato obtienen mayor puntuacion. si es dinamico con el tema del navegador (oscuro, claro) mucho mejor.
+*si es dinamico con el tema del navegador (oscuro, claro) mucho mejor.
 *la cantidad de lineas de codigo debe ser aproximadamente desde 300 hasta 500.
+*Todo el codigo debe estar en un solo archivo, no por separado
+*es libre de usar algun plugin o libreria de internet si desea mejorar su frontend, pero asegurece que los link funcionen.
 Puntuaciones:
-4 puntos = el diseño es justo lo que necesitaba, potencial de ir a produccion
+4 puntos = el diseño es de lo mejor que he visto, maxima puntuacion en la ronda
 3 puntos = un diseño, simplemente impresionante, cumplio con todo
 2 puntos = me gusto mucho, pero como que le falta algo
 1 punto = casi no me gusto, fallo algo o penalizacion por no cumplir con las reglas
+¿Desea saber la tematica para comenzar?
+Tematica:
+crear un login de usuarios con la siguiente paleta de colores.
+#647FBC
+#91ADC8
+#AED6CF
+#FAFDD6
+QUE COMIENZE LA SEGUNDA RONDA!
+
 Tematica:
 darle un diseño creativo y profesional a la siguiente estructura datatables html.
 usted no debe tocar los estilos de los botones ni de broma, haga que el demas frontend encaje con los estilos de los botones.
@@ -17,3 +29,53 @@ no toque los nombres de clase ni la estructura html, el objetivo es, la misma es
 pero darle el mejor diseño posible segun las reglas.
 QUE COMIENZE LA PRIMERA RONDA!
 
+
+Resultados  ronda:
+ChatGpt 5: puntos - lineas
+Claude Sonnet 4: puntos - lineas
+Gemini Flash 2.5: puntos - lineas
+DeepSeek: puntos - lineas
+
+Resultados 1ra ronda:
+ChatGpt 5: 2 puntos - los textos se confunden con los colores de fondo, demasiado simple, el cambio de tema no impresiona
+Claude Sonnet 4: 3 puntos - Muy impactante pero en un 100% de zoom el formulario se ve incompleto "cortado", ademas los colores claros dan la sensacion de que esta "borroso"
+Gemini Flash 2.5: 2 puntos - se ve muy bien, pero algo mas de animaciones y dinamismo en el tema hubiera sido mejor, y ademas todo el codigo en un solo archivo ayuda en mejor calificacion
+DeepSeek: 4 puntos - Muy impresionante en todos los aspectos, colores, dinamismo y estilos de tema
+Que opina de la primera ronda?
+
+Resultados 2da ronda:
+ChatGpt 5: 2 puntos - 634 lineas - me gusto el diseño en 2 columnas, si hizo algo diferente. hay que hacer zoom al 50% para 
+poder ver completamente el diseño, eso afecta la UX/UI. A pesar de la animacion de particulas se sigue viendo sencillo. 
+La version clara no es impresionante y no cambia automaticamente el tema.
+Claude Sonnet 4: 3 puntos - 700 lineas - me gusto el diseño en 2 columnas, si hizo algo diferente. Hay que hacer el zoom al 
+75% para poder ver completamente el diseño, eso afecta la UX/UI. A pesar de que los estilos se parecen a la 1ra ronda, la manera en
+que los mejoró fue grandioso. La animacion de fondo es unica. Observacion, el checkbox esta defectuoso al deshacer el check y
+demasiadas lineas.
+Gemini Flash 2.5: 2 puntos - 269 lineas - Se parece un poco al login de la primera ronda. Bien, agregó cambio de tema pero el tema claro 
+no es impresionante. me gusto el efecto del input, pero no se ve bien en tema claro. se ve sencillo
+DeepSeek: 1 puntos - 740 lineas - El diseño es totalmente impresionante, me ha encantado, pero, no cumplió con algunas reglas:
+la tematica seguia siendo un login, no un dashboard, fueron demasiadas lineas.
+que opina de la segunda ronda?
+
+Ronda 3.
+Tematica:
+generar estilos altamente visuales para la mejor experiencia del usuario, el siguiente selector,
+es un selector de la libreria chosen, tal que las opciones se llenan con una solicitud ajax, 
+su deber sera implementar estilos al selector, toma en cuenta los colores root
+para que analices los colores del sitio y generes algo coherente con estilos que no interfieran
+en la experiencia visual.
+                    <select id="selectorCliente" class="" style="z-index:999;">
+                        <option value="" disabled selected>Seleccione un cliente</option>
+                    </select>
+
+Resultados 3ra ronda:
+ChatGpt 5: 1 puntos - 569 lineas - no logro sustituir todos los estilos chosen, solo me gusto el estilo del scroll, la trasparencia 
+hace que las opciones no se vean legiblemente 
+Claude Sonnet 4: 4 puntos - 466 lineas - Logro sustituir todos los estilos de chosen, los estilos son impresionantes en 
+ambos temas, me encantaron los estilos y animaciones. Solo un detalle, hubo que corregir el error 
+Uncaught ReferenceError: $selector is not defined
+Gemini Flash 2.5: 3 puntos - 256 lineas - me gusto la animacion inicial, me gustaron los estilos en ambos temas, aunque el color azul del hover de 
+las opciones no contrasta mucho con los colores, sigue siendo impresionante
+DeepSeek: 2 puntos - 344 lineas - los estilos se ven sencillos, no impresionan mucho, casi todos los estilos chosen se sustituyeron correctamente 
+pero no todos. Me gusto que al buscar se ilumina el texto de otro color.
+*Que opina de la ronda?

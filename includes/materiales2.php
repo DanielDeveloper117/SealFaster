@@ -22,7 +22,7 @@
                 <?php
                     if (file_exists($imagePath)) {
                         $imgMaterial=$imageDir . $selloOriginal . '_'.$numeroMaterial.'.jpg';
-                        echo '<div class="d-flex mb-2 mb-md-0 col-md-3 justify-content-center">';
+                        echo '<div class="d-flex col-8 col-md-3 mb-3 justify-content-center">';
                         echo '<a class="img-sello" href="tipo.php?tipo=' . $tipoButton . '" title="Click para cambiar el perfil">';
                         echo '<img id="imagenMaterial_m'. $i.'" src="'. $imgMaterial . '" alt="' . htmlspecialchars($selloOriginal) . '" class="border-gray img-fluid">';
                         echo '</a></div>';
@@ -36,35 +36,35 @@
                     <div class="d-flex col-12 justify-content-center">
                         <div id="pag1_m<?= $i ?>" class="d-flex col-12 flex-column flex-md-row justify-content-evenly mt-4" >
                       
-                            <input type="hidden" id="diametro_interior_mm_m<?= $i ?>" class="input-readonly" step="0.01" min="0"  name="diametro_interior_mm"  required  placeholder="Ingrese las dimensiones">
-                            <input type="hidden" id="diametro_interior_inch_m<?= $i ?>" class="input-readonly" step="0.0001" min="0"  name="diametro_interior_inch" required  placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="diametro_interior_mm_m<?= $i ?>" class="input-estimador" step="0.01" min="0"  name="diametro_interior_mm"  required  placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="diametro_interior_inch_m<?= $i ?>" class="input-estimador" step="0.0001" min="0"  name="diametro_interior_inch" required  placeholder="Ingrese las dimensiones">
                         
-                            <input type="hidden" id="diametro_exterior_mm_m<?= $i ?>"step="0.01" min="0" class="input-readonly" name="diametro_exterior_mm" required  placeholder="Ingrese las dimensiones">
-                            <input type="hidden" id="diametro_exterior_inch_m<?= $i ?>" step="0.0001" min="0" class="input-readonly" name="diametro_exterior_inch" required  placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="diametro_exterior_mm_m<?= $i ?>"step="0.01" min="0" class="input-estimador" name="diametro_exterior_mm" required  placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="diametro_exterior_inch_m<?= $i ?>" step="0.0001" min="0" class="input-estimador" name="diametro_exterior_inch" required  placeholder="Ingrese las dimensiones">
                         
-                            <input type="hidden" id="altura_mm_m<?= $i ?>" class="input-readonly" step="0.01" min="0" name="altura_mm" required placeholder="Ingrese las dimensiones">
-                            <input type="hidden" id="altura_inch_m<?= $i ?>" class="input-readonly" step="0.0001" min="0"  name="altura_inch" required placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="altura_mm_m<?= $i ?>" class="input-estimador" step="0.01" min="0" name="altura_mm" required placeholder="Ingrese las dimensiones">
+                            <input type="hidden" id="altura_inch_m<?= $i ?>" class="input-estimador" step="0.0001" min="0"  name="altura_inch" required placeholder="Ingrese las dimensiones">
                     
                 
                             <div class="col-12 col-md-4 d-flex flex-column">
                                 
                                 <div class="mb-2">
                                     <label for="selectorMaterial_m<?= $i ?>" class="form-label">Material</label>
-                                    <select id="selectorMaterial_m<?= $i ?>" class="form-select" name="material" required>
+                                    <select id="selectorMaterial_m<?= $i ?>" class="" name="material" required>
                                         <option value="" disabled selected>Seleccione un material</option>
                                     </select>
                                 </div>
 
                                 <div class="mb-2 d-none">
                                     <label for="selectorProveedor_m<?= $i ?>" class="form-label">Proveedor</label>
-                                    <select id="selectorProveedor_m<?= $i ?>" class="form-select" name="proveedor" required disabled>
+                                    <select id="selectorProveedor_m<?= $i ?>" class="" name="proveedor" required disabled>
                                         <option value="" disabled selected>Seleccione un proveedor</option>
                                     </select>
                                 </div>
                                 
                                 <div class="d-flex flex-column mb-4">
                                     <label for="inputCantidad_m<?= $i ?>" class="form-label">Cantidad</label>
-                                    <input id="inputCantidad_m<?= $i ?>" type="number" class="form-control" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
+                                    <input id="inputCantidad_m<?= $i ?>" type="number" class="input-estimador" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
                                 </div>
 
                                 <div id="containerErrorDimensiones_m<?= $i ?>" class="text-faltan">
@@ -157,12 +157,12 @@
                                     </div>
                                 </div>
                                
-                                <input type="hidden" id="precioBarra_m<?= $i ?>" class="input-readonly" value="" name="precio_barra" step="0.01" min="0" placeholder="Calculo de costos de barra pendiente">
-                                <input type="hidden" id="inputCostoMinimoUnidad_m<?= $i ?>" class="input-readonly" value="" name="costo_minimo_unidad">
-                                <input type="hidden" id="inputCostoOperacion_m<?= $i ?>" class="input-readonly" value="" name="costo_operacion" step="0.01" min="0" placeholder="Intente con otra clave">
-                                <input type="hidden" id="inputCostoHerramienta_m<?= $i ?>" class="input-readonly" value="" name="costo_herramienta" step="0.01" min="0" placeholder="Intente con otra clave">
-                                <input type="hidden" id="inputCostoPreparacionDI_m<?= $i ?>" class="input-readonly" value="" name="costo_preparacion_di_barra" step="0.01" min="0" placeholder="Intente con otra clave">
-                                <input type="hidden" id="inputCostoResorte_m<?= $i ?>" class="input-readonly" value="" name="costo_resorte" step="0.01" min="0" placeholder="No aplica">
+                                <input type="hidden" id="precioBarra_m<?= $i ?>" class="input-estimador" value="" name="precio_barra" step="0.01" min="0" placeholder="Calculo de costos de barra pendiente">
+                                <input type="hidden" id="inputCostoMinimoUnidad_m<?= $i ?>" class="input-estimador" value="" name="costo_minimo_unidad">
+                                <input type="hidden" id="inputCostoOperacion_m<?= $i ?>" class="input-estimador" value="" name="costo_operacion" step="0.01" min="0" placeholder="Intente con otra clave">
+                                <input type="hidden" id="inputCostoHerramienta_m<?= $i ?>" class="input-estimador" value="" name="costo_herramienta" step="0.01" min="0" placeholder="Intente con otra clave">
+                                <input type="hidden" id="inputCostoPreparacionDI_m<?= $i ?>" class="input-estimador" value="" name="costo_preparacion_di_barra" step="0.01" min="0" placeholder="Intente con otra clave">
+                                <input type="hidden" id="inputCostoResorte_m<?= $i ?>" class="input-estimador" value="" name="costo_resorte" step="0.01" min="0" placeholder="No aplica">
 
                                 <div class="d-flex flex-column flex-md-row gap-5 justify-content-between align-items-end" style="height:100%;">
                                     <button id="btnAtras_m<?= $i ?>" type="button" class="btn-general mt-4"><< Atras</button>
@@ -225,6 +225,13 @@
                 <div class="modal-body d-flex col-12 flex-column flex-md-row justify-content-between" style="min-height:400px; overflow-y:auto;">
                     <div id="containerBodyModalBillets_m<?= $i ?>" 
                             style="overflow-y:auto; width:<?php if ($tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {echo '100';}else{echo '62';}?>%;">
+                        <div id="containerSimulador__m<?= $i ?>" class="d-flex flex-column mb-4 d-none">
+                            <label for="inputBuscarClave_m<?= $i ?>" class="form-label">Simular cotización</label>
+                            <div class="d-flex flex-row gap-3">
+                                <input id="inputBuscarClave_m<?= $i ?>" type="text" class="form-control" placeholder="Digita una clave" style="width:65% !important;">
+                                <button type="button" id="btnBuscarClave_m<?= $i ?>" class="btn-general">Buscar clave<i class='bi bi-search' style='color:#fff; margin-left: 5px;'></i></button>
+                            </div>
+                        </div>
                         <table id="tablaBillets_m<?= $i ?>" class="table table-bordered border border-2 tabla-billets">
                             <thead>
                                 <tr>

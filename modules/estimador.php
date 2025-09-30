@@ -123,7 +123,14 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador.css'); ?>">
+
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador2.css'); ?>">
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/select2-selector.css'); ?>">
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/chosen-selector.css'); ?>"> -->
     <script src="<?= controlCache('../assets/js/estimador.js'); ?>"></script>
     <!-- <script src="<?= controlCache('../assets/js/scripts_ajax.js'); ?>"></script> -->
     <title><?= $selloOriginal ?></title>
@@ -150,17 +157,19 @@ if (!isset($_SESSION['id'])) {
 
         <?php if ($tipoUsuario == 5): ?>
             <input id="isFive" type="hidden" value="1">
-            <select id="selectorCliente" class="d-none">
-                <option selected value="CLIENTE PUBLICO GENERAL" data-clasificacion="PUBLICO" data-descuento="0.00" data-codigo="09-0003" data-correo="sistemas3@sellosyretenes.com">
-                    CLIENTE PUBLICO GENERAL - PUBLICO
-                </option>
-            </select>
+            <div class="selector-estimador-container">
+                <select id="selectorCliente" class="d-none selector-estimador">
+                    <option selected value="CLIENTE PUBLICO GENERAL" data-clasificacion="PUBLICO" data-descuento="0.00" data-codigo="09-0003" data-correo="sistemas3@sellosyretenes.com">
+                        CLIENTE PUBLICO GENERAL - PUBLICO
+                    </option>
+                </select>
+            </div>
         <?php else: ?>
             <input id="isFive" type="hidden" value="0">
             <section id="sectionSelectorCliente" class="section-container">
                 <div class="mb-3 d-flex flex-column  col-12 col-md-12">
                     <h4>Cliente</h4>
-                    <select id="selectorCliente">
+                    <select id="selectorCliente" class="" style="z-index:999;">
                         <option value="" disabled selected>Seleccione un cliente</option>
                     </select>
                 </div> 
@@ -171,12 +180,14 @@ if (!isset($_SESSION['id'])) {
                 <div class="col-11 col-md-11 flex-column">
 
                     <h5 class="mb-3">Dureza de materiales</h5>
-                    <select id="selectorDurezaMateriales" class="form-select" name="material" required>
-                        <option value="" disabled selected>Seleccione una opcion</option>
-                        <option value="blandos">Materiales blandos</option>
-                        <option value="duros">Materiales duros</option>
-                        <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-                    </select>
+                    
+                        <select id="selectorDurezaMateriales" class="" name="material" required>
+                            <option value="" disabled selected>Seleccione una opcion</option>
+                            <option value="blandos">Materiales blandos</option>
+                            <option value="duros">Materiales duros</option>
+                            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                        </select>
+                   
                 </div>
                 <div class="align-self-end">
                     <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:20px;"></i>
@@ -238,10 +249,10 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div> 
         <div class="mb-3 d-flex col-12 justify-content-start <?= ($tipoUsuario == 5) ? 'd-none' : '' ?>">
-            <div class="d-flex col-4 flex-column mt-3">
+            <div class="d-flex col-12 col-md-5 flex-column mt-3">
                 <?php include(ROOT_PATH . 'includes/backend_info_user.php'); ?>
                 <label for="inputVendedor" class="form-label">Nombre del vendedor</label>
-                <input id="inputVendedor" type="text" class="input-readonly" value="<?= $nombreUser ?>" required readonly tabindex="-1">
+                <input id="inputVendedor" type="text" class="input-estimador" value="<?= $nombreUser ?>" required readonly tabindex="-1">
             </div>
         </div>
         <div class="mb-3 d-flex col-12 flex-column justify-content-start">
@@ -287,7 +298,7 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div>
         <div class="mb-3 d-flex col-12 justify-content-center">
-            <button type="button" id="btnGuardarCotizacion" class="btn-general">Guardar cotización y generar PDF</button>
+            <button type="button" id="btnGuardarCotizacion" class="btn-general">Guardar cotización</button>
         </div>
     </section>
 </section>
@@ -304,22 +315,22 @@ if (!isset($_SESSION['id'])) {
             <div class="d-flex flex-column col-5">
                 <label for="">Materiales blandos:</label>
                 <ul>
-                    <li>H-ECOPUR</li>
-                    <li>ECOSIL</li>
-                    <li>ECORUBBER 1</li>
-                    <li>ECORUBBER 2</li>
-                    <li>ECORUBBER 3</li>
-                    <li>ECOPUR</li>
+                    <li>H-ECOPUR (PU ROJO)</li>
+                    <li>ECOSIL (RUBBER SILICON)</li>
+                    <li>ECORUBBER 1 (RUBBER NITRILO)</li>
+                    <li>ECORUBBER 2 (RUBBER VITON)</li>
+                    <li>ECORUBBER 3 (RUBBER EPDM)</li>
+                    <li>ECOPUR (PU VERDE)</li>
                 </ul>
             </div>
             <div class="d-flex flex-column col-5">
                 <label for="">Materiales duros:</label>
                 <ul>
-                    <li>ECOTAL</li>
-                    <li>ECOMID</li>
-                    <li>ECOFLON 1</li>
-                    <li>ECOFLON 2</li>
-                    <li>ECOFLON 3</li>
+                    <li>ECOTAL (PLASTIC ECOTAL)</li>
+                    <li>ECOMID (PLASTIC ECOMID)</li>
+                    <li>ECOFLON 1 (PTFE TEFLON VIRGEN)</li>
+                    <li>ECOFLON 2 (PTFE	NIKEL/MOLLY)</li>
+                    <li>ECOFLON 3 (PTFE BRONCE)</li>
                 </ul>
             </div>
 
@@ -349,6 +360,7 @@ $(document).ready(function(){
     //         console.error("Error al enviar la notificación: ", error);
     //     }
     // });
+
 });
 </script>
 </body>

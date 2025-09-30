@@ -37,6 +37,7 @@ $(document).ready(function() {
             "#containerCostoOperacionECOFLON1",
             "#containerCostoOperacionECOFLON2",
             "#containerCostoOperacionECOFLON3",
+            "#containerMultiploUtilidadCustom",
             "#containerMultiploUtilidadProveedores",
             "#containerMultiploUtilidadHECOPUR",
             "#containerMultiploUtilidadECOTAL",
@@ -108,6 +109,10 @@ $(document).ready(function() {
                 actualizarParametro("coECOFLON3");
                 break;
             // Multiplos de Utilidad
+            case "muc": 
+                $("#containerMultiploUtilidadCustom").removeClass("d-none");
+                actualizarParametro("muc");
+                break;
             case "mup": 
                 $("#containerMultiploUtilidadProveedores").removeClass("d-none");
                 actualizarParametro("mup");
@@ -198,7 +203,81 @@ $(document).ready(function() {
         } else if ($(this).hasClass("btn-tab-material")) {
             $(this).addClass("btn-tab-material-selected").removeClass("btn-tab-material");
         }
+        $("#containerInitial").addClass("d-none");
         let mostrarEste = $(this).data("mostrar");
         mostrarFormulario(mostrarEste);
+    });
+    // GUARDAR EL NUEVO PARAMETRO DE MULTIPLO DE UTILIDAD PERSONALIZADO
+    $("#btnGuardarNuevoParam").on("click", function(){
+        let inputProveedor = $("#inputProveedor").val();
+        let inputMaterial = $("#inputMaterial").val();
+        let inputMultiplo = $("#inputMultiplo").val();
+
+        // Validar que proveedor no este vacio
+        if (!inputProveedor) {
+            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un proveedor.", "none");
+            return;
+        }
+
+        // Validar que material no este vacio
+        if (!inputMaterial) {
+            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un material.", "none");
+            return;
+        }
+
+        // Validar multiplo: numero positivo con maximo 2 decimales
+        let regexMultiplo = /^[0-9]+(\.[0-9]{1,2})?$/;
+        if (!regexMultiplo.test(inputMultiplo) || parseFloat(inputMultiplo) <= 0) {
+            sweetAlertResponse("warning", "Advertencia", "El multiplo debe ser un numero positivo con maximo dos decimales.", "none");
+            return;
+        }
+
+        $(this).addClass("d-none");
+        $.ajax({
+            url: '../ajax/nuevo_multiplo_utilidad.php',
+            type: 'POST',
+            data: { 
+                proveedor: inputProveedor,
+                material: inputMaterial,
+                multiplo: inputMultiplo,
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al agregar el registro. " + error, "self");
+            }
+        });
+    });
+    // ELIMINAR PARAMETRO DE MULTIPLO DE UTILIDAD PERSONALIZADO
+    $(".eliminar-parametro").on("click", function(){
+        let parametro = $(this).data("eliminar");
+
+        $(this).addClass("d-none");
+        $.ajax({
+            url: '../ajax/eliminar_multiplo_utilidad.php',
+            type: 'POST',
+            data: { 
+                id: parametro
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al eliminar el registro. " + error, "self");
+            }
+        });
     });
 });

@@ -8,6 +8,7 @@ try {
     $di = $_GET['di'];
     $materialValue = "mu" . $_GET['materialValue'];
     $proveedorBillet = $_GET['proveedor'];
+    $personalizado =  $_GET['proveedor']."+".$_GET['materialValue'];
 
     // Consulta 1: multiplicador por material
     $stmt = $conn->prepare("SELECT valor 
@@ -29,6 +30,15 @@ try {
     $stmt->execute();
     $arregloSelectMultiploUtilidadProveedor = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    // Consulta 3: multiplicadores personalizados
+    $stmt = $conn->prepare("SELECT valor 
+                            FROM parametros2 
+                            WHERE descripcion = 'MultiplicadorUtilidadPersonalizado' 
+                            AND caso = :caso");
+    $stmt->bindParam(':caso', $personalizado);
+    $stmt->execute();
+    $arregloSelectMultiploUtilidadPersonalizado = $stmt->fetch(PDO::FETCH_ASSOC);
+
     // Extraer valores como float
     $valorMaterial = isset($arregloSelectMultiploUtilidadMaterial['valor']) 
         ? (float)$arregloSelectMultiploUtilidadMaterial['valor'] 
@@ -38,20 +48,31 @@ try {
         ? (float)$arregloSelectMultiploUtilidadProveedor['valor'] 
         : null;
 
-    // Comparar y decidir el menor
-    if ($valorMaterial !== null && $valorProveedor !== null) {
-        $menor = min($valorMaterial, $valorProveedor);
-    } elseif ($valorMaterial !== null) {
-        $menor = $valorMaterial;
-    } elseif ($valorProveedor !== null) {
-        $menor = $valorProveedor;
-    } else {
-        echo json_encode(['error' => 'No se encontraron valores validos']);
-        exit;
+    $valorPersonalizado = isset($arregloSelectMultiploUtilidadPersonalizado['valor']) 
+        ? (float)$arregloSelectMultiploUtilidadPersonalizado['valor'] 
+        : null;
+
+    // primero determinar si existe un multiplo de utilidad personalizado coincidente
+    if ($valorPersonalizado !== null) {
+        $multiploUtilidad = $valorPersonalizado;
+
+    }else{
+        // Comparar y decidir el menor
+        if ($valorMaterial !== null && $valorProveedor !== null) {
+            $menor = min($valorMaterial, $valorProveedor);
+        } elseif ($valorMaterial !== null) {
+            $menor = $valorMaterial;
+        } elseif ($valorProveedor !== null) {
+            $menor = $valorProveedor;
+        } else {
+            echo json_encode(['error' => 'No se encontraron valores validos']);
+            exit;
+        }
+        $multiploUtilidad = $menor;
     }
 
     // Retornar en formato JSON
-    $arregloSelectMultiploUtilidad = ['valor' => $menor];
+    $arregloSelectMultiploUtilidad = ['valor' => $multiploUtilidad];
     echo json_encode($arregloSelectMultiploUtilidad);
 
 } catch (PDOException $e) {

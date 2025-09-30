@@ -23,6 +23,7 @@ if (!isset($_SESSION['id'])) {
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/parametros_cotizador.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-formulario.css'); ?>">
+    <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
 
     <?php include(ROOT_PATH . 'includes/user_control.php'); 
           include(ROOT_PATH . 'includes/backend/parametros_cotizador.php'); 
@@ -63,6 +64,7 @@ if (!isset($_SESSION['id'])) {
                 <i id="iconArrowRight2" class="bi bi-caret-right align-content-center"></i>
             </div>
             <div id="containerMaterialsMU" class="container-materials d-none">
+                <button type="button" id="btnTabMultiplosUtilidadCustom" class="btn-tab-material" data-mostrar="muc">Personalizado</button>
                 <button type="button" id="btnTabMultiplosUtilidadProveedores" class="btn-tab-material" data-mostrar="mup">Proveedores</button>
                 <button type="button" id="btnTabMultiplosUtilidadHECOPUR" class="btn-tab-material" data-mostrar="muH-ECOPUR">H-ECOPUR</button>
                 <button type="button" id="btnTabMultiplosUtilidadECOTAL" class="btn-tab-material" data-mostrar="muECOTAL">ECOTAL</button>
@@ -86,6 +88,14 @@ if (!isset($_SESSION['id'])) {
         </div>
         
         <div id="containerFormsParametros" class="w-100 d-flex justify-content-start flex-column">
+            <div id="containerInitial" class="d-flex flex-column w-100 h-100 justify-content-center align-items-center">
+                <div class="mb-4">
+                    <h4>Seleccione una categoría de parametros en el menú</h4>
+                </div>
+                <div>
+                    <i class="bi bi-sliders2" style="font-size:150px;"></i>
+                </div>
+            </div>
             <div id="containerCostoOperacionHECOPUR" class="mb-5 px-5 d-none">
                 <div class="mb-4">
                     <h4>Costos de operación H-ECOPUR</h4>
@@ -383,6 +393,40 @@ if (!isset($_SESSION['id'])) {
                     </div>
                 </form>
             </div>
+            <div id="containerMultiploUtilidadCustom" class="mb-5 px-5 d-none">
+                <div class="mb-4">
+                    <h4>Multiplos de utilidad con Proveedor y Material</h4>
+                    <h5>Multiplo prioritario al cotizar</h5>
+                </div>
+                <form id="formMultiplosUtilidadCustom" action="" method="POST">
+                    <input type="hidden" name="formulario" value="muc">
+                    <?php foreach ($arregloMultiplosUtilidadCustom as $registro): ?>
+                        <div class="d-flex flex-row justify-content-evenly align-items-center">
+                            <div class="col-5">
+                                <button type="button" class="btn btn-danger eliminar-parametro mx-2" data-eliminar="<?= $registro['id']; ?>">
+                                    <i class="bi bi-trash3"></i></button>
+                                <label class="lbl-general">
+                                    <?= $registro['caso']; ?>
+                                </label>
+                            </div>
+                            <div class="col-2">
+                                <input class="input-text" type="number" min="0" step="0.01" 
+                                        name="valor[<?= $registro['id']; ?>]" 
+                                        value="<?= $registro['valor']; ?>" required>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                    <div class="d-flex col-12 justify-content-between mt-4">
+                        <div class="col-3 d-flex justify-content-between align-items-center" >
+                            <button id="btnNuevoParam" type="button" class="btn-general d-flex gap-2 justify-content-center align-items-center" 
+                            data-bs-toggle="modal" data-bs-target="#modalAgregarParam"><i class="bi bi-file-plus" style="font-size:24px;"></i>Nuevo</button>
+                        </div>
+                        <div class="col-3 d-flex justify-content-between" >
+                            <button type="submit" class="btn-general" data-target="guardar" >Guardar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>            
             <div id="containerMultiploUtilidadProveedores" class="mb-5 px-5 d-none">
                 <div class="mb-4">
                     <h4>Multiplos de utilidad por proveedor</h4>
@@ -901,5 +945,58 @@ if (!isset($_SESSION['id'])) {
     </div>
 </section>
 
+<!-- Modal para agregar nuevo parametro -->
+<div class="modal fade" id="modalAgregarParam" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">Agregar nuevo múltiplo de utilidad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">                       
+                    <div class="d-flex justify-content-between ">
+                        <div class="" style="width:48%;">
+                            <label for="inputProveedor" class="lbl-general">Proveedor</label>
+                            <select id="inputProveedor" class="selector" name="proveedor" required>
+                                <option selected disabled>Seleccionar</option>
+                                <option value="TRYGONAL">TRYGONAL</option>        
+                                <option value="SKF">SKF</option>
+                                <option value="CARVIFLON">CARVIFLON</option>
+                                <option value="SLM">SLM</option>    
+                            </select>
+                        </div>                      
+                        <div class="" style="width:48%;">
+                            <label for="inputMaterial" class="lbl-general">Material</label>
+                            <select id="inputMaterial" class="selector" name="material" required >
+                                <option disabled selected>Seleccionar</option>
+                                <option value="H-ECOPUR">H-ECOPUR</option>
+                                <option value="ECOSIL">ECOSIL</option>
+                                <option value="ECORUBBER 1">ECORUBBER 1</option>
+                                <option value="ECORUBBER 2">ECORUBBER 2</option>
+                                <option value="ECORUBBER 3">ECORUBBER 3</option>
+                                <option value="ECOPUR">ECOPUR</option>
+                                <option value="ECOTAL">ECOTAL</option>
+                                <option value="ECOMID">ECOMID</option>
+                                <option value="ECOFLON 1">ECOFLON 1</option>
+                                <option value="ECOFLON 2">ECOFLON 2</option>
+                                <option value="ECOFLON 3">ECOFLON 3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between ">
+                        <div style="width:48%;">
+                            <label for="inputMultiplo" class="lbl-general">Valor del multiplo</label>
+                            <input id="inputMultiplo" class="input-text" type="number" min="0" step="0.01" name="valor" required>
+                        </div>
+                        <div style="width:48%;">
+                        </div>
+                    </div>
+
+                    <button id="btnGuardarNuevoParam" type="button" class="btn-general">Guardar</button>
+            
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>

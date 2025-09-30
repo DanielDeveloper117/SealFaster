@@ -273,31 +273,31 @@ $(document).ready(function() {
     
     $("#overlay").addClass("d-none");
 
-        // Verificar si ya existe la preferencia en localStorage
-    if (!localStorage.getItem("FiltrosActualizados")) {
-        Swal.fire({
-            title: 'Actualizacion',
-            text: 'Filtros de busqueda actualizados. Nuevo filtro de carga por default de cotizaciones.',
-            icon: 'info',
-            confirmButtonText: 'Entendido',
-            width: '400px',
-            padding: '10px',
-            position: 'bottom-end',
-            toast: true,
-            showConfirmButton: true,
-            showCloseButton: false,
-            input: 'checkbox',
-            inputPlaceholder: 'No mostrar nuevamente',
-            inputAttributes: {
-            id: 'noMostrarCheckbox'
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                // Guardar preferencia en localStorage
-                localStorage.setItem("FiltrosActualizados", "1");
-            }
-        });
-    }
+    // Verificar si ya existe la preferencia en localStorage
+    // if (!localStorage.getItem("FiltrosActualizados")) {
+    //     Swal.fire({
+    //         title: 'Actualizacion',
+    //         text: 'Filtros de busqueda actualizados. Nuevo filtro de carga por default de cotizaciones.',
+    //         icon: 'info',
+    //         confirmButtonText: 'Entendido',
+    //         width: '400px',
+    //         padding: '10px',
+    //         position: 'bottom-end',
+    //         toast: true,
+    //         showConfirmButton: true,
+    //         showCloseButton: false,
+    //         input: 'checkbox',
+    //         inputPlaceholder: 'No mostrar nuevamente',
+    //         inputAttributes: {
+    //         id: 'noMostrarCheckbox'
+    //         }
+    //     }).then((result) => {
+    //         if (result.isConfirmed && result.value) {
+    //             // Guardar preferencia en localStorage
+    //             localStorage.setItem("FiltrosActualizados", "1");
+    //         }
+    //     });
+    // }
     
 
     // ************** EVENTOS DEL DOM **************
@@ -356,17 +356,17 @@ $(document).ready(function() {
             $('#filtro_fecha_inicio').focus();
             return false;
         }
-        $.ajax({
-            url: "../ajax/ajax_notificacion.php",
-            type: "POST",
-            data: { mensaje: "Filtros aplicados" },
-            success: function(response) {
-                console.log("Notificacion enviada: ", response);
-            },
-            error: function(error) {
-                console.error("Error al enviar la notificacion: ", error);
-            }
-        });
+        // $.ajax({
+        //     url: "../ajax/ajax_notificacion.php",
+        //     type: "POST",
+        //     data: { mensaje: "Filtros aplicados" },
+        //     success: function(response) {
+        //         console.log("Notificacion enviada: ", response);
+        //     },
+        //     error: function(error) {
+        //         console.error("Error al enviar la notificacion: ", error);
+        //     }
+        // });
     });
     // Limpiar formulario de filtros
     $('#btnLimpiarFormulario').on('click', function() {
@@ -403,17 +403,17 @@ $(document).ready(function() {
             alert("Selecciona una opción de formato.");
             return;
         }
-        $.ajax({
-            url: "../ajax/ajax_notificacion.php",
-            type: "POST",
-            data: { mensaje: "Generar cotizacion "+ valorSeleccionado},
-            success: function(response) {
-                console.log("Notificacion enviada: ", response);
-            },
-            error: function(error) {
-                console.error("Error al enviar la notificacion: ", error);
-            }
-        });
+        // $.ajax({
+        //     url: "../ajax/ajax_notificacion.php",
+        //     type: "POST",
+        //     data: { mensaje: "Generar cotizacion "+ valorSeleccionado},
+        //     success: function(response) {
+        //         console.log("Notificacion enviada: ", response);
+        //     },
+        //     error: function(error) {
+        //         console.error("Error al enviar la notificacion: ", error);
+        //     }
+        // });
 
         this.submit();
     });
