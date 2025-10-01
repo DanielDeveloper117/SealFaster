@@ -1191,7 +1191,7 @@ $(document).ready(function() {
                 img.src = imagenUrl;
             
                 img.onload = function () {
-                    $(`#sectionContainerMaterial_m${i}`).removeClass("d-none");
+                    $(`#sectionContainerMaterial_m${i}, #imagenMaterialTabla_m${i}`).removeClass("d-none");
                     $(`#imagenMaterialTabla_m${i}`).attr("src", imagenUrl);
                     $(`#seraEnviado_m${i}`).val("si");
                 };
@@ -1854,7 +1854,7 @@ $(document).ready(function() {
         //$("#btnPrevisualizar").removeClass("d-none");
 
         // Mostrar total con animación
-        $("#inputTotalCotizacion").addClass("glow-effect");
+        $("#inputTotalCotizacion, #inputTotalCotizacion2").addClass("glow-effect");
         setTimeout(() => {
             $("#btnPrevisualizar").trigger("click");
         }, 200);

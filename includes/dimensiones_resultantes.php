@@ -10,7 +10,7 @@
                 <div class="d-flex flex-column">
                     <div class="d-flex col-12 flex-column justify-content-between mt-4" >
                         
-                            <!-- <label for="selectorTipoMedida" class="form-label">Tipo de medida indicada por el cliente</label>
+                            <!-- <label for="selectorTipoMedida" class="label-estimador">Tipo de medida indicada por el cliente</label>
                             <select id="selectorTipoMedida" class="form-select" required disabled>
                                 <option value="" disabled selected>Seleccione el tipo de medida</option>
                                 <option value="Sello">Sello</option>
@@ -21,14 +21,14 @@
 
                             <div class="d-flex gap-2 flex-column col-12 col-md-3 justify-content-between align-items-center">
                                 <div class="d-flex flex-column col-12 align-items-center">
-                                    <h5 class="form-label">Diámetro Interior (DI)</h5>
+                                    <h5 class="label-estimador">Diámetro Interior (DI)</h5>
                                     <div class="img-dimensions" style="height:auto;width:30%;">
                                         <img src="<?= $imageDirFamilyDI ?>" class="img-fluid" alt="">
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaDI" for="selectorTipoMedidaDI" class="form-label">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaDI" for="selectorTipoMedidaDI" class="label-estimador">Tipo de medida</label>
                                         <select id="selectorTipoMedidaDI" class="" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>
@@ -38,9 +38,9 @@
                                      
                                     </div>
                                     <div class="d-flex flex-column col-12">
-                                        <label for="diametro_interior_mm_cliente" class="form-label">Milimetros (mm) *</label>
+                                        <label for="diametro_interior_mm_cliente" class="label-estimador">Milimetros (mm) *</label>
                                         <input type="number" id="diametro_interior_mm_cliente" class="input-estimador" step="0.01" min="0"  name="diametro_interior_mm"  required disabled placeholder="">
-                                        <label for="diametro_interior_inch_cliente" class="form-label mt-2">Pulgadas (inches) *</label>
+                                        <label for="diametro_interior_inch_cliente" class="label-estimador mt-2">Pulgadas (inches) *</label>
                                         <input type="number" id="diametro_interior_inch_cliente" class="input-estimador" step="0.0001" min="0"  name="diametro_interior_inch" required disabled placeholder="">
                                     </div>
                                 </div>
@@ -48,14 +48,14 @@
                                                     
                             <div id="containerDE" class="d-flex gap-2 flex-column col-12 col-md-3 justify-content-between align-items-center">
                                 <div class="d-flex flex-column col-12 align-items-center">
-                                    <h5 class="form-label">Diámetro Exterior (DE)</h5>
+                                    <h5 class="label-estimador">Diámetro Exterior (DE)</h5>
                                     <div class="img-dimensions" style="height:auto;width:30%;">
                                         <img src="<?= $imageDirFamilyDE ?>" class="img-fluid" alt="">
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaDE" for="selectorTipoMedidaDE" class="form-label">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaDE" for="selectorTipoMedidaDE" class="label-estimador">Tipo de medida</label>
                                         <select id="selectorTipoMedidaDE" class="form-select" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>
@@ -64,9 +64,9 @@
                                         </select>
                                     </div>
                                     <div class="d-flex flex-column col-12">
-                                        <label for="diametro_exterior_mm_cliente" class="form-label">Milimetros (mm) *</label>
+                                        <label for="diametro_exterior_mm_cliente" class="label-estimador">Milimetros (mm) *</label>
                                         <input type="number" id="diametro_exterior_mm_cliente"step="0.01" min="0" class="input-estimador" name="diametro_exterior_mm" required disabled placeholder="">
-                                        <label for="diametro_exterior_inch_cliente" class="form-label mt-2">Pulgadas (inches) *</label>
+                                        <label for="diametro_exterior_inch_cliente" class="label-estimador mt-2">Pulgadas (inches) *</label>
                                         <input type="number" id="diametro_exterior_inch_cliente" step="0.0001" min="0" class="input-estimador" name="diametro_exterior_inch" required disabled placeholder="">
                                     </div>
                                 </div>
@@ -74,14 +74,14 @@
 
                             <div class="d-flex gap-2 flex-column col-12 col-md-3 justify-content-between align-items-center">
                                 <div class="d-flex flex-column col-12 align-items-center">
-                                    <h5 class="form-label" id="labelAlturaMM_cliente">Altura (H)</h5>
+                                    <h5 class="label-estimador" id="labelAlturaMM_cliente">Altura (H)</h5>
                                     <div class="img-dimensions" style="height:auto;width:30%;">
                                         <img src="<?= $imageDirFamilyH ?>" class="img-fluid" alt="">
                                     </div>
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">    
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaH" for="selectorTipoMedidaH" class="form-label">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaH" for="selectorTipoMedidaH" class="label-estimador">Tipo de medida</label>
                                         <select id="selectorTipoMedidaH" class="form-select" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>
@@ -90,9 +90,9 @@
                                         </select>
                                     </div>
                                     <div class="d-flex flex-column col-12">
-                                        <label for="altura_mm_cliente"  class="form-label">Milimetros (mm) *</label>
+                                        <label for="altura_mm_cliente"  class="label-estimador">Milimetros (mm) *</label>
                                         <input type="number" id="altura_mm_cliente" class="input-estimador" step="0.01" min="0" name="altura_mm" required disabled placeholder="">
-                                        <label for="altura_inch_cliente" class="form-label mt-2">Pulgadas (inches) *</label>
+                                        <label for="altura_inch_cliente" class="label-estimador mt-2">Pulgadas (inches) *</label>
                                         <input type="number" id="altura_inch_cliente" class="input-estimador" step="0.0001" min="0"  name="altura_inch" required disabled placeholder="">
                                     </div>
                                 </div>
@@ -112,7 +112,7 @@
 
                     <div class="d-none col-12 flex-column justify-content-between mt-1" >
                         <div class=" mb-3">
-                            <h5 id="lblMedidaSecundaria" class="form-label">Medida secundaria</h5>
+                            <h5 id="lblMedidaSecundaria" class="label-estimador">Medida secundaria</h5>
                         </div>                        
                         <div class="col-12 col-md-12 d-flex flex-column flex-md-row  gap-4 justify-content-between">
                             <div class="d-flex gap-2 justify-content-between align-items-center">
@@ -120,9 +120,9 @@
                                     <img src="<?= $imageDirFamilyDI ?>" class="img-fluid" alt="">
                                 </div>
                                 <div class="d-flex flex-column col-8">
-                                    <label for="diametro_interior_mm_cliente2" class="form-label">Diámetro Interior (mm)</label>
+                                    <label for="diametro_interior_mm_cliente2" class="label-estimador">Diámetro Interior (mm)</label>
                                     <input type="number" id="diametro_interior_mm_cliente2" class="input-estimador" step="0.01" min="0"  name="diametro_interior_mm"  required disabled placeholder="">
-                                    <label for="diametro_interior_inch_cliente2" class="form-label mt-2">Diámetro Interior (inches)</label>
+                                    <label for="diametro_interior_inch_cliente2" class="label-estimador mt-2">Diámetro Interior (inches)</label>
                                     <input type="number" id="diametro_interior_inch_cliente2" class="input-estimador" step="0.0001" min="0"  name="diametro_interior_inch" required disabled placeholder="">
                                 </div>
                             </div>                            
@@ -131,9 +131,9 @@
                                     <img src="<?= $imageDirFamilyDE ?>" class="img-fluid" alt="">
                                 </div>
                                 <div class="d-flex flex-column col-8">
-                                    <label for="diametro_exterior_mm_cliente2" class="form-label">Diámetro Exterior (mm)</label>
+                                    <label for="diametro_exterior_mm_cliente2" class="label-estimador">Diámetro Exterior (mm)</label>
                                     <input type="number" id="diametro_exterior_mm_cliente2"step="0.01" min="0" class="input-estimador" name="diametro_exterior_mm" required disabled placeholder="">
-                                    <label for="diametro_exterior_inch_cliente2" class="form-label mt-2">Diámetro Exterior (inches)</label>
+                                    <label for="diametro_exterior_inch_cliente2" class="label-estimador mt-2">Diámetro Exterior (inches)</label>
                                     <input type="number" id="diametro_exterior_inch_cliente2" step="0.0001" min="0" class="input-estimador" name="diametro_exterior_inch" required disabled placeholder="">
                                 </div>
                             </div>
@@ -142,9 +142,9 @@
                                     <img src="<?= $imageDirFamilyH ?>" class="img-fluid" alt="">
                                 </div>
                                 <div class="d-flex flex-column col-8">
-                                    <label for="altura_mm_cliente2" id="labelAlturaMM_cliente2" class="form-label">Altura (mm)</label>
+                                    <label for="altura_mm_cliente2" id="labelAlturaMM_cliente2" class="label-estimador">Altura (mm)</label>
                                     <input type="number" id="altura_mm_cliente2" class="input-estimador" step="0.01" min="0" name="altura_mm" required disabled placeholder="">
-                                    <label for="altura_inch_cliente2" id="labelAlturaInch_cliente2" class="form-label mt-2">Altura (inches)</label>
+                                    <label for="altura_inch_cliente2" id="labelAlturaInch_cliente2" class="label-estimador mt-2">Altura (inches)</label>
                                     <input type="number" id="altura_inch_cliente2" class="input-estimador" step="0.0001" min="0"  name="altura_inch" required disabled placeholder="">
                                 </div>
                                 
@@ -179,27 +179,27 @@
                 <div class="d-flex col-12 flex-column justify-content-between" >
                     <div class="col-12 col-md-12 d-flex flex-column flex-md-row gap-4 justify-content-center">
                         <div id="divAlturaCaja" class="d-flex flex-column d-none">
-                            <label for="inputAlturaCaja" id="labelAlturaCajaMM" class="form-label mt-3">Altura de caja (mm)</label>
+                            <label for="inputAlturaCaja" id="labelAlturaCajaMM" class="label-estimador mt-3">Altura de caja (mm)</label>
                             <input type="number" id="inputAlturaCaja" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaCajaInch" id="labelAlturaCajaInch" class="form-label mt-2">Altura de caja (inches)</label>
+                            <label for="inputAlturaCajaInch" id="labelAlturaCajaInch" class="label-estimador mt-2">Altura de caja (inches)</label>
                             <input type="number" id="inputAlturaCajaInch" class="input-estimador" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaEscalon" class="d-flex flex-column d-none">
-                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="form-label mt-3">Altura escalon (mm)</label>
+                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="label-estimador mt-3">Altura escalon (mm)</label>
                             <input type="number" id="inputAlturaEscalon" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="form-label mt-2">Altura escalon (inches)</label>
+                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="label-estimador mt-2">Altura escalon (inches)</label>
                             <input type="number" id="inputAlturaEscalonInch" class="input-estimador" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH2" class="d-flex flex-column d-none">
-                            <label for="inputAlturaH2" id="labelAlturaH2MM" class="form-label mt-3">Altura H2 (mm)</label>
+                            <label for="inputAlturaH2" id="labelAlturaH2MM" class="label-estimador mt-3">Altura H2 (mm)</label>
                             <input type="number" id="inputAlturaH2" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaH2Inch" id="labelAlturaH2Inch" class="form-label mt-2">Altura H2 (inches)</label>
+                            <label for="inputAlturaH2Inch" id="labelAlturaH2Inch" class="label-estimador mt-2">Altura H2 (inches)</label>
                             <input type="number" id="inputAlturaH2Inch" class="input-estimador" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH3" class="d-flex flex-column d-none">
-                            <label for="inputAlturaH3" id="labelAlturaH3MM" class="form-label mt-3">Altura H3 (mm)</label>
+                            <label for="inputAlturaH3" id="labelAlturaH3MM" class="label-estimador mt-3">Altura H3 (mm)</label>
                             <input type="number" id="inputAlturaH3" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaH3Inch" id="labelAlturaH3Inch" class="form-label mt-2">Altura H3 (inches)</label>
+                            <label for="inputAlturaH3Inch" id="labelAlturaH3Inch" class="label-estimador mt-2">Altura H3 (inches)</label>
                             <input type="number" id="inputAlturaH3Inch" class="input-estimador" step="0.0001" min="0" required placeholder="">
                         </div>
                     </div>

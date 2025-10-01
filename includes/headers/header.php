@@ -1,8 +1,6 @@
 <?php
     include(ROOT_PATH . 'includes/backend_info_user.php');
-
 ?>
-<!-- USUARIO CNC -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="<?= controlCache('../assets/css/menu.css'); ?>">
 <script src="<?= controlCache('../assets/js/menu.js'); ?>"></script>
@@ -102,10 +100,10 @@
     <div class="user-menu">
         <i class="bi bi-person-circle" id="userIcon"></i>
         <div id="userDropdown">
-        <span><?= htmlspecialchars($nombreUser); ?></span>
-        <a href="../modules/configuracion.php">Mi cuenta</a>
-        <a href="../modules/configuracion.php#config">Configuración</a>
-        <a href="../auth/cerrar_sesion.php" class="logout">Cerrar sesión</a>
+            <span><?= htmlspecialchars($nombreUser); ?></span>
+            <a href="../modules/configuracion.php">Mi cuenta</a>
+            <a href="../modules/configuracion.php#config">Configuración</a>
+            <a href="../auth/cerrar_sesion.php" class="logout">Cerrar sesión</a>
         </div>
     </div>
     </nav>

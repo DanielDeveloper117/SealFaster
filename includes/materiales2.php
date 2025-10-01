@@ -49,21 +49,21 @@
                             <div class="col-12 col-md-4 d-flex flex-column">
                                 
                                 <div class="mb-2">
-                                    <label for="selectorMaterial_m<?= $i ?>" class="form-label">Material</label>
+                                    <label for="selectorMaterial_m<?= $i ?>" class="label-estimador">Material</label>
                                     <select id="selectorMaterial_m<?= $i ?>" class="" name="material" required>
                                         <option value="" disabled selected>Seleccione un material</option>
                                     </select>
                                 </div>
 
                                 <div class="mb-2 d-none">
-                                    <label for="selectorProveedor_m<?= $i ?>" class="form-label">Proveedor</label>
+                                    <label for="selectorProveedor_m<?= $i ?>" class="label-estimador">Proveedor</label>
                                     <select id="selectorProveedor_m<?= $i ?>" class="" name="proveedor" required disabled>
                                         <option value="" disabled selected>Seleccione un proveedor</option>
                                     </select>
                                 </div>
                                 
                                 <div class="d-flex flex-column mb-4">
-                                    <label for="inputCantidad_m<?= $i ?>" class="form-label">Cantidad</label>
+                                    <label for="inputCantidad_m<?= $i ?>" class="label-estimador">Cantidad</label>
                                     <input id="inputCantidad_m<?= $i ?>" type="number" class="input-estimador" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
                                 </div>
 
@@ -74,7 +74,7 @@
 
                             <div class="col-12 col-md-6 d-flex flex-column">
                                 <div class="d-flex flex-column align-items-start" style="height:100%;">
-                                    <label for="btnBillets_m<?= $i ?>" class="form-label">Seleccionar claves de Billet</label>
+                                    <label for="btnBillets_m<?= $i ?>" class="label-estimador">Seleccionar claves de Billet</label>
                                     <button id="btnBillets_m<?= $i ?>" type="button" class="btn-disabled mb-2" data-bs-toggle="modal" data-bs-target="#modalBillets_m<?= $i ?>" disabled>Ver billets disponibles</button>
                                     <!-- <span>Desbaste añadido por pieza: 2.5 mm</span> -->
                                     <div class="d-flex flex-column">

@@ -41,9 +41,9 @@
                                         <img src="<?= $imageDirFamilyDI ?>" class="img-fluid" alt="">
                                     </div>
                                     <div class="d-flex flex-column col-8">
-                                        <label for="diametro_interior_mm_m<?= $i ?>" class="form-label">Diámetro Interior (mm)</label>
+                                        <label for="diametro_interior_mm_m<?= $i ?>" class="label-estimador">Diámetro Interior (mm)</label>
                                         <input type="number" id="diametro_interior_mm_m<?= $i ?>" class="input-estimador" step="0.01" min="0"  name="diametro_interior_mm"  required  placeholder="Ingrese las dimensiones">
-                                        <label for="diametro_interior_inch_m<?= $i ?>" class="form-label mt-2">Diámetro Interior (inches)</label>
+                                        <label for="diametro_interior_inch_m<?= $i ?>" class="label-estimador mt-2">Diámetro Interior (inches)</label>
                                         <input type="number" id="diametro_interior_inch_m<?= $i ?>" class="input-estimador" step="0.0001" min="0"  name="diametro_interior_inch" required  placeholder="Ingrese las dimensiones">
                                     </div>
                                 </div>
@@ -52,9 +52,9 @@
                                         <img src="<?= $imageDirFamilyDE ?>" class="img-fluid" alt="">
                                     </div>
                                     <div class="d-flex flex-column col-8">
-                                        <label for="diametro_exterior_mm_m<?= $i ?>" class="form-label">Diámetro Exterior (mm)</label>
+                                        <label for="diametro_exterior_mm_m<?= $i ?>" class="label-estimador">Diámetro Exterior (mm)</label>
                                         <input type="number" id="diametro_exterior_mm_m<?= $i ?>"step="0.01" min="0" class="input-estimador" name="diametro_exterior_mm" required  placeholder="Ingrese las dimensiones">
-                                        <label for="diametro_exterior_inch_m<?= $i ?>" class="form-label mt-2">Diámetro Exterior (inches)</label>
+                                        <label for="diametro_exterior_inch_m<?= $i ?>" class="label-estimador mt-2">Diámetro Exterior (inches)</label>
                                         <input type="number" id="diametro_exterior_inch_m<?= $i ?>" step="0.0001" min="0" class="input-estimador" name="diametro_exterior_inch" required  placeholder="Ingrese las dimensiones">
                                     </div>
                                 </div> 
@@ -64,9 +64,9 @@
                                     </div>
                                     <div class="d-flex flex-column col-8">
                                     
-                                        <label for="altura_mm_m<?= $i ?>" id="labelAlturaMM_m<?= $i ?>" class="form-label">Altura (mm)</label>
+                                        <label for="altura_mm_m<?= $i ?>" id="labelAlturaMM_m<?= $i ?>" class="label-estimador">Altura (mm)</label>
                                         <input type="number" id="altura_mm_m<?= $i ?>" class="input-estimador" step="0.01" min="0" name="altura_mm" required placeholder="Ingrese las dimensiones">
-                                        <label for="altura_inch_m<?= $i ?>" id="labelAlturaInch_m<?= $i ?>" class="form-label mt-2">Altura (inches)</label>
+                                        <label for="altura_inch_m<?= $i ?>" id="labelAlturaInch_m<?= $i ?>" class="label-estimador mt-2">Altura (inches)</label>
                                         <input type="number" id="altura_inch_m<?= $i ?>" class="input-estimador" step="0.0001" min="0"  name="altura_inch" required placeholder="Ingrese las dimensiones">
 
                                     </div>
@@ -77,21 +77,21 @@
                             <div class="col-12 col-md-6 d-flex flex-column">
                                 
                                 <div class="mb-2">
-                                    <label for="selectorMaterial_m<?= $i ?>" class="form-label">Material</label>
+                                    <label for="selectorMaterial_m<?= $i ?>" class="label-estimador">Material</label>
                                     <select id="selectorMaterial_m<?= $i ?>" class="" name="material" required>
                                         <option value="" disabled selected>Seleccione un material</option>
                                     </select>
                                 </div>
 
                                 <div class="mb-2">
-                                    <label for="selectorProveedor_m<?= $i ?>" class="form-label">Proveedor</label>
+                                    <label for="selectorProveedor_m<?= $i ?>" class="label-estimador">Proveedor</label>
                                     <select id="selectorProveedor_m<?= $i ?>" class="" name="proveedor" required disabled>
                                         <option value="" disabled selected>Seleccione un proveedor</option>
                                     </select>
                                 </div>
                                 
                                 <div class="d-flex flex-column mb-4">
-                                    <label for="inputCantidad_m<?= $i ?>" class="form-label">Cantidad</label>
+                                    <label for="inputCantidad_m<?= $i ?>" class="label-estimador">Cantidad</label>
                                     <input id="inputCantidad_m<?= $i ?>" type="number" class="input-estimador" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
                                 </div>
 
@@ -100,7 +100,7 @@
                                 </div>
 
                                 <div class="d-flex flex-column align-items-start" style="height:100%;">
-                                    <label for="btnBillets_m<?= $i ?>" class="form-label">Seleccionar claves de Billet</label>
+                                    <label for="btnBillets_m<?= $i ?>" class="label-estimador">Seleccionar claves de Billet</label>
                                     <button id="btnBillets_m<?= $i ?>" type="button" class="btn-disabled mb-2" data-bs-toggle="modal" data-bs-target="#modalBillets_m<?= $i ?>" disabled>Ver billets disponibles</button>
                                     <!-- <span>Desbaste añadido por pieza: 2.5 mm</span> -->
                                     <div class="d-flex flex-column">
@@ -164,30 +164,30 @@
                                 </div> 
 
                                 <div class="d-flex dis-none flex-column">
-                                    <label for="precioBarra_m<?= $i ?>" class="form-label">Total costo de barra(s)</label>
+                                    <label for="precioBarra_m<?= $i ?>" class="label-estimador">Total costo de barra(s)</label>
                                     <input type="number" id="precioBarra_m<?= $i ?>" class="input-estimador" value="" name="precio_barra" step="0.01" min="0" placeholder="Calculo de costos de barra pendiente">
                                 </div>
 
                                 <div class="d-flex dis-none flex-column mt-3">
-                                    <label for="inputCostoMinimoUnidad_m<?= $i ?>" class="form-label">Costo mínimo de la unidad</label>
+                                    <label for="inputCostoMinimoUnidad_m<?= $i ?>" class="label-estimador">Costo mínimo de la unidad</label>
                                     <input type="number" id="inputCostoMinimoUnidad_m<?= $i ?>" class="input-estimador" value="" name="costo_minimo_unidad">
                                 </div>
 
                                 <div class="d-flex dis-none flex-column mt-3">
-                                    <label for="inputCostoOperacion_m<?= $i ?>" class="form-label">Costo de operación</label>
+                                    <label for="inputCostoOperacion_m<?= $i ?>" class="label-estimador">Costo de operación</label>
                                     <input type="number" id="inputCostoOperacion_m<?= $i ?>" class="input-estimador" value="" name="costo_operacion" step="0.01" min="0" placeholder="Intente con otra clave">
                                 </div>
 
                                 <div class="d-flex dis-none flex-column mt-3">
-                                    <label for="inputCostoHerramienta_m<?= $i ?>" class="form-label">Costo de herramienta</label>
+                                    <label for="inputCostoHerramienta_m<?= $i ?>" class="label-estimador">Costo de herramienta</label>
                                     <input type="number" id="inputCostoHerramienta_m<?= $i ?>" class="input-estimador" value="" name="costo_herramienta" step="0.01" min="0" placeholder="Intente con otra clave">
                                 </div>
                                 <div class="d-flex dis-none flex-column mt-3">
-                                    <label for="inputCostoPreparacionDI_m<?= $i ?>" class="form-label">Costo de preparacion DI de barra</label>
+                                    <label for="inputCostoPreparacionDI_m<?= $i ?>" class="label-estimador">Costo de preparacion DI de barra</label>
                                     <input type="number" id="inputCostoPreparacionDI_m<?= $i ?>" class="input-estimador" value="" name="costo_preparacion_di_barra" step="0.01" min="0" placeholder="Intente con otra clave">
                                 </div>
                                 <div class="d-flex dis-none flex-column mt-3">
-                                    <label for="inputCostoResorte_m<?= $i ?>" class="form-label">Costo por resorte metalico</label>
+                                    <label for="inputCostoResorte_m<?= $i ?>" class="label-estimador">Costo por resorte metalico</label>
                                     <input type="number" id="inputCostoResorte_m<?= $i ?>" class="input-estimador" value="" name="costo_resorte" step="0.01" min="0" placeholder="No aplica">
                                 </div>
 

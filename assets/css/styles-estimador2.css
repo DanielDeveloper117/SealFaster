@@ -1,7 +1,7 @@
 #containerSections{
   margin: 30px; 
-              padding: 2rem 0;
-            position: relative;
+  padding: 2rem 0;
+  position: relative;
 }
 .section-container{
   border-radius: 10px;
@@ -9,15 +9,14 @@
   width: 100%;
   border-bottom: 2px solid #55ad9b85;
   background-color: #fff; 
-             background: var(--glass-bg);
-            
-            border-radius: 20px;
-            border: 1px solid var(--border-color);
-            box-shadow: 
-                0 20px 40px var(--shadow-color),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            padding: 2%; 
-color: var(--text-primary);
+  background: var(--glass-bg);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: 
+      0 20px 40px var(--shadow-color),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  padding: 2%; 
+  color: var(--text-primary);
 
 }
 .img-dimensions2{
@@ -27,18 +26,18 @@ color: var(--text-primary);
 .controles{ 
   padding: 1%;
   height: auto;
-            background: var(--glass-bg);
-           
-            border-radius: 20px;
-            border: 1px solid var(--glow-color);
-            padding: 2rem;
-            box-shadow: 
-                0 15px 35px var(--shadow-color),
-                inset 0 1px 0 rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-            animation: containerFloat 6s ease-in-out infinite;
-            color: var(--text-primary);
+  background: var(--glass-bg);
+  
+  border-radius: 20px;
+  border: 1px solid var(--glow-color);
+  padding: 2rem;
+  box-shadow: 
+      0 15px 35px var(--shadow-color),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+  animation: containerFloat 6s ease-in-out infinite;
+  color: var(--text-primary);
 }
 @media screen and (max-width: 780px) {
   section{
@@ -71,7 +70,7 @@ a{
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 .img-dimensions img{
-    border-radius: 10px;
+  border-radius: 10px;
 }
 .border-gray{
   /* border-radius: 10px;
@@ -306,7 +305,9 @@ label{
     background-color: #3657c4 !important;
     box-shadow: 0 4px 8px #0f38bd;
 }
-
+h4,h5{
+  color: #55AD9B;
+}
 .h4-iva{
   margin:0px;
 }
@@ -383,7 +384,6 @@ label{
     }
     h4,h5{
       color: #55AD9B;
-
     }
     .h4-iva{
       color: #212529 !important;

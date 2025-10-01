@@ -142,7 +142,7 @@ if (!isset($_SESSION['id'])) {
 <section id="containerSections" class="d-flex flex-column">
     <section id="sectionSelectorCM" class="section-container d-none">
         <div class="mb-3">
-            <h4 for="selectorCantidadMateriales" class="form-label">Cantidad de materiales</h4>
+            <h4 for="selectorCantidadMateriales" class="label-estimador">Cantidad de materiales</h4>
             <select id="selectorCantidadMateriales" class="form-select" name="cantidad_materiales" style="font-size: 18px;">
                 <option value="" disabled selected>Seleccione una cantidad</option>
                 <option value="1">1</option>
@@ -180,13 +180,12 @@ if (!isset($_SESSION['id'])) {
                 <div class="col-11 col-md-11 flex-column">
 
                     <h5 class="mb-3">Dureza de materiales</h5>
-                    
-                        <select id="selectorDurezaMateriales" class="" name="material" required>
-                            <option value="" disabled selected>Seleccione una opcion</option>
-                            <option value="blandos">Materiales blandos</option>
-                            <option value="duros">Materiales duros</option>
-                            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-                        </select>
+                    <select id="selectorDurezaMateriales" class="" name="material" required>
+                        <option value="" disabled selected>Seleccione una opcion</option>
+                        <option value="blandos">Materiales blandos</option>
+                        <option value="duros">Materiales duros</option>
+                        <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                    </select>
                    
                 </div>
                 <div class="align-self-end">
@@ -251,7 +250,7 @@ if (!isset($_SESSION['id'])) {
         <div class="mb-3 d-flex col-12 justify-content-start <?= ($tipoUsuario == 5) ? 'd-none' : '' ?>">
             <div class="d-flex col-12 col-md-5 flex-column mt-3">
                 <?php include(ROOT_PATH . 'includes/backend_info_user.php'); ?>
-                <label for="inputVendedor" class="form-label">Nombre del vendedor</label>
+                <label for="inputVendedor" class="label-estimador">Nombre del vendedor</label>
                 <input id="inputVendedor" type="text" class="input-estimador" value="<?= $nombreUser ?>" required readonly tabindex="-1">
             </div>
         </div>
@@ -277,13 +276,13 @@ if (!isset($_SESSION['id'])) {
         <div class="mb-3 d-flex col-12 flex-column flex-md-row justify-content-between">
             <div class="d-flex flex-column col-md-8">
                 <div class="d-flex">
-                    <img id="imagenMaterialTabla_m1" class="col-4 img-sello-tabla" src="../assets/img/general/blanco.jpg" alt="">
-                    <img id="imagenMaterialTabla_m2" class="col-4 img-sello-tabla" src="../assets/img/general/blanco.jpg" alt="">
-                    <img id="imagenMaterialTabla_m3" class="col-4 img-sello-tabla" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m2" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m1" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m3" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                 </div>
                 <div class="d-flex">
-                    <img id="imagenMaterialTabla_m4" class="col-4 img-sello-tabla" src="../assets/img/general/blanco.jpg" alt="">
-                    <img id="imagenMaterialTabla_m5" class="col-4 img-sello-tabla" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m4" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m5" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                 </div>
             </div>
             <div class="d-flex flex-column col-md-4 ps-3">

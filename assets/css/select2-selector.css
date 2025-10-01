@@ -2,7 +2,7 @@
 
 /* Contenedor principal del selector */
 .select2-container {
-    font-size: 16px;
+    font-size: 15px;
     position: relative;
     display: inline-block;
     vertical-align: middle;
@@ -29,7 +29,7 @@
     padding: 0 20px 0 20px !important;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 15px;
 }
 
 /* Hover del campo principal */
@@ -245,7 +245,7 @@
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media screen and (max-width: 991px) {
     .select2-container--default .select2-selection--single {
         height: 45px !important;
         line-height: 43px !important;
@@ -254,7 +254,7 @@
     
     .select2-container--default .select2-search--dropdown .select2-search__field {
         height: 38px !important;
-        font-size: 14px !important;
+        font-size: 15px !important;
     }
 }
 
@@ -294,7 +294,116 @@
     50% { transform: scale(1.02); }
     100% { transform: scale(1); }
 }
+/* === ESTILOS PARA SELECT2 DISABLED === */
 
+/* Selector deshabilitado */
+.select2-container--default.select2-container--disabled .select2-selection--single {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: 
+        0 4px 16px var(--shadow-color),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    pointer-events: none !important;
+}
+
+/* Texto en selector deshabilitado */
+.select2-container--default.select2-container--disabled .select2-selection--single .select2-selection__rendered {
+    color: var(--text-secondary) !important;
+    opacity: 0.7;
+}
+
+/* Placeholder en selector deshabilitado */
+.select2-container--default.select2-container--disabled .select2-selection--single .select2-selection__placeholder {
+    color: var(--text-secondary) !important;
+    opacity: 0.5;
+}
+
+/* Flecha en selector deshabilitado */
+.select2-container--default.select2-container--disabled .select2-selection--single .select2-selection__arrow b:after {
+    border-right-color: var(--text-secondary) !important;
+    border-bottom-color: var(--text-secondary) !important;
+    opacity: 0.5;
+}
+
+/* Hover deshabilitado - eliminar efectos */
+.select2-container--default.select2-container--disabled .select2-selection--single:hover {
+    border-color: var(--border-color) !important;
+    box-shadow: 
+        0 4px 16px var(--shadow-color),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transform: none !important;
+}
+
+/* Focus deshabilitado - eliminar efectos */
+.select2-container--default.select2-container--disabled.select2-container--focus .select2-selection--single,
+.select2-container--default.select2-container--disabled.select2-container--open .select2-selection--single {
+    border-color: var(--border-color) !important;
+    box-shadow: 
+        0 4px 16px var(--shadow-color),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    transform: none !important;
+}
+
+/* Dropdown deshabilitado - evitar que se abra */
+.select2-container--default.select2-container--disabled .select2-selection--single {
+    pointer-events: none !important;
+}
+
+/* Contenedor deshabilitado */
+.select2-container--default.select2-container--disabled {
+    pointer-events: none !important;
+    opacity: 0.7;
+}
+
+/* Estilos para el select nativo cuando está deshabilitado */
+select:disabled ~ .select2-container--default .select2-selection--single {
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-secondary) !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Estados de validación para selectores deshabilitados */
+.select2-container--default.select2-container--disabled.is-valid .select2-selection--single {
+    border-color: rgba(40, 167, 69, 0.5) !important;
+    box-shadow: 
+        0 4px 16px rgba(40, 167, 69, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+.select2-container--default.select2-container--disabled.is-invalid .select2-selection--single {
+    border-color: rgba(220, 53, 69, 0.5) !important;
+    box-shadow: 
+        0 4px 16px rgba(220, 53, 69, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Loading state para selectores deshabilitados */
+.select2-container--default.select2-container--disabled .select2-selection--single.select2-loading:after {
+    border: 2px solid var(--text-secondary);
+    border-top: 2px solid var(--text-secondary);
+    opacity: 0.5;
+}
+
+/* Confirmación para selectores deshabilitados */
+.select2-container--default.select2-container--disabled.selection-confirmed .select2-selection--single {
+    background: rgba(108, 92, 231, 0.5) !important;
+    color: rgba(255, 255, 255, 0.8) !important;
+    animation: none;
+}
+
+/* Responsive para estados deshabilitados */
+@media screen and (max-width: 991px) {
+    .select2-container--default.select2-container--disabled .select2-selection--single {
+        height: 45px !important;
+        line-height: 43px !important;
+    }
+}
 /* === ESTILOS INPUT ESTIMADOR PERSONALIZADOS === */
 
 /* Input principal */
@@ -308,7 +417,7 @@
         inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
     color: var(--text-primary) !important;
     font-weight: 500;
-    font-size: 16px;
+    font-size: 15px;
     height: 50px !important;
     line-height: 48px !important;
     padding: 0 20px !important;
@@ -365,6 +474,7 @@
     background: rgba(255, 255, 255, 0.08) !important;
     border-color: var(--border-color) !important;
     color: var(--text-secondary) !important;
+    cursor: not-allowed;
     pointer-events: none !important;
 }
 
@@ -410,10 +520,10 @@
 }
 
 /* Labels para inputs del estimador */
-.form-label {
+.label-estimador {
     color: var(--text-primary) !important;
     font-weight: 600;
-    font-size: 14px;
+    font-size: 16px;
     margin-bottom: 8px;
     display: block;
 }
@@ -426,7 +536,7 @@
 }
 
 /* Responsive */
-@media (max-width: 480px) {
+@media screen and (max-width: 991px) {
     .input-estimador {
         height: 45px !important;
         line-height: 43px !important;
@@ -434,8 +544,8 @@
         padding: 0 16px !important;
     }
     
-    .form-label {
-        font-size: 13px;
+    .label-estimador {
+        font-size: 16px;
     }
 }
 

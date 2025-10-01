@@ -5,22 +5,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const userDropdown = document.getElementById('userDropdown');
 
   const enlace = document.getElementById('enlaceCotizaciones');
-  if (!enlace) return;
 
-  
-  const url = new URL(enlace.href, window.location.origin);
-  // asegurar que cot siempre esté presente
-  if (!url.searchParams.has('cot')) {
-    url.searchParams.set('cot', 'u');
+  if (enlace) {
+    const url = new URL(enlace.href, window.location.origin);
+    // asegurar que cot siempre esté presente
+    if (!url.searchParams.has('cot')) {
+      url.searchParams.set('cot', 'u');
+    }
+    // Obtener default desde localStorage
+    const savedDefault = localStorage.getItem('filtroDefault') || '0';
+
+    // Crear URL actualizada
+    url.searchParams.set('default', savedDefault);
+
+    // Asignar el nuevo href al enlace
+    enlace.href = url.toString();
   }
-  // Obtener default desde localStorage
-  const savedDefault = localStorage.getItem('filtroDefault') || '0';
-
-  // Crear URL actualizada
-  url.searchParams.set('default', savedDefault);
-
-  // Asignar el nuevo href al enlace
-  enlace.href = url.toString();
 
   burgerBtn.addEventListener('click', () => {
     navbar.classList.toggle('menu-active');
@@ -39,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-
-    // Aparece el contenedor principal
+  // Aparece el contenedor principal
   $('.main-animated').fadeIn(1000, function () {
       // Deslizar sello-img
       $('.sello-img').addClass('slide-in');
