@@ -16,6 +16,8 @@ $(document).ready(function(){
         const inputIdRequisicion = $("#inputIdRequisicion").val().trim();
         const inputCantidadBarras = $("#inputCantidadBarras").val().trim();
         const inputClave = $("#inputClave").val().trim();
+        const inputLotePedimento = $("#inputLotePedimento").val().trim();
+        const esExtra = $("#inputExtra").val();
         const inputEntrada = $("#inputEntrada").val().trim();
         // const inputSalida = $("#inputSalida").val().trim();
         // const inputTotalSellos = $("#inputTotalSellos").val().trim();
@@ -30,8 +32,7 @@ $(document).ready(function(){
         //     sweetAlertResponse("warning", "Advertencia", "Debe llenar todos los campos.", "none");
         //     return null;
         // }
-        if (!inputIdRequisicion || !inputCantidadBarras || !inputClave ||
-            !inputEntrada) {
+        if (!inputIdRequisicion || !inputCantidadBarras || !inputClave || !inputLotePedimento || !inputEntrada) {
             sweetAlertResponse("warning", "Advertencia", "Debe llenar todos los campos.", "none");
             return null;
         }
@@ -68,8 +69,8 @@ $(document).ready(function(){
         //     id_requisicion: inputIdRequisicion,
         //     cantidad_barras: parseInt(inputCantidadBarras),
         //     clave: inputClave,
-        //     mm_entrada: formatearDecimal(inputEntrada),
-        //     mm_salida: formatearDecimal(inputSalida),
+        //     mm_entrega: formatearDecimal(inputEntrada),
+        //     mm_usados: formatearDecimal(inputSalida),
         //     total_sellos: formatearDecimal(inputTotalSellos),
         //     merma_corte: formatearDecimal(inputMermaCorte),
         //     scrap_pz: formatearDecimal(inputScrapPz),
@@ -79,7 +80,9 @@ $(document).ready(function(){
             id_requisicion: inputIdRequisicion,
             cantidad_barras: parseInt(inputCantidadBarras),
             clave: inputClave,
-            mm_entrada: formatearDecimal(inputEntrada)
+            lote_pedimento: inputLotePedimento,
+            es_extra: esExtra,
+            mm_entrega: formatearDecimal(inputEntrada)
         };
     }
     
@@ -97,25 +100,30 @@ $(document).ready(function(){
                 // Verifica que la respuesta tenga datos
                 if (data.length > 0) {
                     $.each(data, function(index, item) {
+                        let esExtra = "";
+                        if(item.es_extra === 1){
+                            esExtra = " (Barra extra)*";
+                        }
     
                         $('#miniTableBarrasInventario tbody').append(`
                             <tr>
-                                <td><button data-id_control="${item.id_control}" 
+                                <td><button data-id_control="${item.id_control}"  data-es_extra="${item.es_extra}" 
                                     type="button" class="btn btn-danger btn-sm btnEliminarFila">X</button>
                                 </td>
                                 <td>${item.cantidad_barras}</td>
-                                <td>${item.clave}</td>
-                                <td>${item.mm_entrada}</td>
+                                <td>${item.clave}<span style="color:#ffc107;">${esExtra}</span></td>
+                                <td>${item.lote_pedimento}</td>
+                                <td>${item.mm_entrega}</td>
                             </tr>
                         `);
                     });
                 } else {
-                     $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="8">No hay barras agregadas aún</td></tr>');
+                     $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="5">No hay barras agregadas aún</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
                 console.error('Error al realizar la petición AJAX:', error);
-                $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="4">Error en ajax</td></tr>');
+                $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="5">Error en ajax</td></tr>');
                 sweetAlertResponse("error", "Error", "Error al consultar barras: " + error, "none");
             }
     
@@ -161,7 +169,6 @@ $(document).ready(function(){
 
         if (claveValue !== "") {
             console.log("El usuario ingreso un valor en el inputClave.");
-
             $.ajax({
                 url: '../ajax/ajax_parametros.php',
                 type: 'POST',
@@ -190,8 +197,41 @@ $(document).ready(function(){
         }
     }
 
+    function verificarBilletControlAlmacen() {
+        let billetValue = $("#inputLotePedimento").val();
+
+        if (billetValue !== "") {
+            console.log("El usuario ingreso un valor en el inputLotePedimento.");
+            $.ajax({
+                url: '../ajax/ajax_existe_billet.php',
+                type: 'POST',
+                data: { billet: billetValue },
+                dataType: 'json',
+                success: function(data) {
+                    if (data.existe) { 
+                        window.LP_VALIDO = true;
+                        $("#pLotePedimento").addClass("d-none");
+                    } else {
+                        window.LP_VALIDO = false;
+                        $("#pLotePedimento").removeClass("d-none");
+                        $('#pLotePedimento').text('Ese Lote pedimento no existe.');
+                    }
+                    verificarBtnAgregarBarra();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error al realizar la petición AJAX:', error);
+                    console.error('Respuesta del servidor:', xhr.responseText); // Muestra el error enviado por PHP
+                    $("#pLotePedimento").removeClass("d-none");
+                    $('#pLotePedimento').text('Error en ajax validar lote pedimento.');
+                }
+            });
+        } else {
+            console.log("El usuario dejo el inputClavePost vacio.");
+        }
+    }
+
     function verificarBtnAgregarBarra(){
-        if(window.CLAVE_VALIDA == true){
+        if(window.CLAVE_VALIDA == true && window.LP_VALIDO == true){
             $("#btnAgregarBarra").removeClass("btn-disabled").addClass("btn-general");
         }else{
             $("#btnAgregarBarra").removeClass("btn-general").addClass("btn-disabled");
@@ -305,10 +345,20 @@ $(document).ready(function(){
                         $('#modalFinalizar tbody').append(`
                             <tr>
                                 <input type="hidden" name="id_control" value="${item.id_control || ''}">
+                                <td>
+                                    <input type="checkbox" 
+                                        name="es_merma"
+                                        class="es_merma"  
+                                        value="0"
+                                        onclick="this.value = this.checked ? 1 : 0"
+                                        style="transform: scale(1.5); margin-left: 10px;"
+                                    >
+                                </td>
                                 <td><input type="number" class="input-disabled cantidad_barras" value="${item.cantidad_barras || ''}" step="1" min="0"></td>
                                 <td><input type="text" class="input-disabled clave" value="${item.clave || ''}"></td>
-                                <td><input type="number" class="input-disabled mm_entrada" name="mm_entrada" value="${item.mm_entrada || ''}" step="0.01" min="0"></td>
-                                <td><input type="number" class="input-text mm_salida" name="mm_salida" value="${item.mm_salida || ''}" step="0.01" min="0"></td>
+                                <td><input type="text" class="input-disabled lote_pedimento" value="${item.lote_pedimento || ''}"></td>
+                                <td><input type="number" class="input-disabled mm_entrega" name="mm_entrega" value="${item.mm_entrega || ''}" step="0.01" min="0"></td>
+                                <td><input type="number" class="input-text mm_usados" name="mm_usados" value="${item.mm_usados || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" class="input-text long_t_sellos" name="total_sellos" value="${item.total_sellos || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" class="input-text merma_corte" name="merma_corte" value="${item.scrap_mm || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" class="input-text scrap_pz" name="scrap_pz" value="${item.scrap_pz || ''}" step="1" min="0"></td>
@@ -317,7 +367,7 @@ $(document).ready(function(){
                         `);
                     });
                 } else {
-                    $('#modalFinalizar tbody').append('<tr><td colspan="7" class="text-center">No hay claves disponibles para esta requisición.</td></tr>');
+                    $('#modalFinalizar tbody').append('<tr><td colspan="10" class="text-center">No hay claves disponibles para esta requisición.</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
@@ -487,6 +537,7 @@ $(document).ready(function(){
         $("#pInvalida3").addClass("d-none");
         $("#pValida").addClass("d-none");
         window.CLAVE_VALIDA = false;
+        window.LP_VALIDO = false;
         verificarBtnAgregarBarra();
     });
     // CLICK VER TABLA DE BARRAS
@@ -589,6 +640,11 @@ $(document).ready(function(){
         verificarClave();
         verificarBtnAgregarBarra();
     });
+    // VALIDAR QUE el lote pedimento exista
+    $("#inputLotePedimento").on("input change", function(){
+        verificarBilletControlAlmacen();
+        verificarBtnAgregarBarra();
+    });
     // ENVIAR EL FORMULARIO DE FINALIZAR LA REQUISICION
     $("#finalizarRequisicion").on('click', function () {
         let valido = true;
@@ -612,31 +668,51 @@ $(document).ready(function(){
         // Recolectar datos: solo id_control + campos editables
         let datos = [];
         $('#modalFinalizar tbody tr').each(function () {
+            let id_control = $(this).find('input[name="id_control"]').val();
+
+            // Saltar fila si id_control no existe o está vacío
+            if (!id_control) return;
+
             let fila = {
-                id_control: $(this).find('input[name="id_control"]').val(),
-                mm_salida: $(this).find('.mm_salida').val(),
-                total_sellos: $(this).find('.long_t_sellos').val(),
-                merma_corte: $(this).find('.merma_corte').val(),
-                scrap_pz: $(this).find('.scrap_pz').val(),
-                scrap_mm: $(this).find('.scrap_mm').val()
+                id_control: id_control,
+                es_merma: $(this).find('.es_merma').val() || 0,
+                mm_usados: $(this).find('.mm_usados').val() || 0,
+                total_sellos: $(this).find('.long_t_sellos').val() || 0,
+                merma_corte: $(this).find('.merma_corte').val() || 0,
+                scrap_pz: $(this).find('.scrap_pz').val() || 0,
+                scrap_mm: $(this).find('.scrap_mm').val() || 0
             };
+
             datos.push(fila);
         });
+
+        // Validar que haya registros reales
+        if (datos.length === 0) {
+            sweetAlertResponse("warning", "Sin registros", "No hay registros por enviar. Se necesita mínimo un registro.", "none");
+            return;
+        }
+
         $(this).addClass("d-none");
+
         // Enviar al servidor
         $.ajax({
             url: '../ajax/finalizar_requisicion.php',
             type: 'post',
             data: { registros: JSON.stringify(datos) },
             success: function (resp) {
-                sweetAlertResponse("success", "Exito", "La requisicion fue finalizada correctamente.", "self");
-                $('#modalFinalizar').modal('hide');
+                if (resp.success) {
+                    sweetAlertResponse("success", "Éxito", "La requisición fue finalizada correctamente.", "self");
+                    $('#modalFinalizar').modal('hide');
+                } else {
+                    sweetAlertResponse("error", "Error", resp.error || "Error desconocido.", "self");
+                }
             },
             error: function (xhr, status, error) {
                 sweetAlertResponse("error", "Error", "No se pudo finalizar: " + error, "self");
             }
         });
-    });    
+    });
+
     // NOTIFICACIOIN AL GUARDAR CLAVE
     $("#formControlAlmacenInventario").on("submit", function(){
         let inputIdRequisicion = $("#inputIdRequisicion").val();

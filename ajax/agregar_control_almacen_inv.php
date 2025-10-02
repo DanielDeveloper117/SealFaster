@@ -7,8 +7,8 @@ header('Content-Type: application/json');
 try {
     // Verificar que todos los campos requeridos están presentes
     $required_fields = [
-        'id_requisicion', 'cantidad_barras', 'clave',
-        'mm_entrada'
+        'id_requisicion', 'cantidad_barras', 'clave', 'lote_pedimento',
+        'mm_entrega'
     ];
 
     foreach ($required_fields as $field) {
@@ -22,7 +22,9 @@ try {
     $id_requisicion   = trim($_POST['id_requisicion']);
     $cantidad_barras  = trim($_POST['cantidad_barras']);
     $clave            = trim($_POST['clave']);
-    $mm_entrada       = trim($_POST['mm_entrada']);
+    $lote_pedimento   = trim($_POST['lote_pedimento']);
+    $es_extra = isset($_POST['es_extra']) ? (int) $_POST['es_extra'] : 0;
+    $mm_entrega       = trim($_POST['mm_entrega']);
 
     // Validar tipo de datos
     if (!ctype_digit($cantidad_barras) || intval($cantidad_barras) <= 0) {
@@ -36,7 +38,7 @@ try {
     }
 
     $camposDecimales = [
-        'mm_entrada' => $mm_entrada
+        'mm_entrega' => $mm_entrega
     ];
 
     foreach ($camposDecimales as $nombre => $valor) {
@@ -55,11 +57,11 @@ try {
     // Preparar la consulta SQL
     $stmt = $conn->prepare("
         INSERT INTO control_almacen (
-            id_requisicion, cantidad_barras, clave,
-            mm_entrada
+            id_requisicion, cantidad_barras, clave, lote_pedimento, es_extra, 
+            mm_entrega
         ) VALUES (
-            :id_requisicion, :cantidad_barras, :clave,
-            :mm_entrada
+            :id_requisicion, :cantidad_barras, :clave, :lote_pedimento, :es_extra, 
+            :mm_entrega
         )
     ");
 
@@ -67,7 +69,9 @@ try {
     $stmt->bindParam(':id_requisicion', $id_requisicion);
     $stmt->bindParam(':cantidad_barras', $cantidad_barras, PDO::PARAM_INT);
     $stmt->bindParam(':clave', $clave);
-    $stmt->bindParam(':mm_entrada', $mm_entrada);
+    $stmt->bindParam(':lote_pedimento', $lote_pedimento);
+    $stmt->bindParam(':es_extra', $es_extra, PDO::PARAM_INT);
+    $stmt->bindParam(':mm_entrega', $mm_entrega);
 
     // Ejecutar
     $stmt->execute();

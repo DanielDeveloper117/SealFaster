@@ -439,10 +439,18 @@ if (isset($_GET['id_requisicion'])) {
     // $pdf->Cell(20, 1, '', 0, 0);
     // $pdf->Cell(80, 2, '_____________________________________', 0, 1, 'C');
     // $pdf->Cell(280, 6, 'FECHA Y HORA DE MAQUINADO', 0, 1, 'C');
-
+    $pdf->AddPage('P'); // orientación horizontal
+    $pdf->AliasNbPages(); // muestra la página actual y el total de páginas
     $pdf->Ln(5);
+    $pdf->SetFont('Arial', 'B', 14);
+    $pdf->Cell(190, 6,"CONTROL DE BARRAS", 0, 1, 'C');
+    $pdf->Ln(4); 
+    $pdf->SetFont('Arial', 'B', 8);
+    $pdf->Cell(190, 6,"Info: MM Ent. (MM Entrada), MM Us. (MM Usados), MM. Ret. (MM Retorno), L.T.S. (Longitud Total de Sellos)", 0, 1, 'L');
+    $pdf->Ln(2); 
+
     // tabla de control de almacen
-    $sql = "SELECT cantidad_barras, clave, mm_salida, mm_entrada, total_sellos, merma_corte, scrap_pz, scrap_mm
+    $sql = "SELECT *
             FROM control_almacen
             WHERE id_requisicion = :id_requisicion";
     $stmt = $conn->prepare($sql);
@@ -452,30 +460,40 @@ if (isset($_GET['id_requisicion'])) {
 
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(190, 6, utf8_decode('CONTROL DE ALMACEN'), 1, 1, 'C', 0);
+    $pdf->Cell(190, 6, utf8_decode('BARRAS/BILLETS'), 1, 1, 'C', 0);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->SetFillColor(220, 220, 220);
-    $pdf->Cell(15, 6, 'BARRAS', 1, 0, 'C', true);
-    $pdf->Cell(42, 6, 'CLAVE', 1, 0, 'C', true);
-    $pdf->Cell(20, 6, 'MM SALIDA', 1, 0, 'C', true);
-    $pdf->Cell(20, 6, 'MM ENTRADA', 1, 0, 'C', true);
-    $pdf->Cell(29, 6, 'LONG. TOTAL SELLOS', 1, 0, 'C', true);
-    $pdf->Cell(26, 6, 'MERMA POR CORTE', 1, 0, 'C', true);
-    $pdf->Cell(19, 6, 'SCRAP PZ', 1, 0, 'C', true);
-    $pdf->Cell(19, 6, 'SCRAP MM', 1, 1, 'C', true);
+    $pdf->Cell(12, 6, 'BARRAS', 1, 0, 'C', true);
+    $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
+    $pdf->Cell(30, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'MM ENT.', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'MM US.', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'MM RET.', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'L. T. S.', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'MERMA', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'SCRAP PZ', 1, 0, 'C', true);
+    $pdf->Cell(15, 6, 'SCRAP MM', 1, 1, 'C', true);
 
     $pdf->SetFont('Arial', '', 8);
 
     if (count($datosControl) > 0) {
+        $barrasExtra = [];
         foreach ($datosControl as $fila) {
-            $pdf->Cell(15, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
-            $pdf->Cell(42, 6, utf8_decode($fila['clave']), 1, 0, 'C');
-            $pdf->Cell(20, 6, utf8_decode($fila['mm_salida']), 1, 0, 'C');
-            $pdf->Cell(20, 6, utf8_decode($fila['mm_entrada']), 1, 0, 'C');
-            $pdf->Cell(29, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
-            $pdf->Cell(26, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
-            $pdf->Cell(19, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
-            $pdf->Cell(19, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
+            $esExtra = "";
+            if($fila['es_extra']){
+                $barrasExtra[] = $fila['clave']." (".$fila['lote_pedimento'].")";
+                $esExtra = "*";
+            }
+            $pdf->Cell(12, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
+            $pdf->Cell(43, 6, utf8_decode($fila['clave'].$esExtra), 1, 0, 'C');
+            $pdf->Cell(30, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['mm_usados']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
         }
     } else {
         // Si no hay registros, usar los renglones vacíos como en el código original
@@ -490,6 +508,9 @@ if (isset($_GET['id_requisicion'])) {
             $pdf->Cell(19, 6, '', 1, 1, 'C');
         }
     }
+    $pdf->Ln(4); 
+    $pdf->SetFont('Arial', 'I', 8);
+    $pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
 
 }else{
     header("Location: ../../modules/welcome.php");

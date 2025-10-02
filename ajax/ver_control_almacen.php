@@ -20,16 +20,7 @@ try {
 
     // Preparar y ejecutar la consulta
     $stmt = $conn->prepare("
-        SELECT 
-            id_control,
-            cantidad_barras,
-            clave,
-            mm_entrada,
-            mm_salida,
-            total_sellos,
-            merma_corte,
-            scrap_pz,
-            scrap_mm
+        SELECT *
         FROM control_almacen
         WHERE id_requisicion = :id_requisicion
         ORDER BY id_control ASC

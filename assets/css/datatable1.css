@@ -252,6 +252,27 @@
     background-color: #0f5238; /* tono profundo al presionar */
     transform: translateY(0);
 }
+.btn-bar-entry {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    background-color: #0dcaf099;
+    /* box-shadow: 0 4px 8px #03A9F4; */
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+.btn-bar-entry:hover {
+    background-color: #0dcaf099;
+    box-shadow: 0 4px 8px #03A9F4;
+    transform: translateY(-4px);
+}
+.btn-bar-entry:active {
+    background-color: #0dcaf099;
+}
 .btn-cancel {
     width: 100%;
     text-align: center;
@@ -956,7 +977,7 @@ tr.no-usable{
             display: flex;
             gap: 0.5rem;
             align-items: center;
-            justify-content: center;
+            justify-content: start;
         }
 
         .container-actions button {

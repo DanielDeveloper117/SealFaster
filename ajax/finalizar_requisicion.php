@@ -26,7 +26,7 @@ try {
     }
 
     // Validar parametros
-    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
+    if (!isset($_POST['registros']) || empty($_POST['registros']) || !is_array($data) || count($data) === 0) {
         echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
         exit();
     }
@@ -41,7 +41,9 @@ try {
     $conn->beginTransaction();
 
     $sqlUpdate = "UPDATE control_almacen 
-                  SET mm_salida = :mm_salida,
+                  SET 
+                      es_merma = :es_merma,
+                      mm_usados = :mm_usados,
                       total_sellos = :total_sellos,
                       merma_corte = :merma_corte,
                       scrap_pz = :scrap_pz,
@@ -57,7 +59,8 @@ try {
         }
 
         $stmtUpdate->execute([
-            ':mm_salida'    => $fila['mm_salida'] ?? 0,
+            ':es_merma' => $fila['es_merma'] ?? 0,
+            ':mm_usados'    => $fila['mm_usados'] ?? 0,
             ':total_sellos' => $fila['total_sellos'] ?? 0,
             ':merma_corte'  => $fila['merma_corte'] ?? 0,
             ':scrap_pz'     => $fila['scrap_pz'] ?? 0,

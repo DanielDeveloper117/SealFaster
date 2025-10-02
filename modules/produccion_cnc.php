@@ -32,8 +32,9 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>">
 
-    <?php include(ROOT_PATH . 'includes/backend/produccion_cnc.php'); 
-          include(ROOT_PATH . 'includes/backend_info_user.php');
+    <?php 
+        include(ROOT_PATH . 'includes/backend_info_user.php');
+        include(ROOT_PATH . 'includes/backend/produccion_cnc.php'); 
     ?>
 
     <title>Producción</title>
@@ -187,7 +188,22 @@ if (!isset($_SESSION['id'])) {
 
                                     case "Finalizada":
                                         $estatusString = "Finalizada";
-                                        // Aqui no hay botones, solo estado
+                                        // Inventarios puede agregar clave al almacen
+                                        if ($tipo_usuario === "Inventarios") {
+                                            echo '<button class="btn-thunder btn-control-almacen" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Agregar clave extra al control de almacen">
+                                                    <i class="bi bi-plus-square"></i>
+                                                </button>';
+                                            echo '<button class="btn-auth btn-bar-entry" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalDarSalida"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Dar entrada a barras de retorno de esta requisición">
+                                                    <i class="bi bi-save"></i>
+                                                </button>';
+                                        }
+
                                         break;
 
                                     default:
@@ -335,15 +351,28 @@ if (!isset($_SESSION['id'])) {
                         </a> -->
                     </div>
                     <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:48%;">
-                            <label for="inputEntrada" class="lbl-general">MM SALIDA</label>
-                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrada" required>
+                        <div class="" style="width:35%;">
+                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
+                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
                         </div>
-                        <div class="" style="width:48%;">
-                            <!-- <label for="inputSalida" class="lbl-general">MM SALIDA</label>
-                            <input id="inputSalida" type="number" class="input-text"  min="0" step="0.01" name="mm_salida" required> -->
-                        </div>
+                        <div class="" style="width:63%;">
+                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
+                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
+                            <p id="pLotePedimento" class="d-none p-invalida">Ese Lote pedimento no existe.</p>
+                        </div>  
                     </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <div style="width:35%;">
+                            <label for="inputExtra" class="lbl-general">Barra extra</label>
+                            <input 
+                                type="checkbox" 
+                                id="inputExtra"
+                                name="barra_extra" 
+                                value="0"
+                                onclick="this.value = this.checked ? 1 : 0"
+                                style="transform: scale(1.5); margin-left: 10px;"
+                            >
+                        </div>
                     <!-- <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
                             <label for="inputTotalSellos" class="lbl-general">LONG. TOTAL DE SELLOS</label>
@@ -365,8 +394,10 @@ if (!isset($_SESSION['id'])) {
                             <p id="pInvalida3" class="d-none p-invalida">Ese Lote pedimento ya existe.</p>
                         </div>                        
                     </div> -->
-
-                    <button id="btnAgregarBarra" type="button" class="btn-disabled" tabindex="-1">Agregar</button>
+                    </div> 
+                    <div class="d-flex justify-content-between mb-3">
+                        <button id="btnAgregarBarra" type="button" class="btn-disabled" tabindex="-1">Agregar</button>
+                    </div> 
                 </form>
             </div>
         </div>
@@ -387,7 +418,8 @@ if (!isset($_SESSION['id'])) {
                             <tr><th scope="col"></th>
                                 <th scope="col">BARRAS</th>
                                 <th scope="col">CLAVE</th>
-                                <th scope="col">MM SALIDA</th>
+                                <th scope="col">LOTE PEDIMENTO</th>
+                                <th scope="col">MM ENTREGA</th>
                                 <!-- <th scope="col">MM SALIDA</th>
                                 <th scope="col">LONG. TOTAL SELLOS</th>
                                 <th scope="col">MERMA POR CORTE</th>
@@ -405,7 +437,6 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////MODAL DAR SALIDA A BILLETS DE LA REQUISICION /////////////////////// -->
-
 <div class="modal fade" id="modalDarSalida" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -414,7 +445,7 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Esta acción cambiará enviará notificará a Sellos Maquinados para comenzar el maquinado. Asegurese de entregar las barras correctas.</p>
+                <p>Esta acción notificará a Sellos Maquinados para comenzar el maquinado. Asegurese de entregar las barras correctas.</p>
                 <div>
                     <input id="inputRequisicionDarSalida" type="hidden" name="id_requisicion" >
                     <button id="btnDarSalidaBillets" type="button" class="btn-general">Continuar</button>
@@ -454,23 +485,28 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
                     <h5 class="modal-title">Claves de requisición con folio: <span></span></h5>
-                    <table class="table table-bordered border border-2 tabla-billets">
-                        <thead>
-                            <tr>
-                                <th style="width: 8%;">Cantidad</th>
-                                <th style="width: 30%;">Clave</th>
-                                <th style="width: 10%;">MM Entrada</th>
-                                <th style="width: 10%;">MM Salida</th>
-                                <th style="width: 13%;">LONG. TOTAL DE SELLOS</th>
-                                <th style="width: 13%;">MERMA POR CORTE</th>
-                                <th style="width: 8%;">SCRAP PZ</th>
-                                <th style="width: 8%;">SCRAP MM</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            
-                        </tbody>                                 
-                    </table>
+<div style="overflow-x: auto; width: 100%;">
+    <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
+        <thead>
+            <tr>
+                <th style="width: 70px;">Barra mermada</th>
+                <th style="width: 100px;">Cantidad</th>
+                <th style="width: 280px;">Clave</th>
+                <th style="width: 250px;">Lote pedimento</th>
+                <th style="width: 120px;">MM Entrega</th>
+                <th style="width: 120px;">MM Usados</th>
+                <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
+                <th style="width: 120px;">MERMA POR CORTE</th>
+                <th style="width: 120px;">SCRAP PZ</th>
+                <th style="width: 120px;">SCRAP MM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí van tus registros -->
+        </tbody>
+    </table>
+</div>
+
                 </div>
             </div>
             <div class="modal-footer">

@@ -8,7 +8,7 @@ try {
     // Verificar que todos los campos requeridos están presentes
     $required_fields = [
         'id_requisicion', 'cantidad_barras', 'clave',
-        'mm_entrada', 'mm_salida', 'total_sellos',
+        'mm_entrega', 'mm_usados', 'total_sellos',
         'merma_corte', 'scrap_pz', 'scrap_mm'
     ];
 
@@ -23,8 +23,8 @@ try {
     $id_requisicion   = trim($_POST['id_requisicion']);
     $cantidad_barras  = trim($_POST['cantidad_barras']);
     $clave            = trim($_POST['clave']);
-    $mm_entrada       = trim($_POST['mm_entrada']);
-    $mm_salida        = trim($_POST['mm_salida']);
+    $mm_entrega       = trim($_POST['mm_entrega']);
+    $mm_usados        = trim($_POST['mm_usados']);
     $total_sellos     = trim($_POST['total_sellos']);
     $merma_corte      = trim($_POST['merma_corte']);
     $scrap_pz         = trim($_POST['scrap_pz']);
@@ -42,8 +42,8 @@ try {
     }
 
     $camposDecimales = [
-        'mm_entrada' => $mm_entrada,
-        'mm_salida' => $mm_salida,
+        'mm_entrega' => $mm_entrega,
+        'mm_usados' => $mm_usados,
         'total_sellos' => $total_sellos,
         'merma_corte' => $merma_corte,
         'scrap_pz' => $scrap_pz,
@@ -67,11 +67,11 @@ try {
     $stmt = $conn->prepare("
         INSERT INTO control_almacen (
             id_requisicion, cantidad_barras, clave,
-            mm_entrada, mm_salida, total_sellos,
+            mm_entrega, mm_usados, total_sellos,
             merma_corte, scrap_pz, scrap_mm
         ) VALUES (
             :id_requisicion, :cantidad_barras, :clave,
-            :mm_entrada, :mm_salida, :total_sellos,
+            :mm_entrega, :mm_usados, :total_sellos,
             :merma_corte, :scrap_pz, :scrap_mm
         )
     ");
@@ -80,8 +80,8 @@ try {
     $stmt->bindParam(':id_requisicion', $id_requisicion);
     $stmt->bindParam(':cantidad_barras', $cantidad_barras, PDO::PARAM_INT);
     $stmt->bindParam(':clave', $clave);
-    $stmt->bindParam(':mm_entrada', $mm_entrada);
-    $stmt->bindParam(':mm_salida', $mm_salida);
+    $stmt->bindParam(':mm_entrega', $mm_entrega);
+    $stmt->bindParam(':mm_usados', $mm_usados);
     $stmt->bindParam(':total_sellos', $total_sellos);
     $stmt->bindParam(':merma_corte', $merma_corte);
     $stmt->bindParam(':scrap_pz', $scrap_pz);
