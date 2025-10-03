@@ -88,6 +88,7 @@ $(document).ready(function(){
     
     function ajaxTablaControlAlmacenInventario(){
         const inputIdRequisicion = $("#inputIdRequisicion").val();
+        $dataEstatus = $(this).data('estatus');
         $.ajax({
             url: '../ajax/ver_control_almacen.php', 
             type: 'get',
@@ -104,11 +105,17 @@ $(document).ready(function(){
                         if(item.es_extra === 1){
                             esExtra = " (Barra extra)*";
                         }
-    
+                        let dNone = "";
+                        if($dataEstatus == "Finalizada"){
+                            dNone = "d-none";
+                        }
                         $('#miniTableBarrasInventario tbody').append(`
                             <tr>
-                                <td><button data-id_control="${item.id_control}"  data-es_extra="${item.es_extra}" 
-                                    type="button" class="btn btn-danger btn-sm btnEliminarFila">X</button>
+                                <td>
+                                    <button data-id_control="${item.id_control}"  data-es_extra="${item.es_extra}" 
+                                        type="button" class="btn btn-danger btn-sm btnEliminarFila ${dNone}">
+                                        X
+                                    </button>
                                 </td>
                                 <td>${item.cantidad_barras}</td>
                                 <td>${item.clave}<span style="color:#ffc107;">${esExtra}</span></td>
@@ -498,7 +505,17 @@ $(document).ready(function(){
     // CLICK AGREGAR CLAVE A CONTROL ALMACEN
     $('#productionTable').on('click', '.btn-control-almacen', function() {
         $dataIdRequisicion = $(this).data('id_requisicion');
-        
+        $dataExtra = $(this).data('es_extra');
+
+        if ($dataExtra == "1") {
+            $("#inputExtra").prop("checked", true).prop("disabled", true);
+            $("#inputExtra").css("cursor", "not-allowed");
+            $("#lblInputExtra").text("Barra extra (Esta barra es extra obligatoriamente)");
+        } else {
+            $("#inputExtra").prop("checked", false).prop("disabled", false);
+            $("#inputExtra").css("cursor", "pointer");
+            $("#lblInputExtra").text("Barra extra");
+        }
         $('#inputIdRequisicion').val($dataIdRequisicion);
     });    
     // CLICK SUBMIT A AGREGAR BARRA

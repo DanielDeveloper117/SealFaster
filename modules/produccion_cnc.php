@@ -193,8 +193,10 @@ if (!isset($_SESSION['id'])) {
                                             echo '<button class="btn-thunder btn-control-almacen" 
                                                     data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-es_extra = "1"
+                                                    data-estatus = "Finalizada"                                                   
                                                     title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-plus-square"></i>
+                                                    <i class="bi bi-node-plus"></i>
                                                 </button>';
                                             echo '<button class="btn-auth btn-bar-entry" 
                                                     data-bs-toggle="modal" data-bs-target="#modalDarSalida"
@@ -363,7 +365,7 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div style="width:35%;">
-                            <label for="inputExtra" class="lbl-general">Barra extra</label>
+                            <label id="lblInputExtra" for="inputExtra" class="lbl-general">Barra extra</label>
                             <input 
                                 type="checkbox" 
                                 id="inputExtra"
@@ -485,27 +487,27 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
                     <h5 class="modal-title">Claves de requisición con folio: <span></span></h5>
-<div style="overflow-x: auto; width: 100%;">
-    <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
-        <thead>
-            <tr>
-                <th style="width: 70px;">Barra mermada</th>
-                <th style="width: 100px;">Cantidad</th>
-                <th style="width: 280px;">Clave</th>
-                <th style="width: 250px;">Lote pedimento</th>
-                <th style="width: 120px;">MM Entrega</th>
-                <th style="width: 120px;">MM Usados</th>
-                <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
-                <th style="width: 120px;">MERMA POR CORTE</th>
-                <th style="width: 120px;">SCRAP PZ</th>
-                <th style="width: 120px;">SCRAP MM</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Aquí van tus registros -->
-        </tbody>
-    </table>
-</div>
+                    <div style="overflow-x: auto; width: 100%;">
+                        <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px;">Barra mermada</th>
+                                    <th style="width: 100px;">Cantidad</th>
+                                    <th style="width: 280px;">Clave</th>
+                                    <th style="width: 250px;">Lote pedimento</th>
+                                    <th style="width: 120px;">MM Entrega</th>
+                                    <th style="width: 120px;">MM Usados</th>
+                                    <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
+                                    <th style="width: 120px;">MERMA POR CORTE</th>
+                                    <th style="width: 120px;">SCRAP PZ</th>
+                                    <th style="width: 120px;">SCRAP MM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí van tus registros -->
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
             </div>

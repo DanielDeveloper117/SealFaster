@@ -510,7 +510,9 @@ if (isset($_GET['id_requisicion'])) {
     }
     $pdf->Ln(4); 
     $pdf->SetFont('Arial', 'I', 8);
-    $pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
+    if(!empty($barrasExtra)){
+        $pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
+    }
 
 }else{
     header("Location: ../../modules/welcome.php");
