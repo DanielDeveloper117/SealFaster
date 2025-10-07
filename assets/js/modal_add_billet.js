@@ -398,7 +398,9 @@
             $('#inputMedida').val($dataMedida);
             $('#inputMaterial').val($dataMaterial);
             $('#inputMaterial').trigger("change");
-            $('#inputProveedor').val($dataProveedor);
+            setTimeout(() => {
+                $('#inputProveedor').val($dataProveedor);
+            }, 1000);
             $('#inputMaxUsable').val($dataMaxUsable);
             $('#inputStock').val($dataStock);
             $('#inputLotePedimento').val($dataLotePedimento);

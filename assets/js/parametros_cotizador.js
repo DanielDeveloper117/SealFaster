@@ -208,39 +208,57 @@ $(document).ready(function() {
         mostrarFormulario(mostrarEste);
     });
     // GUARDAR EL NUEVO PARAMETRO DE MULTIPLO DE UTILIDAD PERSONALIZADO
-    $("#btnGuardarNuevoParam").on("click", function(){
-        let inputProveedor = $("#inputProveedor").val();
-        let inputMaterial = $("#inputMaterial").val();
-        let inputMultiplo = $("#inputMultiplo").val();
+    $("#btnGuardarNuevoParametro").on("click", function() {
+        let proveedor = $("#inputProveedor").val();
+        let material = $("#inputMaterial").val();
+        let condicionDI = $("#inputCondicion").val();
+        let valorDI = $("#inputDI").val();
+        let multiplo = $("#inputMultiplo").val();
 
-        // Validar que proveedor no este vacio
-        if (!inputProveedor) {
-            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un proveedor.", "none");
+        // VALIDACIÓN 1: Debe seleccionar proveedor o material o ambos
+        if (!proveedor && !material) {
+            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar al menos proveedor o material.", "none");
             return;
         }
 
-        // Validar que material no este vacio
-        if (!inputMaterial) {
-            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un material.", "none");
+        // VALIDACIÓN 2 y 3: Si solo selecciona proveedor o material, debe tener condicional DI y valor DI
+        if ((proveedor && !material) || (!proveedor && material)) {
+            if (!condicionDI || !valorDI) {
+                sweetAlertResponse("warning", "Advertencia", "Debe seleccionar condición del DI y digitar el valor DI.", "none");
+                return;
+            }
+        }
+
+        // VALIDACIÓN 4: Condicional DI y valor DI siempre van juntos
+        if ((condicionDI && !valorDI) || (!condicionDI && valorDI)) {
+            sweetAlertResponse("warning", "Advertencia", "Condicional del DI y valor DI deben ir juntos.", "none");
             return;
         }
 
-        // Validar multiplo: numero positivo con maximo 2 decimales
+        // VALIDACIÓN 5: Multiplo siempre requerido, positivo, máximo 2 decimales
         let regexMultiplo = /^[0-9]+(\.[0-9]{1,2})?$/;
-        if (!regexMultiplo.test(inputMultiplo) || parseFloat(inputMultiplo) <= 0) {
-            sweetAlertResponse("warning", "Advertencia", "El multiplo debe ser un numero positivo con maximo dos decimales.", "none");
+        if (!multiplo || !regexMultiplo.test(multiplo) || parseFloat(multiplo) <= 0) {
+            sweetAlertResponse("warning", "Advertencia", "El multiplo debe ser un número positivo con máximo dos decimales.", "none");
             return;
         }
 
+        // VALIDACIÓN PASÓ: Ocultar botón para evitar doble envío
         $(this).addClass("d-none");
+
+        // Preparar datos para enviar
+        let datos = {
+            proveedor: proveedor || "",
+            material: material || "",
+            condicion: condicionDI || "",
+            di: valorDI || "",
+            multiplo: multiplo
+        };
+
+        // AJAX para guardar
         $.ajax({
             url: '../ajax/nuevo_multiplo_utilidad.php',
             type: 'POST',
-            data: { 
-                proveedor: inputProveedor,
-                material: inputMaterial,
-                multiplo: inputMultiplo,
-            },
+            data: datos,
             dataType: 'json',
             success: function(data) {
                 if (data.success) {
@@ -249,9 +267,95 @@ $(document).ready(function() {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
                 }
             },
-            error: function (xhr, status, error) {
+            error: function(xhr, status, error) {
                 console.error('Error al realizar la petición AJAX:', error);
                 sweetAlertResponse("error", "Error", "Error al agregar el registro. " + error, "self");
+            }
+        });
+    });
+    // TESTEAR VALORES PARA OBTENER RESULTADO DE MULTIPLO DE UTILIDAD
+    $("#btnEnviarPrueba").on("click", function() {
+        let proveedor = $("#inputProveedor2").val();
+        let material = $("#inputMaterial2").val();
+        let valorDI = $("#inputDI2").val();
+
+        // VALIDACIÓN: Proveedor siempre requerido
+        if (!proveedor) {
+            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un proveedor.", "none");
+            return;
+        }
+
+        // VALIDACIÓN: Material siempre requerido
+        if (!material) {
+            sweetAlertResponse("warning", "Advertencia", "Debe seleccionar un material.", "none");
+            return;
+        }
+
+        // VALIDACIÓN: Valor DI siempre requerido y positivo
+        if (!valorDI || parseFloat(valorDI) <= 0) {
+            sweetAlertResponse("warning", "Advertencia", "Debe ingresar un valor válido para el diámetro interior.", "none");
+            return;
+        }
+
+        // Ocultar botón para evitar doble envío
+        //$(this).addClass("d-none");
+
+        // Preparar datos para enviar
+        let datos = {
+            proveedor: proveedor,
+            material: material,
+            di: valorDI
+        };
+        $("#resultadoPruebas").html("");
+        // AJAX para consultar múltiplo de utilidad
+        $.ajax({
+            url: '../ajax/ajax_multiplo_utilidad.php',
+            type: 'GET',
+            data: datos,
+            dataType: 'json',
+            success: function(response) {
+
+                if (response.valor !== undefined) {
+                    $("#containerPruebas").removeClass("d-none").addClass("d-flex");
+
+                    let mensajeFinal = "";
+                    mensajeFinal += `<p><b>Múltiplo de utilidad resultante:</b> ${response.valor}</p>`;
+                    mensajeFinal += `<p><b>Proveedor:</b> ${response.detalle.proveedor}</p>`;
+                    mensajeFinal += `<p><b>Material:</b> ${response.detalle.material}</p>`;
+                    mensajeFinal += `<p><b>Diámetro Interior:</b> ${response.detalle.diametro_recibido}</p>`;
+                    mensajeFinal += `<p><b>Caso aplicado:</b> ${response.detalle.caso_aplicado}</p>`;
+                    mensajeFinal += `<p><b>Prioridad:</b> ${response.detalle.prioridad}</p>`;
+
+                    response.coincidencias.forEach((item, index) => {
+                        mensajeFinal += `${index + 1}. Caso: ${item.caso}, Valor: ${item.valor}, Prioridad: ${item.prioridad}`;
+                        if (item.condicionDI) {
+                            mensajeFinal += `, Condición DI: ${item.condicionDI}`;
+                        }
+                        mensajeFinal += "<br>";
+                    });
+
+
+                    if (response.mensaje) {
+                        mensajeFinal += `<p><b>Nota:</b> ${response.mensaje}</p>`;
+                    }
+
+                    $("#resultadoPruebas").html(mensajeFinal);
+
+                    // Cerrar modal (Bootstrap ejemplo)
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('modalPrueba'));
+                    if (modal) modal.hide();
+                }else if (response.error) {
+                    sweetAlertResponse("warning", "Advertencia", response.error, "none");
+                } else {
+                    sweetAlertResponse("warning", "Advertencia", "No se obtuvo un resultado válido.", "none");
+                }
+
+                $("#btnEnviarPrueba").removeClass("d-none");
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al consultar el múltiplo de utilidad. " + error, "self");
+                $("#btnEnviarPrueba").removeClass("d-none");
             }
         });
     });

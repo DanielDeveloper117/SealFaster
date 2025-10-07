@@ -402,7 +402,7 @@ if (!isset($_SESSION['id'])) {
                     <input type="hidden" name="formulario" value="muc">
                     <?php foreach ($arregloMultiplosUtilidadCustom as $registro): ?>
                         <div class="d-flex flex-row justify-content-evenly align-items-center">
-                            <div class="col-5">
+                            <div class="col-7">
                                 <button type="button" class="btn btn-danger eliminar-parametro mx-2" data-eliminar="<?= $registro['id']; ?>">
                                     <i class="bi bi-trash3"></i></button>
                                 <label class="lbl-general">
@@ -416,10 +416,17 @@ if (!isset($_SESSION['id'])) {
                             </div>
                         </div>
                     <?php endforeach; ?>
+                    <div id="containerPruebas" class="d-none col-12 justify-content-between p-2 mt-4" style="border:1px solid #aaa;">
+                        <p id="resultadoPruebas"></p>
+                    </div>
                     <div class="d-flex col-12 justify-content-between mt-4">
                         <div class="col-3 d-flex justify-content-between align-items-center" >
                             <button id="btnNuevoParam" type="button" class="btn-general d-flex gap-2 justify-content-center align-items-center" 
                             data-bs-toggle="modal" data-bs-target="#modalAgregarParam"><i class="bi bi-file-plus" style="font-size:24px;"></i>Nuevo</button>
+                        </div>
+                        <div class="col-3 d-flex justify-content-between align-items-center" >
+                            <button id="btnPrueba" type="button" class="btn-general d-flex gap-2 justify-content-center align-items-center" 
+                            data-bs-toggle="modal" data-bs-target="#modalPrueba"><i class="bi bi-file-plus" style="font-size:24px;"></i>Prueba</button>
                         </div>
                         <div class="col-3 d-flex justify-content-between" >
                             <button type="submit" class="btn-general" data-target="guardar" >Guardar</button>
@@ -957,7 +964,7 @@ if (!isset($_SESSION['id'])) {
                     <div class="d-flex justify-content-between ">
                         <div class="" style="width:48%;">
                             <label for="inputProveedor" class="lbl-general">Proveedor</label>
-                            <select id="inputProveedor" class="selector" name="proveedor" required>
+                            <select id="inputProveedor" class="selector" name="proveedor" >
                                 <option selected disabled>Seleccionar</option>
                                 <option value="TRYGONAL">TRYGONAL</option>        
                                 <option value="SKF">SKF</option>
@@ -967,7 +974,7 @@ if (!isset($_SESSION['id'])) {
                         </div>                      
                         <div class="" style="width:48%;">
                             <label for="inputMaterial" class="lbl-general">Material</label>
-                            <select id="inputMaterial" class="selector" name="material" required >
+                            <select id="inputMaterial" class="selector" name="material"  >
                                 <option disabled selected>Seleccionar</option>
                                 <option value="H-ECOPUR">H-ECOPUR</option>
                                 <option value="ECOSIL">ECOSIL</option>
@@ -985,14 +992,85 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <div class="d-flex justify-content-between ">
                         <div style="width:48%;">
-                            <label for="inputMultiplo" class="lbl-general">Valor del multiplo</label>
+                            <label for="inputCondicion" class="lbl-general">Condicional del DI</label>
+                            <select id="inputCondicion" class="selector" name="condicion" >
+                                <option selected disabled>Seleccionar</option>
+                                <option value="<">DI < (Menor a)</option>        
+                                <option value="<=">DI <= (Menor o igual a)</option>
+                                <option value=">">DI > (Mayor a)</option>
+                                <option value=">=">DI >= (Mayor o igual a)</option>    
+                            </select>
+                        </div>
+                        <div style="width:48%;">
+                            <label for="inputDI" class="lbl-general">Diametro Interior</label>
+                            <input id="inputDI" class="input-text" type="number" min="0" step="0.01" name="di">
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between ">
+                        <div style="width:48%;">
+                            <label for="inputMultiplo" class="lbl-general">Valor del multiplo*</label>
                             <input id="inputMultiplo" class="input-text" type="number" min="0" step="0.01" name="valor" required>
                         </div>
                         <div style="width:48%;">
                         </div>
                     </div>
 
-                    <button id="btnGuardarNuevoParam" type="button" class="btn-general">Guardar</button>
+                    <button id="btnGuardarNuevoParametro" type="button" class="btn-general">Guardar</button>
+            
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Modal para testear parametro de multiplo de utilidad resultante -->
+<div class="modal fade" id="modalPrueba" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prueba resultado de multiplo de utilidad</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">                       
+                <div class="d-flex justify-content-between ">
+                    <div class="" style="width:48%;">
+                        <label for="inputProveedor2" class="lbl-general">Proveedor*</label>
+                        <select id="inputProveedor2" class="selector" name="proveedor" >
+                            <option selected disabled>Seleccionar</option>
+                            <option value="TRYGONAL">TRYGONAL</option>        
+                            <option value="SKF">SKF</option>
+                            <option value="CARVIFLON">CARVIFLON</option>
+                            <option value="SLM">SLM</option>    
+                        </select>
+                    </div>                      
+                    <div class="" style="width:48%;">
+                        <label for="inputMaterial2" class="lbl-general">Material*</label>
+                        <select id="inputMaterial2" class="selector" name="material"  >
+                            <option disabled selected>Seleccionar</option>
+                            <option value="H-ECOPUR">H-ECOPUR</option>
+                            <option value="ECOSIL">ECOSIL</option>
+                            <option value="ECORUBBER 1">ECORUBBER 1</option>
+                            <option value="ECORUBBER 2">ECORUBBER 2</option>
+                            <option value="ECORUBBER 3">ECORUBBER 3</option>
+                            <option value="ECOPUR">ECOPUR</option>
+                            <option value="ECOTAL">ECOTAL</option>
+                            <option value="ECOMID">ECOMID</option>
+                            <option value="ECOFLON 1">ECOFLON 1</option>
+                            <option value="ECOFLON 2">ECOFLON 2</option>
+                            <option value="ECOFLON 3">ECOFLON 3</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between ">
+                    <div style="width:48%;">
+                        <label for="inputDI2" class="lbl-general">Diametro Interior*</label>
+                        <input id="inputDI2" class="input-text" type="number" min="0" step="0.01" name="di">
+                    </div>
+                    <div style="width:48%;">
+                    </div>
+                </div>
+
+                <button id="btnEnviarPrueba" type="button" class="btn-general">Enviar</button>
             
             </div>
         </div>

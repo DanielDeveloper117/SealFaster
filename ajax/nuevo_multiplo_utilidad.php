@@ -5,45 +5,86 @@ require_once(ROOT_PATH . 'config/config.php');
 header('Content-Type: application/json');
 
 try {
-    // Validar que los datos existan
+    // VALIDACIÓN: campos requeridos
     if (!isset($_POST['proveedor'], $_POST['material'], $_POST['multiplo'])) {
         echo json_encode([
             'success' => false,
-            'message' => 'Faltan parametros requeridos.'
+            'message' => 'Faltan parámetros requeridos.'
         ]);
         exit;
     }
 
-    $proveedor = trim($_POST['proveedor']);
-    $material = trim($_POST['material']); 
+    $proveedor = trim($_POST['proveedor']); // puede estar vacío
+    $material = trim($_POST['material']);   // puede estar vacío
+    $condicionDI = isset($_POST['condicion']) ? trim($_POST['condicion']) : "";
+    $valorDI = isset($_POST['di']) ? trim($_POST['di']) : "";
     $multiplo = trim($_POST['multiplo']);
 
-    // Validar que multiplo sea float positivo con maximo 2 decimales
+    // VALIDAR múltiplo: positivo con máximo dos decimales
     if (!preg_match('/^[0-9]+(\.[0-9]{1,2})?$/', $multiplo) || (float)$multiplo <= 0) {
         echo json_encode([
             'success' => false,
-            'message' => 'El multiplo debe ser un numero positivo con maximo dos decimales.'
+            'message' => 'El múltiplo debe ser un número positivo con máximo dos decimales.'
         ]);
         exit;
     }
 
-    // Armar el campo "caso" = proveedor+material
-    $caso = $proveedor . "+" . $material;
+    // Construir el parámetro personalizado "caso"
+    $partesCaso = [];
+
+    if (!empty($proveedor)) {
+        $partesCaso[] = $proveedor;
+    }
+
+    if (!empty($material)) {
+        $partesCaso[] = $material;
+    }
+
+    if (!empty($condicionDI) && !empty($valorDI)) {
+        $partesCaso[] = "(di{$condicionDI}{$valorDI})";
+    }
+
+    // VALIDACIÓN: Deben existir al menos 2 componentes en el parámetro personalizado
+    if (count($partesCaso) < 2) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'El parámetro personalizado debe tener al menos dos componentes: proveedor+material, proveedor+condicionalDI o material+condicionalDI.'
+        ]);
+        exit;
+    }
+
+    $casoPersonalizado = implode("+", $partesCaso);
+
     $descripcion = "MultiplicadorUtilidadPersonalizado";
 
-    // Insertar en la tabla
-    $stmt = $conn->prepare("INSERT INTO parametros2 (caso, descripcion, valor) 
-                            VALUES (:caso, :descripcion, :valor)");
+    // VALIDAR SI YA EXISTE EL REGISTRO
+    $stmtCheck = $conn->prepare("SELECT COUNT(*) as total FROM parametros2 WHERE caso = :caso AND descripcion = :descripcion");
+    $stmtCheck->bindValue(':caso', $casoPersonalizado, PDO::PARAM_STR);
+    $stmtCheck->bindValue(':descripcion', $descripcion, PDO::PARAM_STR);
+    $stmtCheck->execute();
+    $resultCheck = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-    $stmt->bindValue(':caso', $caso, PDO::PARAM_STR);
-    $stmt->bindValue(':descripcion', $descripcion, PDO::PARAM_STR);
-    $stmt->bindValue(':valor', $multiplo, PDO::PARAM_STR);
+    if ($resultCheck['total'] > 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => "El parámetro personalizado '{$casoPersonalizado}' ya existe en la base de datos."
+        ]);
+        exit;
+    }
 
-    $stmt->execute();
+    // INSERTAR en la tabla
+    $stmtInsert = $conn->prepare("INSERT INTO parametros2 (caso, descripcion, valor) 
+                                  VALUES (:caso, :descripcion, :valor)");
+
+    $stmtInsert->bindValue(':caso', $casoPersonalizado, PDO::PARAM_STR);
+    $stmtInsert->bindValue(':descripcion', $descripcion, PDO::PARAM_STR);
+    $stmtInsert->bindValue(':valor', $multiplo, PDO::PARAM_STR);
+
+    $stmtInsert->execute();
 
     echo json_encode([
         'success' => true,
-        'message' => 'Multiplo agregado correctamente.'
+        'message' => "Múltiplo agregado correctamente. Caso guardado: {$casoPersonalizado}"
     ]);
 
 } catch (PDOException $e) {

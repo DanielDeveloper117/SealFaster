@@ -1079,7 +1079,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             type: 'GET',
                             data: { 
                                 di: diametroInteriorValue,
-                                materialValue: materialValue,
+                                material: materialValue,
                                 proveedor: proveedorBillet
                             },
                             dataType: 'json',
