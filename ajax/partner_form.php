@@ -140,7 +140,7 @@ try {
                     <div class='label'>Archivo adjunto:</div>
                     <div class='value'>
                         <strong>Nombre:</strong> " . htmlspecialchars($cvFile['name']) . "<br>
-                        <strong>Tamaño:</strong> " . round($cvFile['size'] / 1024 / 1024, 2) . " MB<br>
+                        <strong>Tamaño:</strong> " . round($cvFile['size'] / 1024, 2) . " KB<br>
                         <strong>Tipo:</strong> " . $cvFile['type'] . "
                     </div>
                 </div>
@@ -163,7 +163,7 @@ try {
                      "Mensaje: $message\n\n" .
                      "ARCHIVO ADJUNTO:\n" .
                      "Nombre: " . $cvFile['name'] . "\n" .
-                     "Tamaño: " . round($cvFile['size'] / 1024 / 1024, 2) . " MB\n" .
+                     "Tamaño: " . round($cvFile['size'] / 1024, 2) . " KB\n" .
                      "Tipo: " . $cvFile['type'] . "\n\n" .
                      "Enviado desde: www.sellosyretenes.com\n" .
                      "Fecha: " . date('d/m/Y H:i:s');
