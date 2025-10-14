@@ -66,7 +66,7 @@
     if ($tipo_usuario == "CNC" || $tipo_usuario == "Administrador") {
         $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
     } else{
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus = 'Autorizada' OR estatus = 'Finalizada' ORDER BY fecha_insercion DESC";
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
     }
     $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
  

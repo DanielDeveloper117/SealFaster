@@ -39,7 +39,7 @@
         }else if($tipoUsuario == 2){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
-                "inventario.php",
+                "inventario_vn.php",
                 "produccion_cnc.php"
             ]);
             if (!in_array($selfFile, $arrayPermitidos)) {

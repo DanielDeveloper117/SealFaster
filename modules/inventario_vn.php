@@ -13,22 +13,53 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- SweetAlert -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <!-- DataTables -->
     <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
+    <!-- DataTables Buttons -->
+    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
+
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
+
+    <!-- JSZip para Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <!-- Botones HTML5 -->
+    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+
+    <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
-     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
+    <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Inventario CNC</title>
 </head>
 
 <body class="scroll-disablado">
-
+<style>
+    .buttons-excel{
+        display: none !important;
+    }
+    .dt-scroll{
+        margin-top:10px !important;
+        margin-bottom:10px !important;
+    }
+</style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
@@ -38,12 +69,12 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $proveedor = $_GET['proveedor'];
 
     if($proveedor == "all"){
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
+        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
                           FROM inventario_cnc WHERE material = :material";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
+        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
         FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
@@ -55,7 +86,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
     $clave = $_GET['clave'];
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
+    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
                         FROM inventario_cnc WHERE clave = :clave";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
@@ -64,7 +95,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
 }else{
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
+    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
                         FROM inventario_cnc";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->execute();
@@ -85,6 +116,14 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
             <h1>Inventario CNC</h1>
         </div>
         <div class="table-container">
+            <div class="row mb-3">
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8 ">
+                    <button id="btnExportarDatos" type="button" 
+                            class="btn btn-success" >
+                        <i class="bi bi-file-earmark-spreadsheet"></i> Exportar datos
+                    </button>
+                </div>
+            </div>
             <table id="inventarioTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -93,7 +132,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Proveedor</th>
                         <th>Material</th>
                         <th>Máx Usable</th>
-                        <th>Stock</th>
+                        <th>Pre Stock</th>
                         <th>Usabilidad</th>
                         <th>Lote/Pedimento</th>
                         <th>Existencia</th>
@@ -103,21 +142,21 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                 <?php
                     foreach ($arregloSelectInventario as $registro) {
                         $max_usable = $registro['max_usable'];
-                        $stock = $registro['stock'];
-                        $width = $max_usable > 0 ? ($stock / $max_usable) * 100 : 0; // Calcular el porcentaje
+                        $pre_stock = $registro['pre_stock'];
+                        $width = $max_usable > 0 ? ($pre_stock / $max_usable) * 100 : 0; // Calcular el porcentaje
                         $usableStyle="";
                         $usableText="";
-                        // Determinar la clase de la barra según el stock
-                        if ($stock >= $max_usable * 0.75) { // 75% o más
+                        // Determinar la clase de la barra según el pre_stock
+                        if ($pre_stock >= $max_usable * 0.75) { // 75% o más
                             $class = 'bar-alto';
-                        } elseif ($stock >= $max_usable * 0.25) { // Entre 25% y 75%
+                        } elseif ($pre_stock >= $max_usable * 0.25) { // Entre 25% y 75%
                             $class = 'bar-medio';
                         } else { // Menos de 25%
                             $class = 'bar-bajo';
                         }
 
-                        // iluminar si stock es menor a 15
-                        if($stock < 15){
+                        // iluminar si pre_stock es menor a 15
+                        if($pre_stock < 15){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
                         }else{
@@ -130,7 +169,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['proveedor']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['material']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['max_usable']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['stock']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['pre_stock']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo $usableText; ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>">
@@ -153,6 +192,13 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $(document).ready(function(){
         $("#overlay").addClass("d-none");
         $("body").removeClass("scroll-disablado");
+
+        $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
+        $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
+
+        $('#btnExportarDatos').on('click', function() {
+            $(".buttons-excel").trigger("click");
+        });
     });
 </script>
 </body>

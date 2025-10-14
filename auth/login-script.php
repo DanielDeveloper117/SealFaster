@@ -29,6 +29,10 @@ if (isset($_POST['usuario'], $_POST['password'])) {
         $usuario = $_POST['usuario'];
         $password = $_POST['password'];
 
+        if($usuario == "usercnc"){
+            $usuario = "usercnc@sellosyretenes.com";
+        }
+
         // Clave de encriptación
         $clave_encriptacion = 'SRS2024#tides';
 

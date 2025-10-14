@@ -142,6 +142,8 @@ if (!isset($_SESSION['id'])) {
                                         if ($tipo_usuario === "Inventarios") {
                                             echo '<button class="btn-thunder btn-control-almacen" 
                                                     data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                                    data-es_extra = "0"
+                                                    data-estatus = "Autorizada"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Agregar clave a control de almacen">
                                                     <i class="bi bi-plus-square"></i>
@@ -166,7 +168,16 @@ if (!isset($_SESSION['id'])) {
                                                     title="Cambiar estatus a maquinado CNC iniciado">
                                                     <i class="bi bi-file-play"></i>
                                                 </button>';
-                                        } elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
+                                        } elseif ($tipo_usuario === "Inventarios") {
+                                            echo '<button class="btn-thunder btn-control-almacen" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-es_extra = "1"
+                                                    data-estatus = "Producción"                                                   
+                                                    title="Agregar clave extra al control de almacen">
+                                                    <i class="bi bi-node-plus"></i>
+                                                </button>';
+                                        }elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
                                             // aqui no span, solo controlado por estatusString
                                         }
                                         break;
@@ -174,14 +185,23 @@ if (!isset($_SESSION['id'])) {
                                     case "En producción":
                                         $estatusString = "Maquinado";
 
-                                        if ($rol_usuario == "Gerente") {
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
                                             echo '<button type="button" class="btn-terracota btn-finalizar" 
                                                     data-bs-toggle="modal" data-bs-target="#modalFinalizar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Finalizar maquinado">
                                                     <i class="bi bi-check-square"></i>
                                                 </button>';
-                                        } else {
+                                        } elseif ($tipo_usuario === "Inventarios") {
+                                            echo '<button class="btn-thunder btn-control-almacen" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-es_extra = "1"
+                                                    data-estatus = "En producción"                                                   
+                                                    title="Agregar clave extra al control de almacen">
+                                                    <i class="bi bi-node-plus"></i>
+                                                </button>';
+                                        }else {
                                             // solo mensaje via estatusString
                                         }
                                         break;
@@ -190,18 +210,18 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Finalizada";
                                         // Inventarios puede agregar clave al almacen
                                         if ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-thunder btn-control-almacen" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    data-es_extra = "1"
-                                                    data-estatus = "Finalizada"                                                   
-                                                    title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-node-plus"></i>
-                                                </button>';
-                                            echo '<button class="btn-auth btn-bar-entry" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalDarSalida"
+                                            // echo '<button class="btn-thunder btn-control-almacen" 
+                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            //         data-es_extra = "1"
+                                            //         data-estatus = "Finalizada"                                                   
+                                            //         title="Agregar clave extra al control de almacen">
+                                            //         <i class="bi bi-node-plus"></i>
+                                            //     </button>';
+                                            echo '<button class="btn-auth btn-bar-entry btn-claves-retorno" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Dar entrada a barras de retorno de esta requisición">
+                                                    title="Retornar barras al inventario">
                                                     <i class="bi bi-save"></i>
                                                 </button>';
                                         }
@@ -322,7 +342,7 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-header">
                 <div class="d-flex justify-content-between" style="width:90%;">
                     <h5 id="titleModal" class="modal-title" id="modalLabel">CONTROL DE ALMACEN</h5>
-                    <button id="btnTablaControlAlmacenInventario" type="button" class="btn btn-primary">
+                    <button id="btnTablaControlAlmacenInventario" type="button" class="btn btn-primary" data-estatus-requi="">
                     Ver barras
                     </button>
                 </div>
@@ -370,7 +390,7 @@ if (!isset($_SESSION['id'])) {
                                 type="checkbox" 
                                 id="inputExtra"
                                 name="barra_extra" 
-                                value="0"
+                                
                                 onclick="this.value = this.checked ? 1 : 0"
                                 style="transform: scale(1.5); margin-left: 10px;"
                             >
@@ -438,7 +458,7 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- //////////////////////////MODAL DAR SALIDA A BILLETS DE LA REQUISICION /////////////////////// -->
+<!-- ////////////////////////// MARCAR COMO BARRAS ENTREGADAS A CNC DE LA REQUISICION /////////////////////// -->
 <div class="modal fade" id="modalDarSalida" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -477,6 +497,7 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div> -->
+<!-- ////////////////////////////// CNC DEBE LLENAR LOS CAMPOS DE CONTROL DE ALMACEN PARA FINALIZAR //////////////////////// -->
 <div class="modal fade" id="modalFinalizar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 85% !important;">
         <div class="modal-content">
@@ -513,6 +534,48 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-footer">
                 <button id="finalizarRequisicion" type="button" class="btn-general">Finalizar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+ <!-- //////////////////////// INVENTARIOS DEBE COMPLETAR MM RETORNO DE CONTROL DE ALMACEN PARA COMPLETAR //////////////////////// -->
+<div class="modal fade" id="modalRetorno" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog" style="max-width: 85% !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">Indique el nuevo stock en el campo MM de Retorno</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="width:100%; margin-bottom:20px;">
+                    <h5 class="modal-title">Claves de requisición con folio: <span></span></h5>
+                    <div style="overflow-x: auto; width: 100%;">
+                        <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 100px;">Cantidad</th>
+                                    <th style="width: 280px;">Clave</th>
+                                    <th style="width: 250px;">Lote pedimento</th>
+                                    <th style="width: 120px;">MM Entrega</th>
+                                    <th style="width: 120px;">MM Usados</th>
+                                    <th style="width: 120px;">MM Retorno</th>
+                                    <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
+                                    <th style="width: 120px;">MERMA POR CORTE</th>
+                                    <th style="width: 120px;">SCRAP PZ</th>
+                                    <th style="width: 120px;">SCRAP MM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Aquí van tus registros -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="retornoFinalizado" type="button" class="btn-general">Listo</button>
             </div>
         </div>
     </div>

@@ -5,10 +5,10 @@ require_once(ROOT_PATH . 'config/config.php');
 header('Content-Type: application/json');
 
 try {
-    // Verificar que todos los campos requeridos están presentes
+    // Campos requeridos
     $required_fields = [
-        'id_requisicion', 'cantidad_barras', 'clave', 'lote_pedimento',
-        'mm_entrega'
+        'id_requisicion', 'cantidad_barras', 'clave',
+        'lote_pedimento', 'mm_entrega'
     ];
 
     foreach ($required_fields as $field) {
@@ -23,49 +23,70 @@ try {
     $cantidad_barras  = trim($_POST['cantidad_barras']);
     $clave            = trim($_POST['clave']);
     $lote_pedimento   = trim($_POST['lote_pedimento']);
-    $es_extra = isset($_POST['es_extra']) ? (int) $_POST['es_extra'] : 0;
+    $es_extra         = isset($_POST['es_extra']) ? trim($_POST['es_extra']) : 0;
     $mm_entrega       = trim($_POST['mm_entrega']);
 
-    // Validar tipo de datos
+    // Validar cantidad de barras
     if (!ctype_digit($cantidad_barras) || intval($cantidad_barras) <= 0) {
         echo json_encode(['success' => false, 'message' => 'Cantidad de barras debe ser un entero positivo.']);
         exit;
     }
 
-    // Función para validar decimales con hasta 2 cifras
+    // Validar decimales con hasta 2 cifras
     function esDecimalValido($valor) {
         return preg_match('/^\d+(\.\d{1,2})?$/', $valor);
     }
 
-    $camposDecimales = [
-        'mm_entrega' => $mm_entrega
-    ];
-
-    foreach ($camposDecimales as $nombre => $valor) {
-        if (!esDecimalValido($valor)) {
-            echo json_encode(['success' => false, 'message' => "El campo '$nombre' debe ser un número decimal con hasta 2 decimales."]);
-            exit;
-        }
+    if (!esDecimalValido($mm_entrega)) {
+        echo json_encode(['success' => false, 'message' => "El campo 'mm_entrega' debe ser un número decimal válido (hasta 2 decimales)."]);
+        exit;
     }
 
-    // Verificar que la clave no tenga caracteres especiales
-    if (!preg_match('/^[A-Za-z0-9\.\-_]+$/', $clave)) {
+    // Validar caracteres válidos para 'clave' y 'lote_pedimento'
+    $regex = '/^[A-Za-z0-9\.\-_]+$/';
+
+    if (!preg_match($regex, $clave)) {
         echo json_encode(['success' => false, 'message' => 'La clave contiene caracteres inválidos.']);
         exit;
     }
 
-    // Preparar la consulta SQL
+    if (!preg_match($regex, $lote_pedimento)) {
+        echo json_encode(['success' => false, 'message' => 'El lote/pedimento contiene caracteres inválidos.']);
+        exit;
+    }
+
+    // VALIDACIÓN DE DUPLICADO (id_requisicion + clave + lote_pedimento)
+    $verificar = $conn->prepare("
+        SELECT COUNT(*) AS total 
+        FROM control_almacen 
+        WHERE id_requisicion = :id_requisicion 
+        AND clave = :clave
+        AND lote_pedimento = :lote_pedimento
+    ");
+    $verificar->bindParam(':id_requisicion', $id_requisicion);
+    $verificar->bindParam(':clave', $clave);
+    $verificar->bindParam(':lote_pedimento', $lote_pedimento);
+    $verificar->execute();
+
+    $existe = $verificar->fetch(PDO::FETCH_ASSOC)['total'];
+
+    if ($existe > 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => "Ya existe un registro con la clave '$clave' y lote/pedimento '$lote_pedimento' para esta requisición."
+        ]);
+        exit;
+    }
+
+    // INSERTAR NUEVO REGISTRO
     $stmt = $conn->prepare("
         INSERT INTO control_almacen (
-            id_requisicion, cantidad_barras, clave, lote_pedimento, es_extra, 
-            mm_entrega
+            id_requisicion, cantidad_barras, clave, lote_pedimento, es_extra, mm_entrega
         ) VALUES (
-            :id_requisicion, :cantidad_barras, :clave, :lote_pedimento, :es_extra, 
-            :mm_entrega
+            :id_requisicion, :cantidad_barras, :clave, :lote_pedimento, :es_extra, :mm_entrega
         )
     ");
 
-    // Vincular parámetros
     $stmt->bindParam(':id_requisicion', $id_requisicion);
     $stmt->bindParam(':cantidad_barras', $cantidad_barras, PDO::PARAM_INT);
     $stmt->bindParam(':clave', $clave);
@@ -73,7 +94,6 @@ try {
     $stmt->bindParam(':es_extra', $es_extra, PDO::PARAM_INT);
     $stmt->bindParam(':mm_entrega', $mm_entrega);
 
-    // Ejecutar
     $stmt->execute();
 
     echo json_encode(['success' => true, 'message' => 'Registro insertado correctamente.']);
@@ -81,6 +101,6 @@ try {
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error en base de datos: ' . $e->getMessage()]);
 } finally {
-    $conn = null; // Cerrar conexión
+    $conn = null;
 }
 ?>

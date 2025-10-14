@@ -38,7 +38,7 @@
         <div class="input-container input-pass">
           <label>Password</label>
           <input id="inputPass" class="mb-2" type="password" name="password" required>
-            <button type="button" class="btn-toggle-password" onclick="togglePassword()">
+            <button id="btnEye" type="button" class="btn-toggle-password">
               <i class="bi bi-eye" id="iconEye"></i>
             </button>
         </div>
@@ -67,6 +67,18 @@ $(document).ready(function(){
   //   alert("Servidor en mantenimiento, espere unos minutos.");
   // });
 
+  $("#inputUsuario").on("change input",function(){
+    let usuario = $(this).val();
+
+    if(usuario == "usercnc"){
+      usuario = "usercnc@sellosyretenes.com";
+    }
+
+    $(this).val(usuario);
+  });
+  $("#btnEye").on("click", function(){
+    togglePassword();
+  });
 
   function togglePassword() {
     const input = document.getElementById("inputPass");

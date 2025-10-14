@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $rol = $_POST['rol'];
     
                 // Verificar el valor de lider antes de continuar
-                if ($lider !== '0' && $lider !== '1'&& $lider !== '2' && $lider !== '3' && $lider !== '4' && $lider !== '5') {
+                if ($lider !== '0' && $lider !== '1'&& $lider !== '2' && $lider !== '3' && $lider !== '4' && $lider !== '5' && $lider !== '6') {
                     echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("error", "Error", "Error, datos no validos", "self");
                     });</script>';

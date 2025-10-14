@@ -13,6 +13,7 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventario CNC</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -22,42 +23,281 @@ if (!isset($_SESSION['id'])) {
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">
-
-    <title>Inventario CNC</title>
-
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>">
+    
+    <!-- Estilos específicos para el menú de funciones -->
+    <style>
+        /* ===== ESTILOS NUEVOS PARA EL MENÚ DE FUNCIONES ===== */
+        
+        /* Contenedor principal mejorado */
+        .dashboard-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            box-shadow: 
+                0 20px 40px var(--shadow-color),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--glow-color), transparent);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        /* Título mejorado */
+        .dashboard-title {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(180deg, var(--glow-color), #95D2B3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 2rem 0;
+            position: relative;
+            text-shadow: 0px 0px 10px rgba(85, 173, 155, 0.5);
+            animation: titleGlow 4s cubic-bezier(0.4, 0, 1, 1) infinite alternate;
+            text-align: center;
+        }
+        
+        /* Grid de funciones mejorado */
+        .functions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        /* Tarjetas de función */
+        .function-card {
+            background: var(--surface-bg);
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+        
+        .function-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(85, 173, 155, 0.2);
+            border-color: var(--glow-color);
+        }
+    
+        
+        /* Iconos de función */
+        .function-icon {
+            font-size: 2.5rem;
+            color: var(--glow-color);
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        /* Títulos de función */
+        .function-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            text-align: center;
+        }
+        
+        /* Descripciones de función */
+        .function-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+            text-align: center;
+        }
+        
+        /* Botones de función */
+        .function-button {
+            width: 100%;
+            text-align: center;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--glow-color);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(85, 173, 155, 0.2);
+            text-decoration: none;
+            display: block;
+        }
+        
+        .function-button:hover {
+            background-color: #95D2B3;
+            box-shadow: 0 4px 8px rgba(85, 173, 155, 1.2);
+            transform: translateY(-3px);
+            color: white;
+            text-decoration: none;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Secciones del dashboard */
+        .dashboard-section {
+            margin-bottom: 2.5rem;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        /* Responsive improvements */
+        @media (max-width: 768px) {
+            .functions-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .dashboard-title {
+                font-size: 1.8rem;
+            }
+            
+            .dashboard-container {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+        }
+        
+        /* Estados de función deshabilitada */
+        .function-disabled {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        /* ===== FIN DE ESTILOS NUEVOS ===== */
+    </style>
 </head>
 <body class="scroll-disablado">
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
-<section class="section-table flex-column mb-5 d-flex col-12 justify-content-center align-items-center">
-    <div class="col-11">
-        <div class="titulo mt-3 mb-3">
-            <h1>Funciones para inventario CNC</h1>
-            <div class="d-flex flex-row justify-content-between col-12 gap-5 mt-5">
-                <button type="button" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalConsultar">Buscar por material</button>
-                <button type="button" class="btn-general" data-bs-toggle="modal" data-bs-target="#modalClave">Buscar por clave</button>
-                <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){echo 'inventario.php';}else{echo 'inventario_vn.php';}?>" 
-                    class="btn-general" target="_blank" style="text-decoration:none;">Todo el inventario</a>
-                <button type="button" id="btnAgregar2" class="btn-general <?php if($tipoUsuario != 2 && $tipoUsuario != 0 && $tipoUsuario != 1){echo 'd-none';}?>" 
-                    data-bs-toggle="modal" data-bs-target="#modalInventario">Agregar Registro</button>
+<!-- Contenedor principal del dashboard -->
+<section class="section-table flex-column d-flex col-12 justify-content-center align-items-center">
+    <div class="col-11 dashboard-container">
+        <h1 class="dashboard-title">Funciones para inventario CNC</h1>
+        
+        <!-- Sección de funciones principales -->
+        <div class="dashboard-section">
+            <h2 class="section-title">Funciones Principales</h2>
+            <div class="functions-grid">
+                <!-- Búsqueda por Material -->
+                <div class="function-card">
+                    <div class="function-icon">
+                        <i class="bi bi-card-list"></i>
+                    </div>
+                    <h3 class="function-title">Búsqueda por Material</h3>
+                    <p class="function-description">Consulta el inventario filtrando por tipo de material y proveedor específico.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalConsultar">
+                        Ver filtros
+                    </button>
+                </div>
+                
+                <!-- Búsqueda por Clave -->
+                <div class="function-card">
+                    <div class="function-icon">
+                        <i class="bi bi-input-cursor-text"></i>
+                    </div>
+                    <h3 class="function-title">Búsqueda por Clave</h3>
+                    <p class="function-description">Ingresa la clave y busca todos los registros coincidentes en el Inventario CNC.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalClave">
+                        Digitar clave
+                    </button>
+                </div>
+                
+                <!-- Inventario Completo -->
+                <div class="function-card">
+                    <div class="function-icon">
+                        <i class="bi bi-table"></i>
+                    </div>
+                    <h3 class="function-title">Inventario Completo</h3>
+                    <p class="function-description">Cargar todos los registros del inventario CNC en una nueva pestaña. Tiempo de carga estimado es de 15 seg.</p>
+                    <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'inventario_vn.php';}else{echo 'inventario.php';}?>" 
+                       class="function-button" target="_blank">
+                        Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
+                    </a>
+                </div>
             </div>
-            <div class="d-flex flex-row justify-content-between col-12 gap-5 mt-3">
-                <a href="inventario.php?pendientes" 
-                   class="btn-general <?php if($tipoUsuario != 2 && $tipoUsuario != 0 && $tipoUsuario != 1){echo 'd-none';}?>"
-                   target="_blank">Claves pendientes</a>
-                <button type="button" 
-                        class="btn-general <?php if($tipoUsuario != 2 && $tipoUsuario != 0 && $tipoUsuario != 1){echo 'd-none';}?>" 
-                        data-bs-toggle="modal" data-bs-target="#modalClavesValidas">Claves validas</button>
-                <button type="button" class="btn-general invisible" data-bs-toggle="modal" data-bs-target="#modalX">Funcion</button>
-                <button type="button" class="btn-general invisible" data-bs-toggle="modal" data-bs-target="#modalX">Funcion</button>
+        </div>
+        
+        <!-- Sección de funciones administrativas -->
+        <div class="dashboard-section <?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'd-none';}?>">
+            <h2 class="section-title">Funciones Administrativas</h2>
+            <div class="functions-grid">
+                <!-- Agregar Registro -->
+                <div class="function-card ">
+                    
+                    <div class="function-icon">
+                        <i class="bi bi-plus-circle"></i>
+                    </div>
+                    <h3 class="function-title">Agregar Registro</h3>
+                    <p class="function-description">Llena el formulario y agrega nuevas barras al inventario CNC.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalInventario">
+                        Abrir formulario
+                    </button>
+                </div>
+
+                <!-- Claves Válidas -->
+                <div class="function-card ">
+                    
+                    <div class="function-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <h3 class="function-title">Claves Válidas</h3>
+                    <p class="function-description">Consulta las claves válidas existentes según proveedor y medidas.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalClavesValidas">
+                        Abrir buscador
+                    </button>
+                </div>   
+
+                <!-- Claves Pendientes -->
+                <div class="function-card ">
+                    
+                    <div class="function-icon">
+                        <i class="bi bi-clock"></i>
+                    </div>
+                    <h3 class="function-title">Claves Pendientes</h3>
+                    <p class="function-description">Revisa las claves que requieren validación para habilitar las barras al cotizar. Tiempo de carga estimado es de 13 seg.</p>
+                    <a href="inventario.php?pendientes" class="function-button" target="_blank">
+                        Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
+                    </a>
+                </div>
+                
 
             </div>
         </div>
     </div>
 </section>
 
+<!-- Los modales se mantienen igual que en el código original -->
 <!-- Modal para crear query material y proveedor -->
 <div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -68,12 +308,12 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){
-                            echo 'inventario.php';
-                        }else{
+                        if($tipoUsuario == 2 || $tipoUsuario == 3){
                             echo 'inventario_vn.php';
+                        }else{
+                            echo 'inventario.php';
                         }
-                    ?>" method="GET" target="_blank">                         
+                    ?>" method="GET" target="_blank" id="formMaterial">                         
                     <div id="containerSelectorMaterial" class="mb-4">
                         <label for="selectorMaterial" class="lbl-general">Material</label>
                         <select id="selectorMaterial" class="form-select" name="material" required >
@@ -87,7 +327,7 @@ if (!isset($_SESSION['id'])) {
                         </select>
                     </div> 
 
-                    <button type="submit" class="btn-general">Consultar</button>
+                    <button type="submit" class="btn-general">Consultar<i class="bi bi-arrow-up-right mx-2"></i></button>
                 </form>
             </div>
         </div>
@@ -104,18 +344,18 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 1 || $tipoUsuario == 6){
-                            echo 'inventario.php';
-                        }else{
+                        if($tipoUsuario == 2 || $tipoUsuario == 3){
                             echo 'inventario_vn.php';
+                        }else{
+                            echo 'inventario.php';
                         }
-                    ?>" method="GET" target="_blank">                        
+                    ?>" method="GET" target="_blank" id="formClave">                        
                     <div class="mb-3">
                         <label for="inputClave" class="lbl-general">Clave</label>
                         <input type="text" class="input-text" id="inputClave" name="clave" required>
                     </div>
 
-                    <button type="submit" class="btn-general">Consultar</button>
+                    <button type="submit" class="btn-general">Consultar<i class="bi bi-arrow-up-right mx-2"></i></button>
                 </form>
             </div>
         </div>
@@ -131,7 +371,7 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form >                         
+                <form id="formClavesValidas">                         
                     <div id="containerSelectorProveedor" class="mb-4">
                         <label for="selectorP" class="lbl-general">Proveedor</label>
                         <select id="selectorP" class="selector" name="proveedor" required >
@@ -182,8 +422,6 @@ if (!isset($_SESSION['id'])) {
 
 <script>
     $(document).ready(function(){
-        //const modalConsultar = new bootstrap.Modal(document.getElementById("modalConsultar"));
-
         // COINSULTA AJAX PARA MATERIALES
         $.ajax({
             url: '../ajax/ajax_materiales.php', 
@@ -266,15 +504,18 @@ if (!isset($_SESSION['id'])) {
             // });
         });
 
+        // $.ajax({
+        //     url: "../ajax/ajax_notificacion.php",
+        //     type: "POST",
+        //     data: { mensaje: "Se ha cargado el panel de funciones de inventario CNC" },
+        //     success: function(response) {
+        //         console.log("Notificacion enviada: ", response);
+        //     },
+        //     error: function(error) {
+        //         console.error("Error al enviar la notificacion: ", error);
+        //     }
+        // });
     });
 </script>
 </body>
 </html>
-
-
-
-
-
-
-
-

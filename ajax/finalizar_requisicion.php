@@ -26,13 +26,15 @@ try {
     }
 
     // Validar parametros
-    if (!isset($_POST['registros']) || empty($_POST['registros']) || !is_array($data) || count($data) === 0) {
+    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
         echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
         exit();
     }
 
+    // Decodificar JSON
     $data = json_decode($_POST['registros'], true);
-    if (!is_array($data)) {
+
+    if (!is_array($data) || count($data) === 0) {
         echo json_encode(['success' => false, 'error' => 'Formato de datos invalido']);
         exit();
     }
