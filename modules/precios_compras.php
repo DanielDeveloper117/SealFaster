@@ -311,7 +311,7 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                             <input id="inputMaxUsable" type="number" class="input-text"  name="max_usable" placeholder="" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputPrecio" class="lbl-general">Precio Billet</label>
+                            <label for="inputPrecio" class="lbl-general">Precio Billet (dolares)</label>
                             <input id="inputPrecio" type="number" class="input-text"  min="0" step="0.01" name="precio" required>
                         </div>
                     </div>
@@ -319,7 +319,7 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                         <div class="" style="width:48%;">
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputParidad" class="lbl-general">Paridad (Dolar)</label>
+                            <label for="inputParidad" class="lbl-general">Paridad (Un dolar)</label>
                             <input id="inputParidad" type="number" class="input-text"  min="0" step="0.01" name="dolar" required>
                         </div>
                     </div>

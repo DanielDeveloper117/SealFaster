@@ -64,14 +64,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtDeleteToken->execute();
 
         // Preparar correos
-        $sqlCorreos = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
-        $stmtCorreos = $conn->prepare($sqlCorreos);
+        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $stmtCorreos = $conn->prepare($sqlCorreoInventarios);
         $stmtCorreos->execute();
-        $correos = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
+        $correosInventarios = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
 
         $clave_encriptacion = 'SRS2024#tides';
         $arregloCorreos = [];
-        foreach ($correos as $fila) {
+        foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
@@ -88,15 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($arregloCorreos)) {
             require_once(ROOT_PATH . 'includes/PHPMailer.php');
             $mail = getMailer($conn);
-            $mail->Subject = "Requisición de maquinado autorizada.";
+            $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
             $body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
-                     Se necesita su ingreso al sistema para agregar las barras correspondientes al control de almacén.<br>
-                     Folio de requisición: <b>" . $id_requisicion . "</b>";
+                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
+                        Folio de requisición: <b>" . $id_requisicion . "</b>";
             $mail->Body = $body;
             $mail->AltBody = strip_tags($body);
 
             foreach ($arregloCorreos as $correo) {
-                //$mail->addAddress($correo);
+                $mail->addAddress($correo);
             }
             $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // destinatario de control
 
@@ -219,9 +220,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             </div>
             <div class="modal-body">
                 <p><?php if($autoriza=="g"){
-                    echo 'Esta acción notificará a dirección de que se requiere la autorizcion de la requisición.';
+                    echo 'Esta acción notificará al área de Inventarios para continuar con el proceso de entrega de billets.';
                 }else if($autoriza=="a"){
-                    echo 'Esta acción notificará al área de CNC que la requisición esta autorizada para producción.';
+                    echo 'Esta acción notificará al área de Inventarios para continuar con el proceso de entrega de billets.';
                 }else{
                     echo 'Esta acción actualizara el estatus a En producción y habilitará el control de almacen de la requisición.';
                 }?></p>
@@ -241,15 +242,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 <div id="nada"></div>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        const checkboxFirma = document.getElementById('checkFirmaPredeterminada') || document.getElementById('nada');
+        const checkboxFirma = document.getElementById('checkFirmaPredeterminada');
+        if (checkboxFirma) {
+            checkboxFirma.addEventListener('change', function () {
+                document.querySelector("#inputPredeterminada").value = checkboxFirma.checked ? "1" : "0";
+                console.log("✅ Valor predeterminada:", document.querySelector("#inputPredeterminada").value);
+            });
+        }
 
-        checkboxFirma.addEventListener('change', function () {
-            if (checkboxFirma.checked) {
-                document.querySelector("#inputPredeterminada").value="1";
-            } else {
-                document.querySelector("#inputPredeterminada").value="0";
-            }
-        });
 
         const container = document.querySelector('.container-firma');
         const canvas = document.getElementById('canvasFirma');

@@ -243,20 +243,45 @@
         }
 
         // CLICK A Generar QR para autorizar
-        $("#productionTable").on('click', ".btn-gerente-autoriza, .btn-admin-autoriza",function () {
+        $("#productionTable").on('click', ".btn-gerente-autoriza, .btn-admin-autoriza", function () {
             let idRequisicion = $(this).data('id-requisicion');
             let autoriza = $(this).data('autoriza');
-            let qrSrc = `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`;
 
-            // Mostrar imagen QR en el contenedor del modal
-            $("#ContainerQR, #ContainerQR2").html(`<img src="${qrSrc}" width="250" height="250">`);
+            // Llamar al script PHP que devuelve JSON con el QR
+            $.ajax({
+                url: `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`,
+                method: "GET",
+                dataType: "json",
+                success: function (resp) {
+                    if (resp.success) {
+                        // Mostrar QR volátil
+                        let imgTag = `<img src="data:image/png;base64,${resp.qrBase64}" width="200" height="200">`;
+                        $("#ContainerQR, #ContainerQR2").html(imgTag);
 
-            $(".btnFirmaPredeterminada").data("id-requisicion", idRequisicion);
-            $(".btnFirmaPredeterminada").data("autoriza", autoriza);
+                        // Mostrar la URL debajo del QR
+                        let linkTag = `
+                            <a href="${resp.url}" target="_blank" class="mt-2 fs-3">
+                                Ir a firmar
+                            </a>`;
+                        $("#qrLinkContainer, #qrLinkContainer2").html(linkTag);
 
-            // Iniciar la verificación periódica
-            verificarAutorizacionQR(idRequisicion, autoriza);
+                        $(".btnFirmaPredeterminada").data("id-requisicion", idRequisicion);
+                        $(".btnFirmaPredeterminada").data("autoriza", autoriza);
+
+                        // Iniciar verificación periódica
+                        verificarAutorizacionQR(idRequisicion, autoriza);
+                    } else {
+                        sweetAlertResponse("error", "Error al generar QR", resp.error || "Error desconocido.", "self");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    sweetAlertResponse("error", "Error AJAX", "No se pudo generar el QR: " + error, "self");
+                }
+            });
+
         });
+
+        // FIRMAR CON LA FIRMA PREDETERMINADA
         $(".btnFirmaPredeterminada").on("click", function(){
             const idRequisicionX = $(this).data('id-requisicion');
             const autorizaX = $(this).data('autoriza');
@@ -278,7 +303,7 @@
                     }
                 },
                 error: function () {
-                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar ", "none");
+                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar", "self");
                     console.error("Error al consultar el estatus de autorización.");
                 }
             });        
@@ -300,12 +325,13 @@
         $(".btn-close").on("click", function(){
             $(".form-post")[0].reset();
         });
-        // CLICK CANCELAR REQUISICION
+        // CLICK CANCELAR REQUISICION DESDE LA TABLA
         $("#productionTable").on('click', ".btn-cancelar", function () {
             let dataIdRequisicionCancelar = $(this).data('id-requisicion');
             $('#inputRequisicionCancelar').val(dataIdRequisicionCancelar);
             $("#modalCancelar .modal-body strong").text(dataIdRequisicionCancelar);
         });
+        // BOTON DE CANCELAR LA REQUISICION, AJAX A CANCELAR
         $("#btnContinuarCancelar").on('click', function () {
             let idRequisicionCancelar = $('#inputRequisicionCancelar').val();
             $(this).addClass("d-none");
@@ -323,7 +349,7 @@
                     }
                 },
                 error: function () {
-                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar", "none");
+                    sweetAlertResponse("error", "Error", "Ocurrio algo inesperado al autorizar", "self");
                     console.error("Error al consultar el estatus de autorización.");
                 }
             });

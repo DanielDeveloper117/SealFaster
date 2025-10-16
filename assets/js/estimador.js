@@ -21,6 +21,7 @@ $(document).ready(function() {
 
     for (let i = 1; i <= 5; i++) {
         window[`billetsSeleccionados_m${i}`] = [];
+        window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
         window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
     }
 
@@ -105,6 +106,17 @@ $(document).ready(function() {
             ...window.billetsSeleccionados_m4,
             ...window.billetsSeleccionados_m5
         ];
+    };
+
+    window.unirStringBilletsLotes = function () {
+        window.BILLETS_SELECCIONADOS_LOTES = [
+            ...window.BILLETS_SELECCIONADOS_LOTES_m1,
+            ...window.BILLETS_SELECCIONADOS_LOTES_m2,
+            ...window.BILLETS_SELECCIONADOS_LOTES_m3,
+            ...window.BILLETS_SELECCIONADOS_LOTES_m4,
+            ...window.BILLETS_SELECCIONADOS_LOTES_m5
+        ];
+        console.log("STRING DE BILLETS LOTES: ", window.BILLETS_SELECCIONADOS_LOTES);
     };
 
     window.unirStringBillets = function () {

@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window[`PRECIO_BARRAS_m${i}`] = 0.00;
                 window[`CANTIDAD_PIEZAS_TEMPORAL_m${i}`] = 0;
                 window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`] = [];
+                window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                 window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                 let precioBarra = 0.00;
 
@@ -301,6 +302,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     resetTextareasBillets();
 
                     window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
@@ -419,6 +421,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     resetTextareasBillets();
 
                     window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
@@ -432,6 +435,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     alturaSeleccionada = parseFloat(alturaSeleccionada);
                     let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
                     let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
+                    // 15 es el minimo usable, menos de 15 no es usable
                     let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
                     let dInteriorNecesario = 0.00;
                     let dExteriorNecesario = 0.00;
@@ -1125,14 +1129,18 @@ document.addEventListener("DOMContentLoaded", function () {
                                 <td>${ocupaEnBillet}</td>
                             </tr>`
                         );
+                        let billetInfoStringLote = lotePedimentoSeleccionado + " (" + dataInterior + "/" + dataExterior + ") " + ocupaEnBillet + " pz";
                         let billetInfoString = claveSeleccionada + " (" + dataInterior + "/" + dataExterior + ") " + ocupaEnBillet + " pz";
+
                         window[`PRECIO_BARRAS_m${i}`] += totalPrecioBarraUtilidad;
                         window[`billetsSeleccionados_m${i}`].push(lotePedimentoSeleccionado);
+                        window[`BILLETS_SELECCIONADOS_LOTES_m${i}`].push(billetInfoStringLote);
                         window[`BILLETS_SELECCIONADOS_STRING_m${i}`].push(billetInfoString);
 
                         $(`#precioBarra_m${i}`).val(window[`PRECIO_BARRAS_m${i}`].toFixed(2));
 
                         console.log(`Billets seleccionados_m${i} son: `, window[`billetsSeleccionados_m${i}`]);
+                        console.log(`Billets Lotes string m${i} son: `, window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                         console.log(`Billets string m${i} son: `, window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
                     }).fail(function () {
                         alert(`Hubo un error al obtener los datos.`);
@@ -1239,6 +1247,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     reiniciarMilimetrosNecesarios();
 
                     window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
@@ -1521,8 +1530,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     $(this).append(`<i class='bi bi-check-circle-fill' style='color:#4caf50b5; margin-left: 5px;'></i>`);
                     $(`#btnNoListo_m${i}`).removeClass(`d-none`);
                     $(`#btnNoListo_m${i}`).addClass(`d-block`);
+                    $(`#inputBilletsLotes_m${i}`).val(window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                     $(`#inputBilletsString_m${i}`).val(window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
-                    console.log("Los billets strings del material son: ", window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
+                    console.log("Los Lotes strings del material son: ", window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                 });
                 // CUANDO SE HABILITA LA EDICION
                 $(`#btnNoListo_m${i}`).on(`click`, function(){

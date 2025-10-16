@@ -206,10 +206,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 <!-- ------------------------------------------------------------------------------------------------------- -->
 <script>
-    $(document).ready(function() {
+$(document).ready(function() {
 
-    });
+    // Ejecuta el script PHP que actualiza billets_lotes
+    // $.ajax({
+    //     url: '../ajax/claveslp.php', // ruta del script
+    //     type: 'POST', // aunque no enviamos datos, usamos POST para consistencia
+    //     dataType: 'json',
+    //     success: function(response) {
+    //         console.log(response);
+
+    //         if (response.success) {
+    //             Swal.fire({
+    //                 icon: 'success',
+    //                 title: 'Proceso completado',
+    //                 html: `
+    //                     <b>Actualizados:</b> ${response.actualizados}<br>
+    //                     <b>Omitidos:</b> ${response.omitidos}<br>
+    //                     <b>Errores:</b> ${response.errores}
+    //                 `,
+    //                 confirmButtonText: 'Aceptar'
+    //             });
+    //         } else {
+    //             Swal.fire({
+    //                 icon: 'error',
+    //                 title: 'Error',
+    //                 text: response.error || response.message
+    //             });
+    //         }
+    //     },
+    //     error: function(xhr, status, error) {
+    //         Swal.fire({
+    //             icon: 'error',
+    //             title: 'Error AJAX',
+    //             text: 'No se pudo ejecutar la actualizacion. Revisa la consola.'
+    //         });
+    //         console.error("AJAX Error:", status, error);
+    //     }
+    // });
+
+});
 </script>
+
 
 </body>
 </html>

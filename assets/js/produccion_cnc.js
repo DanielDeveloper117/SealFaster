@@ -410,6 +410,7 @@ $(document).ready(function(){
                         }
                         $('#modalRetorno tbody').append(`
                             <tr>
+                                <input type="hidden" tabindex="-1" name="id_requisicion" value="${idRequisicion || ''}">
                                 <input type="hidden" tabindex="-1" name="id_control" value="${item.id_control || ''}">
                                 <td><input type="number" tabindex="-1" class="input-disabled cantidad_barras" value="${item.cantidad_barras || ''}" step="1" min="0"></td>
                                 <td><input type="text" tabindex="-1" class="input-disabled clave" value="${item.clave || ''}"></td>
@@ -788,7 +789,8 @@ $(document).ready(function(){
             data: { registros: JSON.stringify(datos) },
             success: function (resp) {
                 if (resp.success) {
-                    sweetAlertResponse("success", "Éxito", "La requisición fue finalizada correctamente.", "self");
+                    //sweetAlertResponse("success", "Éxito", "La requisición fue finalizada correctamente.", "self");
+                    sweetAlertResponse("success", "Éxito", resp.message, "self");
                     $('#modalFinalizar').modal('hide');
                 } else {
                     sweetAlertResponse("error", "Error", resp.error || "Error desconocido.", "self");
@@ -822,13 +824,15 @@ $(document).ready(function(){
         // Recolectar datos: solo id_control + campos editables
         let datos = [];
         $('#modalRetorno tbody tr').each(function () {
+            let id_requisicion = $(this).find('input[name="id_requisicion"]').val();
             let id_control = $(this).find('input[name="id_control"]').val();
             let lote_pedimento = $(this).find('.lote_pedimento').val();
 
             // Saltar fila si id_control no existe o está vacío
-            if (!id_control || !lote_pedimento) return;
+            if (!id_requisicion || !id_control || !lote_pedimento) return;
 
             let fila = {
+                id_requisicion: id_requisicion,
                 id_control: id_control,
                 mm_retorno: $(this).find('.mm_retorno').val() || 0,
                 lote_pedimento: $(this).find('.lote_pedimento').val() || "",

@@ -24,8 +24,14 @@ html {
             --box-shadow-rotator: 0px 0px 30px 30px rgb(37 65 42 / 51%);
             --span-status:#55ad9b;
             --bg-table-row:#4e775380;
+            --bg-tabla-billets-thead-row:#2d4a2d;
+            --bg-tabla-billets-tbody-row:rgba(8, 95, 8, 0.5);
+            --bg-tabla-billets-tbody-row-hover:#4e775380;
+            --color-tabla-billets-tbody-row:#f0f8f0;
+            --color-tabla-billets-tbody-row-hover:#f0f8f0;
             --card-glow: rgba(85, 173, 155, 0.2);
             --particle-color: rgba(85, 173, 155, 0.1);
+            
 
         }
 
@@ -46,6 +52,11 @@ html {
                 --box-shadow-rotator: none;
                 --span-status:#00876cde;
                 --bg-table-row:#99be9e30;
+                --bg-tabla-billets-thead-row:#d1e7d1;
+                --bg-tabla-billets-tbody-row:rgba(209, 231, 209, 0.3);
+                --bg-tabla-billets-tbody-row-hover:#4e775380;
+                --color-tabla-billets-tbody-row:#1a3d1a;
+                --color-tabla-billets-tbody-row-hover:#f0f8f0;
                 --card-glow: rgba(85, 173, 155, 0.3);
                 --particle-color: rgba(85, 173, 155, 0.15);
             }

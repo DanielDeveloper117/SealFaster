@@ -203,7 +203,7 @@ if (!isset($_SESSION['id'])) {
 <!-- Contenedor principal del dashboard -->
 <section class="section-table flex-column d-flex col-12 justify-content-center align-items-center">
     <div class="col-11 dashboard-container">
-        <h1 class="dashboard-title">Funciones para inventario CNC</h1>
+        <h1 class="dashboard-title">Panel de funciones para inventario CNC</h1>
         
         <!-- Sección de funciones principales -->
         <div class="dashboard-section">
@@ -285,7 +285,7 @@ if (!isset($_SESSION['id'])) {
                         <i class="bi bi-clock"></i>
                     </div>
                     <h3 class="function-title">Claves Pendientes</h3>
-                    <p class="function-description">Revisa las claves que requieren validación para habilitar las barras al cotizar. Tiempo de carga estimado es de 13 seg.</p>
+                    <p class="function-description">Revisa las claves que requieren validación para habilitar las barras al cotizar. La tabla podría tardar en cargar.</p>
                     <a href="inventario.php?pendientes" class="function-button" target="_blank">
                         Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
                     </a>
@@ -395,8 +395,8 @@ if (!isset($_SESSION['id'])) {
 
                     <button id="btnConsutarClavesValidas" type="button" class="btn-general">Consultar</button>
                 </form>
-                <div>
-                    <table id="tablaClavesValidas" class="table table-bordered mt-3" style="border:1px solid #495057;">
+                <div style="overflow-x:auto;">
+                    <table id="tablaClavesValidas" class="table table-bordered mt-3 tabla-billets" style="border:1px solid #495057;">
                         <thead class="table-active">
                             <tr>
                                 <th>Clave</th>
@@ -405,10 +405,11 @@ if (!isset($_SESSION['id'])) {
                                 <th>Material</th>
                                 <th>Interior</th>
                                 <th>Exterior</th>
+                                <th>Disponibilidad</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr><td colspan="6">Llene el formulario para consultar claves validas.</td></tr>
+                            <tr><td colspan="7">Llene el formulario para consultar claves validas.</td></tr>
                         </tbody>
                     </table>
 
@@ -464,7 +465,13 @@ if (!isset($_SESSION['id'])) {
                 success: function(data) {
                     if (data.length > 0) {
                         $("#tablaClavesValidas tbody").empty();
+                        let disponibilidad = "";
                         $.each(data, function(index, item) {
+                            if(!item.precio || item.precio == 0.00){
+                                disponibilidad = "No disponible, le falta el precio.";
+                            }else{
+                                disponibilidad = "Disponible.";
+                            }
                             $("#tablaClavesValidas tbody").append(
                                 `
                                 <tr>
@@ -474,6 +481,7 @@ if (!isset($_SESSION['id'])) {
                                     <td>${item.material}</td>
                                     <td>${item.interior}</td>
                                     <td>${item.exterior}</td>
+                                    <td>${disponibilidad}</td>
                                 </tr>
                                 `
                             );

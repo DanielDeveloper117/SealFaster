@@ -6,7 +6,7 @@ try {
     header('Content-Type: application/json');
     // Verificar si los datos se han enviado por POST
     if (isset($_POST['id_cotizacion'], $_POST['id_usuario'], $_POST['familia_perfil'], $_POST['perfil_sello'], $_POST['cantidad_material'], $_POST['material'], 
-              $_POST['claves'], $_POST['billets'], 
+              $_POST['claves'], $_POST['billets'], $_POST['billets_lotes'],
               $_POST['altura_mm'], $_POST['altura_caja_mm'], $_POST['altura_h2_mm'], $_POST['altura_h3_mm'], 
               $_POST['diametro_interior_mm'], $_POST['diametro_exterior_mm'],
               $_POST['tipo_medida_di'], $_POST['tipo_medida_de'], $_POST['tipo_medida_h'],
@@ -25,6 +25,7 @@ try {
         $proveedor = $_POST['proveedor'] ?? "Innecesario";
         $claves = $_POST['claves'];
         $billets = $_POST['billets'];
+        $billets_lotes = $_POST['billets_lotes'];
         $billets_string = $_POST['billets_string'];
         $tipo_medida = $_POST['tipo_medida'];
         $altura = $_POST['altura_mm'];
@@ -100,12 +101,26 @@ try {
         // Ahora $billets_string2 contiene algo como:
         // "SKF TU.F1.31860 (40/67) 2 pz,TRYGONAL TU.F1.31637 (0/95) 2 pz"
 
+        // --------------------------
+        // FUSIONAR billets + billets_string EN billets_claves_lotes
+        // --------------------------
+        $arrClaves = array_map('trim', explode(',', $billets));
+        $arrStrings = array_map('trim', explode(',', $billets_string));
+
+        $minLen = min(count($arrClaves), count($arrStrings));
+        $billets_claves_lotes_arr = [];
+
+        for ($i = 0; $i < $minLen; $i++) {
+            $billets_claves_lotes_arr[] = $arrClaves[$i] . ' ' . $arrStrings[$i];
+        }
+
+        $billets_claves_lotes = implode(',', $billets_claves_lotes_arr);
 
         // Preparar la consulta SQL para insertar los datos
         $stmt = $conn->prepare("
             INSERT INTO cotizacion_materiales (
                 id_cotizacion, id_usuario, familia_perfil, perfil_sello, cantidad_material, material, proveedor, 
-                claves, billets, billets_string, billets_string2, tipo_medida, 
+                claves, billets, billets_lotes, billets_claves_lotes, billets_string, billets_string2, tipo_medida, 
                 altura, altura_caja, altura_escalon, altura_h2, altura_h3, 
                 diametro_int, diametro_ext, 
                 a_sello, tipo_medida_h, di_sello, tipo_medida_di, de_sello, tipo_medida_de, cantidad, 
@@ -115,7 +130,7 @@ try {
                 ) 
             VALUES (
                 :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
-                :claves, :billets, :billets_string, :billets_string2, :tipo_medida, 
+                :claves, :billets, :billets_lotes, :billets_claves_lotes, :billets_string, :billets_string2, :tipo_medida, 
                 :altura, :altura_caja, :altura_escalon, :altura_h2, :altura_h3, 
                 :diametro_int, :diametro_ext, 
                 :a_sello, :tipo_medida_h, :di_sello, :tipo_medida_di, :de_sello, :tipo_medida_de, :cantidad, 
@@ -134,6 +149,8 @@ try {
         $stmt->bindParam(':proveedor', $proveedor);
         $stmt->bindParam(':claves', $claves);
         $stmt->bindParam(':billets', $billets);
+        $stmt->bindParam(':billets_lotes', $billets_lotes);
+        $stmt->bindParam(':billets_claves_lotes', $billets_claves_lotes);
         $stmt->bindParam(':billets_string', $billets_string);
         $stmt->bindParam(':billets_string2', $billets_string2);
         $stmt->bindParam(':tipo_medida', $tipo_medida);

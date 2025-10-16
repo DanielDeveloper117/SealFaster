@@ -77,7 +77,29 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo); // activar si quieres enviar al vendedor real
+                    $mail->addAddress($correo); // activar si quieres enviar al vendedor real
+                    $contadorCorreos++;
+                }
+            }
+        }
+
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $stmt = $conn->prepare($sqlCorreoInventarios);
+        $stmt->execute();
+        $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$correosInventarios || count($correosInventarios) === 0) {
+            throw new Exception("No se encontro ningun correo de inventarios.");
+        }
+
+        //$clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides'; // mejor mover a config.php
+        //$contadorCorreos = 0;
+
+        foreach ($correosInventarios as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                if ($correo) {
+                    $mail->addAddress($correo);
                     $contadorCorreos++;
                 }
             }
@@ -89,7 +111,7 @@ try {
 
         // Correo visible de prueba
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-        $mail->Subject = 'Requisición cancelada';
+        $mail->Subject = 'Requisición cancelada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha cancelado la autorización de una requisición.<br>Folio: <b>$id_requisicion</b>";
         $mail->AltBody = "Se ha cancelado la autorización de una requisición. Folio: $id_requisicion";
 
@@ -109,7 +131,7 @@ try {
     // Respuesta exitosa general
     echo json_encode([
         'success' => true,
-        'message' => 'Requisición cancelada correctamente y correo enviado.'
+        'message' => 'Requisición cancelada correctamente y correos enviados con éxito.'
     ]);
 
 } catch (PDOException $e) {

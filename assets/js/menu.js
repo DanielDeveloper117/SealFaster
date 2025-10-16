@@ -76,4 +76,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       typeChar(); // Inicia la animación de escritura
   }
+
+  // $("#navbar a").on("click", function(e){
+  //   e.preventDefault();
+  //   window.location = "../auth/cerrar_sesion.php";
+  // });
 });

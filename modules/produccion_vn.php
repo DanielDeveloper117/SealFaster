@@ -55,7 +55,7 @@ if (!isset($_SESSION['id'])) {
     <div class="col-11">
         <div class="titulo mt-1 mb-3">
             <h1>Requisiciones para Maquinado de Sellos</h1>
-            <div class="d-flex flex-row justify-content-between col-3 gap-5 mt-5">
+            <div class="d-flex flex-row justify-content-between col-12 col-md-3 gap-5 mt-5">
                 <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
                     data-bs-toggle="modal" data-bs-target="#modalAgregarEditar">
                     <i class="bi bi-file-plus" style="font-size:24px;"></i>
@@ -213,6 +213,10 @@ if (!isset($_SESSION['id'])) {
 
                                         }
                                         break;
+                                    case "Completada":
+                                        $estatusString = "Completada";
+
+                                        break;
                                     default:
                                         // Nada que mostrar
                                         break;
@@ -338,7 +342,7 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <div class="d-flex justify-content-between ">
                         <div style="width:48%;">
-                            <label for="inputFactura" class="lbl-general">Factura/remision/nota</label>
+                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota</label>
                             <input id="inputFactura" type="text" class="input-text" name="factura">
                         </div>
                         <div style="width:48%;">
@@ -359,7 +363,7 @@ if (!isset($_SESSION['id'])) {
                         </div>
                     </div>
                     <div class="d-flex justify-content-between ">
-                        <div style="width:100%;">
+                        <div class="mb-3" style="width:100%;overflow-x:auto;">
                             <table id="miniTableCotizaciones" class="table table-bordered border border-2 tabla-billets">
                                 <thead>
                                     <tr>
@@ -392,9 +396,22 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil, luego en la ventana dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
-                <div class="d-flex justify-content-evenly">
-                    <div id="ContainerQR" class="d-flex justify-content-center">
+                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
+                <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
+                    <!-- CONTENEDOR QR -->
+                    <div id="containerQRLink" 
+                        class="d-flex flex-column align-items-center text-center p-2"
+                        >
+                        
+                        <div id="ContainerQR" 
+                            class="d-none d-md-flex justify-content-center align-items-center"
+                            >
+                        </div>
+
+                        <div id="qrLinkContainer" 
+                            class="d-flex d-md-flex justify-content-center text-break mb-md-3"
+                            style="word-break: break-all;">
+                        </div>
                     </div>
                     <?php 
                         $id_usuario = $_SESSION['id'];
@@ -404,8 +421,8 @@ if (!isset($_SESSION['id'])) {
                         if(file_exists($rutaCompleta)){
                             echo '
                                 <div class="d-flex flex-column justify-content-center">
-                                    <h5>¿Autorizar con firma predeterminada?</h5>
-                                    <img src="'.$rutaCompleta.'" width="150" height="100" class="align-self-center mb-3">
+                                    <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
+                                    <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
                                     <button type="button" class="btnFirmaPredeterminada btn-auth" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
@@ -428,9 +445,22 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil, luego en la ventana dibuja tu firma y toca el boton Continuar.</p>
-                <div class="d-flex justify-content-evenly">
-                    <div id="ContainerQR2" class="d-flex justify-content-center">
+                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
+                <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
+                    <!-- CONTENEDOR QR -->
+                    <div id="containerQRLink" 
+                        class="d-flex flex-column align-items-center text-center p-2"
+                        >
+                        
+                        <div id="ContainerQR2" 
+                            class="d-none d-md-flex justify-content-center align-items-center"
+                            >
+                        </div>
+
+                        <div id="qrLinkContainer2" 
+                            class="d-flex d-md-flex justify-content-center text-break mb-md-3"
+                            style="word-break: break-all;">
+                        </div>
                     </div>
                     <?php 
                         $id_usuario = $_SESSION['id'];
@@ -440,8 +470,8 @@ if (!isset($_SESSION['id'])) {
                         if(file_exists($rutaCompleta)){
                             echo '
                                 <div class="d-flex flex-column justify-content-center">
-                                    <h5>¿Autorizar con firma predeterminada?</h5>
-                                    <img src="'.$rutaCompleta.'" width="150" height="100" class="align-self-center mb-3">
+                                    <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
+                                    <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
                                     <button type="button" class="btnFirmaPredeterminada btn-auth" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
@@ -500,7 +530,7 @@ if (!isset($_SESSION['id'])) {
             </div>
             <!-- tabla informativa -->
             <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle">
+                <table class="table table-bordered align-middle tabla-billets">
                     <thead class="table-light">
                         <tr>
                             <th>Estatus</th>
@@ -534,7 +564,7 @@ if (!isset($_SESSION['id'])) {
         </div>
         <!-- progreso de estatus -->
         <div class="text-center mt-4 mb-4" style="font-size: 12px !important;">
-            <div id="cadenaEstatusModal" class="status-chain">
+            <div id="cadenaEstatusModal" class="status-chain" style="overflow-x:auto;min-height:120px;">
                 <!-- Estatus: Pendiente -->
                 <div class="d-flex flex-column align-items-center position-relative">
                     <i class="bi bi-check-circle-fill icon" data-step="1"></i>

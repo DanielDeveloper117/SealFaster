@@ -28,8 +28,8 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
     <!-- DataTables -->
-        <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-        <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
+    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <!-- DataTables Buttons -->
     <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
 
@@ -138,7 +138,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             i.lote_pedimento
                         ,estatus FROM inventario_cnc i
                         LEFT JOIN parametros p ON i.clave = p.clave
-                        WHERE p.clave IS NULL ORDER BY stock DESC;
+                        WHERE p.clave IS NULL OR i.estatus = 'Deshabilitado' ORDER BY stock DESC;
                         ";
                         $stmtInventario = $conn->prepare($sqlInventario);
                         $stmtInventario->execute();
@@ -219,8 +219,8 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         }
                         
                     ?>
-                    <tr style="<?= $usableStyle; ?>" >
-                        <td class="d-fex flex-column">
+                    <tr id="tr_<?= $row['id']; ?>" class="fila-inventario" style="<?= $usableStyle; ?>">
+                        <td class="acciones d-flex flex-column">
                             <div class="d-flex flex-column">
                                 <button class="btn-general edit-btn mb-1" 
                                     data-id="<?= $row['id']; ?>"
@@ -231,27 +231,32 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                     data-max_usable="<?= $row['max_usable']; ?>"
                                     data-stock="<?= $row['stock']; ?>"
                                     data-lote_pedimento="<?= $row['lote_pedimento']; ?>"
-                                    >Editar</button>
+                                >
+                                    Editar<i class="bi bi-pencil-square px-2"></i>
+                                </button>
                                 <form class="form-delete">
-                                    <button type="button" class="btn-eliminar delete-btn" data-id="<?= $row['id']; ?>">Eliminar</button>
+                                    <button type="button" class="btn-eliminar delete-btn" data-id="<?= $row['id']; ?>">
+                                        Eliminar<i class="bi bi-trash3 px-2"></i>
+                                    </button>
                                 </form>
                             </div>
                         </td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['clave']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['material']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['proveedor']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['medida']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['max_usable']); ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['stock']); ?></td>
-                        <td style="<?= $usableStyle; ?>">
+                        <td class="td-clave"><?= htmlspecialchars($row['clave']); ?></td>
+                        <td class="td-lote"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
+                        <td class="td-material"><?= htmlspecialchars($row['material']); ?></td>
+                        <td class="td-proveedor"><?= htmlspecialchars($row['proveedor']); ?></td>
+                        <td class="td-medida"><?= htmlspecialchars($row['medida']); ?></td>
+                        <td class="td-max_usable"><?= htmlspecialchars($row['max_usable']); ?></td>
+                        <td class="td-stock"><?= htmlspecialchars($row['stock']); ?></td>
+                        <td class="td-barra">
                             <div class="existencia-barra">
                                 <span class="bar <?= $class; ?>" style="width: <?= htmlspecialchars($width); ?>%;"></span>
                             </div>
                         </td>
-                        <td style="<?= $usableStyle; ?>"><?= $usableText; ?></td>
-                        <td style="<?= $usableStyle; ?>"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
+                        <td class="td-usable"><?= $usableText; ?></td>
+                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
                     </tr>
+
                     <?php endforeach; ?>
                 </tbody>
             </table>

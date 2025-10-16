@@ -87,7 +87,8 @@ try {
         }
 
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // Correo principal visible
-        $mail->Subject = 'Nueva requisición para producción';
+        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->Subject = 'Nueva requisición para producción. Folio: '.$id_requisicion;
         $mail->Body = "Inventarios ha liberado una nueva requisición de maquinado de sellos con las barras solicitadas.<br>
                     Se ha cambiado el estatus a <b>Producción</b>.<br>
                     Folio de requisición: <b>".$id_requisicion."</b>";

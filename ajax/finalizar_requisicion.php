@@ -115,9 +115,64 @@ try {
     $stmtCot->execute();
     $cot = $stmtCot->fetch(PDO::FETCH_ASSOC);
 
+    $msjExtra = "";
+    ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
+    try {
+        require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        $mail = getMailer($conn);
+        //$id_requisicion = $_POST['id_requisicion'];
+        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $stmt = $conn->prepare($sqlCorreoInventarios);
+        $stmt->execute();
+        $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$correosInventarios || count($correosInventarios) === 0) {
+            $msjExtra = "No se encontraron destinatarios para Inventarios para el envio de correo.";
+            //throw new Exception("No se encontro ningun correo de inventarios.");
+        }
+
+        $clave_encriptacion = 'SRS2024#tides';
+        $contadorCorreos = 0;
+
+        foreach ($correosInventarios as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                if ($correo) {
+                    $mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
+                    $contadorCorreos++;
+                }
+            }
+        }
+
+        if ($contadorCorreos === 0) {
+            $msjExtra = "No se pudo agregar ningún destinatario valido para inventarios.";
+            //throw new Exception("No se pudo agregar ningún destinatario valido para inventarios.");
+        }
+        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->isHTML(true);
+        $mail->Subject = 'Requisición finalizada. Folio: '.$id_requisicion;
+        $mail->Body = "Se ha finalizado el maquinado de sellos de una requisición.<br>
+                    Se requiere actualizar el stock de los billets correspondientes como MM de retorno en control de barras.<br>
+                    Folio de requisición: <b>".$id_requisicion."</b>";
+        // enviar correo
+        if (!$mail->send()) {
+            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+            //throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        }else{
+            $msjExtra = "Correo enviado a Inventarios correctamente.";
+        }
+
+    } catch (Throwable $e) {
+        $msjExtra = "Error al enviar correo: " . $e->getMessage();
+        //throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+    }
+    ////////////////////////////////////////////////////////////////////////
+
     echo json_encode([
         'success' => true,
-        'message' => 'Requisicion finalizada correctamente',
+        'message' => 'Requisicion finalizada correctamente. '. $msjExtra,
         'cotizaciones' => $cot['cotizaciones'] ?? null
     ]);
 
@@ -126,7 +181,8 @@ try {
     if ($conn->inTransaction()) {
         $conn->rollBack();
     }
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    echo json_encode(['success' => false, 
+                      'error' => $e->getMessage().$msjExtra]);
 } finally {
     $conn = null;
 }

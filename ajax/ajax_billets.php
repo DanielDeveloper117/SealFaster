@@ -48,6 +48,7 @@ try{
         // Asignar valores a los parámetros
         $stmt->bindParam(':material', $material);
         $stmt->bindParam(':proveedor', $proveedor);
+        //$altura_mm = $altura_mm + 15.00;
         $stmt->bindParam(':stock', $altura_mm);
         $stmt->bindParam(':interior', $diametro_interior_mm);
         $stmt->bindParam(':exterior', $diametro_exterior_mm);

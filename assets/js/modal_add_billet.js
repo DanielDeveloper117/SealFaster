@@ -123,19 +123,19 @@
 
         function ajaxBackend(idBillet, accion){
             var dataId = idBillet;
-            var dataClave=$('#inputClavePost').val();
-            var dataMaterial=$('#inputMaterial').val();
-            var dataProveedor=$('#inputProveedor').val();
-            var dataMedida=$('#inputMedida').val();
-            var dataMaxUsable=$('#inputMaxUsable').val();
-            var dataStock=$('#inputStock').val();
-            var dataLotePedimento=$('#inputLotePedimento').val();
-            var dataEstatus=$('#inputEstatus').val();
+            var inputClave=$('#inputClavePost').val();
+            var inputMaterial=$('#inputMaterial').val();
+            var inputProveedor=$('#inputProveedor').val();
+            var inputMedida=$('#inputMedida').val();
+            var inputMaxUsable=$('#inputMaxUsable').val();
+            var inputStock=$('#inputStock').val();
+            var inputLotePedimento=$('#inputLotePedimento').val();
+            var inputEstatus=$('#inputEstatus').val();
 
             var actionForm=accion;
             let actionAfter = "";
             if(actionForm == "delete" || actionForm == "update"){
-                actionAfter = "self";
+                actionAfter = "none";
             }else{
                 actionAfter = "none";
             } 
@@ -145,15 +145,15 @@
                 type: 'POST',
                 data: { 
                     id: dataId,
-                    clave: dataClave,
-                    material: dataMaterial,
-                    proveedor: dataProveedor,
-                    medida: dataMedida,
-                    max_usable: dataMaxUsable,
-                    stock: dataStock,
-                    lote_pedimento: dataLotePedimento,
+                    clave: inputClave,
+                    material: inputMaterial,
+                    proveedor: inputProveedor,
+                    medida: inputMedida,
+                    max_usable: inputMaxUsable,
+                    stock: inputStock,
+                    lote_pedimento: inputLotePedimento,
                     action: actionForm,
-                    estatus: dataEstatus
+                    estatus: inputEstatus
                 },
                 dataType: 'json',
                 success: function(data) {
@@ -161,6 +161,71 @@
                         sweetAlertResponse("success", "Proceso exitoso", data.message, actionAfter);
                         window.LP_VALIDO = true;
                         $("#modalInventario #btnCloseModal").trigger("click");
+                        const fila = $(`#tr_${dataId}`);
+                        const filaAfectada = $(`#tr_${dataId} td`);
+                        if(actionForm == "update"){
+
+                            fila.find(".td-clave").text(inputClave);
+                            fila.find(".td-lote").text(inputLotePedimento);
+                            fila.find(".td-material").text(inputMaterial);
+                            fila.find(".td-proveedor").text(inputProveedor);
+                            fila.find(".td-medida").text(inputMedida);
+                            fila.find(".td-max_usable").text(inputMaxUsable);
+                            fila.find(".td-stock").text(inputStock);
+
+                            // Barra de stock
+                            const width = inputMaxUsable > 0 ? (inputStock / inputMaxUsable) * 100 : 0;
+                            let barClass = "bar-bajo";
+                            if (inputStock >= inputMaxUsable * 0.75) barClass = "bar-alto";
+                            else if (inputStock >= inputMaxUsable * 0.25) barClass = "bar-medio";
+
+                            const barra = fila.find(".td-barra .bar");
+                            barra.css("width", width + "%").removeClass("bar-alto bar-medio bar-bajo").addClass(barClass);
+
+                            // Usable / No usable
+                            let usableText = "";
+                            if (inputStock < 15) {
+                                usableText = "No usable";
+                                fila.attr("style", "background-color: #ff00002e !important;");
+                            } else {
+                                usableText = "Usable";
+                                fila.removeAttr("style");
+                            }
+
+                            
+
+
+                            // Estatus
+                            fila.find(".td-estatus").text(inputEstatus + " para cotizar");
+
+                            // Opcional: resaltar la fila
+                            fila.addClass("bg-row-updated");
+                            filaAfectada.addClass("bg-row-updated");
+                            setTimeout(() => {
+                                fila.removeClass("bg-row-updated");
+                                filaAfectada.removeClass("bg-row-updated");
+                            }, 1200);
+
+                            const btn = fila.find('.edit-btn');
+                            btn.attr('data-clave', inputClave);
+                            btn.attr('data-lote_pedimento', inputLotePedimento);
+                            btn.attr('data-material', inputMaterial);
+                            btn.attr('data-proveedor', inputProveedor);
+                            btn.attr('data-medida', inputMedida);
+                            btn.attr('data-max_usable', inputMaxUsable);
+                            btn.attr('data-stock', inputStock);
+
+                        }else if(actionForm == "delete"){  
+                            fila.addClass("bg-row-deleted");  
+                            fila.addClass("bg-row-deleted");
+                            setTimeout(() => {
+                                fila.removeClass("bg-row-deleted");
+                                fila.removeClass("bg-row-deleted");
+                                $(`#tr_${dataId}`).addClass("d-none");
+                            }, 800);
+                        }else{
+                            
+                        } 
                         // $.ajax({
                         //     url: "../ajax/ajax_notificacion.php",
                         //     type: "POST",
@@ -181,6 +246,8 @@
                     sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "none");
                 }
             });
+            $("#formInventario")[0].reset();
+
         }
         //---------------------------------------- @ EVENTOS DEL DOM ------------------------------------
         // EVENTO AL CAMBIAR TIPO DE MATERIAL, CONSULTAR PROVEEDOR
@@ -382,39 +449,43 @@
         });
         // CLICK A EDITAR UN REGISTRO
         $('#inventarioTable').on('click', '.edit-btn', function() {
+            // Limpiar formulario
+            $('#formInventario')[0].reset();
+
+            // Variables de edición
             window.CLAVE_VALIDA = true;
             window.LP_VALIDO = true;
             var dataId = $(this).data('id');
-            $dataClave=$(this).attr('data-clave');
-            $dataMedida=$(this).attr('data-medida');
-            $dataProveedor=$(this).attr('data-proveedor');
-            $dataMaterial=$(this).attr('data-material');
-            $dataMaxUsable=$(this).attr('data-max_usable');
-            $dataStock=$(this).attr('data-stock');
-            $dataLotePedimento=$(this).attr('data-lote_pedimento');
+            var dataClave = $(this).attr('data-clave');
+            var dataMedida = $(this).attr('data-medida');
+            var dataProveedor = $(this).attr('data-proveedor');
+            var dataMaterial = $(this).attr('data-material');
+            var dataMaxUsable = $(this).attr('data-max_usable');
+            var dataStock = $(this).attr('data-stock');
+            var dataLotePedimento = $(this).attr('data-lote_pedimento');
 
+            // Llenar solo los campos que corresponden
             $('#inputId').val(dataId);
-            $('#inputClavePost').val($dataClave);
-            $('#inputMedida').val($dataMedida);
-            $('#inputMaterial').val($dataMaterial);
+            $('#inputClavePost').val(dataClave);
+            $('#inputMedida').val(dataMedida);
+            $('#inputMaterial').val(dataMaterial);
             $('#inputMaterial').trigger("change");
             setTimeout(() => {
-                $('#inputProveedor').val($dataProveedor);
+                $('#inputProveedor').val(dataProveedor);
             }, 1000);
-            $('#inputMaxUsable').val($dataMaxUsable);
-            $('#inputStock').val($dataStock);
-            $('#inputLotePedimento').val($dataLotePedimento);
+            $('#inputMaxUsable').val(dataMaxUsable);
+            $('#inputStock').val(dataStock);
+            $('#inputLotePedimento').val(dataLotePedimento);
             $('#inputAction').val('update');
             $('#modalInventario').modal('show');
             $("#titleModal").text("Editar registro");
 
-            noVerificarEsteLP = $dataLotePedimento;
+            noVerificarEsteLP = dataLotePedimento;
             verificarClave();
             verificarBillet();
             verificarBtnGuardar();
-            //console.log( window.CLAVE_VALIDA);
-            console.log( window.LP_VALIDO);
         });
+
         // ENVIAR FORMULARIO
         $("#btnGuardar").on("click", function(){
             var inputId = $('#inputId').val();

@@ -189,6 +189,7 @@
         <input type="hidden" id="colMaxUsable_m<?= $i ?>" name="col_max_usable">
         <textarea id="inputClaves_m<?= $i ?>" class="d-none" name="claves" readonly></textarea>
         <textarea id="inputBillets_m<?= $i ?>" class="d-none" name="billets" readonly></textarea>
+        <textarea id="inputBilletsLotes_m<?= $i ?>" class="d-none" name="billets_lotes" readonly></textarea>
         <textarea id="inputBilletsString_m<?= $i ?>" class="d-none" name="billets_string" readonly></textarea>
         <input type="hidden" value="<?php echo $selloOriginal; ?>" name="perfil_sello">
         <input type="hidden" id="seraEnviado_m<?= $i ?>" value="no">

@@ -78,7 +78,8 @@ try {
         require_once(ROOT_PATH . 'includes/PHPMailer.php');
         $mail = getMailer($conn);
 
-        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
         $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
         $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -94,7 +95,7 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo);
+                    $mail->addAddress($correo);
                     $contadorCorreos++;
                 }
             }
@@ -106,9 +107,10 @@ try {
 
         // Agregar correo visible de prueba o destinatario unico
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-        $mail->Subject = 'Nueva requisición pendiente.';
+        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
         $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
-                        Se necesita su ingreso al sistema para agregar las barras correspondientes al control de almacen.<br>
+                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
                         Folio de requisición: <b>" . $id_requisicion . "</b>";
 
         if (!$mail->send()) {

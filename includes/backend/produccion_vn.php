@@ -93,7 +93,8 @@
                     throw new Exception("No se pudo agregar ningín destinatario valido.");
                 }
                 $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-                $mail->Subject = 'Nueva requisición por autorizar.';
+                //$mail->addAddress("sistemas@sellosyretenes.com");
+                $mail->Subject = 'Nueva requisición por autorizar. Folio: '.$id_requisicion;
                 $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de <b>Requisiciones</b> para autorizarla con su firma.<br>Folio de requisición: <b>".$id_requisicion."</b>";
                 // enviar correo
                 if (!$mail->send()) {
@@ -245,7 +246,8 @@
                 require_once(ROOT_PATH . 'includes/PHPMailer.php');
                 $mail = getMailer($conn);
                 $id_requisicion = $_POST['id_requisicion'];
-                $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+                //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+                $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
                 $stmt = $conn->prepare($sqlCorreoInventarios);
                 $stmt->execute();
                 $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -261,7 +263,7 @@
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
-                            //$mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
+                            $mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
                             $contadorCorreos++;
                         }
                     }
@@ -271,8 +273,9 @@
                     throw new Exception("No se pudo agregar ningún destinatario valido para inventarios.");
                 }
                 $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                //$mail->addAddress("sistemas@sellosyretenes.com");
                 $mail->isHTML(true);
-                $mail->Subject = 'Nueva requisición pendiente.';
+                $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
                 $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                             Se necesita su ingreso al sistema para agregar las barras correspondientes al control de almacen.<br>
                             Folio de requisición: <b>".$id_requisicion."</b>";

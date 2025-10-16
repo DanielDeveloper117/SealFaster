@@ -15,7 +15,7 @@
                     <div class="mb-3">
                         <label for="inputClavePost" class="lbl-general">Clave</label>
                         <input type="text" class="input-text" id="inputClavePost" name="clave" placeholder="Ingrese una clave" required>
-                        <p id="pInvalida2" class="d-none p-warning">No se encontró la clave o no está disponible. No será posible cotizar con este billet.</p>
+                        <p id="pInvalida2" class="d-none p-warning">No se encontró la clave o el precio está pendiente. No será posible cotizar con este billet.</p>
                         <p id="pValida" class="d-none p-valida"></p>
                         <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success d-none">
                             Descargar Excel de claves validas

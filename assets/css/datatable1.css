@@ -608,9 +608,7 @@
 .bar-bajo {
     background-color: #d01b17; /* Rojo */
 }
-.d-none {
-    display: none; /* Ocultar columna */
-}
+
 tr.no-usable{
     background-color: #ff06007a !important; 
 }
@@ -695,6 +693,7 @@ tr.no-usable{
     font-size: 16px;
     font-weight: 500;
 }
+
 /* Responsive general */
 @media screen and (max-width: 991px) {
     .agrupacion-bar {
@@ -903,7 +902,7 @@ tr.no-usable{
         }
 
         .table thead th {
-            background: var(--accent-bg) !important;
+            background: var(--accent-bg);
             color: var(--text-primary);
             font-weight: 700;
             padding: 1rem;
@@ -935,16 +934,21 @@ tr.no-usable{
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
         }
-        .table tbody tr td{
-            background-color: var(--bg-table-row);
-            white-space: nowrap;
+        .table td {
+            padding: 1rem;
+            border: none;
+            color: var(--text-secondary);
+            vertical-align: middle;
+            position: relative;
+            transition: color 0.3s ease;
         }
-        .tabla-billets tr td{
-            background-color: #9effaa1a !important;
-            color: #2d4a2d !important;
+
+        .table tbody tr:hover td {
+            color: var(--text-primary);
         }
-        .tabla-billets tbody tr:hover td{
-            color: #ffffff !important;
+
+        .table td:first-child {
+            border-left: none;
         }
         .table tbody tr:nth-child(even) {
             background: rgba(85, 173, 155, 0.05);
@@ -955,23 +959,37 @@ tr.no-usable{
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(85, 173, 155, 0.2);
         }
-
-        .table tbody tr:hover td {
-            color: var(--text-primary);
+        .table tbody tr td{
+            background-color: var(--bg-table-row);
+            white-space: nowrap;
         }
-
-        .table td {
-            padding: 1rem;
+        
+        /* SUB TABLAS DE MODALES, MINI TABLAS */
+        .tabla-billets thead th {
+            background: var(--bg-tabla-billets-thead-row) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             border: none;
-            color: var(--text-secondary);
-            vertical-align: middle;
-            position: relative;
-            transition: color 0.3s ease;
         }
 
-        .table td:first-child {
-            border-left: none;
+        .tabla-billets tbody tr {
+            background: var(--bg-tabla-billets-tbody-row) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: none;
         }
+        .tabla-billets tbody tr:nth-child(even) {
+            background: var(--bg-tabla-billets-tbody-row);
+        }
+        .tabla-billets tbody tr:hover {
+            background: var(--bg-tabla-billets-tbody-row-hover) !important;
+        }
+        .tabla-billets tbody tr td{
+            color: var(--color-tabla-billets-tbody-row) !important;
+        }
+        .tabla-billets tbody tr:hover td{
+            color: var(--color-tabla-billets-tbody-row-hover) !important;
+        }
+        
+        /* FIN SUB TABLAS DE MODALES, MINI TABLAS */
 
         .container-actions {
             display: flex;
@@ -989,9 +1007,6 @@ tr.no-usable{
             filter: brightness(1.1);
         }
 
-        .d-none {
-            display: none !important;
-        }
 
         @media (max-width: 991px) {
             .titulo h1 {
@@ -1059,4 +1074,9 @@ tr.no-usable{
             }
         }
 
-   
+.bg-row-updated{
+    background-color: #55ad9b !important;
+}
+.bg-row-deleted{
+    background-color: #ca4747 !important;
+}

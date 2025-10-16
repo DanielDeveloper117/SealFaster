@@ -58,6 +58,15 @@ class PDF extends FPDF {
         $this->Cell(0, 15, "www.sellosyretenes.com", 0, 0, 'R');
     }
 
+    // Función para verificar si hay espacio suficiente para las firmas
+    function CheckPageBreak($heightNeeded) {
+        if($this->GetY() + $heightNeeded > $this->PageBreakTrigger) {
+            $this->AddPage('P');
+            return true;
+        }
+        return false;
+    }
+
 }
 
 session_start();
@@ -150,7 +159,14 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(50, 6, 'OPERADOR CNC:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
     $pdf->Cell(140, 6, utf8_decode($arregloRequisicion['operador_cnc']), 1, 1, 'L', 0);
-
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(50, 6, 'INICIO MAQUINADO:', 1, 0, 'R', true);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(45, 6, utf8_decode($arregloRequisicion['inicio_maquinado']), 1, 0, 'L', 0);
+    $pdf->SetFont('Arial', 'B', 10);
+    $pdf->Cell(50, 6, 'FIN MAQUINADO:', 1, 0, 'R', true);
+    $pdf->SetFont('Arial', '', 10);
+    $pdf->Cell(45, 6, utf8_decode($arregloRequisicion['fin_maquinado']), 1, 1, 'L', 0);
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFont('Arial', 'B', 11);
     $pdf->Cell(100, 8, utf8_decode("Perfiles a maquinar"), 0, 0, '', 0);
@@ -183,7 +199,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
     $pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
     $pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
-    $pdf->Cell(43, 6, 'Claves', 1, 1, 'C', true);
+    $pdf->Cell(43, 6, 'Lote Pedimento/Clave', 1, 1, 'C', true);
     foreach ($cotizacion_ids as $id_cotizacion) {
         $stmt->bindValue(':id_cotizacion', $id_cotizacion, PDO::PARAM_INT);
         $stmt->execute();
@@ -337,53 +353,64 @@ if (isset($_GET['id_requisicion'])) {
 
         $pdf->SetFont('Arial', '', 8);
         foreach ($cotizacionData as $cot) {
-            // Separar por comas
-            $clavesFormateadas = array_map('trim', explode(',', $cot['billets_string']));
-            $CONTEO_CLAVES += count($clavesFormateadas);
+            // Separar por comas los registros combinados
+            $billets = array_map('trim', explode(',', $cot['billets_claves_lotes']));
+            $CONTEO_CLAVES += count($billets);
 
-            // Reestructurar cada clave para que la medida esté en otra línea
-            foreach ($clavesFormateadas as &$clave) {
-                // Ejemplo: "040140PTFEBRONCE (0/40) 12 pz" -> "040140PTFEBRONCE\n(0/40) 12 pz"
-                $clave = preg_replace('/\s*(\(\d+\/\d+\)\s*\d+\s*pz)/i', "\n$1", $clave);
+            $bloques = [];
+            foreach ($billets as $item) {
+                // Ejemplo: "M280350-4 TU.MID6G.14329 (280/350) 7 pz"
+                // Extraemos las partes principales
+                if (preg_match('/^([^\s]+)\s+([^\(]+)\s*(\([^)]+\)\s*\d+\s*pz)?$/i', $item, $m)) {
+                    $clave = trim($m[1] ?? '');
+                    $lote = trim($m[2] ?? '');
+                    $resto = trim($m[3] ?? '');
+                } else {
+                    // Si no coincide el formato esperado, lo dejamos completo en una sola línea
+                    $clave = $item;
+                    $lote = '';
+                    $resto = '';
+                }
+
+                // Formato solicitado:
+                // lote
+                // clave
+                // (di/de) n pz
+                $bloques[] = trim($lote . "\n" . $clave . ($resto ? "\n" . $resto : ''));
             }
-            unset($clave);
 
-            // Unir con salto de línea cada clave
-            $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
+            // Añadimos separador visual entre cada bloque
+            $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
 
-            // Calcular altura según número de líneas
-            $lineHeight = 6;
-            $numLinesClaves = 0;
-            foreach ($clavesFormateadas as $clave) {
-                $numLinesClaves += substr_count($clave, "\n") + 1;
+            // Calculamos la altura total en base al número de líneas
+            $lineHeight = 5;
+            $numLines = 0;
+            foreach ($bloques as $b) {
+                $numLines += substr_count($b, "\n") + 1;
             }
-            $rowHeightClaves = $numLinesClaves * $lineHeight;
-
-            // Determinar altura máxima (puede ajustarse si hay otras celdas con más contenido)
-            $maxRowHeight = $rowHeightClaves;
+            // + líneas de separación
+            $numLines += count($bloques) - 1;
+            $rowHeight = $numLines * $lineHeight;
 
             // Celdas previas
-            $pdf->Cell(10, $maxRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-            $pdf->Cell(15, $maxRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-            $pdf->Cell(23, $maxRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
-            // $pdf->Cell(12, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(33, $maxRowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(10, $rowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+            $pdf->Cell(15, $rowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+            $pdf->Cell(23, $rowHeight, utf8_decode($cot['material']), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
 
-            // Posición antes del MultiCell
+            // Guardar posición actual antes del MultiCell
             $x = $pdf->GetX();
             $y = $pdf->GetY();
 
-            // Claves en varias líneas
-            $pdf->MultiCell(43, $lineHeight, $clavesVertical, 1, 'L');
+            // Celda con los bloques formateados
+            $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
 
-            // Ajustar posición para que el resto del renglón siga alineado
+            // Regresar a la posición para mantener alineación de la tabla
             $pdf->SetXY($x + 43, $y);
-            $pdf->Cell(0, $maxRowHeight, "", 1, 1, 'C');
+            $pdf->Cell(0, $rowHeight, "", 1, 1, 'C');
         }
-
-
         // // Separacion entre cotizaciones
         $pdf->Ln(5); 
         // $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
@@ -395,7 +422,8 @@ if (isset($_GET['id_requisicion'])) {
         // $pdf->Cell(28, 6, utf8_decode(""), 1, 0, 'C');
         // $pdf->Cell(43, 6, utf8_decode(""), 1, 1, 'C');
     }
-
+    // VERIFICAR SI HAY ESPACIO SUFICIENTE PARA LAS FIRMAS (aprox. 50mm)
+    $pdf->CheckPageBreak(50);
     // Espaciado antes de las firmas
     $pdf->Ln(17);
 
@@ -498,18 +526,18 @@ if (isset($_GET['id_requisicion'])) {
         }
     } else {
         // Si no hay registros, usar los renglones vacíos como en el código original
-        for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
-            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
-        }
+        // for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
+        //     $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
+        // }
     }
     $pdf->Ln(2); 
     $pdf->SetFont('Arial', 'I', 8);

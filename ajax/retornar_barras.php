@@ -34,6 +34,12 @@ try {
     // Decodificar JSON
     $data = json_decode($_POST['registros'], true);
 
+    // Tomar id_requisicion de la primera fila
+    $id_requisicion = $data[0]['id_requisicion'] ?? null;
+    if (!$id_requisicion) {
+        throw new Exception("No se pudo determinar id_requisicion");
+    }
+
     if (!is_array($data) || count($data) === 0) {
         echo json_encode(['success' => false, 'error' => 'Formato de datos invalido']);
         exit();
@@ -60,7 +66,8 @@ try {
         }
 
         $id_control = (int)$fila['id_control'];
-        $mm_retorno = (float)$fila['mm_retorno'];
+        //$mm_retorno = (float)$fila['mm_retorno'];
+        $mm_retorno = isset($fila['mm_retorno']) ? (float)$fila['mm_retorno'] : 0.00;
         $lote_pedimento = trim($fila['lote_pedimento']);
 
         // Actualizar control_almacen
@@ -69,9 +76,9 @@ try {
             ':id_control' => $id_control
         ]);
 
-        if ($stmtControl->rowCount() === 0) {
-            throw new Exception("No se actualizo control_almacen con id_control {$id_control}");
-        }
+        // if ($stmtControl->rowCount() === 0) {
+        //     throw new Exception("No se actualizo control_almacen con id_control {$id_control}");
+        // }
 
         // Actualizar inventario_cnc
         $stmtInventario->execute([
@@ -79,9 +86,22 @@ try {
             ':lote_pedimento' => $lote_pedimento
         ]);
 
-        if ($stmtInventario->rowCount() === 0) {
-            throw new Exception("No se encontro lote_pedimento {$lote_pedimento} en inventario CNC");
-        }
+        // if ($stmtInventario->rowCount() === 0) {
+        //     throw new Exception("No se encontro lote_pedimento {$lote_pedimento} en inventario CNC");
+        // }
+    }
+
+    
+    // Actualizar requisicion
+    $sqlRequisicion = "UPDATE requisiciones 
+                       SET estatus = 'Completada', fin_maquinado = NOW() 
+                       WHERE id_requisicion = :id_requisicion";
+    $stmtRequisicion = $conn->prepare($sqlRequisicion);
+    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtRequisicion->execute();
+
+    if ($stmtRequisicion->rowCount() === 0) {
+        throw new Exception("No se pudo actualizar requisicion {$id_requisicion}");
     }
 
     // Confirmar transaccion
@@ -89,7 +109,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => 'Stock actualizado correctamente en inventario CNC'
+        'message' => 'Stock actualizado correctamente en inventario CNC.'
     ]);
 
 } catch (Throwable $e) {

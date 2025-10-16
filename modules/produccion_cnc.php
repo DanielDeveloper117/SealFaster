@@ -227,6 +227,10 @@ if (!isset($_SESSION['id'])) {
                                         }
 
                                         break;
+                                    case "Completada":
+                                        $estatusString = "Completada";
+
+                                        break;
 
                                     default:
                                         // no mostrar nada
@@ -609,7 +613,7 @@ if (!isset($_SESSION['id'])) {
             </div>
             <!-- tabla informativa -->
             <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle">
+                <table class="table table-bordered align-middle tabla-billets">
                     <thead class="table-light">
                         <tr>
                             <th>Estatus</th>
