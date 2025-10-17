@@ -43,7 +43,43 @@ try {
     $row = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
     if (!$row || $row['total'] == 0) {
-        throw new Exception("Antes de enviar a producción, debe haber al menos una clave en control de almacén.");
+        throw new Exception("Antes de enviar a producción, debe haber al menos una clave en control de inventario en la requisición.");
+    }
+
+    $sqlLotesPedimento = "SELECT * FROM control_almacen WHERE id_requisicion = :id_requisicion";
+    $stmtLP = $conn->prepare($sqlLotesPedimento);
+    $stmtLP->bindParam(':id_requisicion', $id_requisicion);
+    $stmtLP->execute();
+    $arrayLP = $stmtLP->fetchAll();
+
+    $missingLotes = [];
+    $updatedLotes = 0;
+
+    foreach ($arrayLP as $LP) {
+        $lote = trim($LP['lote_pedimento']);
+
+        // Preparar y ejecutar update una vez
+        $sqlEstatusLP = "UPDATE inventario_cnc 
+                        SET estatus = 'Deshabilitado'
+                        WHERE lote_pedimento = :lote_pedimento";
+        $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
+        $stmtEstatusLP->bindParam(':lote_pedimento', $lote);
+        $stmtEstatusLP->execute();
+
+        // Verificar si se afectó alguna fila
+        if ($stmtEstatusLP->rowCount() === 0) {
+            // No se encontró el lote; registramos y continuamos
+            $missingLotes[] = $lote;
+            continue;
+        }
+
+        $updatedLotes++;
+    }
+
+    if (count($missingLotes) > 0) {
+        $msjLotes = "No se encontraron las siguientes barras para habilitarlas: " . implode(', ', $missingLotes);
+    } else {
+        $msjLotes = "";
     }
 
     //  Actualizar requisicion
@@ -88,7 +124,7 @@ try {
 
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // Correo principal visible
         //$mail->addAddress("sistemas@sellosyretenes.com");
-        $mail->Subject = 'Nueva requisición para producción. Folio: '.$id_requisicion;
+        $mail->Subject = 'Nueva requisición para maquinado. Folio: '.$id_requisicion;
         $mail->Body = "Inventarios ha liberado una nueva requisición de maquinado de sellos con las barras solicitadas.<br>
                     Se ha cambiado el estatus a <b>Producción</b>.<br>
                     Folio de requisición: <b>".$id_requisicion."</b>";
@@ -111,7 +147,7 @@ try {
     if ($stmt->rowCount() > 0) {
         echo json_encode([
             'success' => true,
-            'message' => "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción."
+            'message' => "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción. ".$msjLotes
         ]);
     } else {
         echo json_encode([

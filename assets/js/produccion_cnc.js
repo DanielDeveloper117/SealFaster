@@ -856,7 +856,7 @@ $(document).ready(function(){
             data: { registros: JSON.stringify(datos) },
             success: function (resp) {
                 if (resp.success) {
-                    sweetAlertResponse("success", "Éxito", "Stock actualizado correctamente.", "self");
+                    sweetAlertResponse("success", "Éxito", resp.message, "self");
                     $('#modalRetorno').modal('hide');
                 } else {
                     sweetAlertResponse("error", "Error", resp.error || "Error desconocido.", "self");

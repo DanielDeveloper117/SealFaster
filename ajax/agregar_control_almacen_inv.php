@@ -96,7 +96,15 @@ try {
 
     $stmt->execute();
 
-    echo json_encode(['success' => true, 'message' => 'Registro insertado correctamente.']);
+    // Preparar y ejecutar update una vez
+    $sqlEstatusLP = "UPDATE inventario_cnc 
+                    SET estatus = 'Deshabilitado'
+                    WHERE lote_pedimento = :lote_pedimento";
+    $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
+    $stmtEstatusLP->bindParam(':lote_pedimento', $lote_pedimento);
+    $stmtEstatusLP->execute();
+
+    echo json_encode(['success' => true, 'message' => 'Registro insertado correctamente. Barra deshabilitada para cotizar.']);
 
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error en base de datos: ' . $e->getMessage()]);

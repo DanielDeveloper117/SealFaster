@@ -31,7 +31,7 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => "Operador CNC agregado correctamente. El estatus ha cambiado a Maquinado de sellos."
+        'message' => "Operador CNC agregado correctamente. El estatus ha cambiado a Maquinado de sellos. Barras deshabilitadas temporalmente."
     ]);
 } catch (Exception $e) {
     echo json_encode([

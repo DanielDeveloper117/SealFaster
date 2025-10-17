@@ -104,12 +104,48 @@ try {
         throw new Exception("No se pudo actualizar requisicion {$id_requisicion}");
     }
 
+    $sqlLotesPedimento = "SELECT * FROM control_almacen WHERE id_requisicion = :id_requisicion";
+    $stmtLP = $conn->prepare($sqlLotesPedimento);
+    $stmtLP->bindParam(':id_requisicion', $id_requisicion);
+    $stmtLP->execute();
+    $arrayLP = $stmtLP->fetchAll();
+
+    $missingLotes = [];
+    $updatedLotes = 0;
+
+    foreach ($arrayLP as $LP) {
+        $lote = trim($LP['lote_pedimento']);
+
+        // Preparar y ejecutar update una vez
+        $sqlEstatusLP = "UPDATE inventario_cnc 
+                        SET estatus = 'Habilitado'
+                        WHERE lote_pedimento = :lote_pedimento";
+        $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
+        $stmtEstatusLP->bindParam(':lote_pedimento', $lote);
+        $stmtEstatusLP->execute();
+
+        // Verificar si se afectó alguna fila
+        if ($stmtEstatusLP->rowCount() === 0) {
+            // No se encontró el lote; registramos y continuamos
+            $missingLotes[] = $lote;
+            continue;
+        }
+
+        $updatedLotes++;
+    }
+
+    if (count($missingLotes) > 0) {
+        $msjLotes = "No se encontraron las siguientes barras para habilitarlas: " . implode(', ', $missingLotes);
+    } else {
+        $msjLotes = "";
+    }
+
     // Confirmar transaccion
     $conn->commit();
 
     echo json_encode([
         'success' => true,
-        'message' => 'Stock actualizado correctamente en inventario CNC.'
+        'message' => 'Stock actualizado correctamente en inventario CNC. Billets habilitados para cotizar. '.$msjLotes
     ]);
 
 } catch (Throwable $e) {
