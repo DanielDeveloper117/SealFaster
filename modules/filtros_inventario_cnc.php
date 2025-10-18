@@ -232,6 +232,18 @@ if (!isset($_SESSION['id'])) {
                         Digitar clave
                     </button>
                 </div>
+
+                <!-- Búsqueda por Lote Pedimento -->
+                <div class="function-card">
+                    <div class="function-icon">
+                        <i class="bi bi-database"></i>
+                    </div>
+                    <h3 class="function-title">Buscar Lote Pedimento</h3>
+                    <p class="function-description">Ingresa un lote pedimento específico.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalLP">
+                        Digitar lote pedimento
+                    </button>
+                </div>
                 
                 <!-- Inventario Completo -->
                 <div class="function-card">
@@ -303,7 +315,7 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Consultar el inventario CNC</h5>
+                <h5 class="modal-title">Consultar el inventario CNC</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -339,7 +351,7 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Consultar clave del inventario CNC</h5>
+                <h5 class="modal-title">Consultar clave del inventario CNC</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -362,12 +374,40 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 
+<!-- Modal para buscar por Lote pedimento -->
+<div class="modal fade" id="modalLP" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Consultar un Lote pedimento del inventario CNC</h5>
+                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="<?php
+                        if($tipoUsuario == 2 || $tipoUsuario == 3){
+                            echo 'inventario_vn.php';
+                        }else{
+                            echo 'inventario.php';
+                        }
+                    ?>" method="GET" target="_blank" id="formLP">                        
+                    <div class="mb-3">
+                        <label for="inputLP" class="lbl-general">Ingrese Lote Pedimento</label>
+                        <input type="text" class="input-text" id="inputLP" name="lp" required>
+                    </div>
+
+                    <button type="submit" class="btn-general">Consultar<i class="bi bi-arrow-up-right mx-2"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Modal para crear query claves validas -->
 <div class="modal fade" id="modalClavesValidas" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 65% !important;">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Consultar claves validas existentes</h5>
+                <h5 class="modal-title">Consultar claves validas existentes</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

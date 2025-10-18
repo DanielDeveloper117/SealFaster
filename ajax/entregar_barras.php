@@ -77,7 +77,8 @@ try {
     }
 
     if (count($missingLotes) > 0) {
-        $msjLotes = "No se encontraron las siguientes barras para habilitarlas: " . implode(', ', $missingLotes);
+        //$msjLotes = "No se encontraron las siguientes barras para Deshabilitarlas: " . implode(', ', $missingLotes);
+        $msjLotes = "";
     } else {
         $msjLotes = "";
     }

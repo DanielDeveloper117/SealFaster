@@ -8,17 +8,31 @@ try {
         $billet = $_POST['billet'];
 
         // Consulta optimizada con `LIMIT 1`
-        $stmt = $conn->prepare("SELECT 1 FROM inventario_cnc WHERE lote_pedimento = :billet LIMIT 1");
+        $stmt = $conn->prepare("SELECT * FROM inventario_cnc WHERE lote_pedimento = :billet LIMIT 1");
         $stmt->bindParam(':billet', $billet, PDO::PARAM_STR);
         $stmt->execute();
 
         // Verificar si existe el registro
-        $existe = $stmt->fetchColumn() !== false;
+        $billetResult = $stmt->fetch();
+        if($stmt->rowCount() > 0){
+            // Enviar respuesta JSON
+            echo json_encode([
+                'success' => true,
+                'billetResult' => $billetResult
+            ]);
+
+        }else{
+            // Enviar respuesta JSON
+            echo json_encode([
+                'success' => false,
+                'billetResult' => $billetResult
+            ]);
+        }
         
-        // Enviar respuesta JSON
-        echo json_encode(['existe' => $existe]);
     }else{
-        echo json_encode(['error' => 'Falta el parámetro billet']);
+        echo json_encode([
+            'success' => false,
+            'error' => 'Falta el parámetro billet']);
         exit;
 
     }

@@ -53,6 +53,9 @@ if (!isset($_SESSION['id'])) {
     .chosen-container-single .chosen-results li {
         font-size: 15px;
     }
+    label{
+        font-size:12px;
+    }
 </style>
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
@@ -351,32 +354,17 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form id="formControlAlmacenInventario" action="" method="POST">                        
-                    <input id="inputIdRequisicion" type="hidden" name="id_requisicion">
-                    <input id="inputCantidadBarras" type="hidden" value="1" min="0" step="1" name="cantida_barras" required>
-                    <input id="inputClave" type="hidden"  name="clave" placeholder="Ingrese una clave valida" required>
+                    <input type="hidden" id="inputIdRequisicion" name="id_requisicion">
                     <div class="d-flex justify-content-between">
-                        <div class="" style="width:63%;">
-                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
-                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
-                        </div>  
-                        <div class="" style="width:35%;">
-                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
-                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
-                        </div>
-                    </div>  
-                    <div class="d-flex justify-content-between">
-                        <div class="" style="width:100%;">
-                            <p id="pLotePedimento" class="d-none"></p>
-                        </div>
-                    </div>                  
-                    <!-- <div class="d-flex justify-content-between">
                         <div class="" style="width:35%;">
                             <label for="inputCantidadBarras" class="lbl-general">CANTIDAD DE BARRAS</label>
+                            <input id="inputCantidadBarras" type="number" class="input-text"  min="0" step="1" name="cantida_barras" required>
                         </div>
                         <div class="" style="width:63%;">
                             <label for="inputClave" class="lbl-general">CLAVE</label>
+                            <input type="text" class="input-text" id="inputClave" name="clave" placeholder="Ingrese una clave valida" required>
                         </div>
-                    </div> -->
+                    </div>
                     <div class="d-flex flex-column justify-content-between mb-3">
                         <div class="d-flex flex-column justify-content-between ">
                             <p id="pInvalida2" class="d-none p-invalida2" style="margin-bottom:0px;">La clave debe ser valida para optimizar el control de almacen.</p>
@@ -388,7 +376,17 @@ if (!isset($_SESSION['id'])) {
                             <i class ="bi bi-download"></i>
                         </a> -->
                     </div>
-  
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:35%;">
+                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
+                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
+                        </div>
+                        <div class="" style="width:63%;">
+                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
+                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
+                            <p id="pLotePedimento" class="d-none p-invalida">Ese Lote pedimento no existe.</p>
+                        </div>  
+                    </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div style="width:35%;">
                             <label id="lblInputExtra" for="inputExtra" class="lbl-general">Barra extra</label>
@@ -445,10 +443,9 @@ if (!isset($_SESSION['id'])) {
                         <thead>
                             <tr>
                                 <th scope="col"></th>
-                                <th scope="col">MATERIAL</th>
-                                <th scope="col">LOTE PEDIMENTO</th>
+                                <th scope="col">BARRAS</th>
                                 <th scope="col">CLAVE</th>
-                                <th scope="col">MEDIDA</th>
+                                <th scope="col">LOTE PEDIMENTO</th>
                                 <th scope="col">MM ENTREGA</th>
                                 <!-- <th scope="col">MM SALIDA</th>
                                 <th scope="col">LONG. TOTAL SELLOS</th>
@@ -562,7 +559,7 @@ if (!isset($_SESSION['id'])) {
                         <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
                             <thead>
                                 <tr>
-                                    <!-- <th style="width: 100px;">Cantidad</th> -->
+                                    <th style="width: 100px;">Cantidad</th>
                                     <th style="width: 280px;">Clave</th>
                                     <th style="width: 250px;">Lote pedimento</th>
                                     <th style="width: 120px;">MM Entrega</th>

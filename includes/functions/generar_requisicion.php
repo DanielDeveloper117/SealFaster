@@ -526,18 +526,18 @@ if (isset($_GET['id_requisicion'])) {
         }
     } else {
         // Si no hay registros, usar los renglones vacíos como en el código original
-        // for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
-        //     $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        //     $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
-        // }
+        for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
+        }
     }
     $pdf->Ln(2); 
     $pdf->SetFont('Arial', 'I', 8);

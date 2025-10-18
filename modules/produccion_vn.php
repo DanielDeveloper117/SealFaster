@@ -396,7 +396,7 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
+                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma para autorizar. Caducará en 5 minutos.</p>
                 <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
                     <!-- CONTENEDOR QR -->
                     <div id="containerQRLink" 
@@ -445,7 +445,7 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
+                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma para autorizar. Caducará en 5 minutos.</p>
                 <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
                     <!-- CONTENEDOR QR -->
                     <div id="containerQRLink" 

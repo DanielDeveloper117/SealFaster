@@ -67,7 +67,7 @@ try {
         $correoVendedor = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         if (!$correoVendedor || count($correoVendedor) === 0) {
-            throw new Exception("No se encontró ningún correo de inventarios.");
+            throw new Exception("No se encontró correo de vendedor.");
         }
 
         $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
@@ -77,7 +77,7 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    $mail->addAddress($correo); // activar si quieres enviar al vendedor real
+                    //$mail->addAddress($correo); // activar si quieres enviar al vendedor real
                     $contadorCorreos++;
                 }
             }
@@ -99,7 +99,7 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    $mail->addAddress($correo);
+                    //$mail->addAddress($correo);
                     $contadorCorreos++;
                 }
             }

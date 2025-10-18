@@ -93,6 +93,16 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
+}else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
+    $lp = $_GET['lp'];
+
+    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
+                        ,estatus FROM inventario_cnc WHERE lote_pedimento = :lp";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
 }else{
 
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
@@ -132,51 +142,75 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Proveedor</th>
                         <th>Material</th>
                         <th>Máx Usable</th>
-                        <th>Pre Stock</th>
+                        <!-- <th>Pre Stock</th> -->
+                        <th>Stock</th>
                         <th>Usabilidad</th>
                         <th>Lote/Pedimento</th>
                         <th>Existencia</th>
+                        <th>Estatus</th>
                     </tr>
                 </thead>
                 <tbody>
                 <?php
-                    foreach ($arregloSelectInventario as $registro) {
-                        $max_usable = $registro['max_usable'];
-                        $pre_stock = $registro['pre_stock'];
-                        $width = $max_usable > 0 ? ($pre_stock / $max_usable) * 100 : 0; // Calcular el porcentaje
+                    foreach ($arregloSelectInventario as $row) {
+                        // $max_usable = $row['max_usable'];
+                        // $pre_stock = $row['pre_stock'];
+                        // $width = $max_usable > 0 ? ($pre_stock / $max_usable) * 100 : 0; // Calcular el porcentaje
+                        // $usableStyle="";
+                        // $usableText="";
+                        // // Determinar la clase de la barra según el pre_stock
+                        // if ($pre_stock >= $max_usable * 0.75) { // 75% o más
+                        //     $class = 'bar-alto';
+                        // } elseif ($pre_stock >= $max_usable * 0.25) { // Entre 25% y 75%
+                        //     $class = 'bar-medio';
+                        // } else { // Menos de 25%
+                        //     $class = 'bar-bajo';
+                        // }
+
+                        // // iluminar si pre_stock es menor a 15
+                        // if($pre_stock < 15){
+                        //     $usableStyle = "background-color:#ff00002e !important;";
+                        //     $usableText = "No usable";
+                        // }else{
+                        //     $usableText = "Usable";
+                        // }
+                        $stock = $row['stock'];
                         $usableStyle="";
                         $usableText="";
-                        // Determinar la clase de la barra según el pre_stock
-                        if ($pre_stock >= $max_usable * 0.75) { // 75% o más
-                            $class = 'bar-alto';
-                        } elseif ($pre_stock >= $max_usable * 0.25) { // Entre 25% y 75%
-                            $class = 'bar-medio';
-                        } else { // Menos de 25%
-                            $class = 'bar-bajo';
-                        }
-
-                        // iluminar si pre_stock es menor a 15
-                        if($pre_stock < 15){
+                        // iluminar si stock es menor a 15
+                        if($stock < 15){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
                         }else{
                             $usableText = "Usable";
                         }
+                        $max_usable = $row['max_usable'];
+                        $width = $max_usable > 0 ? ($stock / $max_usable) * 100 : 0; // Calcular el porcentaje
+                        // Determinar la clase de la barra según el stock
+                        if ($stock >= $max_usable * 0.75) { // 75% o más
+                            $class = 'bar-alto';
+                        } elseif ($stock >= $max_usable * 0.25) { // Entre 25% y 75%
+                            $class = 'bar-medio';
+                        } else { // Menos de 25%
+                            $class = 'bar-bajo';
+                        }
                 ?>
                     <tr style="<?php echo $usableStyle; ?>" >
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['clave']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['medida']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['proveedor']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['material']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['max_usable']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['pre_stock']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['clave']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['medida']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['material']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['max_usable']); ?></td>
+                        <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['pre_stock']); ?></td> -->
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['stock']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo $usableText; ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($registro['lote_pedimento']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>">
                             <div class="existencia-barra">
                                 <span class="bar <?php echo $class; ?>" style="width: <?php echo htmlspecialchars($width); ?>%;"></span>
                             </div>
                         </td>
+                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
                     </tr>
                 <?php
                     }

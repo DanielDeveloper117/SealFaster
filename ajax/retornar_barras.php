@@ -55,7 +55,7 @@ try {
     $stmtControl = $conn->prepare($sqlUpdateControl);
 
     $sqlUpdateInventario = "UPDATE inventario_cnc 
-                            SET stock = :mm_retorno, pre_stock = :mm_retorno 
+                            SET stock = :stock, pre_stock = :pre_stock 
                             WHERE lote_pedimento = :lote_pedimento";
     $stmtInventario = $conn->prepare($sqlUpdateInventario);
 
@@ -82,7 +82,8 @@ try {
 
         // Actualizar inventario_cnc
         $stmtInventario->execute([
-            ':mm_retorno' => $mm_retorno,
+            ':stock' => $mm_retorno,
+            ':pre_stock' => $mm_retorno,
             ':lote_pedimento' => $lote_pedimento
         ]);
 
@@ -111,33 +112,52 @@ try {
     $arrayLP = $stmtLP->fetchAll();
 
     $missingLotes = [];
+    $alreadyEnabled = [];
     $updatedLotes = 0;
 
     foreach ($arrayLP as $LP) {
         $lote = trim($LP['lote_pedimento']);
 
-        // Preparar y ejecutar update una vez
-        $sqlEstatusLP = "UPDATE inventario_cnc 
-                        SET estatus = 'Habilitado'
-                        WHERE lote_pedimento = :lote_pedimento";
-        $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
-        $stmtEstatusLP->bindParam(':lote_pedimento', $lote);
-        $stmtEstatusLP->execute();
+        // 1. Verificar existencia y estado actual
+        $sqlCheck = "SELECT estatus FROM inventario_cnc WHERE lote_pedimento = :lote_pedimento LIMIT 1";
+        $stmtCheck = $conn->prepare($sqlCheck);
+        $stmtCheck->bindParam(':lote_pedimento', $lote);
+        $stmtCheck->execute();
 
-        // Verificar si se afectó alguna fila
-        if ($stmtEstatusLP->rowCount() === 0) {
-            // No se encontró el lote; registramos y continuamos
+        $registro = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+        if (!$registro) {
+            // No existe el lote
             $missingLotes[] = $lote;
             continue;
         }
 
-        $updatedLotes++;
+        if ($registro['estatus'] === 'Habilitado') {
+            // Ya estaba habilitado
+            $alreadyEnabled[] = $lote;
+            continue;
+        }
+
+        // 2. Actualizar solo si estaba deshabilitado
+        $sqlEstatusLP = "UPDATE inventario_cnc 
+                         SET estatus = 'Habilitado'
+                         WHERE lote_pedimento = :lote_pedimento";
+        $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
+        $stmtEstatusLP->bindParam(':lote_pedimento', $lote);
+        $stmtEstatusLP->execute();
+
+        if ($stmtEstatusLP->rowCount() > 0) {
+            $updatedLotes++;
+        }
     }
 
+    // Construir mensajes detallados
+    $msjLotes = "";
     if (count($missingLotes) > 0) {
-        $msjLotes = "No se encontraron las siguientes barras para habilitarlas: " . implode(', ', $missingLotes);
-    } else {
-        $msjLotes = "";
+        $msjLotes .= "No se encontraron las siguientes barras: " . implode(', ', $missingLotes) . ". ";
+    }
+    if (count($alreadyEnabled) > 0) {
+        $msjLotes .= "Las siguientes barras ya estaban habilitadas: " . implode(', ', $alreadyEnabled) . ". ";
     }
 
     // Confirmar transaccion
@@ -145,8 +165,9 @@ try {
 
     echo json_encode([
         'success' => true,
-        'message' => 'Stock actualizado correctamente en inventario CNC. Billets habilitados para cotizar. '.$msjLotes
+        'message' => 'Stock actualizado correctamente en inventario CNC. Billets habilitados para cotizar. ' . $msjLotes
     ]);
+
 
 } catch (Throwable $e) {
     if ($conn->inTransaction()) {

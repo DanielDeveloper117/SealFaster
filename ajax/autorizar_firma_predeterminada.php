@@ -95,7 +95,7 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    $mail->addAddress($correo);
+                    //$mail->addAddress($correo);
                     $contadorCorreos++;
                 }
             }

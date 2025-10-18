@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->AltBody = strip_tags($body);
 
             foreach ($arregloCorreos as $correo) {
-                $mail->addAddress($correo);
+                //$mail->addAddress($correo);
             }
             $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // destinatario de control
 
@@ -185,8 +185,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         <h1 class="mt-2">Firmar requisición</h1>
         <h4>Folio: <?= htmlspecialchars($id_requisicion); ?></h4>
         <main class="d-flex flex-column justify-content-center align-items-center col-11" >
-            <div class="d-flex flex-column col-12 justify-content-center align-items-center">
-                <p>Dibuje su firma y toque el boton de Continuar</p>
+            <div class="d-flex justify-content-center align-items-center">
+                <button type="button" class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#modalInstrucciones">Instrucciones</button>
             </div>
             <section class="container-firma d-flex flex-column col-12 justify-content-center align-items-center">
                 <canvas id="canvasFirma" ></canvas>
@@ -209,13 +209,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     <footer>
         <p>&copy; <?= date("Y"); ?>Sellos y Retenes de San Luis S.A. de C.V. Todos los derechos reservados.</p>
     </footer>
-
+<!-- //////////////////////////MODAL: Instrucciones /////////////////////// -->
+<div class="modal fade" id="modalInstrucciones" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="modal-title">Instrucciones para autorizar</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <ul class="d-flex flex-column gap-3">
+                    <li>Dibuje su firma en el recuadro, después haga click en el boton Autorizar y luego en Continuar para confirmar.</li>
+                    <li>Si lo desea puede marcar la firma como predeterminada y usarla para autorizar futuras requisiciones sin dibujar una nueva.</li>
+                    <li>Al firmar siempre podrá decidir si desea actualizar la firma predeterminada.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- //////////////////////////MODAL: ENVIAR ESTAS SEGURO DE AUTORIZAR? /////////////////////// -->
 <div class="modal fade" id="modalEstasSeguro" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">¿Desea continuar?</span>
+                <span class="modal-title">¿Desea continuar?</span>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

@@ -90,7 +90,7 @@
                 }
 
                 if ($contadorCorreos === 0) {
-                    throw new Exception("No se pudo agregar ningín destinatario valido.");
+                    throw new Exception("No se pudo agregar ningún destinatario valido.");
                 }
                 $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                 //$mail->addAddress("sistemas@sellosyretenes.com");
@@ -263,7 +263,7 @@
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
-                            $mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
+                            //$mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
                             $contadorCorreos++;
                         }
                     }

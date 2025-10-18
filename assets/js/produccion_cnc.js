@@ -119,15 +119,16 @@ $(document).ready(function(){
                                         X
                                     </button>
                                 </td>
-                                <td>${item.cantidad_barras}</td>
-                                <td>${item.clave}<span style="color:#ffc107;">${esExtra}</span></td>
+                                <td>${item.material}</td>
                                 <td>${item.lote_pedimento}</td>
+                                <td>${item.Clave}<span style="color:#ffc107;">${esExtra}</span></td>
+                                <td>${item.Medida}</td>
                                 <td>${item.mm_entrega}</td>
                             </tr>
                         `);
                     });
                 } else {
-                     $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="5">No hay barras agregadas aún</td></tr>');
+                     $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="6">No hay barras agregadas aún</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
@@ -212,18 +213,25 @@ $(document).ready(function(){
         if (billetValue !== "") {
             console.log("El usuario ingreso un valor en el inputLotePedimento.");
             $.ajax({
-                url: '../ajax/ajax_existe_billet.php',
+                url: '../ajax/info_lote_pedimento.php',
                 type: 'POST',
                 data: { billet: billetValue },
                 dataType: 'json',
                 success: function(data) {
-                    if (data.existe) { 
+                    if (data.success) { 
                         window.LP_VALIDO = true;
-                        $("#pLotePedimento").addClass("d-none");
+                        $("#pLotePedimento").removeClass("d-none");
+                        $("#pLotePedimento").removeClass("p-invalida");
+                        $("#pLotePedimento").addClass("p-valida");
+                        $('#pLotePedimento').text(`${data.billetResult.material} - ${data.billetResult.Clave} (${data.billetResult.Medida})`);
+                        $("#inputClave").val(data.billetResult.Clave);
                     } else {
                         window.LP_VALIDO = false;
                         $("#pLotePedimento").removeClass("d-none");
-                        $('#pLotePedimento').text('Ese Lote pedimento no existe.');
+                        $("#pLotePedimento").removeClass("p-valida");
+                        $("#pLotePedimento").addClass("p-invalida");
+                        $('#pLotePedimento').text('Lote pedimento no encontrado.');
+                        $("#inputClave").val("");
                     }
                     verificarBtnAgregarBarra();
                 },
@@ -240,7 +248,8 @@ $(document).ready(function(){
     }
     // Habilitar/deshabilitar el boton de agregar barra si la clave y el LP son validados
     function verificarBtnAgregarBarra(){
-        if(window.CLAVE_VALIDA == true && window.LP_VALIDO == true){
+        //if(window.CLAVE_VALIDA == true && window.LP_VALIDO == true){
+        if(window.LP_VALIDO == true){
             $("#btnAgregarBarra").removeClass("btn-disabled").addClass("btn-general");
         }else{
             $("#btnAgregarBarra").removeClass("btn-general").addClass("btn-disabled");
@@ -412,7 +421,7 @@ $(document).ready(function(){
                             <tr>
                                 <input type="hidden" tabindex="-1" name="id_requisicion" value="${idRequisicion || ''}">
                                 <input type="hidden" tabindex="-1" name="id_control" value="${item.id_control || ''}">
-                                <td><input type="number" tabindex="-1" class="input-disabled cantidad_barras" value="${item.cantidad_barras || ''}" step="1" min="0"></td>
+                                
                                 <td><input type="text" tabindex="-1" class="input-disabled clave" value="${item.clave || ''}"></td>
                                 <td><input type="text" tabindex="-1" class="input-disabled lote_pedimento d-flex flex-column" value="${item.lote_pedimento || ''}"><span style="color:#ffc107;">${esExtra}</span><span style="color:#B71C1C;">${esMerma}</span></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled mm_entrega" name="mm_entrega" value="${item.mm_entrega || ''}" step="0.01" min="0"></td>
@@ -558,6 +567,7 @@ $(document).ready(function(){
     $('#productionTable').on('click', '.btn-control-almacen', function() {
         $dataIdRequisicion = $(this).data('id_requisicion');
         $dataExtra = $(this).data('es_extra');
+        $("#pLotePedimento").addClass("d-none");
 
         if ($dataExtra == "1") {
             $("#inputExtra").prop("checked", true).prop("disabled", true);
@@ -602,12 +612,17 @@ $(document).ready(function(){
     $("#productionTable .btn-control-almacen").on("click", function(){
         $dataExtra = $(this).data('es_extra');
         $dataEstatus = $(this).data('estatus');
+        $("#pLotePedimento").addClass("d-none");
         console.log($dataExtra);
         console.log($dataEstatus);
         $("#btnTablaControlAlmacenInventario").data('estatus-requi', $dataEstatus);
 
         if($dataExtra == "1"){
+            $("#inputExtra").prop("checked", true).prop("disabled", true);
             $("#inputExtra").val("1");
+        }else{
+            $("#inputExtra").prop("checked", false).prop("disabled", false);
+            $("#inputExtra").val("0");
         }
     });
     // CLICK CERRAR MODAL AGREGAR
@@ -645,7 +660,8 @@ $(document).ready(function(){
             success: function (response) {
                 if (response.success) {
                     sweetAlertResponse("success", "Eliminado", response.message, "none");
-                    ajaxTablaControlAlmacenInventario(); // Recargar la tabla
+                    let eststusRequi = $("#btnTablaControlAlmacenInventario").data("estatus-requi");
+                    ajaxTablaControlAlmacenInventario(eststusRequi);// Recargar la tabla
                 } else {
                     sweetAlertResponse("warning", "Atención", response.message || "No se pudo eliminar.", "none");
                 }
@@ -793,7 +809,7 @@ $(document).ready(function(){
                     sweetAlertResponse("success", "Éxito", resp.message, "self");
                     $('#modalFinalizar').modal('hide');
                 } else {
-                    sweetAlertResponse("error", "Error", resp.error || "Error desconocido.", "self");
+                    sweetAlertResponse("warning", "Advertencia", resp.error || "Error desconocido.", "self");
                 }
             },
             error: function (xhr, status, error) {

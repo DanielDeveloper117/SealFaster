@@ -12,28 +12,51 @@ try {
 
     $id_requisicion = trim($_GET['id_requisicion']);
 
-    // Validar que sea un número o una cadena segura según tu base de datos
     if (!preg_match('/^\d+$/', $id_requisicion)) {
         echo json_encode([]);
         exit;
     }
 
-    // Preparar y ejecutar la consulta
+    // Consulta principal: control_almacen
     $stmt = $conn->prepare("
-        SELECT *
+        SELECT * 
         FROM control_almacen
         WHERE id_requisicion = :id_requisicion
         ORDER BY id_control ASC
     ");
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmt->execute();
-
     $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    echo json_encode($resultados);
+    $fusionados = [];
+
+    foreach ($resultados as $r) {
+        // Buscar el registro correspondiente en inventario_cnc
+        $stmtBillet = $conn->prepare("
+            SELECT material, Clave, Medida, estatus 
+            FROM inventario_cnc 
+            WHERE lote_pedimento = :lote_pedimento
+            LIMIT 1
+        ");
+        $stmtBillet->bindParam(':lote_pedimento', $r["lote_pedimento"]);
+        $stmtBillet->execute();
+        $billetData = $stmtBillet->fetch(PDO::FETCH_ASSOC);
+
+        // Combinar ambos resultados (control_almacen + inventario_cnc)
+        $fusionados[] = array_merge(
+            $r,
+            $billetData ? $billetData : [
+                'material' => null,
+                'Clave' => null,
+                'Medida' => null,
+                'estatus' => null
+            ]
+        );
+    }
+
+    echo json_encode($fusionados);
 
 } catch (PDOException $e) {
-    // En caso de error, devolver un JSON vacío o un mensaje de error
     echo json_encode([
         'success' => false,
         'message' => 'Error al consultar la base de datos: ' . $e->getMessage()
