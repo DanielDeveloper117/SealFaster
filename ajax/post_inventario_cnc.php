@@ -79,9 +79,9 @@ try {
 
     if ($action === 'insert' || $action === 'insert2') {
         $sql = "INSERT INTO inventario_cnc 
-                (clave, medida, interior, exterior, proveedor, material, max_usable, stock, lote_pedimento, estatus)
+                (clave, medida, interior, exterior, proveedor, material, max_usable, stock, lote_pedimento, estatus, updated_at)
                 VALUES 
-                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :stock, :lote_pedimento, :estatus)";
+                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :stock, :lote_pedimento, :estatus, NOW())";
         $stmt = $conn->prepare($sql);
     }
 
@@ -97,7 +97,8 @@ try {
                     max_usable = :max_usable, 
                     stock = :stock, 
                     lote_pedimento = :lote_pedimento,
-                    estatus = :estatus
+                    estatus = :estatus,
+                    updated_at = NOW()
                 WHERE id = :id";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(':id', $id);

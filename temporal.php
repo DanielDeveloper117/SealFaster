@@ -2,34 +2,157 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 
+header('Content-Type: application/json');
+
 try {
-    header('Content-Type: application/json'); // Asegurar respuesta JSON
-    if (isset($_POST['billet'])) {
-        $billet = $_POST['billet'];
-
-        // Consulta optimizada con `LIMIT 1`
-        $stmt = $conn->prepare("SELECT 1 FROM inventario_cnc WHERE lote_pedimento = :billet LIMIT 1");
-        $stmt->bindParam(':billet', $billet, PDO::PARAM_STR);
-        $stmt->execute();
-
-        // Verificar si existe el registro
-        $existe = $stmt->fetchColumn() !== false;
-        
-        // Enviar respuesta JSON
-        echo json_encode(['existe' => $existe]);
-    }else{
-        echo json_encode(['error' => 'Falta el parámetro billet']);
-        exit;
-
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception("Metodo no permitido");
     }
 
+    $action = $_POST['action'] ?? '';
+    $id = $_POST['id'] ?? null;
 
-} catch (PDOException $e) {
-    error_log("Error en la consulta: " . $e->getMessage());
-    echo json_encode(['error' => 'Error en el servidor']);
-    http_response_code(500);
+    set_error_handler(function($severity, $message, $file, $line) {
+        throw new ErrorException($message, 0, $severity, $file, $line);
+    });
+
+    $acciones_validas = ['insert', 'update', 'delete', 'insert2'];
+    if (!in_array($action, $acciones_validas)) {
+        throw new Exception("Accion no valida.");
+    }
+
+    $clave = trim($_POST['clave'] ?? '');
+    $medida = trim($_POST['medida'] ?? '');
+    $proveedor = trim($_POST['proveedor'] ?? '');
+    $material = trim($_POST['material'] ?? '');
+    $max_usable = trim($_POST['max_usable'] ?? '');
+    $stock = trim($_POST['stock'] ?? '');
+    $lote_pedimento = trim($_POST['lote_pedimento'] ?? '');
+    $estatus = trim($_POST['estatus'] ?? '');
+
+    if ($action != 'delete') {
+        $errores = [];
+
+        if ($clave === '') $errores[] = "Falta la clave";
+        if ($material === '') $errores[] = "Falta el material";
+        if ($proveedor === '') $errores[] = "Falta el proveedor";
+        if ($medida === '') $errores[] = "Falta la medida";
+        if ($max_usable === '') $errores[] = "Falta el maximo usable";
+        if ($stock === '') $errores[] = "Falta el stock";
+        if ($lote_pedimento === '') $errores[] = "Falta el lote/pedimento";
+
+        if (!empty($errores)) {
+            echo json_encode([
+                'status' => 'error',
+                'message' => $errores[0]
+            ]);
+            exit;
+        }
+    }
+
+    if (in_array($action, ['insert', 'insert2', 'update'])) {
+        if (!preg_match('/^\d+\/\d+$/', $medida)) {
+            throw new Exception("Formato de medida invalido. Usa formato interior/exterior.");
+        }
+
+        list($interior, $exterior) = explode('/', $medida);
+        $interior = (int)$interior;
+        $exterior = (int)$exterior;
+    }
+
+    if ($action === 'insert' || $action === 'insert2') {
+        $sql = "INSERT INTO inventario_cnc 
+                (clave, medida, interior, exterior, proveedor, material, max_usable, stock, lote_pedimento, estatus, updated_at)
+                VALUES 
+                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :stock, :lote_pedimento, :estatus, NOW())";
+        $stmt = $conn->prepare($sql);
+    }
+
+    if ($action === 'update') {
+        if (empty($id)) throw new Exception("ID requerido para actualizar.");
+
+        $sql = "UPDATE inventario_cnc SET 
+                    clave = :clave, 
+                    medida = :medida, 
+                    interior = :interior, 
+                    exterior = :exterior, 
+                    proveedor = :proveedor, 
+                    material = :material, 
+                    max_usable = :max_usable, 
+                    stock = :stock, 
+                    lote_pedimento = :lote_pedimento,
+                    estatus = :estatus,
+                    updated_at = NOW()
+                WHERE id = :id";
+        $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    }
+
+    if ($action === 'insert' || $action === 'insert2' || $action === 'update') {
+        $stmt->bindParam(':clave', $clave);
+        $stmt->bindParam(':medida', $medida);
+        $stmt->bindParam(':interior', $interior);
+        $stmt->bindParam(':exterior', $exterior);
+        $stmt->bindParam(':proveedor', $proveedor);
+        $stmt->bindParam(':material', $material);
+        $stmt->bindParam(':max_usable', $max_usable);
+        $stmt->bindParam(':stock', $stock);
+        $stmt->bindParam(':lote_pedimento', $lote_pedimento);
+        $stmt->bindParam(':estatus', $estatus);
+        $stmt->execute();
+
+        // Si es insert y estatus = Deshabilitado, verificar parametros
+        if (($action === 'insert' || $action === 'insert2') && $estatus === 'Deshabilitado') {
+            try {
+                $verificar_sql = "SELECT COUNT(*) FROM parametros WHERE Clave = :clave";
+                $stmt_verificar = $conn->prepare($verificar_sql);
+                $stmt_verificar->bindParam(':clave', $clave);
+                $stmt_verificar->execute();
+                $existe = $stmt_verificar->fetchColumn();
+
+                if ($existe == 0) {
+                    $sql_parametros = "INSERT INTO parametros (Clave, material, proveedor, interior, exterior)
+                                       VALUES (:clave, :material, :proveedor, :interior, :exterior)";
+                    $stmt_parametros = $conn->prepare($sql_parametros);
+                    $stmt_parametros->bindParam(':clave', $clave);
+                    $stmt_parametros->bindParam(':material', $material);
+                    $stmt_parametros->bindParam(':proveedor', $proveedor);
+                    $stmt_parametros->bindParam(':interior', $interior);
+                    $stmt_parametros->bindParam(':exterior', $exterior);
+                    $stmt_parametros->execute();
+                }
+            } catch (Exception $e) {
+                // Ignorar errores en esta insercion auxiliar
+            }
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.'
+        ]);
+        exit;
+    }
+
+    if ($action === 'delete') {
+        if (empty($id)) throw new Exception("ID requerido para eliminar.");
+
+        $stmt = $conn->prepare("DELETE FROM inventario_cnc WHERE id = :id");
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        echo json_encode([
+            'success' => true,
+            'message' => "Registro eliminado correctamente."
+        ]);
+        exit;
+    }
+
+} catch (Throwable $e) {
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 } finally {
-    $conn = null; // Cerrar la conexión
+    restore_error_handler();
+    $conn = null;
 }
-
-?>

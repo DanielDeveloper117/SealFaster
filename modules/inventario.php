@@ -83,12 +83,12 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
     if($proveedor == "all"){
         $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento, interior 
-                          ,estatus FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
+                          ,estatus, updated_at FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
         $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento, interior 
-        ,estatus FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
+        ,estatus, updated_at FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
         $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
@@ -100,7 +100,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $clave = $_GET['clave'];
 
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus FROM inventario_cnc WHERE clave = :clave";
+                        ,estatus, updated_at FROM inventario_cnc WHERE clave = :clave";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -110,7 +110,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $lp = $_GET['lp'];
 
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus FROM inventario_cnc WHERE lote_pedimento = :lp";
+                        ,estatus, updated_at FROM inventario_cnc WHERE lote_pedimento = :lp";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -119,7 +119,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 }else if (isset($_GET['corregir'])) {
 
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus FROM inventario_cnc WHERE max_usable = 0.00";
+                        ,estatus, updated_at FROM inventario_cnc WHERE max_usable = 0.00";
     $stmtInventario = $conn->prepare($sqlInventario);
     //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -136,7 +136,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             i.max_usable, 
                             i.stock, 
                             i.lote_pedimento
-                        ,estatus FROM inventario_cnc i
+                        ,estatus, updated_at FROM inventario_cnc i
                         LEFT JOIN parametros p ON i.clave = p.clave
                         WHERE p.clave IS NULL OR i.estatus = 'Deshabilitado' ORDER BY stock DESC;
                         ";
@@ -146,7 +146,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 }else{
 
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus FROM inventario_cnc";
+                        ,estatus, updated_at FROM inventario_cnc";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
@@ -193,6 +193,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Existencia</th>
                         <th>Usabilidad</th>
                         <th>Estatus</th>
+                        <th>Actualización</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -255,6 +256,16 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         </td>
                         <td class="td-usable"><?= $usableText; ?></td>
                         <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
+                        <td class="td-updated">
+                            <?php
+                                if (!empty($row['updated_at'])) {
+                                    echo date("d/m/Y h:i:s A", strtotime($row['updated_at']));
+                                } else {
+                                    echo "No actualizado aún";
+                                }
+                            ?>
+                        </td>
+
                     </tr>
 
                     <?php endforeach; ?>

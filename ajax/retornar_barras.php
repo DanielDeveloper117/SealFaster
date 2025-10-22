@@ -55,7 +55,8 @@ try {
     $stmtControl = $conn->prepare($sqlUpdateControl);
 
     $sqlUpdateInventario = "UPDATE inventario_cnc 
-                            SET stock = :stock, pre_stock = :pre_stock 
+                            SET stock = :stock, pre_stock = :pre_stock,
+                                updated_at = NOW() 
                             WHERE lote_pedimento = :lote_pedimento";
     $stmtInventario = $conn->prepare($sqlUpdateInventario);
 

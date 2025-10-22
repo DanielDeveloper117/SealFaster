@@ -1,0 +1,11 @@
+RewriteEngine On
+Options -MultiViews
+
+# Redirige index.html a la misma carpeta sin index.html
+RewriteCond %{THE_REQUEST} /index\.html [NC]
+RewriteRule ^index\.html$ /cotizador/ [R=301,L]
+
+# Servir index.html automáticamente
+DirectoryIndex index.html
+
+
