@@ -100,11 +100,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->bindParam(':codigoVerificacion', $codigoVerificacion, PDO::PARAM_STR);
                 $stmt->bindParam(':rol', $rol, PDO::PARAM_STR);
                 $stmt->execute();
-
+                
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente.", "self");
-                });</script>';
-
+                    });</script>';
+                    
+                exit;
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("error", "Error", "Error al intentar agregar registro: ' . addslashes($e->getMessage()) . '", "self");
@@ -162,6 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Proceso exitoso", "Registro actualizado correctamente.", "self");
                 });</script>';
+                exit;
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -181,6 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                 sweetAlertResponse("success", "Proceso exitoso", "Registro eliminado correctamete. ", "self");
                 });</script>';
+                exit; 
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -218,12 +221,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <th>Id</th>
                         <th>Usuario/correo</th>
                         <th>Nombre</th>
-                        <th>Area</th>
-                        <th>Password</th>
                         <th>Tipo usuario</th>
+                        <th>Área</th>
                         <th>Rol</th>
                         <th>Estatus</th>
-                        <th>Creacion</th>
+                        <th>Fecha creación</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -288,11 +290,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     data-id="<?= $row['id']; ?>"
                                     data-usuario="<?= $row['usuario']; ?>"
                                     data-nombre="<?= $row['nombre']; ?>"
-                                    data-area="<?= $row['area']; ?>"
-                                    data-pass="<?= $row['password']; ?>"
                                     data-lider="<?= $row['lider']; ?>"
-                                    data-activo="<?= $row['activo']; ?>"
+                                    data-area="<?= $row['area']; ?>"
                                     data-rol="<?= $row['rol']; ?>"
+                                    data-pass="<?= $row['password']; ?>"
+                                    data-activo="<?= $row['activo']; ?>"
                                     >Editar</button>
                                 <form class="form-delete" action="" method="POST">
                                     <input type="hidden" name="id" value="<?= $row['id']; ?>">
@@ -304,9 +306,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <td><?= htmlspecialchars($row['id']); ?></td>
                         <td><?= htmlspecialchars($row['usuario']); ?></td>
                         <td><?= htmlspecialchars($row['nombre']); ?></td>
-                        <td><?= htmlspecialchars($row['area']); ?></td>
-                        <td><?= htmlspecialchars("**********"); ?></td>
                         <td><?= htmlspecialchars($tipoUsuarioFrontend); ?></td>
+                        <td><?= htmlspecialchars($row['area']); ?></td>
                         <td><?= htmlspecialchars($row['rol']??"No definido"); ?></td>
                         <td><?= htmlspecialchars($estatusFrontend); ?></td>
                         <td><?= htmlspecialchars($row['fechalogin']); ?></td>
@@ -343,26 +344,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputArea" class="lbl-general">Area</label>
-                            <select id="inputArea" class="selector" name="area" required >
-                                <option value="" selected disabled>Seleccione área</option>
-                                <option value="Sistemas">Sistemas</option>
-                                <option value="Ventas Nacionales">Ventas Nacionales</option>
-                                <option value="Sellos Maquinados">Sellos Maquinados</option>
-                                <option value="Ingenieria">Ingenieria</option>
-                                <option value="Direccion">Direccion</option>
-                                <option value="Compras">Compras</option>
-                                <option value="Inventarios">Inventarios</option>
-                                <option value="Cliente Externo">Cliente Externo</option>
-                            </select>
-                        </div>
-                        <div class="" style="width:48%;">
-                            <label for="inputPass" class="lbl-general">Password</label>
-                            <input id="inputPass" type="text" class="input-text" name="password" placeholder="" required>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:48%;">
                             <label for="inputTipo" class="lbl-general">Tipo de usuario</label>
                             <select id="inputTipo" class="selector" name="lider" required >
                                 <option value="" selected disabled>Seleccione permisos</option>
@@ -376,22 +357,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </select>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputEstatus" class="lbl-general">Estatus</label>
-                            <select id="inputEstatus" class="selector" name="activo" required >
-                                <option value="" disabled selected>Seleccionar</option>
-                                <option value="0">Desactivado</option>
-                                <option value="1">Activado</option>
+                            <label for="inputPass" class="lbl-general">Password</label>
+                            <input id="inputPass" type="text" class="input-text" name="password" placeholder="" required>
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+
+                        <div class="" style="width:48%;">
+                            <label for="inputArea" class="lbl-general">Area</label>
+                            <select id="inputArea" class="selector" name="area" required >
+                                <option value="" selected disabled>Seleccione área</option>
+                            </select>
+                        </div>
+                        <div class="" style="width:48%;">
+                            <label for="inputRol" class="lbl-general">Rol en el área</label>
+                            <select id="inputRol" class="selector" name="rol" required >
+                                <option value="" selected disabled>Seleccione un rol</option>
                             </select>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputRol" class="lbl-general">Rol en el área</label>
-                            <select id="inputRol" class="selector" name="rol" required >
-                                <option value="" selected disabled>Seleccione un rol</option>
-                                <option value="Gerente">Gerente</option>
-                                <option value="Auxiliar">No gerente</option>
-                                <option value="Externo">Externo</option>
+                            <label for="inputEstatus" class="lbl-general">Estatus</label>
+                            <select id="inputEstatus" class="selector" name="activo" required >
+                                <option value="" disabled selected>Seleccionar</option>
+                                <option value="0">Desactivado</option>
+                                <option value="1">Activado</option>
                             </select>
                         </div>
                     </div>
@@ -407,28 +398,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $(document).ready(function(){
         // CLICK A EDITAR UN REGISTRO
         $('#usersTable').on('click', '.edit-btn', function() {
-            var dataId = $(this).data('id');
-            $dataUsuario=$(this).attr('data-usuario');
-            $dataNombre=$(this).attr('data-nombre');
-            $dataArea=$(this).attr('data-area');
-            $dataPass=$(this).attr('data-pass');
-            $dataTipo=$(this).attr('data-lider');
-            $dataEstatus=$(this).attr('data-activo');
-            $dataRol=$(this).attr('data-rol');
+            $("#formPost")[0].reset(); // Limpia el formulario antes de usarlo
 
-            $('#inputId').val(dataId);
-            $('#inputUser').val($dataUsuario);
-            $('#inputNombre').val($dataNombre);
-            $('#inputArea').val($dataArea);
-            $('#inputPass').val($dataPass);
-            $('#inputTipo').val($dataTipo);
-            $('#inputEstatus').val($dataEstatus);
-            $('#inputRol').val($dataRol);
+            const data = {
+                id: $(this).data('id'),
+                usuario: $(this).data('usuario'),
+                nombre: $(this).data('nombre'),
+                area: $(this).data('area'),
+                pass: $(this).data('pass'),
+                activo: $(this).data('activo'),
+                rol: $(this).data('rol'),
+                tipo: $(this).data('lider')
+            };
 
             $('#inputAction').val('update');
-            $('#modalAgregarEditar').modal('show');
             $("#titleModalAddEdit").text("Editar registro");
+            $('#modalAgregarEditar').modal('show');
+
+            // Establece el tipo (esto dispara el change que carga las áreas/roles)
+            $('#inputTipo').val(data.tipo).trigger('change');
+
+            // Espera a que el cambio en #inputTipo termine de regenerar los selects
+            setTimeout(() => {
+                $('#inputId').val(data.id);
+                $('#inputUser').val(data.usuario);
+                $('#inputNombre').val(data.nombre);
+                $('#inputPass').val(data.pass);
+                $('#inputEstatus').val(data.activo);
+
+                // Selecciona las opciones de area y rol si existen
+                $('#inputArea').val(data.area);
+                $('#inputRol').val(data.rol);
+            }, 500); // suficiente para que se regeneren los selects
         });
+
 
         // CAMBIAR A add AL CLICK AGREGAR REGISTRO
         $("#btnAgregar").on("click", function(){
@@ -436,6 +439,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $('#inputAction').val('insert');
             $("#titleModalAddEdit").text("Agregar registro");
         });
+
+        // SELECTORES DE USUARIO
+        $("#inputTipo").on("change", function(){
+            let inputTipo = $("#inputTipo").val();
+            let inputArea = $("#inputArea").val();
+            if(inputTipo == "0"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Sistemas">Sistemas</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">No gerente</option>`);
+            }if(inputTipo == "1"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Direccion">Direccion</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>`);
+            }if(inputTipo == "2"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Sellos Maquinados">Sellos Maquinados</option>
+                                <option value="Ingenieria">Ingenieria</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">No gerente</option>`);
+            }if(inputTipo == "3"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Ventas Nacionales">Ventas Nacionales</option>
+                                <option value="Sucursal Tame">Sucursal Tame</option>
+                                <option value="Sucursal Monterrey">Sucursal Monterrey</option>
+                                <option value="Sucursal Queretaro">Sucursal Queretaro</option>
+                                <option value="Sucursal Saltillo">Sucursal Saltillo</option>
+                                <option value="Sucursal Toluca">Sucursal Toluca</option>
+                                <option value="Ingenieria">Ingenieria</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">No gerente</option>`);
+            }if(inputTipo == "4"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Compras">Compras</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">No gerente</option>`);
+            }if(inputTipo == "5"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Cliente Externo">Cliente Externo</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Externo">Externo</option>`);
+            }if(inputTipo == "6"){
+                $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
+                                <option value="Inventarios">Inventarios</option>`);
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">No gerente</option>`);
+            }else{
+                $("#inputArea").val("");
+                $("#inputRol").val("");
+            }
+        
+        });
+        $("#inputArea").on("change", function(){
+            let inputArea = $("#inputArea").val();
+            if(inputArea == "Ingenieria"){
+                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+                                <option value="Ingenieria">Ingenieria</option>`);
+            }
+        });
+        // FIN SELECTORES DE USUARIO
 
         // RESETEAR EL FORMULARIO AL CERRAR
         $("#btnCloseModal").on("click", function(){

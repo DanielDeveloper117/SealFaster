@@ -297,7 +297,7 @@ if (!isset($_SESSION['id'])) {
                         <i class="bi bi-clock"></i>
                     </div>
                     <h3 class="function-title">Claves Pendientes</h3>
-                    <p class="function-description">Revisa las claves que requieren validación para habilitar las barras al cotizar. La tabla podría tardar en cargar.</p>
+                    <p class="function-description">Revisa las claves que requieren ser corregidas para habilitar las barras al cotizar. La tabla podría tardar en cargar.</p>
                     <a href="inventario.php?pendientes" class="function-button" target="_blank">
                         Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
                     </a>

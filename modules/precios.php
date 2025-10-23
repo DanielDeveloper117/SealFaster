@@ -182,7 +182,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $exterior = $_POST['exterior'];
             $max_usable = $_POST['max_usable'];
             $precio = $_POST['precio'];
-    
+            // Validar que la clave no exista previamente
+            $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave");
+            $stmtCheck->bindParam(':clave', $clave);
+            $stmtCheck->execute();
+            $existeClave = $stmtCheck->fetchColumn();
+
+            if ($existeClave > 0) {
+                echo "<script type='text/javascript'>
+                        $(document).ready(function(){
+                            Swal.fire({
+                                title: 'Clave duplicada',
+                                text: 'La clave ingresada ya existe en la base de datos. Verifique e intente nuevamente.',
+                                icon: 'warning',
+                                confirmButtonText: 'Entendido',
+                                confirmButtonColor: '#ffc107',
+                                showCloseButton: true,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            }).then((result) => {
+                                if (result.isConfirmed || result.dismiss === Swal.DismissReason.close || result.dismiss === Swal.DismissReason.overlay) {
+                                    window.location.href = './precios.php';
+                                }
+                            });
+                        });
+                    </script>";
+                exit;
+            }
             // Consulta SQL para insertar en la tabla 'parametros'
             $sql = "INSERT INTO parametros (Clave, material, proveedor, tipo, interior, exterior, max_usable, precio) 
                     VALUES (:clave, :material, :proveedor, :tipo, :interior, :exterior, :max_usable, :precio)";
@@ -247,6 +273,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $exterior = $_POST['exterior'];
             $max_usable = $_POST['max_usable'];
             $precio = $_POST['precio'];
+
+            // Validar que no exista otra fila con la misma clave
+            $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave AND id != :id");
+            $stmtCheck->bindParam(':clave', $clave);
+            $stmtCheck->bindParam(':id', $id, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            $existeClave = $stmtCheck->fetchColumn();
+
+            if ($existeClave > 0) {
+                echo "<script type='text/javascript'>
+                        $(document).ready(function(){
+                            Swal.fire({
+                                title: 'Clave duplicada',
+                                text: 'La clave ingresada ya existe en otro registro. No se puede duplicar.',
+                                icon: 'warning',
+                                confirmButtonText: 'Ok',
+                                confirmButtonColor: '#ffc107',
+                                showCloseButton: true,
+                                allowOutsideClick: false,
+                                allowEscapeKey: false
+                            });
+                        });
+                    </script>";
+                exit;
+            }
     
             $sql = "UPDATE parametros 
             SET Clave = :clave,
@@ -269,6 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bindParam(':exterior', $exterior);
             $stmt->bindParam(':max_usable', $max_usable);
             $stmt->bindParam(':precio', $precio);
+
 
             if ($stmt->execute()) {
                 echo "<script type='text/javascript'>
@@ -496,11 +548,11 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
 
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputClave" class="lbl-general">Clave</label>
+                            <label for="inputClave" class="lbl-general">Clave*</label>
                             <input id="inputClave" type="text" class="input-text"  name="clave" placeholder="" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputMaterial" class="lbl-general">Material</label>
+                            <label for="inputMaterial" class="lbl-general">Material*</label>
                             <select id="inputMaterial" class="selector" name="material" required >
                                 <option value="" disabled selected>Seleccionar</option>
                             </select>
@@ -508,13 +560,13 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputProveedor" class="lbl-general">Proveedor</label>
+                            <label for="inputProveedor" class="lbl-general">Proveedor*</label>
                             <select id="inputProveedor" class="selector" name="proveedor" required >
                                 <option value="" disabled selected>Seleccionar</option>
                             </select>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputTipoMaterial" class="lbl-general">Tipo</label>
+                            <label for="inputTipoMaterial" class="lbl-general">Tipo*</label>
                             <select id="inputTipoMaterial" class="selector" name="tipo" required >
                                 <option value="" disabled selected>Seleccionar</option>
                             </select>
@@ -522,21 +574,21 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputInterior" class="lbl-general">Medida interior</label>
+                            <label for="inputInterior" class="lbl-general">Medida interior*</label>
                             <input id="inputInterior" type="number" class="input-text"  name="interior" placeholder="" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputExterior" class="lbl-general">Medida exterior</label>
+                            <label for="inputExterior" class="lbl-general">Medida exterior*</label>
                             <input id="inputExterior" type="number" class="input-text"  name="exterior" placeholder="" required>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputMaxUsable" class="lbl-general">Max. Length</label>
+                            <label for="inputMaxUsable" class="lbl-general">Max. Length*</label>
                             <input id="inputMaxUsable" type="number" class="input-text"  name="max_usable" placeholder="" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputPrecio" class="lbl-general">Precio</label>
+                            <label for="inputPrecio" class="lbl-general">Precio*</label>
                             <input id="inputPrecio" type="number" class="input-text"  min="0" step="0.01" name="precio" required>
                         </div>
                     </div>

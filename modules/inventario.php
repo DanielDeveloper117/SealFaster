@@ -67,7 +67,7 @@ if (!isset($_SESSION['id'])) {
 // Obtener los datos del registro para edicion
 if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['action'] == 'get_data') {
     $id = $_GET['id'];
-    $sql = "SELECT * ,estatus FROM inventario_cnc WHERE id = :id";
+    $sql = "SELECT * FROM inventario_cnc WHERE id = :id";
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id', $id);
     $stmt->execute();
@@ -117,7 +117,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['corregir'])) {
-
+    // esto ya no se usa porque ya se actualizaron todos los registros y porque se valida que ese campo sea correcto
     $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
                         ,estatus, updated_at FROM inventario_cnc WHERE max_usable = 0.00";
     $stmtInventario = $conn->prepare($sqlInventario);
@@ -138,7 +138,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             i.lote_pedimento
                         ,estatus, updated_at FROM inventario_cnc i
                         LEFT JOIN parametros p ON i.clave = p.clave
-                        WHERE p.clave IS NULL OR i.estatus = 'Deshabilitado' ORDER BY stock DESC;
+                        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' ORDER BY stock DESC;
                         ";
                         $stmtInventario = $conn->prepare($sqlInventario);
                         $stmtInventario->execute();
@@ -255,7 +255,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             </div>
                         </td>
                         <td class="td-usable"><?= $usableText; ?></td>
-                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
+                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?></td>
                         <td class="td-updated">
                             <?php
                                 if (!empty($row['updated_at'])) {

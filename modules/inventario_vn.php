@@ -210,7 +210,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                 <span class="bar <?php echo $class; ?>" style="width: <?php echo htmlspecialchars($width); ?>%;"></span>
                             </div>
                         </td>
-                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?> para cotizar</td>
+                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?></td>
                     </tr>
                 <?php
                     }

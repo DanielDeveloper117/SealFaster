@@ -55,7 +55,9 @@ try {
         if (!isset($lote_pedimento) || trim($lote_pedimento) === '') {
             $errores[] = "Falta el lote/pedimento";
         }
-    
+        if (!isset($estatus) || trim($estatus) === '') {
+            $errores[] = "Falta el estatus";
+        }    
         // Si hay errores, regresar solo el primero
         if (!empty($errores)) {
             echo json_encode([
@@ -79,9 +81,9 @@ try {
 
     if ($action === 'insert' || $action === 'insert2') {
         $sql = "INSERT INTO inventario_cnc 
-                (clave, medida, interior, exterior, proveedor, material, max_usable, stock, lote_pedimento, estatus, updated_at)
+                (clave, medida, interior, exterior, proveedor, material, max_usable, pre_stock, stock, lote_pedimento, estatus, updated_at)
                 VALUES 
-                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :stock, :lote_pedimento, :estatus, NOW())";
+                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :pre_stock, :stock, :lote_pedimento, :estatus, NOW())";
         $stmt = $conn->prepare($sql);
     }
 
@@ -95,6 +97,7 @@ try {
                     proveedor = :proveedor, 
                     material = :material, 
                     max_usable = :max_usable, 
+                    pre_stock = :pre_stock,
                     stock = :stock, 
                     lote_pedimento = :lote_pedimento,
                     estatus = :estatus,
@@ -112,19 +115,20 @@ try {
         $stmt->bindParam(':proveedor', $proveedor);
         $stmt->bindParam(':material', $material);
         $stmt->bindParam(':max_usable', $max_usable);
+        $stmt->bindParam(':pre_stock', $pre_stock);
         $stmt->bindParam(':stock', $stock);
         $stmt->bindParam(':lote_pedimento', $lote_pedimento);
         $stmt->bindParam(':estatus', $estatus);
         $stmt->execute();
 
-        if (($action === 'insert' || $action === 'insert2') && $estatus === 'Deshabilitado') {
+        if (($action === 'insert' || $action === 'insert2') && $estatus === 'Falta precio o máx. usable') {
             try {
                 $verificar_sql = "SELECT COUNT(*) FROM parametros WHERE Clave = :clave";
                 $stmt_verificar = $conn->prepare($verificar_sql);
                 $stmt_verificar->bindParam(':clave', $clave);
                 $stmt_verificar->execute();
                 $existe = $stmt_verificar->fetchColumn();
-
+                // cuando el resultado es 0 registros coincidentes agrega la nueva clave sin max usable y sin precio
                 if ($existe == 0) {
                     $sql_parametros = "INSERT INTO parametros (Clave, material, proveedor, interior, exterior)
                                     VALUES (:clave, :material, :proveedor, :interior, :exterior)";

@@ -11,7 +11,6 @@ if ($arregloUser) {
     $clave_encriptacion = 'SRS2024#tides';
 
     // Desencriptar el nombre
-    
     $usuario_encriptado = $arregloUser['usuario'];
     $usuarioUser = openssl_decrypt($usuario_encriptado, 'AES-128-ECB', $clave_encriptacion);
     
@@ -47,7 +46,7 @@ if ($arregloUser) {
             $tipo_usuario = "Sistemas";
         break;
         default:
-            $tipo_usuario = "Desconocidos";
+            $tipo_usuario = "Desconocido";
         break;
     } 
     $rol_usuario = $arregloUser['rol'];

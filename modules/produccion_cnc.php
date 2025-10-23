@@ -182,7 +182,8 @@ if (!isset($_SESSION['id'])) {
                                     case "En producción":
                                         $estatusString = "Maquinado";
 
-                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                        //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                        if ($tipo_usuario === "CNC") {
                                             echo '<button type="button" class="btn-terracota btn-finalizar" 
                                                     data-bs-toggle="modal" data-bs-target="#modalFinalizar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"

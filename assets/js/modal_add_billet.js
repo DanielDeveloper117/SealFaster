@@ -60,7 +60,7 @@ $(document).ready(function(){
             console.log("El usuario ingreso un valor en el inputClavePost.");
 
             $.ajax({
-                url: '../ajax/ajax_parametros.php',
+                url: '../ajax/verificar_clave.php',
                 type: 'POST',
                 data: { clave: claveValue },
                 dataType: 'json',
@@ -82,7 +82,7 @@ $(document).ready(function(){
                         //$("#inputProveedor").val("");
                         //$("#inputProveedor").html('<option selected disabled>Seleccionar</option>');
                         //$("#inputMedida").val("");
-                        $("#inputEstatus").val("Deshabilitado");
+                        $("#inputEstatus").val("Falta precio o máx. usable");
                     }
                     //verificarBtnGuardar();
                 },
@@ -157,7 +157,7 @@ $(document).ready(function(){
         var inputMaxUsable=$('#inputMaxUsable').val();
         var inputStock=$('#inputStock').val();
         var inputLotePedimento=$('#inputLotePedimento').val();
-        var inputEstatus=$('#inputEstatus').val();
+        //var inputEstatus=$('#inputEstatus').val();
 
         var actionForm=accion;
         let actionAfter = "";
@@ -179,8 +179,8 @@ $(document).ready(function(){
                 max_usable: inputMaxUsable,
                 stock: inputStock,
                 lote_pedimento: inputLotePedimento,
-                action: actionForm,
-                estatus: inputEstatus
+                action: actionForm
+                //estatus: inputEstatus
             },
             dataType: 'json',
             success: function(data) {

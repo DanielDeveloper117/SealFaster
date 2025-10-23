@@ -67,8 +67,20 @@
                 require_once(ROOT_PATH . 'includes/PHPMailer.php');
                 $mail = getMailer($conn);
 
-                $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND rol = 'Gerente' OR rol = 'CORREO_DIRECCION'";
-                $stmt = $conn->prepare($sqlCorreoVentasGerencia);
+                // Clave de encriptacionn
+                $clave_encriptacion = 'SRS2024#tides';
+
+                $area_desencriptada = $sucursal;
+                $areaGerenteEncriptado = openssl_encrypt($area_desencriptada, 'AES-128-ECB', $clave_encriptacion);
+
+                if($sucursal == "Ventas Nacionales"){
+                    $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND rol = 'Gerente' OR rol = 'CORREO_DIRECCION'";
+                    $stmt = $conn->prepare($sqlCorreoVentasGerencia);
+                }else{
+                    $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND area = :area AND rol = 'Gerente'";
+                    $stmt = $conn->prepare($sqlCorreoVentasGerencia);
+                    $stmt->bindParam(':area', $areaGerenteEncriptado);                    
+                }
                 $stmt->execute();
                 $correosGerencia = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -76,7 +88,6 @@
                     throw new Exception("No se encontro ningun correo de gerencia.");
                 }
 
-                $clave_encriptacion = 'SRS2024#tides';
                 $contadorCorreos = 0;
 
                 foreach ($correosGerencia as $fila) {
@@ -92,7 +103,7 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido.");
                 }
-                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                //$mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                 //$mail->addAddress("sistemas@sellosyretenes.com");
                 $mail->Subject = 'Nueva requisición por autorizar. Folio: '.$id_requisicion;
                 $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de <b>Requisiciones</b> para autorizarla con su firma.<br>Folio de requisición: <b>".$id_requisicion."</b>";
@@ -299,9 +310,14 @@
         }
     }
     include(ROOT_PATH . 'includes/backend_info_user.php');
-    if($tipo_usuario == "Administrador" || ($tipo_usuario == "Vendedor" && $rol_usuario=="Gerente")){
+    if($tipo_usuario == "Administrador"){
         $sqlRequisiciones = "SELECT * FROM requisiciones ORDER BY id_requisicion DESC";
         $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+        
+    }else if($tipo_usuario == "Vendedor" && $rol_usuario=="Gerente"){
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE sucursal = :area ORDER BY id_requisicion DESC";
+        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+        $stmtRequisiciones->bindParam(':area', $areaUser);
     }else{
         $sqlRequisiciones = "SELECT * FROM requisiciones WHERE id_vendedor = :id ORDER BY fecha_insercion DESC";
         $stmtRequisiciones = $conn->prepare($sqlRequisiciones);

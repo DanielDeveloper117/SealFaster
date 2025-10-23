@@ -29,8 +29,9 @@ if (!isset($_SESSION['id'])) {
      <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>">
 
-    <?php include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
+    <?php 
           include(ROOT_PATH . 'includes/backend_info_user.php');
+          include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
     ?>
 
     <title>Requisiciones</title>
@@ -96,6 +97,7 @@ if (!isset($_SESSION['id'])) {
                         <!-- <th>Id</th> -->
                         <th>Folio</th>
                         <th>Estatus</th>
+                        <th>Sucursal</th>
                         <th>Cliente</th>
                         <th>Cotizaciones</th>
                         <th>Fecha</th>
@@ -236,6 +238,7 @@ if (!isset($_SESSION['id'])) {
 
                             </div>
                         </td>
+                        <td><?= htmlspecialchars($row['sucursal']??""); ?></td>
                         <td><?= htmlspecialchars($row['cliente']??""); ?></td>
                         <td>
                             <?php
@@ -292,10 +295,10 @@ if (!isset($_SESSION['id'])) {
                             <select id="inputSucursal" class="selector" name="sucursal" required >
                                 <option value="" selected disabled>Seleccionar</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
-                                <option value="Ventas Industriales">Ventas Industriales</option>
-                                <option value="Sucursal Industrias">Sucursal Industrias</option>
-                                <option value="Sucursal Queretaro">Sucursal Queretaro</option>
+                                <option value="Sucursal Tame">Sucursal Tame</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
+                                <option value="Sucursal Queretaro">Sucursal Queretaro</option>
+                                <option value="Sucursal Saltillo">Sucursal Saltillo</option>
                                 <option value="Sucursal Toluca">Sucursal Toluca</option>
                             </select>
                         </div>

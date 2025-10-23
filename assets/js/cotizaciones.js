@@ -462,7 +462,7 @@ $(document).ready(function() {
         var dataArchivada = $(this).data('archivada');
         if(dataArchivada == 0){
             dataArchivada = 1;
-            $("#infoArchivada").text("Si archiva la cotización no podrá usarla al crear nuevas requisiciones.");
+            $("#infoArchivada").text("Si archiva la cotización no podrá usarla al crear nuevas requisiciones. Las requisiciones existentes que ya tengan esta cotización no se verán afectadas.");
         }else{
             dataArchivada = 0;
             $("#infoArchivada").text("Después de esta accion ya podrá usar la cotización al crear nuevas requisiciones.");
