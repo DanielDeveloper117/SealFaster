@@ -232,6 +232,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                     data-max_usable="<?= $row['max_usable']; ?>"
                                     data-stock="<?= $row['stock']; ?>"
                                     data-lote_pedimento="<?= $row['lote_pedimento']; ?>"
+                                    data-estatus="<?= $row['estatus']; ?>"
                                 >
                                     Editar<i class="bi bi-pencil-square px-2"></i>
                                 </button>

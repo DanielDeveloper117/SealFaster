@@ -158,7 +158,7 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Producción";
 
                                         if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                            echo '<button type="button" class="btn-blue btn-cnc-firma" 
+                                            echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
                                                     data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-autoriza="cnc"
@@ -321,15 +321,30 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog" style="max-width: 50% !important;margin-top:10%;">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">Primero debe agregar el operador cnc que realizará el maquinado</span>
+                <span class="title-form">Primero debe agregar la máquina que realizará el maquinado</span>
                 <button type="button" id="btn-closeOperador" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="" style="width:100%;">
-                    <label for="inputOperadorCNC" class="lbl-general">Nombre del operador CNC</label>
-                    <input id="inputOperadorCNC" type="text" class="input-text"  name="operador_cnc" required>
+                <div class="d-flex justify-content-between mb-3">
                     <input type="hidden" id="inputIdRequisicionOperador" name="id_requisicion">
-                </div>  
+                    <div class="" style="width:100%;">
+                        <label for="inputMaquina" class="lbl-general">Máquina CNC*</label>
+                        <select id="inputMaquina" class="selector" required >
+                            <option value="" selected disabled>Seleccione máquina</option>
+                            <option value="Máquina 1">Máquina 1</option>
+                            <option value="Máquina 2">Máquina 2</option>
+                            <option value="Máquina 3">Máquina 3</option>
+                            <option value="Máquina 4">Máquina 4</option>
+                            <option value="Máquina 5">Máquina 5</option>
+                        </select>
+                    </div>
+                    
+                    <!-- <div class="" style="width:48%;">
+                        <label for="inputOperadorCNC" class="lbl-general">Nombre del operador CNC (opcional)</label>
+                        <input id="inputOperadorCNC" type="text" class="input-text"  name="operador_cnc" >
+                    </div>   -->
+                    
+                </div>
             </div>
             <div class="modal-footer justify-content-end">
                 <button id="btnGuardarOperador" type="button" class="btn-general" tabindex="-1">Guardar</button>

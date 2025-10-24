@@ -74,7 +74,14 @@ $(document).ready(function(){
                         
                         //$("#inputProveedor").val(data[0].proveedor);
                         $("#inputMedida").val(medida);
-                        $("#inputEstatus").val("Habilitado");
+                        let inputEstatusActual = $("#inputEstatus").val();
+                        if(inputEstatusActual == "En uso"){
+                            $("#inputEstatus").val("En uso");
+                        }
+                        else{
+                            $("#inputEstatus").val("Disponible para cotizar");    
+                        }
+                        
                     } else {
                         window.CLAVE_VALIDA = false;
                         $("#pInvalida, #pInvalida2").removeClass("d-none");
@@ -157,7 +164,7 @@ $(document).ready(function(){
         var inputMaxUsable=$('#inputMaxUsable').val();
         var inputStock=$('#inputStock').val();
         var inputLotePedimento=$('#inputLotePedimento').val();
-        //var inputEstatus=$('#inputEstatus').val();
+        var inputEstatus=$('#inputEstatus').val();
 
         var actionForm=accion;
         let actionAfter = "";
@@ -179,8 +186,8 @@ $(document).ready(function(){
                 max_usable: inputMaxUsable,
                 stock: inputStock,
                 lote_pedimento: inputLotePedimento,
-                action: actionForm
-                //estatus: inputEstatus
+                action: actionForm,
+                estatus: inputEstatus
             },
             dataType: 'json',
             success: function(data) {
@@ -221,7 +228,7 @@ $(document).ready(function(){
                         }
 
                         // Estatus
-                        fila.find(".td-estatus").text(inputEstatus + " para cotizar");
+                        fila.find(".td-estatus").text(inputEstatus);
 
                         // Opcional: resaltar la fila
                         fila.addClass("bg-row-updated");
@@ -262,6 +269,7 @@ $(document).ready(function(){
                     //         console.error("Error al enviar la notificación: ", error);
                     //     }
                     // });
+                    $("#formInventario")[0].reset();
                 } else {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "none");
                 }
@@ -271,7 +279,6 @@ $(document).ready(function(){
                 sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "none");
             }
         });
-        $("#formInventario")[0].reset();
 
     }
     //---------------------------------------- @ EVENTOS DEL DOM ------------------------------------
@@ -488,6 +495,7 @@ $(document).ready(function(){
         var dataMaxUsable = $(this).attr('data-max_usable');
         var dataStock = $(this).attr('data-stock');
         var dataLotePedimento = $(this).attr('data-lote_pedimento');
+        var dataEstatus = $(this).attr('data-estatus');
 
         // Llenar solo los campos que corresponden
         $('#inputId').val(dataId);
@@ -501,6 +509,7 @@ $(document).ready(function(){
         $('#inputMaxUsable').val(dataMaxUsable);
         $('#inputStock').val(dataStock);
         $('#inputLotePedimento').val(dataLotePedimento);
+        $('#inputEstatus').val(dataEstatus);
         $('#inputAction').val('update');
         $('#modalInventario').modal('show');
         $("#titleModal").text("Editar registro");

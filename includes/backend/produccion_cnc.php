@@ -63,12 +63,17 @@
             ////////////////////////////////////////////////////////////////////////
         }
     }
-    if ($tipo_usuario == "CNC" || $tipo_usuario == "Administrador") {
+    if (($tipo_usuario == "CNC" && ($rol_usuario == "Gerente" ||  $rol_usuario == "Auxiliar")) || $tipo_usuario == "Administrador") {
         $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
+        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+    }else if($tipo_usuario == "CNC" && ($rol_usuario != "Gerente" && $rol_usuario != "Auxiliar")){
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' AND operador_cnc = :operador_cnc ORDER BY fecha_insercion DESC";
+        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+        $stmtRequisiciones->bindParam(':operador_cnc', $rolUser);
     } else{
         $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
+        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
     }
-    $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
  
     $stmtRequisiciones->execute();
     $arregloSelectRequisiciones = $stmtRequisiciones->fetchAll(PDO::FETCH_ASSOC);

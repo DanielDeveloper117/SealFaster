@@ -10,7 +10,7 @@
                 <form id="formInventario">                        
                     <input type="hidden" id="inputId" name="id">
                     <input type="hidden" id="inputAction" name="action" value="insert">
-                    <input type="hidden" id="inputEstatus" name="estatus" value="Habilitado">
+                    <input type="hidden" id="inputEstatus" name="estatus" value="">
 
                     <div class="mb-3">
                         <label for="inputClavePost" class="lbl-general">Clave</label>

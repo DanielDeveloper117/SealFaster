@@ -240,6 +240,7 @@
                                     <th scope="col">Clave</th>
                                     <th scope="col">Aprovechamiento</th>
                                     <th scope="col">Stock MM</th>
+                                    <th scope="col">Estatus</th>
                                     <th scope="col">Piezas</th>
                                     <th scope="col">Medida</th>
                                     <th scope="col">Lote/pedimento</th>

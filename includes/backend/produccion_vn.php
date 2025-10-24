@@ -103,7 +103,7 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido.");
                 }
-                //$mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                 //$mail->addAddress("sistemas@sellosyretenes.com");
                 $mail->Subject = 'Nueva requisición por autorizar. Folio: '.$id_requisicion;
                 $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de <b>Requisiciones</b> para autorizarla con su firma.<br>Folio de requisición: <b>".$id_requisicion."</b>";
@@ -211,47 +211,132 @@
             try{
                 $id_requisicion = $_POST['id_requisicion'];
 
-                //$queryUpdateRequisicion = "UPDATE requisiciones SET estatus = 'Producción' WHERE id_requisicion = :id_requisicion";
+                // Iniciar transacción para consistencia
+                $conn->beginTransaction();
+
+                // 1. Actualizar estado de la requisición
                 $queryUpdateRequisicion = "UPDATE requisiciones SET estatus = 'Autorizada' WHERE id_requisicion = :id_requisicion";
                 $stmtUpdateRequisicion = $conn->prepare($queryUpdateRequisicion);
                 $stmtUpdateRequisicion->bindParam(':id_requisicion', $id_requisicion);
                 $stmtUpdateRequisicion->execute();
 
+                // 2. Obtener cotizaciones asociadas
                 $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
                 $stmtRequisicion = $conn->prepare($sqlRequisicion);
                 $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
                 $stmtRequisicion->execute();
                 $result = $stmtRequisicion->fetch(PDO::FETCH_ASSOC);
 
-                // Dividir los IDs
                 $cotizacion_ids = explode(', ', $result['cotizaciones']);
 
-                // Preparar la consulta
-                //$sql = "UPDATE cotizacion_materiales SET estatus_completado = 'Producción', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
-                $sql = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+                // 3. Actualizar estado de cada cotización
+                $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+                $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
 
-                $stmt = $conn->prepare($sql);
+                // 4. Preparar consulta para actualizar inventario
+                $sqlUpdatePreStock = "UPDATE inventario_cnc SET pre_stock = pre_stock - :consumo_total, updated_at = NOW() WHERE lote_pedimento = :lote_pedimento";
+                $stmtUpdatePreStock = $conn->prepare($sqlUpdatePreStock);
 
-                // Ejecutar para cada id
+                // 5. Array para acumular consumo por lote_pedimento
+                $consumoPorLote = [];
+
                 foreach ($cotizacion_ids as $id_cotizacion) {
                     try {
-                        $stmt->bindValue(':id_cotizacion', $id_cotizacion);
-                        $stmt->execute();
+                        // Actualizar estado de la cotización
+                        $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+                        $stmtUpdateCotizacion->execute();
+
+                        // Obtener todas las estimaciones de esta cotización
+                        $sqlEstimaciones = "SELECT * FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
+                        $stmtEstimaciones = $conn->prepare($sqlEstimaciones);
+                        $stmtEstimaciones->bindValue(':id_cotizacion', $id_cotizacion);
+                        $stmtEstimaciones->execute();
+                        $estimaciones = $stmtEstimaciones->fetchAll(PDO::FETCH_ASSOC);
+
+                        foreach ($estimaciones as $estimacion) {
+                            $a_sello = floatval($estimacion['a_sello']);
+                            $material = $estimacion['material'];
+                            $billets_lotes = $estimacion['billets_claves_lotes'];
+
+                            // Determinar desbaste por material
+                            $desbaste = 2.50; // Valor por defecto (material duro)
+                            
+                            $materialesBlandos = ['H-ECOPUR', 'ECOSIL', 'ECORUBBER 1', 'ECORUBBER 2', 'ECORUBBER 3', 'ECOPUR'];
+                            $materialesDuros = ['ECOTAL', 'ECOMID', 'ECOFLON 1', 'ECOFLON 2', 'ECOFLON 3'];
+                            
+                            if (in_array($material, $materialesBlandos)) {
+                                $desbaste = 2.00;
+                            } elseif (in_array($material, $materialesDuros)) {
+                                $desbaste = 2.50;
+                            }
+
+                            // Procesar cada billet/lote
+                            $billets = array_map('trim', explode(',', $billets_lotes));
+                            
+                            foreach ($billets as $billet) {
+                                // Extraer lote_pedimento y cantidad de piezas
+                                // Formato: "R2T047062-1 (47/62) 1 pz"
+                                if (preg_match('/^([^\s]+)\s+\([^)]+\)\s+(\d+)\s+pz$/i', $billet, $matches)) {
+                                    $lote_pedimento = trim($matches[1]);
+                                    $cantidad_piezas = intval($matches[2]);
+                                    
+                                    // Calcular consumo para este billet
+                                    $altura_por_pieza = $a_sello + $desbaste;
+                                    $consumo_total = $altura_por_pieza * $cantidad_piezas;
+                                    
+                                    // Acumular consumo por lote_pedimento
+                                    if (!isset($consumoPorLote[$lote_pedimento])) {
+                                        $consumoPorLote[$lote_pedimento] = 0;
+                                    }
+                                    $consumoPorLote[$lote_pedimento] += $consumo_total;
+                                    
+                                    // Log para debugging
+                                    error_log("Lote: $lote_pedimento, Material: $material, Desbaste: $desbaste, Altura sello: $a_sello, Piezas: $cantidad_piezas, Consumo: $consumo_total");
+                                }
+                            }
+                        }
+
                     } catch (Throwable $e) {
-                        echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                            sweetAlertResponse("error", "Error", "Error al actualizar la cotización con ID: ' . $id_cotizacion . '. Detalles: ' . addslashes($e->getMessage()) . '", "self");
-                        });</script>';
-                        exit;
+                        throw new Exception("Error al procesar cotización ID $id_cotizacion: " . $e->getMessage());
                     }
                 }
 
+                // 6. Actualizar pre_stock en inventario_cnc para cada lote
+                foreach ($consumoPorLote as $lote_pedimento => $consumo_total) {
+                    try {
+                        $stmtUpdatePreStock->bindValue(':consumo_total', $consumo_total);
+                        $stmtUpdatePreStock->bindValue(':lote_pedimento', $lote_pedimento);
+                        $stmtUpdatePreStock->execute();
+                        
+                        // Verificar si se actualizó correctamente
+                        if ($stmtUpdatePreStock->rowCount() === 0) {
+                            error_log("Advertencia: Lote pedimento no encontrado: $lote_pedimento");
+                        }
+                        
+                    } catch (Throwable $e) {
+                        throw new Exception("Error al actualizar inventario para lote $lote_pedimento: " . $e->getMessage());
+                    }
+                }
+
+                // Confirmar transacción
+                $conn->commit();
+
+                echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                    sweetAlertResponse("success", "Éxito", "Requisición autorizada y inventario actualizado correctamente", "self");
+                });</script>';
 
             } catch (Throwable $e) {
+                // Revertir transacción en caso de error
+                if ($conn->inTransaction()) {
+                    $conn->rollBack();
+                }
+                
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("error", "Error", "Error al intentar actualizar estatus de cotización'. addslashes($e->getMessage()).'", "self");
+                    sweetAlertResponse("error", "Error", "Error al intentar actualizar estatus de cotización: ' . addslashes($e->getMessage()) . '", "self");
                 });</script>';
                 exit;
             }
+
             ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
             try {
                 require_once(ROOT_PATH . 'includes/PHPMailer.php');

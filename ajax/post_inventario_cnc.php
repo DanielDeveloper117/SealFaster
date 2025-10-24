@@ -115,7 +115,7 @@ try {
         $stmt->bindParam(':proveedor', $proveedor);
         $stmt->bindParam(':material', $material);
         $stmt->bindParam(':max_usable', $max_usable);
-        $stmt->bindParam(':pre_stock', $pre_stock);
+        $stmt->bindParam(':pre_stock', $stock);
         $stmt->bindParam(':stock', $stock);
         $stmt->bindParam(':lote_pedimento', $lote_pedimento);
         $stmt->bindParam(':estatus', $estatus);

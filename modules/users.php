@@ -461,7 +461,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="Ingenieria">Ingenieria</option>`);
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
                                 <option value="Gerente">Gerente</option>
-                                <option value="Auxiliar">No gerente</option>`);
+                                <option value="Auxiliar">No gerente</option>
+                                <option value="Máquina 1">Máquina 1</option>
+                                <option value="Máquina 2">Máquina 2</option>
+                                <option value="Máquina 3">Máquina 3</option>
+                                <option value="Máquina 4">Máquina 4</option>
+                                <option value="Máquina 5">Máquina 5</option>`);
             }if(inputTipo == "3"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>

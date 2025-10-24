@@ -1,158 +1,141 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
+require_once(ROOT_PATH . 'vendor/autoload.php');
 
-header('Content-Type: application/json');
+session_start();
+
+// Convertir warnings/notices a excepciones
+set_error_handler(function($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
 try {
+    header('Content-Type: application/json');
+
+    // Solo aceptar POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        throw new Exception("Metodo no permitido");
+        http_response_code(405);
+        echo json_encode(['error' => 'Metodo no permitido. Solo se acepta POST.']);
+        exit;
     }
 
-    $action = $_POST['action'] ?? '';
-    $id = $_POST['id'] ?? null;
-
-    set_error_handler(function($severity, $message, $file, $line) {
-        throw new ErrorException($message, 0, $severity, $file, $line);
-    });
-
-    $acciones_validas = ['insert', 'update', 'delete', 'insert2'];
-    if (!in_array($action, $acciones_validas)) {
-        throw new Exception("Accion no valida.");
+    // Validacion de parametros
+    if (!isset($_POST['id_requisicion'], $_POST['t']) || empty($_POST['id_requisicion']) || empty($_POST['t'])) {
+        echo json_encode(['error' => "Parametros faltantes o invalidos"]);
+        exit;
     }
 
-    $clave = trim($_POST['clave'] ?? '');
-    $medida = trim($_POST['medida'] ?? '');
-    $proveedor = trim($_POST['proveedor'] ?? '');
-    $material = trim($_POST['material'] ?? '');
-    $max_usable = trim($_POST['max_usable'] ?? '');
-    $stock = trim($_POST['stock'] ?? '');
-    $lote_pedimento = trim($_POST['lote_pedimento'] ?? '');
-    $estatus = trim($_POST['estatus'] ?? '');
+    $id_requisicion = $_POST['id_requisicion'];
+    $autoriza = $_POST['t'];
 
-    if ($action != 'delete') {
-        $errores = [];
-
-        if ($clave === '') $errores[] = "Falta la clave";
-        if ($material === '') $errores[] = "Falta el material";
-        if ($proveedor === '') $errores[] = "Falta el proveedor";
-        if ($medida === '') $errores[] = "Falta la medida";
-        if ($max_usable === '') $errores[] = "Falta el maximo usable";
-        if ($stock === '') $errores[] = "Falta el stock";
-        if ($lote_pedimento === '') $errores[] = "Falta el lote/pedimento";
-
-        if (!empty($errores)) {
-            echo json_encode([
-                'status' => 'error',
-                'message' => $errores[0]
-            ]);
-            exit;
-        }
+    // Validar que id_requisicion sea numero
+    if (!preg_match('/^\d+$/', $id_requisicion)) {
+        echo json_encode(['error' => "Parametro id_requisicion invalido"]);
+        exit;
     }
 
-    if (in_array($action, ['insert', 'insert2', 'update'])) {
-        if (!preg_match('/^\d+\/\d+$/', $medida)) {
-            throw new Exception("Formato de medida invalido. Usa formato interior/exterior.");
-        }
-
-        list($interior, $exterior) = explode('/', $medida);
-        $interior = (int)$interior;
-        $exterior = (int)$exterior;
+    $id_usuario = $_SESSION['id'] ?? null;
+    if (!$id_usuario) {
+        echo json_encode(['error' => "Sesion invalida o expirada"]);
+        exit;
     }
 
-    if ($action === 'insert' || $action === 'insert2') {
-        $sql = "INSERT INTO inventario_cnc 
-                (clave, medida, interior, exterior, proveedor, material, max_usable, stock, lote_pedimento, estatus, updated_at)
-                VALUES 
-                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :stock, :lote_pedimento, :estatus, NOW())";
-        $stmt = $conn->prepare($sql);
+    $nombreArchivo = $id_usuario . ".png";
+    $rutaBD = 'files/signatures/' . $nombreArchivo;
+
+    // Validar que exista el archivo de firma
+    if (!file_exists(ROOT_PATH . $rutaBD)) {
+        echo json_encode(['error' => "No existe la firma del usuario en el sistema"]);
+        exit;
     }
 
-    if ($action === 'update') {
-        if (empty($id)) throw new Exception("ID requerido para actualizar.");
-
-        $sql = "UPDATE inventario_cnc SET 
-                    clave = :clave, 
-                    medida = :medida, 
-                    interior = :interior, 
-                    exterior = :exterior, 
-                    proveedor = :proveedor, 
-                    material = :material, 
-                    max_usable = :max_usable, 
-                    stock = :stock, 
-                    lote_pedimento = :lote_pedimento,
-                    estatus = :estatus,
-                    updated_at = NOW()
-                WHERE id = :id";
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    // Actualizacion de requisicion
+    if ($autoriza === "g") {
+        $sql = "UPDATE requisiciones SET 
+                    estatus = 'Autorizada',
+                    ruta_firma = :ruta
+                WHERE id_requisicion = :id_requisicion";
+    } elseif ($autoriza === "a") {
+        $sql = "UPDATE requisiciones SET 
+                    estatus = 'Autorizada',
+                    ruta_firma_admin = :ruta
+                WHERE id_requisicion = :id_requisicion";
+    } else {
+        echo json_encode(['error' => "Parametro 't' no valido"]);
+        exit;
     }
 
-    if ($action === 'insert' || $action === 'insert2' || $action === 'update') {
-        $stmt->bindParam(':clave', $clave);
-        $stmt->bindParam(':medida', $medida);
-        $stmt->bindParam(':interior', $interior);
-        $stmt->bindParam(':exterior', $exterior);
-        $stmt->bindParam(':proveedor', $proveedor);
-        $stmt->bindParam(':material', $material);
-        $stmt->bindParam(':max_usable', $max_usable);
-        $stmt->bindParam(':stock', $stock);
-        $stmt->bindParam(':lote_pedimento', $lote_pedimento);
-        $stmt->bindParam(':estatus', $estatus);
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':ruta', $rutaBD);
+    $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmt->execute();
+
+    ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
+    $mail = null; // Inicializar para evitar "undefined variable" en catch
+
+    try {
+        require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        $mail = getMailer($conn);
+
+        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
+        $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        // Si es insert y estatus = Deshabilitado, verificar parametros
-        if (($action === 'insert' || $action === 'insert2') && $estatus === 'Deshabilitado') {
-            try {
-                $verificar_sql = "SELECT COUNT(*) FROM parametros WHERE Clave = :clave";
-                $stmt_verificar = $conn->prepare($verificar_sql);
-                $stmt_verificar->bindParam(':clave', $clave);
-                $stmt_verificar->execute();
-                $existe = $stmt_verificar->fetchColumn();
+        if (!$correosInventarios || count($correosInventarios) === 0) {
+            throw new Exception("No se encontro ningun correo de inventarios.");
+        }
 
-                if ($existe == 0) {
-                    $sql_parametros = "INSERT INTO parametros (Clave, material, proveedor, interior, exterior)
-                                       VALUES (:clave, :material, :proveedor, :interior, :exterior)";
-                    $stmt_parametros = $conn->prepare($sql_parametros);
-                    $stmt_parametros->bindParam(':clave', $clave);
-                    $stmt_parametros->bindParam(':material', $material);
-                    $stmt_parametros->bindParam(':proveedor', $proveedor);
-                    $stmt_parametros->bindParam(':interior', $interior);
-                    $stmt_parametros->bindParam(':exterior', $exterior);
-                    $stmt_parametros->execute();
+        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides'; // mejor mover a config.php
+        $contadorCorreos = 0;
+
+        foreach ($correosInventarios as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                if ($correo) {
+                    $mail->addAddress($correo);
+                    $contadorCorreos++;
                 }
-            } catch (Exception $e) {
-                // Ignorar errores en esta insercion auxiliar
             }
         }
 
+        if ($contadorCorreos === 0) {
+            throw new Exception("No se pudo agregar ningun destinatario valido para inventarios.");
+        }
+
+        // Agregar correo visible de prueba o destinatario unico
+        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->Subject = 'Nueva requisici贸n pendiente. Folio: '.$id_requisicion;
+        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisici贸n.<br>
+                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
+                        Folio de requisici贸n: <b>" . $id_requisicion . "</b>";
+
+        if (!$mail->send()) {
+            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Respuesta exitosa
         echo json_encode([
             'success' => true,
-            'message' => $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.'
+            'message' => "Requisici贸n autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
         ]);
-        exit;
-    }
 
-    if ($action === 'delete') {
-        if (empty($id)) throw new Exception("ID requerido para eliminar.");
-
-        $stmt = $conn->prepare("DELETE FROM inventario_cnc WHERE id = :id");
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
+    } catch (Throwable $e) {
         echo json_encode([
             'success' => true,
-            'message' => "Registro eliminado correctamente."
+            'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
+                         addslashes($e->getMessage()) .
+                         (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
         ]);
-        exit;
     }
 
+} catch (PDOException $e) {
+    echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
 } catch (Throwable $e) {
-    echo json_encode([
-        'success' => false,
-        'message' => $e->getMessage()
-    ]);
+    echo json_encode(['error' => 'Error inesperado: ' . $e->getMessage()]);
 } finally {
-    restore_error_handler();
     $conn = null;
 }

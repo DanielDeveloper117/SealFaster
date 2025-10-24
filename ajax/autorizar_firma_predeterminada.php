@@ -50,6 +50,9 @@ try {
         exit;
     }
 
+    // Iniciar transacción para consistencia
+    $conn->beginTransaction();
+
     // Actualizacion de requisicion
     if ($autoriza === "g") {
         $sql = "UPDATE requisiciones SET 
@@ -70,6 +73,93 @@ try {
     $stmt->bindParam(':ruta', $rutaBD);
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmt->execute();
+
+    // 1. Obtener cotizaciones asociadas para actualizar pre-stock
+    $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
+    $stmtRequisicion = $conn->prepare($sqlRequisicion);
+    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
+    $stmtRequisicion->execute();
+    $result = $stmtRequisicion->fetch(PDO::FETCH_ASSOC);
+
+    if ($result && !empty($result['cotizaciones'])) {
+        $cotizacion_ids = explode(', ', $result['cotizaciones']);
+
+        // 2. Actualizar estado de cada cotización
+        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+        $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
+
+        // 3. Preparar consulta para actualizar inventario
+        $sqlUpdatePreStock = "UPDATE inventario_cnc SET pre_stock = pre_stock - :consumo_total, estatus = 'En uso', updated_at = NOW() WHERE lote_pedimento = :lote_pedimento";
+        $stmtUpdatePreStock = $conn->prepare($sqlUpdatePreStock);
+
+        // 4. Array para acumular consumo por lote_pedimento
+        $consumoPorLote = [];
+
+        foreach ($cotizacion_ids as $id_cotizacion) {
+            // Actualizar estado de la cotización
+            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtUpdateCotizacion->execute();
+
+            // Obtener todas las estimaciones de esta cotización
+            $sqlEstimaciones = "SELECT id_cotizacion, a_sello, material, billets_lotes FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
+            $stmtEstimaciones = $conn->prepare($sqlEstimaciones);
+            $stmtEstimaciones->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtEstimaciones->execute();
+            $estimaciones = $stmtEstimaciones->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($estimaciones as $estimacion) {
+                $a_sello = floatval($estimacion['a_sello']);
+                $material = $estimacion['material'];
+                $billets_lotes = $estimacion['billets_lotes'];
+
+                // Determinar desbaste por material
+                $desbaste = 2.50; // Valor por defecto (material duro)
+                
+                $materialesBlandos = ['H-ECOPUR', 'ECOSIL', 'ECORUBBER 1', 'ECORUBBER 2', 'ECORUBBER 3', 'ECOPUR'];
+                $materialesDuros = ['ECOTAL', 'ECOMID', 'ECOFLON 1', 'ECOFLON 2', 'ECOFLON 3'];
+                
+                if (in_array($material, $materialesBlandos)) {
+                    $desbaste = 2.00;
+                } elseif (in_array($material, $materialesDuros)) {
+                    $desbaste = 2.50;
+                }
+
+                // Procesar cada billet/lote
+                if (!empty($billets_lotes)) {
+                    $billets = array_map('trim', explode(',', $billets_lotes));
+                    
+                    foreach ($billets as $billet) {
+                        // Extraer lote_pedimento y cantidad de piezas
+                        // Formato: "R2T047062-1 (47/62) 1 pz"
+                        if (preg_match('/^([^\s]+)\s+\([^)]+\)\s+(\d+)\s+pz$/i', $billet, $matches)) {
+                            $lote_pedimento = trim($matches[1]);
+                            $cantidad_piezas = intval($matches[2]);
+                            
+                            // Calcular consumo para este billet
+                            $altura_por_pieza = $a_sello + $desbaste;
+                            $consumo_total = $altura_por_pieza * $cantidad_piezas;
+                            
+                            // Acumular consumo por lote_pedimento
+                            if (!isset($consumoPorLote[$lote_pedimento])) {
+                                $consumoPorLote[$lote_pedimento] = 0;
+                            }
+                            $consumoPorLote[$lote_pedimento] += $consumo_total;
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Actualizar pre_stock en inventario_cnc para cada lote
+        foreach ($consumoPorLote as $lote_pedimento => $consumo_total) {
+            $stmtUpdatePreStock->bindValue(':consumo_total', $consumo_total);
+            $stmtUpdatePreStock->bindValue(':lote_pedimento', $lote_pedimento);
+            $stmtUpdatePreStock->execute();
+        }
+    }
+
+    // Confirmar transacción
+    $conn->commit();
 
     ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
     $mail = null; // Inicializar para evitar "undefined variable" en catch
@@ -109,7 +199,7 @@ try {
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
         //$mail->addAddress("sistemas@sellosyretenes.com");
         $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
-        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
+        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisici贸n.<br>
                         Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
                         Folio de requisición: <b>" . $id_requisicion . "</b>";
 
@@ -133,8 +223,16 @@ try {
     }
 
 } catch (PDOException $e) {
+    // Revertir transacción en caso de error
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
     echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
 } catch (Throwable $e) {
+    // Revertir transacción en caso de error
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
     echo json_encode(['error' => 'Error inesperado: ' . $e->getMessage()]);
 } finally {
     $conn = null;

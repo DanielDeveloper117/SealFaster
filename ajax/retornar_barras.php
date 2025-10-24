@@ -133,15 +133,15 @@ try {
             continue;
         }
 
-        if ($registro['estatus'] === 'Habilitado') {
-            // Ya estaba habilitado
+        if ($registro['estatus'] === 'Disponible para cotizar') {
+            // Ya estaba Disponible para cotizar
             $alreadyEnabled[] = $lote;
             continue;
         }
 
         // 2. Actualizar solo si estaba deshabilitado
         $sqlEstatusLP = "UPDATE inventario_cnc 
-                         SET estatus = 'Habilitado'
+                         SET estatus = 'Disponible para cotizar'
                          WHERE lote_pedimento = :lote_pedimento";
         $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
         $stmtEstatusLP->bindParam(':lote_pedimento', $lote);

@@ -52,19 +52,180 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         }
 
-        // Actualizar requisición
+        // Iniciar transacción para consistencia
+        $conn->beginTransaction();
+
+        // 1. Actualizar requisición
         $sql = "UPDATE requisiciones SET estatus = 'Autorizada' WHERE id_requisicion = :id_requisicion";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(':id_requisicion', $id_requisicion);
         $stmt->execute();
 
-        // Eliminar token
+        // 2. Eliminar token
         $stmtDeleteToken = $conn->prepare("DELETE FROM tokens_autorizacion WHERE token = :token");
         $stmtDeleteToken->bindParam(':token', $token);
         $stmtDeleteToken->execute();
 
-        // Preparar correos
-        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        // ... código anterior igual hasta después de eliminar el token ...
+
+        // Función para escribir en el log
+        function writeToLog($message) {
+            $logFile = __DIR__ . '/debug_autorizacion.log';
+            $timestamp = date('Y-m-d H:i:s');
+            $formattedMessage = "[$timestamp] $message\n";
+            file_put_contents($logFile, $formattedMessage, FILE_APPEND | LOCK_EX);
+        }
+
+        writeToLog("=== INICIO PROCESO AUTORIZACIÓN ===");
+        writeToLog("ID Requisición: $id_requisicion");
+
+        // 3. Obtener cotizaciones asociadas para actualizar pre-stock
+        $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
+        $stmtRequisicion = $conn->prepare($sqlRequisicion);
+        $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
+        $stmtRequisicion->execute();
+        $result = $stmtRequisicion->fetch(PDO::FETCH_ASSOC);
+
+        writeToLog("Cotizaciones encontradas: " . ($result['cotizaciones'] ?? 'VACIO'));
+
+        if ($result && !empty($result['cotizaciones'])) {
+            $cotizacion_ids = explode(', ', $result['cotizaciones']);
+            
+            writeToLog("IDs de cotizaciones: " . implode(', ', $cotizacion_ids));
+
+            // 4. Actualizar estado de cada cotización
+            $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+            $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
+
+            // 5. Preparar consulta para actualizar inventario
+            $sqlUpdatePreStock = "UPDATE inventario_cnc SET pre_stock = pre_stock - :consumo_total, estatus = 'En uso', updated_at = NOW() WHERE lote_pedimento = :lote_pedimento";
+            $stmtUpdatePreStock = $conn->prepare($sqlUpdatePreStock);
+
+            // 6. Array para acumular consumo por lote_pedimento
+            $consumoPorLote = [];
+
+            foreach ($cotizacion_ids as $id_cotizacion) {
+                writeToLog("Procesando cotización ID: $id_cotizacion");
+                
+                // Actualizar estado de la cotización
+                $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+                $updateResult = $stmtUpdateCotizacion->execute();
+                writeToLog("Actualización estado cotización $id_cotizacion: " . ($updateResult ? 'ÉXITO' : 'FALLÓ'));
+
+                // Obtener todas las estimaciones de esta cotización
+                $sqlEstimaciones = "SELECT id_cotizacion, a_sello, material, billets_lotes FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
+                $stmtEstimaciones = $conn->prepare($sqlEstimaciones);
+                $stmtEstimaciones->bindValue(':id_cotizacion', $id_cotizacion);
+                $stmtEstimaciones->execute();
+                $estimaciones = $stmtEstimaciones->fetchAll(PDO::FETCH_ASSOC);
+
+                writeToLog("Cotización ID $id_cotizacion tiene " . count($estimaciones) . " estimaciones");
+
+                foreach ($estimaciones as $estimacion) {
+                    $a_sello = floatval($estimacion['a_sello']);
+                    $material = $estimacion['material'];
+                    $billets_lotes = $estimacion['billets_lotes'];
+
+                    writeToLog("Estimación - a_sello: $a_sello, material: $material");
+                    writeToLog("Estimación - billets_lotes: " . ($billets_lotes ?: 'VACIO'));
+
+                    // Determinar desbaste por material
+                    $desbaste = 2.50; // Valor por defecto (material duro)
+                    
+                    $materialesBlandos = ['H-ECOPUR', 'ECOSIL', 'ECORUBBER 1', 'ECORUBBER 2', 'ECORUBBER 3', 'ECOPUR'];
+                    $materialesDuros = ['ECOTAL', 'ECOMID', 'ECOFLON 1', 'ECOFLON 2', 'ECOFLON 3'];
+                    
+                    if (in_array($material, $materialesBlandos)) {
+                        $desbaste = 2.00;
+                    } elseif (in_array($material, $materialesDuros)) {
+                        $desbaste = 2.50;
+                    }
+
+                    writeToLog("Material: $material -> Desbaste: $desbaste");
+
+                    // Procesar cada billet/lote
+                    if (!empty($billets_lotes)) {
+                        $billets = array_map('trim', explode(',', $billets_lotes));
+                        
+                        writeToLog("Billets encontrados: " . count($billets));
+                        
+                        foreach ($billets as $index => $billet) {
+                            writeToLog("Procesando billet $index: $billet");
+                            
+                            // Extraer lote_pedimento y cantidad de piezas
+                            // Formato: "R2T047062-1 (47/62) 1 pz"
+                            if (preg_match('/^([^\s]+)\s+\([^)]+\)\s+(\d+)\s+pz$/i', $billet, $matches)) {
+                                $lote_pedimento = trim($matches[1]);
+                                $cantidad_piezas = intval($matches[2]);
+                                
+                                // Calcular consumo para este billet
+                                $altura_por_pieza = $a_sello + $desbaste;
+                                $consumo_total = $altura_por_pieza * $cantidad_piezas;
+                                
+                                // Acumular consumo por lote_pedimento
+                                if (!isset($consumoPorLote[$lote_pedimento])) {
+                                    $consumoPorLote[$lote_pedimento] = 0;
+                                }
+                                $consumoPorLote[$lote_pedimento] += $consumo_total;
+                                
+                                writeToLog("LOTE PROCESADO - Lote: $lote_pedimento, Piezas: $cantidad_piezas, Altura+pz: $altura_por_pieza, Consumo: $consumo_total");
+                            } else {
+                                writeToLog("ERROR - Formato no válido en billet: $billet");
+                            }
+                        }
+                    } else {
+                        writeToLog("ADVERTENCIA - billets_lotes está vacío para cotización $id_cotizacion");
+                    }
+                }
+            }
+
+            writeToLog("Consumo total acumulado por lote: " . print_r($consumoPorLote, true));
+
+            // 7. Actualizar pre_stock en inventario_cnc para cada lote
+            if (!empty($consumoPorLote)) {
+                foreach ($consumoPorLote as $lote_pedimento => $consumo_total) {
+                    writeToLog("Intentando actualizar inventario - Lote: $lote_pedimento, Restar: $consumo_total");
+                    
+                    // Primero verificar si el lote existe
+                    $sqlCheckLote = "SELECT pre_stock FROM inventario_cnc WHERE lote_pedimento = :lote_pedimento";
+                    $stmtCheckLote = $conn->prepare($sqlCheckLote);
+                    $stmtCheckLote->bindValue(':lote_pedimento', $lote_pedimento);
+                    $stmtCheckLote->execute();
+                    $loteExistente = $stmtCheckLote->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($loteExistente) {
+                        $pre_stock_actual = $loteExistente['pre_stock'];
+                        writeToLog("Lote encontrado - Pre_stock actual: $pre_stock_actual");
+                        
+                        $stmtUpdatePreStock->bindValue(':consumo_total', $consumo_total);
+                        $stmtUpdatePreStock->bindValue(':lote_pedimento', $lote_pedimento);
+                        $result = $stmtUpdatePreStock->execute();
+                        
+                        $rowsAffected = $stmtUpdatePreStock->rowCount();
+                        writeToLog("Actualización lote $lote_pedimento - Rows affected: $rowsAffected, Éxito: " . ($result ? 'SI' : 'NO'));
+                        
+                        if ($rowsAffected === 0) {
+                            writeToLog("ERROR - No se pudo actualizar el lote $lote_pedimento");
+                        }
+                    } else {
+                        writeToLog("ERROR - Lote no encontrado en inventario_cnc: $lote_pedimento");
+                    }
+                }
+            } else {
+                writeToLog("ADVERTENCIA - No hay consumo acumulado para actualizar");
+            }
+        } else {
+            writeToLog("ERROR - No se encontraron cotizaciones para la requisición $id_requisicion");
+        }
+
+        writeToLog("=== FIN PROCESO AUTORIZACIÓN ===");
+
+        // ... resto del código igual ...
+
+        // Confirmar transacción
+        $conn->commit();
+
+        // 8. Preparar correos
         $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
         $stmtCorreos = $conn->prepare($sqlCorreoInventarios);
         $stmtCorreos->execute();
@@ -85,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ? "Requisición autorizada correctamente. Correo enviado exitosamente al área de Inventarios."
             : "Requisición autorizada correctamente. No se encontró ningún correo de Inventarios.";
 
-        // Enviar correo
+        // 9. Enviar correo
         if (!empty($arregloCorreos)) {
             require_once(ROOT_PATH . 'includes/PHPMailer.php');
             $mail = getMailer($conn);
@@ -113,6 +274,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
 
     } catch (Throwable $e) {
+        // Revertir transacción en caso de error
+        if ($conn->inTransaction()) {
+            $conn->rollBack();
+        }
+        
         echo '<script>document.addEventListener("DOMContentLoaded", function () {
             sweetAlertResponse("error", "Error", "Ocurrió un error: ' . addslashes($e->getMessage()) . '", "none");
         });</script><h3 class="p-5">Proceso finalizado, puede cerrar esta pestaña.</h3>';

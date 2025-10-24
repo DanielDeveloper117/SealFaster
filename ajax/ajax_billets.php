@@ -21,10 +21,10 @@ try{
             SELECT * FROM inventario_cnc 
             WHERE material = :material 
             AND proveedor = :proveedor 
-            AND stock >= :stock 
+            AND pre_stock >= :pre_stock 
             AND interior <= :interior 
             AND exterior >= :exterior 
-            AND estatus = 'Habilitado'
+            AND (estatus = 'Disponible para cotizar' OR estatus = 'En uso')
         ";
 
         // Solo agregar condiciones de exclusión si el arreglo no está vacío
@@ -49,7 +49,7 @@ try{
         $stmt->bindParam(':material', $material);
         $stmt->bindParam(':proveedor', $proveedor);
         //$altura_mm = $altura_mm + 15.00;
-        $stmt->bindParam(':stock', $altura_mm);
+        $stmt->bindParam(':pre_stock', $altura_mm);
         $stmt->bindParam(':interior', $diametro_interior_mm);
         $stmt->bindParam(':exterior', $diametro_exterior_mm);
 

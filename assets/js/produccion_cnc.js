@@ -677,7 +677,7 @@ $(document).ready(function(){
         $('#miniTableBarrasInventario tbody').empty();
     });
     // CLICK A Generar QR para autorizar
-    $("#productionTable").on('click', ".btn-cnc-firma", function () {
+    $("#productionTable").on('click', ".btn-iniciar-maquinado", function () {
         let idRequisicion = $(this).data('id-requisicion');
         //let autoriza = $(this).data('autoriza');
         //let qrSrc = `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`;
@@ -686,19 +686,56 @@ $(document).ready(function(){
         //$("#ContainerQR").css("filter", "blur(3px)");
         // Iniciar la verificación periódica
         //verificarAutorizacionQR(idRequisicion, autoriza);
+        $.ajax({
+            url: '../ajax/maquinas.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (data) {
+                   
+                    $('#inputMaquina').html(`<option value="" selected disabled>Seleccione máquina</option>`);
+                    data.forEach(element => {
+                        $(`#inputMaquina`).append(
+                            `<option value="${element.rol}">${element.rol}</option>`
+                        );
+                    });
+                    
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "self");
+            }
+        });
+
         $('#modalGuardarOperador').modal('show');
         $("#inputIdRequisicionOperador").val(idRequisicion);
     });
     // CLICK SUBMIT A GUARDAR EL OPERADOR CNC
     $("#btnGuardarOperador").on('click', function () {
+        let inputMaquina = $("#inputMaquina").val();
         let inputOperadorCNC = $("#inputOperadorCNC").val();
         let inputIdRequisicionOperador = $("#inputIdRequisicionOperador").val();
+
+        let maquinaOperador;
+        if(!inputMaquina){
+            sweetAlertResponse("warning", "Faltan datos", "Seleccione una máquina CNC", "none");
+            return;
+        }
+        // if(inputOperadorCNC){
+        //     maquinaOperador = inputMaquina + ' - ' + inputOperadorCNC;
+        // }else{
+        //     maquinaOperador = inputMaquina;
+        // }
+        maquinaOperador = inputMaquina;
         $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/guardar_operadorcnc.php',
             type: 'POST',
             data: { 
-                operador_cnc: inputOperadorCNC,
+                operador_cnc: maquinaOperador,
                 id_requisicion: inputIdRequisicionOperador
             },
             dataType: 'json',

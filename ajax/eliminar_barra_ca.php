@@ -48,7 +48,7 @@ try {
         // Rehabilitar el registro en inventario_cnc
         $stmtUpdate = $conn->prepare("
             UPDATE inventario_cnc 
-            SET estatus = 'Habilitado' 
+            SET estatus = 'Disponible para cotizar' 
             WHERE lote_pedimento = :lote_pedimento
         ");
         $stmtUpdate->bindParam(':lote_pedimento', $lote_pedimento);

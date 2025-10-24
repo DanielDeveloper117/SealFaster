@@ -531,6 +531,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (materialSeleccionado) {
                         // Realizar la llamada AJAX para obtener los billets filtrados
+                        // ajax_billets consulta con proveedor y ajax_billets2 no
                         $.ajax({
                             url: '../ajax/ajax_billets.php', 
                             type: 'POST',
@@ -596,8 +597,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                     // Segunda pasada: agregar claves únicas y renglón extra si es necesario
                                     $.each(data, function(index, item) {
-                                        let dataStockBillet = item.stock;
-                                        let cabenEnBillet = setLeCaben(item.stock);
+                                        let dataStockBillet = item.pre_stock;
+                                        let cabenEnBillet = setLeCaben(item.pre_stock);
                                         let dataDEBillet = parseFloat(item.exterior);
                                         let dataDEResultante = parseFloat(dExteriorSeleccionado);
                                         let dataDIResultante = parseFloat(dInteriorSeleccionado);
@@ -626,7 +627,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
-                                                                data-altura="${item.stock}"
+                                                                data-altura="${item.pre_stock}"
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
@@ -651,6 +652,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
+                                                    <td >${item.estatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
@@ -668,7 +670,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
-                                                                data-altura="${item.stock}"
+                                                                data-altura="${item.pre_stock}"
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
@@ -710,7 +712,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 
                                                 $(`#tablaBillets_m${i} tbody`).append(
                                                     `<tr id="row_${cleanAttrId(item.Clave)}" class="row-ver-mas">
-                                                        <td colspan="7" class="p-0">
+                                                        <td colspan="8" class="p-0">
                                                             <button id="btn_${cleanAttrId(item.Clave)}_m${i}" type="button" class="btn-ver-mas" data-clave="${item.Clave}">
                                                                 Mas billets de ${item.Clave} (${contadorClaves[item.Clave]-1})
                                                             </button>
@@ -877,8 +879,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                     // Segunda pasada: agregar claves únicas y renglón extra si es necesario
                                     $.each(data, function(index, item) {
-                                        let dataStockBillet = item.stock;
-                                        let cabenEnBillet = setLeCaben(item.stock);
+                                        let dataStockBillet = item.pre_stock;
+                                        let cabenEnBillet = setLeCaben(item.pre_stock);
                                         let dataDEBillet = parseFloat(item.exterior);
                                         let dataDEResultante = parseFloat(dExteriorSeleccionado);
                                         let dataDIResultante = parseFloat(dInteriorSeleccionado);
@@ -906,7 +908,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
-                                                                data-altura="${item.stock}"
+                                                                data-altura="${item.pre_stock}"
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
@@ -931,6 +933,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
+                                                    <td >${item.estatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
@@ -948,7 +951,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                             <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
-                                                                data-altura="${item.stock}"
+                                                                data-altura="${item.pre_stock}"
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
@@ -973,6 +976,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
+                                                    <td >${item.estatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>
@@ -990,7 +994,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 
                                                 $(`#tablaBillets_m${i} tbody`).append(
                                                     `<tr id="row_${cleanAttrId(item.Clave)}" class="row-ver-mas">
-                                                        <td colspan="7" class="p-0">
+                                                        <td colspan="8" class="p-0">
                                                             <button id="btn_${cleanAttrId(item.Clave)}_m${i}" type="button" class="btn-ver-mas" data-clave="${item.Clave}">
                                                                 Mas billets de ${item.Clave} (${contadorClaves[item.Clave]-1})
                                                             </button>
