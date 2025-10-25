@@ -729,13 +729,14 @@ $(document).ready(function(){
         // }else{
         //     maquinaOperador = inputMaquina;
         // }
-        maquinaOperador = inputMaquina;
+        //maquinaOperador = inputMaquina;
         $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/guardar_operadorcnc.php',
             type: 'POST',
             data: { 
-                operador_cnc: maquinaOperador,
+                maquina: inputMaquina,
+                operador_cnc: inputOperadorCNC,
                 id_requisicion: inputIdRequisicionOperador
             },
             dataType: 'json',

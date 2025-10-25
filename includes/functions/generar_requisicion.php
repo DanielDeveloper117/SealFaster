@@ -158,7 +158,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(50, 6, 'OPERADOR CNC:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
-    $pdf->Cell(140, 6, utf8_decode($arregloRequisicion['operador_cnc']), 1, 1, 'L', 0);
+    $pdf->Cell(140, 6, utf8_decode($arregloRequisicion['maquina']." ".$arregloRequisicion['operador_cnc']), 1, 1, 'L', 0);
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(50, 6, 'INICIO MAQUINADO:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);

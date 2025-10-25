@@ -143,13 +143,13 @@ if (!isset($_SESSION['id'])) {
                                                     data-estatus = "Autorizada"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Agregar clave a control de almacen">
-                                                    <i class="bi bi-plus-square"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                             echo '<button class="btn-auth btn-salida-barras" 
                                                     data-bs-toggle="modal" data-bs-target="#modalDarSalida"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Dar salida a barras de esta requisición">
-                                                    <i class="bi bi-list-check"></i>
+                                                    <i class="bi bi-database-fill-check"></i>
                                                 </button>';
                                         }
                                         break;
@@ -172,7 +172,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-es_extra = "1"
                                                     data-estatus = "Producción"                                                   
                                                     title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-node-plus"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                         }elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
                                             // aqui no span, solo controlado por estatusString
@@ -188,7 +188,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-bs-toggle="modal" data-bs-target="#modalFinalizar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Finalizar maquinado">
-                                                    <i class="bi bi-check-square"></i>
+                                                    <i class="bi bi-flag"></i>
                                                 </button>';
                                         } elseif ($tipo_usuario === "Inventarios") {
                                             echo '<button class="btn-thunder btn-control-almacen" 
@@ -197,7 +197,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-es_extra = "1"
                                                     data-estatus = "En producción"                                                   
                                                     title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-node-plus"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                         }else {
                                             // solo mensaje via estatusString
@@ -220,14 +220,22 @@ if (!isset($_SESSION['id'])) {
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Retornar barras al inventario">
-                                                    <i class="bi bi-save"></i>
+                                                    <i class="bi bi-database-fill-down"></i>
                                                 </button>';
                                         }
 
                                         break;
                                     case "Completada":
                                         $estatusString = "Completada";
-
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                            echo '<button type="button" class="btn-auth btn-autorizar-merma" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalAutorizarMerma"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    
+                                                    title="Autorizar merma">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>';
+                                        }
                                         break;
 
                                     default:
@@ -325,9 +333,9 @@ if (!isset($_SESSION['id'])) {
                 <button type="button" id="btn-closeOperador" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="d-flex justify-content-between mb-3">
+                <div class="d-flex justify-content-between ">
                     <input type="hidden" id="inputIdRequisicionOperador" name="id_requisicion">
-                    <div class="" style="width:100%;">
+                    <div class="" style="width:48%;">
                         <label for="inputMaquina" class="lbl-general">Máquina CNC*</label>
                         <select id="inputMaquina" class="selector" required >
                             <option value="" selected disabled>Seleccione máquina</option>
@@ -339,10 +347,10 @@ if (!isset($_SESSION['id'])) {
                         </select>
                     </div>
                     
-                    <!-- <div class="" style="width:48%;">
+                    <div class="" style="width:48%;">
                         <label for="inputOperadorCNC" class="lbl-general">Nombre del operador CNC (opcional)</label>
                         <input id="inputOperadorCNC" type="text" class="input-text"  name="operador_cnc" >
-                    </div>   -->
+                    </div>   
                     
                 </div>
             </div>
