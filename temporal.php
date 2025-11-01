@@ -2,140 +2,158 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
-
 session_start();
 
-// Convertir warnings/notices a excepciones
+if (!isset($_SESSION['id'])) {
+    header("Location: ../auth/cerrar_sesion.php");
+    exit;
+}
+
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
 try {
     header('Content-Type: application/json');
+    $msjExtra = "";
 
-    // Solo aceptar POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
-        echo json_encode(['error' => 'Metodo no permitido. Solo se acepta POST.']);
-        exit;
+        echo json_encode(['success' => false, 'error' => 'Metodo no permitido']);
+        exit();
     }
 
-    // Validacion de parametros
-    if (!isset($_POST['id_requisicion'], $_POST['t']) || empty($_POST['id_requisicion']) || empty($_POST['t'])) {
-        echo json_encode(['error' => "Parametros faltantes o invalidos"]);
-        exit;
+    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
+        echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
+        exit();
     }
 
-    $id_requisicion = $_POST['id_requisicion'];
-    $autoriza = $_POST['t'];
+    $data = json_decode($_POST['registros'], true);
 
-    // Validar que id_requisicion sea numero
-    if (!preg_match('/^\d+$/', $id_requisicion)) {
-        echo json_encode(['error' => "Parametro id_requisicion invalido"]);
-        exit;
+    if (!is_array($data) || count($data) === 0) {
+        echo json_encode(['success' => false, 'error' => 'Formato de datos invalido']);
+        exit();
     }
 
-    $id_usuario = $_SESSION['id'] ?? null;
-    if (!$id_usuario) {
-        echo json_encode(['error' => "Sesion invalida o expirada"]);
-        exit;
+    // Contar cuántas de las barras recibidas vienen como merma
+    $barrasMermaRecibidas = 0;
+    foreach ($data as $fila) {
+        if (isset($fila['es_merma']) && $fila['es_merma'] == 1) {
+            $barrasMermaRecibidas++;
+        }
     }
 
-    $nombreArchivo = $id_usuario . ".png";
-    $rutaBD = 'files/signatures/' . $nombreArchivo;
+    // Validar que no todas las barras recibidas sean merma
+    if ($barrasMermaRecibidas === count($data)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'No se puede marcar todas las barras recibidas como merma. Debe quedar al menos una barra no marcada.'
+        ]);
+        exit();
+    }
+    
+    // Obtener id_requisicion usando el primer id_control
+    $firstIdControl = $data[0]['id_control'];
+    $sqlGetRequisicion = "SELECT id_requisicion FROM control_almacen WHERE id_control = :id_control LIMIT 1";
+    $stmtGetRequisicion = $conn->prepare($sqlGetRequisicion);
+    $stmtGetRequisicion->bindParam(':id_control', $firstIdControl, PDO::PARAM_INT);
+    $stmtGetRequisicion->execute();
+    $row = $stmtGetRequisicion->fetch(PDO::FETCH_ASSOC);
 
-    // Validar que exista el archivo de firma
-    if (!file_exists(ROOT_PATH . $rutaBD)) {
-        echo json_encode(['error' => "No existe la firma del usuario en el sistema"]);
-        exit;
+    if (!$row) {
+        throw new Exception("No se encontro requisicion asociada al id_control {$firstIdControl}");
     }
 
-    // Actualizacion de requisicion
-    if ($autoriza === "g") {
-        $sql = "UPDATE requisiciones SET 
-                    estatus = 'Autorizada',
-                    ruta_firma = :ruta
-                WHERE id_requisicion = :id_requisicion";
-    } elseif ($autoriza === "a") {
-        $sql = "UPDATE requisiciones SET 
-                    estatus = 'Autorizada',
-                    ruta_firma_admin = :ruta
-                WHERE id_requisicion = :id_requisicion";
-    } else {
-        echo json_encode(['error' => "Parametro 't' no valido"]);
-        exit;
+    $id_requisicion = $row['id_requisicion'];
+
+    $conn->beginTransaction();
+
+    $sqlUpdate = "UPDATE control_almacen 
+                  SET es_merma = :es_merma,
+                      mm_usados = :mm_usados,
+                      total_sellos = :total_sellos,
+                      merma_corte = :merma_corte,
+                      scrap_pz = :scrap_pz,
+                      scrap_mm = :scrap_mm
+                  WHERE id_control = :id_control";
+    $stmtUpdate = $conn->prepare($sqlUpdate);
+
+    foreach ($data as $fila) {
+        $stmtUpdate->execute([
+            ':es_merma' => $fila['es_merma'] ?? 0,
+            ':mm_usados' => $fila['mm_usados'] ?? 0,
+            ':total_sellos' => $fila['total_sellos'] ?? 0,
+            ':merma_corte' => $fila['merma_corte'] ?? 0,
+            ':scrap_pz' => $fila['scrap_pz'] ?? 0,
+            ':scrap_mm' => $fila['scrap_mm'] ?? 0,
+            ':id_control' => $fila['id_control']
+        ]);
     }
 
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':ruta', $rutaBD);
-    $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmt->execute();
+    $sqlRequisicion = "UPDATE requisiciones 
+                       SET estatus = 'Finalizada', fin_maquinado = NOW() 
+                       WHERE id_requisicion = :id_requisicion";
+    $stmtRequisicion = $conn->prepare($sqlRequisicion);
+    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtRequisicion->execute();
 
-    ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
-    $mail = null; // Inicializar para evitar "undefined variable" en catch
+    $conn->commit();
 
+    $sqlCot = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
+    $stmtCot = $conn->prepare($sqlCot);
+    $stmtCot->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtCot->execute();
+    $cot = $stmtCot->fetch(PDO::FETCH_ASSOC);
+
+    // Envio de correo
     try {
         require_once(ROOT_PATH . 'includes/PHPMailer.php');
         $mail = getMailer($conn);
 
-        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
         $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
         $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
         $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (!$correosInventarios || count($correosInventarios) === 0) {
-            throw new Exception("No se encontro ningun correo de inventarios.");
-        }
-
-        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides'; // mejor mover a config.php
+        $clave_encriptacion = 'oculto';
         $contadorCorreos = 0;
 
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    $mail->addAddress($correo);
+                    //$mail->addAddress($correo);
                     $contadorCorreos++;
                 }
             }
         }
 
-        if ($contadorCorreos === 0) {
-            throw new Exception("No se pudo agregar ningun destinatario valido para inventarios.");
-        }
+        $mail->addAddress("oculto");
+        $mail->isHTML(true);
+        $mail->Subject = 'Requisicion finalizada. Folio: '.$id_requisicion;
+        $mail->Body = "Se ha finalizado el maquinado de sellos.<br>
+                    Se requiere revisión de merma y actualizar el stock de los billets correspondientes en el retorno de barras.<br>
+                    Folio de requisicion: <b>".$id_requisicion."</b>";
 
-        // Agregar correo visible de prueba o destinatario unico
-        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-        //$mail->addAddress("sistemas@sellosyretenes.com");
-        $mail->Subject = 'Nueva requisici贸n pendiente. Folio: '.$id_requisicion;
-        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisici贸n.<br>
-                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
-                        Folio de requisici贸n: <b>" . $id_requisicion . "</b>";
-
-        if (!$mail->send()) {
-            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        if ($mail->send()) {
+            $msjExtra = "Correo enviado a Inventarios correctamente.";
+        } else {
+            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
         }
-        ///////////////////////////////////////////////////////////////////////////////////////
-        // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisici贸n autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
-        ]);
 
     } catch (Throwable $e) {
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
-                         addslashes($e->getMessage()) .
-                         (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
-        ]);
+        $msjExtra = "Error al enviar correo: " . $e->getMessage();
     }
 
-} catch (PDOException $e) {
-    echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Requisicion finalizada correctamente. ' . $msjExtra,
+        'cotizaciones' => $cot['cotizaciones'] ?? null
+    ]);
+
 } catch (Throwable $e) {
-    echo json_encode(['error' => 'Error inesperado: ' . $e->getMessage()]);
+    if ($conn->inTransaction()) $conn->rollBack();
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } finally {
     $conn = null;
 }

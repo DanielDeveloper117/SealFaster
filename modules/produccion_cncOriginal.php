@@ -53,9 +53,6 @@ if (!isset($_SESSION['id'])) {
     .chosen-container-single .chosen-results li {
         font-size: 15px;
     }
-    label{
-        font-size:12px;
-    }
 </style>
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
@@ -146,13 +143,13 @@ if (!isset($_SESSION['id'])) {
                                                     data-estatus = "Autorizada"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Agregar clave a control de almacen">
-                                                    <i class="bi bi-plus-square"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                             echo '<button class="btn-auth btn-salida-barras" 
                                                     data-bs-toggle="modal" data-bs-target="#modalDarSalida"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Dar salida a barras de esta requisición">
-                                                    <i class="bi bi-list-check"></i>
+                                                    <i class="bi bi-database-fill-check"></i>
                                                 </button>';
                                         }
                                         break;
@@ -161,7 +158,7 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Producción";
 
                                         if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                            echo '<button type="button" class="btn-blue btn-cnc-firma" 
+                                            echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
                                                     data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-autoriza="cnc"
@@ -175,7 +172,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-es_extra = "1"
                                                     data-estatus = "Producción"                                                   
                                                     title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-node-plus"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                         }elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
                                             // aqui no span, solo controlado por estatusString
@@ -185,12 +182,13 @@ if (!isset($_SESSION['id'])) {
                                     case "En producción":
                                         $estatusString = "Maquinado";
 
-                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                        //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                        if ($tipo_usuario === "CNC") {
                                             echo '<button type="button" class="btn-terracota btn-finalizar" 
                                                     data-bs-toggle="modal" data-bs-target="#modalFinalizar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Finalizar maquinado">
-                                                    <i class="bi bi-check-square"></i>
+                                                    <i class="bi bi-flag"></i>
                                                 </button>';
                                         } elseif ($tipo_usuario === "Inventarios") {
                                             echo '<button class="btn-thunder btn-control-almacen" 
@@ -199,7 +197,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-es_extra = "1"
                                                     data-estatus = "En producción"                                                   
                                                     title="Agregar clave extra al control de almacen">
-                                                    <i class="bi bi-node-plus"></i>
+                                                    <i class="bi bi-database-add"></i>
                                                 </button>';
                                         }else {
                                             // solo mensaje via estatusString
@@ -222,14 +220,22 @@ if (!isset($_SESSION['id'])) {
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Retornar barras al inventario">
-                                                    <i class="bi bi-save"></i>
+                                                    <i class="bi bi-database-fill-down"></i>
                                                 </button>';
                                         }
 
                                         break;
                                     case "Completada":
                                         $estatusString = "Completada";
-
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
+                                            echo '<button type="button" class="btn-auth btn-autorizar-merma" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalAutorizarMerma"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    
+                                                    title="Autorizar merma">
+                                                    <i class="bi bi-check-circle"></i>
+                                                </button>';
+                                        }
                                         break;
 
                                     default:
@@ -323,15 +329,30 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog" style="max-width: 50% !important;margin-top:10%;">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">Primero debe agregar el operador cnc que realizará el maquinado</span>
+                <span class="title-form">Primero debe agregar la máquina que realizará el maquinado</span>
                 <button type="button" id="btn-closeOperador" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="" style="width:100%;">
-                    <label for="inputOperadorCNC" class="lbl-general">Nombre del operador CNC</label>
-                    <input id="inputOperadorCNC" type="text" class="input-text"  name="operador_cnc" required>
+                <div class="d-flex justify-content-between ">
                     <input type="hidden" id="inputIdRequisicionOperador" name="id_requisicion">
-                </div>  
+                    <div class="" style="width:48%;">
+                        <label for="inputMaquina" class="lbl-general">Máquina CNC*</label>
+                        <select id="inputMaquina" class="selector" required >
+                            <option value="" selected disabled>Seleccione máquina</option>
+                            <option value="Máquina 1">Máquina 1</option>
+                            <option value="Máquina 2">Máquina 2</option>
+                            <option value="Máquina 3">Máquina 3</option>
+                            <option value="Máquina 4">Máquina 4</option>
+                            <option value="Máquina 5">Máquina 5</option>
+                        </select>
+                    </div>
+                    
+                    <div class="" style="width:48%;">
+                        <label for="inputOperadorCNC" class="lbl-general">Nombre del operador CNC (opcional)</label>
+                        <input id="inputOperadorCNC" type="text" class="input-text"  name="operador_cnc" >
+                    </div>   
+                    
+                </div>
             </div>
             <div class="modal-footer justify-content-end">
                 <button id="btnGuardarOperador" type="button" class="btn-general" tabindex="-1">Guardar</button>
@@ -354,17 +375,32 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form id="formControlAlmacenInventario" action="" method="POST">                        
-                    <input type="hidden" id="inputIdRequisicion" name="id_requisicion">
+                    <input id="inputIdRequisicion" type="hidden" name="id_requisicion">
+                    <input id="inputCantidadBarras" type="hidden" value="1" min="0" step="1" name="cantida_barras" required>
+                    <input id="inputClave" type="hidden"  name="clave" placeholder="Ingrese una clave valida" required>
                     <div class="d-flex justify-content-between">
+                        <div class="" style="width:63%;">
+                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
+                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
+                        </div>  
+                        <div class="" style="width:35%;">
+                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
+                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
+                        </div>
+                    </div>  
+                    <div class="d-flex justify-content-between">
+                        <div class="" style="width:100%;">
+                            <p id="pLotePedimento" class="d-none"></p>
+                        </div>
+                    </div>                  
+                    <!-- <div class="d-flex justify-content-between">
                         <div class="" style="width:35%;">
                             <label for="inputCantidadBarras" class="lbl-general">CANTIDAD DE BARRAS</label>
-                            <input id="inputCantidadBarras" type="number" class="input-text"  min="0" step="1" name="cantida_barras" required>
                         </div>
                         <div class="" style="width:63%;">
                             <label for="inputClave" class="lbl-general">CLAVE</label>
-                            <input type="text" class="input-text" id="inputClave" name="clave" placeholder="Ingrese una clave valida" required>
                         </div>
-                    </div>
+                    </div> -->
                     <div class="d-flex flex-column justify-content-between mb-3">
                         <div class="d-flex flex-column justify-content-between ">
                             <p id="pInvalida2" class="d-none p-invalida2" style="margin-bottom:0px;">La clave debe ser valida para optimizar el control de almacen.</p>
@@ -376,17 +412,7 @@ if (!isset($_SESSION['id'])) {
                             <i class ="bi bi-download"></i>
                         </a> -->
                     </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:35%;">
-                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
-                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
-                        </div>
-                        <div class="" style="width:63%;">
-                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
-                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
-                            <p id="pLotePedimento" class="d-none p-invalida">Ese Lote pedimento no existe.</p>
-                        </div>  
-                    </div>
+  
                     <div class="d-flex justify-content-between mb-3">
                         <div style="width:35%;">
                             <label id="lblInputExtra" for="inputExtra" class="lbl-general">Barra extra</label>
@@ -443,9 +469,10 @@ if (!isset($_SESSION['id'])) {
                         <thead>
                             <tr>
                                 <th scope="col"></th>
-                                <th scope="col">BARRAS</th>
-                                <th scope="col">CLAVE</th>
+                                <th scope="col">MATERIAL</th>
                                 <th scope="col">LOTE PEDIMENTO</th>
+                                <th scope="col">CLAVE</th>
+                                <th scope="col">MEDIDA</th>
                                 <th scope="col">MM ENTREGA</th>
                                 <!-- <th scope="col">MM SALIDA</th>
                                 <th scope="col">LONG. TOTAL SELLOS</th>
@@ -559,7 +586,7 @@ if (!isset($_SESSION['id'])) {
                         <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
                             <thead>
                                 <tr>
-                                    <th style="width: 100px;">Cantidad</th>
+                                    <!-- <th style="width: 100px;">Cantidad</th> -->
                                     <th style="width: 280px;">Clave</th>
                                     <th style="width: 250px;">Lote pedimento</th>
                                     <th style="width: 120px;">MM Entrega</th>

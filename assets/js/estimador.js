@@ -1490,14 +1490,15 @@ $(document).ready(function() {
             habilitarInput(`#altura_inch_cliente2`);
 
             // para wispers
-            habilitarInput("#inputAlturaCaja");
-            habilitarInput("#inputAlturaCajaInch");
-            habilitarInput("#inputAlturaEscalon");
-            habilitarInput("#inputAlturaEscalonInch");
-            habilitarInput("#inputAlturaH2");
-            habilitarInput("#inputAlturaH2Inch");
-            habilitarInput("#inputAlturaH3");
-            habilitarInput("#inputAlturaH3Inch");
+            habilitarBoton("#btnOtrasAlturas");
+            // habilitarInput("#inputAlturaCaja");
+            // habilitarInput("#inputAlturaCajaInch");
+            // habilitarInput("#inputAlturaEscalon");
+            // habilitarInput("#inputAlturaEscalonInch");
+            // habilitarInput("#inputAlturaH2");
+            // habilitarInput("#inputAlturaH2Inch");
+            // habilitarInput("#inputAlturaH3");
+            // habilitarInput("#inputAlturaH3Inch");
         }else{
             $("#altura_mm_cliente").trigger("input");
             resetear_materiales_completados();
@@ -2009,7 +2010,7 @@ $(document).ready(function() {
             } else {
                 Swal.fire({
                     title: 'Proceso exitoso',
-                    text: 'Cotización guardada exitosamente.',
+                    text: 'Cotización guardada exitosamente. Vencerá en 72 horas.',
                     icon: 'success',
                     allowOutsideClick: false,
                     allowEscapeKey: false,

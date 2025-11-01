@@ -155,7 +155,7 @@ try {
     if ($action === 'delete') {
         if (empty($id)) throw new Exception("ID requerido para eliminar.");
 
-        $stmt = $conn->prepare("DELETE FROM inventario_cnc WHERE id = :id");
+        $stmt = $conn->prepare("UPDATE inventario_cnc SET estatus = 'Eliminado', deleted_at = NOW() WHERE id = :id");
         $stmt->bindParam(':id', $id);
         $stmt->execute();
 

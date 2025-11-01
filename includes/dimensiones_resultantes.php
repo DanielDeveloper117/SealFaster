@@ -100,9 +100,9 @@
                         </div>
                         
                     </div>
-                    <div class="d-flex col-12 col-md-3 align-self-end flex-column justify-content-between mt-2" >
+                    <div class="d-flex col-12 col-md-3 align-self-end flex-column justify-content-between mt-3" >
                         <div id="containerbtnOtrasAlturas" class="d-flex flex-column col-12 align-items-center">
-                            <button id="btnOtrasAlturas" type="button" class="btn-general d-none" data-bs-toggle="modal" data-bs-target="#modalOtrasAlturas">Otras alturas</button>
+                            <button id="btnOtrasAlturas" type="button" class="btn-disabled d-none" data-bs-toggle="modal" data-bs-target="#modalOtrasAlturas">Otras alturas</button>
                         </div>
                     </div>
                     <div id="containerErrorDimensiones_cliente" class="text-faltan mt-3">
@@ -179,28 +179,28 @@
                 <div class="d-flex col-12 flex-column justify-content-between" >
                     <div class="col-12 col-md-12 d-flex flex-column flex-md-row gap-4 justify-content-center">
                         <div id="divAlturaCaja" class="d-flex flex-column d-none">
-                            <label for="inputAlturaCaja" id="labelAlturaCajaMM" class="label-estimador mt-3">Altura de caja (mm)</label>
-                            <input type="number" id="inputAlturaCaja" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaCajaInch" id="labelAlturaCajaInch" class="label-estimador mt-2">Altura de caja (inches)</label>
-                            <input type="number" id="inputAlturaCajaInch" class="input-estimador" step="0.0001" min="0" required placeholder="">
+                            <label for="inputAlturaCaja" id="labelAlturaCajaMM" class="lbl-general mt-3">Altura de caja (mm)</label>
+                            <input type="number" id="inputAlturaCaja" class="input-text" step="0.01" min="0" required placeholder="">
+                            <label for="inputAlturaCajaInch" id="labelAlturaCajaInch" class="lbl-general mt-2">Altura de caja (inches)</label>
+                            <input type="number" id="inputAlturaCajaInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaEscalon" class="d-flex flex-column d-none">
-                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="label-estimador mt-3">Altura escalon (mm)</label>
-                            <input type="number" id="inputAlturaEscalon" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="label-estimador mt-2">Altura escalon (inches)</label>
-                            <input type="number" id="inputAlturaEscalonInch" class="input-estimador" step="0.0001" min="0" required placeholder="">
+                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="lbl-general mt-3">Altura escalon (mm)</label>
+                            <input type="number" id="inputAlturaEscalon" class="input-text" step="0.01" min="0" required placeholder="">
+                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="lbl-general mt-2">Altura escalon (inches)</label>
+                            <input type="number" id="inputAlturaEscalonInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH2" class="d-flex flex-column d-none">
-                            <label for="inputAlturaH2" id="labelAlturaH2MM" class="label-estimador mt-3">Altura H2 (mm)</label>
-                            <input type="number" id="inputAlturaH2" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaH2Inch" id="labelAlturaH2Inch" class="label-estimador mt-2">Altura H2 (inches)</label>
-                            <input type="number" id="inputAlturaH2Inch" class="input-estimador" step="0.0001" min="0" required placeholder="">
+                            <label for="inputAlturaH2" id="labelAlturaH2MM" class="lbl-general mt-3">Altura H2 (mm)</label>
+                            <input type="number" id="inputAlturaH2" class="input-text" step="0.01" min="0" required placeholder="">
+                            <label for="inputAlturaH2Inch" id="labelAlturaH2Inch" class="lbl-general mt-2">Altura H2 (inches)</label>
+                            <input type="number" id="inputAlturaH2Inch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH3" class="d-flex flex-column d-none">
-                            <label for="inputAlturaH3" id="labelAlturaH3MM" class="label-estimador mt-3">Altura H3 (mm)</label>
-                            <input type="number" id="inputAlturaH3" class="input-estimador" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaH3Inch" id="labelAlturaH3Inch" class="label-estimador mt-2">Altura H3 (inches)</label>
-                            <input type="number" id="inputAlturaH3Inch" class="input-estimador" step="0.0001" min="0" required placeholder="">
+                            <label for="inputAlturaH3" id="labelAlturaH3MM" class="lbl-general mt-3">Altura H3 (mm)</label>
+                            <input type="number" id="inputAlturaH3" class="input-text" step="0.01" min="0" required placeholder="">
+                            <label for="inputAlturaH3Inch" id="labelAlturaH3Inch" class="lbl-general mt-2">Altura H3 (inches)</label>
+                            <input type="number" id="inputAlturaH3Inch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                     </div>
                 </div> 

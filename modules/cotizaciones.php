@@ -417,6 +417,37 @@ if (!isset($_SESSION['id'])) {
     <title>Cotizaciones</title>
 </head>
 <body>
+    <style>
+        /* Estilo para filas vencidas */
+        .fila-vencida {
+            background-color: #ffd54bff !important; /* Amarillo suave */
+            border-left: 4px solid #ffc107; /* Borde izquierdo amarillo */
+        }
+
+        /* Efecto hover para mantener la interactividad */
+        .fila-vencida:hover {
+            background-color: #ddb532b0 !important; /* Amarillo un poco más intenso al hover */
+        }
+
+        /* Badge para estado vencido */
+        .badge.bg-warning {
+            font-size: 0.75em;
+            padding: 0.35em 0.65em;
+        }
+
+        /* Opcional: Diferenciar botones en filas vencidas */
+        .fila-vencida .btn-pdf,
+        .fila-vencida .btn-archive,
+        .fila-vencida .btn-thunder {
+            opacity: 0.8;
+        }
+
+        .fila-vencida .btn-pdf:hover,
+        .fila-vencida .btn-archive:hover,
+        .fila-vencida .btn-thunder:hover {
+            opacity: 1;
+        }
+    </style>
 <div id="overlay">
     <div class="loading-message">
         <span>Cargando cotizaciones, por favor, espere...</span>    
@@ -473,20 +504,28 @@ if (!isset($_SESSION['id'])) {
                             <th>Tipo cliente</th>
                             <th>Fecha de cotización</th>
                             <th>Hora</th>
+                            <th>Fecha vencimiento</th>
                             <!-- <th>Vendedor</th> -->
                         </tr>
                     </thead>
                     <tbody>
                     <?php
+                        // Configurar timezone
+                        date_default_timezone_set('America/Mexico_City');
+                        $fecha_actual = new DateTime();
+                        
                         foreach ($arregloSelectCotizaciones as $row) {
-                            // $perfil_sello = $row['perfil_sello'];
-                            // $sqlPerfil = "SELECT tipo FROM perfiles WHERE perfil = :perfil";
-                            // $stmtPerfil = $conn->prepare($sqlPerfil);
-                            // $stmtPerfil->bindParam(':perfil', $perfil_sello);
-                            // $stmtPerfil->execute();
-                            // $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
+                            // Calcular si está vencida
+                            $esta_vencida = false;
+                            if (!empty($row['fecha_vencimiento']) && $row['fecha_vencimiento'] != '0000-00-00 00:00:00') {
+                                $fecha_vencimiento = new DateTime($row['fecha_vencimiento']);
+                                $esta_vencida = ($fecha_vencimiento < $fecha_actual);
+                            }
+                            
+                            // Clase CSS condicional
+                            $clase_fila = $esta_vencida ? 'fila-vencida' : '';
                     ?>
-                        <tr>
+                        <tr class="<?= $clase_fila ?>">
                             <td class="td-first-actions">
                                 <div class="d-flex gap-2 container-actions">
                                     <?php if (isset($_GET['agru']) && $_GET['agru'] == '1'): ?>
@@ -505,30 +544,21 @@ if (!isset($_SESSION['id'])) {
                                             title="Generar PDF de esta cotización">
                                             <i class="bi bi-filetype-pdf"></i>
                                         </button>
-                                       
-                                        <!-- <button type="button" class="btn-thunder btn-enviar-correo" 
-                                            data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
-                                            data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                            data-correo-cliente="<?= htmlspecialchars($row['correo_cliente']); ?>"
-                                            title="Enviar correo a cliente">
-                                            <i class="bi bi-envelope"></i>
-                                        </button> -->
-                                        
                                     <?php else: ?>
                                         <form action="../includes/functions/generar_cotizacion.php" method="GET" target="_blank">
                                             <input type="hidden" name="id_cotizacion" value="<?= htmlspecialchars($row['id_cotizacion']); ?>">
                                             <button type="submit" class="btn-pdf" >Generar PDF</button>
                                         </form>
-    
+
                                         <button type="button" class="btn-thunder btn-enviar-correoX" 
                                             data-bs-toggle='modal' data-bs-target='#modalEnviarCorreoX'
                                             data-id-cotizacionX="<?= htmlspecialchars($row['id_cotizacion']); ?>"
                                             data-correo-clienteX="<?= htmlspecialchars($row['correo_cliente']); ?>">
                                             Funcion para cliente externo
                                         </button>
-                                       
+                                    
                                     <?php endif; ?>
-                                                                    
+                                                                                
                                     <button type="button" class="btn-archive btn-archivar-cotizacion" 
                                         data-bs-toggle='modal' data-bs-target='#modalArchivar'
                                         data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
@@ -536,7 +566,7 @@ if (!isset($_SESSION['id'])) {
                                         title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
                                         <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
                                     </button>
-                              
+                            
                                 </div>
                                 
                             </td>
@@ -544,7 +574,6 @@ if (!isset($_SESSION['id'])) {
                             <td><?= htmlspecialchars($row['id_cotizacion']); ?></td>
                             <td><?= htmlspecialchars($row['familia_perfil']); ?></td>
                             <td><?= htmlspecialchars($row['perfil_sello']); ?></td>
-                            <!-- <td><?= htmlspecialchars($row['tipo_medida']); ?></td> -->
                             <?php
                                 $di_sello = 0.00;
                                 $de_sello = 0.00;
@@ -552,15 +581,6 @@ if (!isset($_SESSION['id'])) {
                                 $di_sello = $row['di_sello'];
                                 $de_sello = $row['de_sello'];
                                 $a_sello = $row['a_sello'];
-                                // if($row['tipo_medida'] == "Sello"){
-                                //     $di_sello = $row['di_sello'];
-                                //     $de_sello = $row['de_sello'];
-                                //     $a_sello = $row['a_sello'];
-                                // }else{
-                                //     $di_sello = $row['di_sello2'];
-                                //     $de_sello = $row['de_sello2'];
-                                //     $a_sello = $row['a_sello2'];                               
-                                // }
                             ?>
                             <td><?= htmlspecialchars($di_sello.' '.$row['tipo_medida_di']); ?></td>
                             <td><?= htmlspecialchars($de_sello.' '.$row['tipo_medida_de']); ?></td>
@@ -568,12 +588,19 @@ if (!isset($_SESSION['id'])) {
                             <td><?= htmlspecialchars($row['tipo_cliente']); ?></td>
                             <td><?= htmlspecialchars($row['fecha']); ?></td>
                             <td><?= htmlspecialchars($row['hora']); ?></td>
-                            <!-- <td><?= htmlspecialchars($row['vendedor']); ?></td> -->
+                            <td>
+                                <?php if ($esta_vencida): ?>
+                                    <span class="badge bg-warning text-dark" title="Cotización vencida">
+                                        <i class="bi bi-exclamation-triangle"></i> Vencida
+                                    </span>
+                                <?php else: ?>
+                                    <?= htmlspecialchars($row['fecha_vencimiento']); ?>
+                                <?php endif; ?>
+                            </td>
                         </tr>
                     <?php
                         }
                     ?>
-    
                     </tbody>
                 </table>
             </div>
@@ -1131,9 +1158,31 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
    <script>
         document.addEventListener('DOMContentLoaded', function() {
-
-            
-            
+                // Verificar si ya existe la preferencia en localStorage
+            if (!localStorage.getItem("ocultarInfoVigencias")) {
+                Swal.fire({
+                    title: 'Información importante',
+                    text: 'Ahora las cotizaciones tendrán una vigencia de 72 horas a partir de su creación. Las cotizaciones vencidas ya no podran ser usadas en futuras requisiciones.',
+                    icon: 'info',
+                    confirmButtonText: 'Entendido',
+                    width: '400px',
+                    padding: '10px',
+                    position: 'bottom-end',
+                    toast: true,
+                    showConfirmButton: true,
+                    showCloseButton: false,
+                    input: 'checkbox',
+                    inputPlaceholder: 'No mostrar nuevamente',
+                    inputAttributes: {
+                    id: 'noMostrarCheckbox'
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed && result.value) {
+                    // Guardar preferencia en localStorage
+                    localStorage.setItem("ocultarInfoVigencias", "1");
+                    }
+                });
+            }
             // Add hover effects to action buttons
             const actionButtons = document.querySelectorAll('.container-actions button');
             actionButtons.forEach(button => {

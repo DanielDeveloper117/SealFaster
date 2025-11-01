@@ -26,35 +26,9 @@ try {
     ");
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmt->execute();
-    $resultados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $billetsControlAlmacen = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $fusionados = [];
-
-    foreach ($resultados as $r) {
-        // Buscar el registro correspondiente en inventario_cnc
-        $stmtBillet = $conn->prepare("
-            SELECT material, Clave, Medida, estatus 
-            FROM inventario_cnc 
-            WHERE lote_pedimento = :lote_pedimento
-            LIMIT 1
-        ");
-        $stmtBillet->bindParam(':lote_pedimento', $r["lote_pedimento"]);
-        $stmtBillet->execute();
-        $billetData = $stmtBillet->fetch(PDO::FETCH_ASSOC);
-
-        // Combinar ambos resultados (control_almacen + inventario_cnc)
-        $fusionados[] = array_merge(
-            $r,
-            $billetData ? $billetData : [
-                'material' => null,
-                'Clave' => null,
-                'Medida' => null,
-                'estatus' => null
-            ]
-        );
-    }
-
-    echo json_encode($fusionados);
+    echo json_encode($billetsControlAlmacen);
 
 } catch (PDOException $e) {
     echo json_encode([

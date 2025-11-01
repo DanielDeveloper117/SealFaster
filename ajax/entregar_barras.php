@@ -60,7 +60,7 @@ try {
 
         // Preparar y ejecutar update una vez
         $sqlEstatusLP = "UPDATE inventario_cnc 
-                        SET estatus = 'Deshabilitado'
+                        SET estatus = 'Maquinado en curso'
                         WHERE lote_pedimento = :lote_pedimento";
         $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
         $stmtEstatusLP->bindParam(':lote_pedimento', $lote);

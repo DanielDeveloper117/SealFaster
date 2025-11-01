@@ -82,13 +82,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $proveedor = $_GET['proveedor'];
 
     if($proveedor == "all"){
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento, interior 
-                          ,estatus, updated_at FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
+        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material AND deleted_at IS NULL ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento, interior 
-        ,estatus, updated_at FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
+        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor AND deleted_at IS NULL ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
         $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
@@ -99,8 +97,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
     $clave = $_GET['clave'];
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus, updated_at FROM inventario_cnc WHERE clave = :clave";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE clave = :clave AND deleted_at IS NULL ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -109,8 +106,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 }else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
     $lp = $_GET['lp'];
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus, updated_at FROM inventario_cnc WHERE lote_pedimento = :lp";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE lote_pedimento = :lp AND deleted_at IS NULL ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -118,8 +114,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
 }else if (isset($_GET['corregir'])) {
     // esto ya no se usa porque ya se actualizaron todos los registros y porque se valida que ese campo sea correcto
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus, updated_at FROM inventario_cnc WHERE max_usable = 0.00";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE max_usable = 0.00 AND deleted_at IS NULL ";
     $stmtInventario = $conn->prepare($sqlInventario);
     //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -145,8 +140,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 }else{
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, stock, lote_pedimento 
-                        ,estatus, updated_at FROM inventario_cnc";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE deleted_at IS NULL ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
@@ -225,8 +219,8 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             <div class="d-flex flex-column">
                                 <button class="btn-general edit-btn mb-1" 
                                     data-id="<?= $row['id']; ?>"
-                                    data-clave="<?= $row['clave']; ?>"
-                                    data-medida="<?= $row['medida']; ?>"
+                                    data-clave="<?= $row['Clave']; ?>"
+                                    data-medida="<?= $row['Medida']; ?>"
                                     data-proveedor="<?= $row['proveedor']; ?>"
                                     data-material="<?= $row['material']; ?>"
                                     data-max_usable="<?= $row['max_usable']; ?>"
@@ -243,11 +237,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                 </form>
                             </div>
                         </td>
-                        <td class="td-clave"><?= htmlspecialchars($row['clave']); ?></td>
+                        <td class="td-clave"><?= htmlspecialchars($row['Clave']); ?></td>
                         <td class="td-lote"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td class="td-material"><?= htmlspecialchars($row['material']); ?></td>
                         <td class="td-proveedor"><?= htmlspecialchars($row['proveedor']); ?></td>
-                        <td class="td-medida"><?= htmlspecialchars($row['medida']); ?></td>
+                        <td class="td-medida"><?= htmlspecialchars($row['Medida']); ?></td>
                         <td class="td-max_usable"><?= htmlspecialchars($row['max_usable']); ?></td>
                         <td class="td-stock"><?= htmlspecialchars($row['stock']); ?></td>
                         <td class="td-barra">

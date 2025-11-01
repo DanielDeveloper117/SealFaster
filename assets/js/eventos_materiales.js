@@ -695,6 +695,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
+                                                    <td >${item.estatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>

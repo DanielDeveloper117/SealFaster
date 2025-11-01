@@ -21,8 +21,10 @@ try {
     // Obtener y sanitizar los valores
     $id_requisicion   = trim($_POST['id_requisicion']);
     $cantidad_barras  = trim($_POST['cantidad_barras']);
+    $material         = trim($_POST['material']);
     $clave            = trim($_POST['clave']);
     $lote_pedimento   = trim($_POST['lote_pedimento']);
+    $medida           = trim($_POST['medida']);
     $es_extra         = isset($_POST['es_extra']) ? trim($_POST['es_extra']) : 0;
     $mm_entrega       = trim($_POST['mm_entrega']);
 
@@ -81,16 +83,18 @@ try {
     // INSERTAR NUEVO REGISTRO
     $stmt = $conn->prepare("
         INSERT INTO control_almacen (
-            id_requisicion, cantidad_barras, clave, lote_pedimento, es_extra, mm_entrega
+            id_requisicion, cantidad_barras, material, clave, lote_pedimento, medida, es_extra, mm_entrega
         ) VALUES (
-            :id_requisicion, :cantidad_barras, :clave, :lote_pedimento, :es_extra, :mm_entrega
+            :id_requisicion, :cantidad_barras, :material, :clave, :lote_pedimento, :medida, :es_extra, :mm_entrega
         )
     ");
 
     $stmt->bindParam(':id_requisicion', $id_requisicion);
     $stmt->bindParam(':cantidad_barras', $cantidad_barras, PDO::PARAM_INT);
+    $stmt->bindParam(':material', $material);
     $stmt->bindParam(':clave', $clave);
     $stmt->bindParam(':lote_pedimento', $lote_pedimento);
+    $stmt->bindParam(':medida', $medida);
     $stmt->bindParam(':es_extra', $es_extra, PDO::PARAM_INT);
     $stmt->bindParam(':mm_entrega', $mm_entrega);
 

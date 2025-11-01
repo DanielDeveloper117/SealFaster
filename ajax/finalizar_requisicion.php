@@ -68,28 +68,70 @@ try {
 
     $conn->beginTransaction();
 
+    // Actualizar con todos los campos que vienen del frontend
     $sqlUpdate = "UPDATE control_almacen 
                   SET es_merma = :es_merma,
+                      perfil_sello = :perfil_sello,
+                      pz_maquinadas = :pz_maquinadas,
+                      altura_pz = :altura_pz,
                       mm_usados = :mm_usados,
                       total_sellos = :total_sellos,
                       merma_corte = :merma_corte,
                       scrap_pz = :scrap_pz,
-                      scrap_mm = :scrap_mm
+                      scrap_mm = :scrap_mm,
+                      mm_total_usados = :mm_total_usados,
+                      mm_teoricos = :mm_teoricos,
+                      mm_merma_real = :mm_merma_real,
+                      id_cotizacion = :id_cotizacion,
+                      id_estimacion = :id_estimacion,
+                      pz_teoricas = :pz_teoricas,
+                      justificacion_merma = :justificacion_merma
                   WHERE id_control = :id_control";
     $stmtUpdate = $conn->prepare($sqlUpdate);
+
+    $registrosActualizados = 0;
+    $registrosSinCambios = 0;
 
     foreach ($data as $fila) {
         $stmtUpdate->execute([
             ':es_merma' => $fila['es_merma'] ?? 0,
+            ':perfil_sello' => $fila['perfil_sello'] ?? '',
+            ':pz_maquinadas' => $fila['pz_maquinadas'] ?? 0,
+            ':altura_pz' => $fila['altura_pz'] ?? 0,
             ':mm_usados' => $fila['mm_usados'] ?? 0,
             ':total_sellos' => $fila['total_sellos'] ?? 0,
             ':merma_corte' => $fila['merma_corte'] ?? 0,
             ':scrap_pz' => $fila['scrap_pz'] ?? 0,
             ':scrap_mm' => $fila['scrap_mm'] ?? 0,
+            ':mm_total_usados' => $fila['mm_total_usados'] ?? 0,
+            ':mm_teoricos' => $fila['mm_teoricos'] ?? 0,
+            ':mm_merma_real' => $fila['mm_merma_real'] ?? 0,
+            ':id_cotizacion' => $fila['id_cotizacion'] ?? null,
+            ':id_estimacion' => $fila['id_estimacion'] ?? null,
+            ':pz_teoricas' => $fila['pz_teoricas'] ?? 0,
+            ':justificacion_merma' => $fila['justificacion_merma'] ?? '',
             ':id_control' => $fila['id_control']
         ]);
+
+        if ($stmtUpdate->rowCount() > 0) {
+            $registrosActualizados++;
+        } else {
+            $registrosSinCambios++;
+            // No es un error, simplemente no hubo cambios
+            // Podemos verificar si el registro existe
+            $sqlCheck = "SELECT id_control FROM control_almacen WHERE id_control = :id_control";
+            $stmtCheck = $conn->prepare($sqlCheck);
+            $stmtCheck->bindParam(':id_control', $fila['id_control'], PDO::PARAM_INT);
+            $stmtCheck->execute();
+            
+            if (!$stmtCheck->fetch()) {
+                throw new Exception("El registro con id_control: " . $fila['id_control'] . " no existe");
+            }
+            // Si existe pero no hubo cambios, es válido (probablemente ya se guardó antes)
+        }
     }
 
+    // Actualizar el estatus de la requisición
     $sqlRequisicion = "UPDATE requisiciones 
                        SET estatus = 'Finalizada', fin_maquinado = NOW() 
                        WHERE id_requisicion = :id_requisicion";
@@ -99,6 +141,7 @@ try {
 
     $conn->commit();
 
+    // Obtener información de cotizaciones para la respuesta
     $sqlCot = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
     $stmtCot = $conn->prepare($sqlCot);
     $stmtCot->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
@@ -110,7 +153,7 @@ try {
         require_once(ROOT_PATH . 'includes/PHPMailer.php');
         $mail = getMailer($conn);
 
-        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 OR (lider = 2 AND rol = 'Gerente')";
         $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
         $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -132,7 +175,7 @@ try {
         $mail->isHTML(true);
         $mail->Subject = 'Requisicion finalizada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha finalizado el maquinado de sellos.<br>
-                    Se requiere actualizar el stock de los billets correspondientes.<br>
+                    Se requiere revisión de merma y actualizar el stock de los billets correspondientes en el retorno de barras.<br>
                     Folio de requisicion: <b>".$id_requisicion."</b>";
 
         if ($mail->send()) {
@@ -148,7 +191,8 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Requisicion finalizada correctamente. ' . $msjExtra,
-        'cotizaciones' => $cot['cotizaciones'] ?? null
+        'cotizaciones' => $cot['cotizaciones'] ?? null,
+        'id_requisicion' => $id_requisicion
     ]);
 
 } catch (Throwable $e) {
@@ -157,3 +201,4 @@ try {
 } finally {
     $conn = null;
 }
+?>

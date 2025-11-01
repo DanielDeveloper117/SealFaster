@@ -83,7 +83,10 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Ln(8);
 
         $pdf->SetFont('Arial', '', 11);
-        $pdf->Cell(100, 8, utf8_decode("Estatus: ". $estatus_completado), 0, 0, '', 0);
+        $pdf->Cell(50, 8, utf8_decode("Estatus: ". $estatus_completado), 0, 0, '', 0);
+        $pdf->SetFont('Arial', 'B', 11);
+        $pdf->Cell(100, 8, utf8_decode('Cotización vigente "SALVO PREVIA VENTA"'), 0, 0, '', 0);
+        $pdf->SetFont('Arial', '', 11);
         $pdf->Ln(10);
         
         $pdf->SetDrawColor(0, 0, 0); // color negro

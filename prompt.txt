@@ -79,3 +79,89 @@ las opciones no contrasta mucho con los colores, sigue siendo impresionante
 DeepSeek: 2 puntos - 344 lineas - los estilos se ven sencillos, no impresionan mucho, casi todos los estilos chosen se sustituyeron correctamente 
 pero no todos. Me gusto que al buscar se ilumina el texto de otro color.
 *Que opina de la ronda?
+
+Ahora a partir de los siguientes input de la tabla, tenemos que hacer los siguientes calculos independientes de cada registro:
+*pz_teoricas son las pz que dice cotizacion_materiales
+*altura_pz desde a_sello
+*desbaste_material desde inventario_cnc (material)
+1. mm_usados=pz_maquinadas*(altura_pz+desbaste_material)
+2. mm_teoricos=pz_teoricas*(altura_pz+desbaste_material)
+3. long_t_sellos=pz_teoricas*altura_pz
+4. merma_corte = pz_maquinadas*(desbaste_material)
+5. scrap_pz= pz_maquinadas-pz_teoricas
+6. scrap_mm=scrap_pz*(altura_pz)
+7. desbaste_material= blandos es 2 mm paroa duros 2.5 mm
+8. mm_merma_real=mm_usados-mm_teoricos
+9. mm_usados no puede ser menor a mm_teoricos
+10. si mm_merma_real > mm_teoricos mostrar input de justificacion_merma
+11 si mm_usados = mm_entrega, es_merma = 1 
+12. id_estimacion es la id de cotizacion_materiales (ya recuperada del script)
+13. mm_usados no puede ser menor a la altura_pz *(pz_maquinadas)
+14. mm_usados no puede ser menor a merma_corte*pz_maquinadas + altura_pz *(pz_maquinadas)
+14.2. si mm_usados < mm_teoricos y mm_usados > altura_pz *(pz_maquinadas)
+15. Los siguientes campos deben estar listos para enviar con post
+como actualizacion de cada id_control, ademas se identificaran con el atributo required para saber cuales va a enviar, mientras que los campos ilustrativos no llevaran required:
+-mm_usados
+-total_sellos (long_t_sellos)
+-merma_corte
+-scrap_pz
+-scrap_mm
+-altura_pz
+-pz_teoricas (debe ser oculto)
+-mm_teoricos
+-pz_maquinadas
+-mm_merma_real
+-justificacion_merma
+-id_cotizacion
+-id_estimacion
+DUREZA DE MATERIALES:
+    switch (materialDesbaste) {
+        case 'H-ECOPUR':
+        case 'ECOSIL':
+        case 'ECORUBBER 1':
+        case 'ECORUBBER 2':
+        case 'ECORUBBER 3':
+        case 'ECOPUR':
+            window[`DESBASTE_DUREZA_m${i}`] = 2.00; 
+            console.log(`Desbaste añadido por corte (blando) = `, window[`DESBASTE_DUREZA_m${i}`]);
+            break;
+        case 'ECOTAL':
+        case 'ECOMID':
+        case 'ECOFLON 1':
+        case 'ECOFLON 2':
+        case 'ECOFLON 3':
+            window[`DESBASTE_DUREZA_m${i}`] = 2.50;  
+            console.log(`Desbaste añadido por corte (duro) = `, window[`DESBASTE_DUREZA_m${i}`]);
+            break;
+        default:
+            window[`DESBASTE_DUREZA_m${i}`] = 2.50;
+            console.log(`Material no encontrado, desbaste por defecto = `, window[`DESBASTE_DUREZA_m${i}`]);
+    }
+
+*agregar los campos nuevos a control_almacen
+*igualar tabla requisiciones
+*actualizar los registros con las siguientes consultas:
+SELECT 
+    ca.id_control,
+    ca.lote_pedimento,
+    ca.material AS material_actual,
+    ic.material AS material_nuevo,
+    ca.medida AS medida_actual, 
+    ic.Medida AS medida_nueva
+FROM control_almacen ca
+INNER JOIN inventario_cnc ic ON ca.lote_pedimento = ic.lote_pedimento
+WHERE 
+    ca.lote_pedimento IS NOT NULL 
+    AND ca.lote_pedimento != '';
+
+UPDATE control_almacen ca
+INNER JOIN inventario_cnc ic ON ca.lote_pedimento = ic.lote_pedimento
+SET 
+    ca.material = ic.material,
+    ca.medida = ic.Medida
+WHERE 
+    ca.lote_pedimento IS NOT NULL 
+    AND ca.lote_pedimento != ''
+    AND ic.lote_pedimento IS NOT NULL;
+    
+SELECT * FROM `inventario_cnc` WHERE estatus ="Eliminado" ORDER BY deleted_at DESC;

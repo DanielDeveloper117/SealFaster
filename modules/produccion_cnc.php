@@ -208,32 +208,46 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Finalizada";
                                         // Inventarios puede agregar clave al almacen
                                         if ($tipo_usuario === "Inventarios") {
-                                            // echo '<button class="btn-thunder btn-control-almacen" 
-                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            //         data-es_extra = "1"
-                                            //         data-estatus = "Finalizada"                                                   
-                                            //         title="Agregar clave extra al control de almacen">
-                                            //         <i class="bi bi-node-plus"></i>
-                                            //     </button>';
                                             echo '<button class="btn-auth btn-bar-entry btn-claves-retorno" 
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Retornar barras al inventario">
                                                     <i class="bi bi-database-fill-down"></i>
                                                 </button>';
+                                        }else if ($tipo_usuario === "CNC") {
+                                            if($row["fecha_revision_maquinado"] == Null){
+                                                $colorBtn = "btn-auth";
+                                                $iconStatus = '<i class="bi bi-card-list"></i>';
+                                            }else{
+                                                $colorBtn = "btn-general";
+                                                $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
+                                            }
+                                            echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-rol = "'.$rol_usuario.'"
+                                                    title="Ver registros de maquinado y merma">
+                                                    '.$iconStatus.'
+                                                </button>';
                                         }
 
                                         break;
                                     case "Completada":
                                         $estatusString = "Completada";
-                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                            echo '<button type="button" class="btn-auth btn-autorizar-merma" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalAutorizarMerma"
+                                        if ($tipo_usuario === "CNC") {
+                                            if($row["fecha_revision_maquinado"] == Null){
+                                                $colorBtn = "btn-auth";
+                                                $iconStatus = '<i class="bi bi-card-list"></i>';
+                                            }else{
+                                                $colorBtn = "btn-general";
+                                                $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
+                                            }
+                                            echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    
-                                                    title="Autorizar merma">
-                                                    <i class="bi bi-check-circle"></i>
+                                                    data-rol = "'.$rol_usuario.'"
+                                                    title="Ver registros de maquinado y merma">
+                                                    '.$iconStatus.'
                                                 </button>';
                                         }
                                         break;
@@ -376,8 +390,10 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <form id="formControlAlmacenInventario" action="" method="POST">                        
                     <input id="inputIdRequisicion" type="hidden" name="id_requisicion">
-                    <input id="inputCantidadBarras" type="hidden" value="1" min="0" step="1" name="cantida_barras" required>
                     <input id="inputClave" type="hidden"  name="clave" placeholder="Ingrese una clave valida" required>
+                    <input id="inputCantidadBarras" type="hidden" value="1" min="0" step="1" name="cantida_barras" required>
+                    <input id="inputMaterial" type="hidden" name="material" required>
+                    <input id="inputMedida" type="hidden" name="medida" required>
                     <div class="d-flex justify-content-between">
                         <div class="" style="width:63%;">
                             <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
@@ -539,21 +555,25 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
-                    <h5 class="modal-title">Claves de requisición con folio: <span></span></h5>
+                    <h5 class="modal-title">Barras de requisición con folio: <span></span></h5>
                     <div style="overflow-x: auto; width: 100%;">
                         <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
                             <thead>
                                 <tr>
-                                    <th style="width: 70px;">Barra mermada</th>
-                                    <th style="width: 100px;">Cantidad</th>
-                                    <th style="width: 280px;">Clave</th>
+                                    <th style="width: 150px;">Perfil</th>
+                                    <th style="width: 200px;">Material</th>
                                     <th style="width: 250px;">Lote pedimento</th>
+                                    <th style="width: 100px;">Medida</th>
                                     <th style="width: 120px;">MM Entrega</th>
+                                    <th style="width: 100px;">Pz teóricas</th>
+                                    <th style="width: 100px;">Pz maquinadas</th>
+                                    <th style="width: 120px;">Altura Pz</th>
                                     <th style="width: 120px;">MM Usados</th>
                                     <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
                                     <th style="width: 120px;">MERMA POR CORTE</th>
                                     <th style="width: 120px;">SCRAP PZ</th>
                                     <th style="width: 120px;">SCRAP MM</th>
+                                    <th style="width: 120px;">Total MM Usados</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -565,13 +585,84 @@ if (!isset($_SESSION['id'])) {
                 </div>
             </div>
             <div class="modal-footer">
-                <button id="finalizarRequisicion" type="button" class="btn-general">Finalizar</button>
+                <div class="d-flex col-12 gap-3">
+                    <div class="col-3">
+                        <button id="saveChangesFinalizar" type="button" class="btn-general">
+                            <i class="bi bi-floppy"></i> Guardar progreso
+                        </button>
+                        <!-- <small class="text-muted d-block mt-1">Se guarda automáticamente cada 30 seg</small> -->
+                    </div>
+
+                    <button id="finalizarRequisicion" type="button" class="btn-general btn-success">
+                        <i class="bi bi-check-circle"></i> Finalizar maquinado
+                    </button>
+             
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ////////////////////////////// VER REGISTROS DEL MAQUINADO RESULTANTE Y MERMAS PARA REVISION //////////////////////// -->
+<div class="modal fade" id="modalTablaMaquinadoMermas" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog" style="max-width: 85% !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">Resultados de maquinado y mermas</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div style="width:100%; margin-bottom:20px;">
+                    <h5 class="modal-title">Barras de requisición con folio: <span id="folioRequisicion"></span></h5>
+                    <div style="overflow-x: auto; width: 100%;">
+                        <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
+                            <thead>
+                                <tr>
+                                    <th style="width: 70px;">Barra mermada</th>
+                                    <th style="width: 150px;">Perfil</th>
+                                    <th style="width: 200px;">Material</th>
+                                    <th style="width: 250px;">Lote pedimento</th>
+                                    <th style="width: 100px;">Medida</th>
+                                    <th style="width: 120px;">MM Entrega</th>
+                                    <th style="width: 100px;">Pz teóricas</th>
+                                    <th style="width: 100px;">Pz maquinadas</th>
+                                    <th style="width: 120px;">Altura Pz</th>
+                                    <th style="width: 120px;">MM Usados</th>
+                                    <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
+                                    <th style="width: 120px;">MERMA POR CORTE</th>
+                                    <th style="width: 120px;">SCRAP PZ</th>
+                                    <th style="width: 120px;">SCRAP MM</th>
+                                    <th style="width: 120px;">Total MM Usados</th>
+                                    <th style="width: 120px;">Merma Real</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyResultadosMaquinado">
+                                <!-- Aquí van tus registros -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div id="badgeRevisionContainer">
+                    </div>
+                    <div id="infoRevisionContainer">
+                    </div>
+                    <!-- Sección de observaciones (solo para Gerente) -->
+                    <div id="seccionObservaciones" class="mt-4 d-none">
+                        <hr>
+                        <h6>Observaciones de la revisión</h6>
+                        <textarea id="observacionesGerente" class="form-control" rows="3" placeholder="Ingrese observaciones generales sobre los resultados del maquinado..."></textarea>
+                        <input id="inputIdRequisicionResultadosMaquinado" type="hidden">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="terminarRevision" type="button" class="btn-general d-none">Terminar revisión</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
 </div>
 <!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
- <!-- //////////////////////// INVENTARIOS DEBE COMPLETAR MM RETORNO DE CONTROL DE ALMACEN PARA COMPLETAR //////////////////////// -->
+<!-- //////////////////////// INVENTARIOS DEBE COMPLETAR MM RETORNO DE CONTROL DE ALMACEN PARA COMPLETAR //////////////////////// -->
 <div class="modal fade" id="modalRetorno" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 85% !important;">
         <div class="modal-content">
@@ -587,11 +678,13 @@ if (!isset($_SESSION['id'])) {
                             <thead>
                                 <tr>
                                     <!-- <th style="width: 100px;">Cantidad</th> -->
+                                     <th style="width: 250px;">Material</th>
                                     <th style="width: 280px;">Clave</th>
                                     <th style="width: 250px;">Lote pedimento</th>
+                                    <th style="width: 120px;">Medida</th>
                                     <th style="width: 120px;">MM Entrega</th>
-                                    <th style="width: 120px;">MM Usados</th>
-                                    <th style="width: 120px;">MM Retorno</th>
+                                    <th style="width: 120px;">Total MM Usados</th>
+                                    <th style="width: 120px;">MM Retorno (nuevo stock)</th>
                                     <th style="width: 120px;">LONG. TOTAL DE SELLOS</th>
                                     <th style="width: 120px;">MERMA POR CORTE</th>
                                     <th style="width: 120px;">SCRAP PZ</th>
@@ -602,8 +695,15 @@ if (!isset($_SESSION['id'])) {
                                 <!-- Aquí van tus registros -->
                             </tbody>
                         </table>
-                    </div>
 
+
+                    </div>
+                    <!-- Sección de observaciones de inventarios -->
+                    <div class="mt-4">
+                        <hr>
+                        <h6>Observaciones (opcional)</h6>
+                        <textarea id="observacionesInventario" class="form-control" rows="3" placeholder="Ingrese observaciones generales..."></textarea>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

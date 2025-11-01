@@ -126,7 +126,8 @@ try {
                 a_sello, tipo_medida_h, di_sello, tipo_medida_di, de_sello, tipo_medida_de, cantidad, 
                 total_unitarios, desc_cliente, desc_cantidad, desc_mayoreo, total_descuentos, total_material, 
                 estatus_completado, vendedor, img, cliente, tipo_cliente, codigo_cliente, correo_cliente,
-                a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2
+                a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2,
+                fecha_insercion, fecha_vencimiento
                 ) 
             VALUES (
                 :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
@@ -136,8 +137,17 @@ try {
                 :a_sello, :tipo_medida_h, :di_sello, :tipo_medida_di, :de_sello, :tipo_medida_de, :cantidad, 
                 :total_unitarios, :desc_cliente, :desc_cantidad, :desc_mayoreo, :total_descuentos, :total_material, 
                 :estatus_completado, :vendedor, :img, :cliente, :tipo_cliente, :codigo_cliente, :correo_cliente, 
-                :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2
+                :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2,
+                :fecha_insercion, :fecha_vencimiento
         )");
+
+        // --- CALCULAR FECHAS DE VENCIMIENTO ---
+        $fecha_actual = new DateTime('now', new DateTimeZone('America/Mexico_City'));
+        $fecha_insercion = $fecha_actual->format('Y-m-d H:i:s');
+
+        $fecha_vencimiento = clone $fecha_actual;
+        $fecha_vencimiento->modify('+72 hours');
+        $fecha_vencimiento = $fecha_vencimiento->format('Y-m-d H:i:s');
 
         // Vincular los parámetros con los valores
         $stmt->bindParam(':id_cotizacion', $id_cotizacion);
@@ -193,6 +203,9 @@ try {
         $stmt->bindParam(':a_sello_inch2', $a_sello_inch2);
         $stmt->bindParam(':di_sello_inch2', $di_sello_inch2);
         $stmt->bindParam(':de_sello_inch2', $de_sello_inch2);
+
+        $stmt->bindParam(':fecha_insercion', $fecha_insercion);
+        $stmt->bindParam(':fecha_vencimiento', $fecha_vencimiento);
         // Ejecutar la consulta
         $stmt->execute();
 

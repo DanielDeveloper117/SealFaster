@@ -484,7 +484,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(190, 6,"CONTROL DE BARRAS", 0, 1, 'C');
     $pdf->Ln(4); 
     $pdf->SetFont('Arial', 'B', 8);
-    $pdf->Cell(190, 6,"Info: MM Ent. (MM Entrada), MM Us. (MM Usados), MM. Ret. (MM Retorno), L.T.S. (Longitud Total de Sellos)", 0, 1, 'L');
+    $pdf->Cell(190, 6,"Info: MM Ent. (MM Entrada), MM Us. (MM Usados), MM. Ret. (MM Retorno), L.T.S. (Longitud Total de Sellos), M.C. (Merma por Corte)", 0, 1, 'L');
     $pdf->Ln(2); 
 
     $pdf->SetTextColor(0, 0, 0);
@@ -492,16 +492,17 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(190, 6, utf8_decode('BARRAS/BILLETS'), 1, 1, 'C', 0);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->SetFillColor(220, 220, 220);
-    $pdf->Cell(12, 6, 'BARRAS', 1, 0, 'C', true);
+    $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
     $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-    $pdf->Cell(30, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM ENT.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM US.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM RET.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'L. T. S.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MERMA', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'SCRAP PZ', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'SCRAP MM', 1, 1, 'C', true);
+    $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM RET.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'L. T. S.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'M.C.', 1, 0, 'C', true);
+    $pdf->Cell(14, 6, 'SCRAP PZ', 1, 0, 'C', true);
+    $pdf->Cell(14, 6, 'SCRAP MM', 1, 1, 'C', true);
 
     $pdf->SetFont('Arial', '', 8);
 
@@ -513,30 +514,34 @@ if (isset($_GET['id_requisicion'])) {
                 $barrasExtra[] = $fila['clave']." (".$fila['lote_pedimento'].")";
                 $esExtra = "*";
             }
-            $pdf->Cell(12, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 6);
+            $pdf->Cell(18, 6, utf8_decode($fila['material']), 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 8);
             $pdf->Cell(43, 6, utf8_decode($fila['clave'].$esExtra), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_usados']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
+            $pdf->Cell(29, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['medida']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_total_usados']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
         }
     } else {
         // Si no hay registros, usar los renglones vacíos como en el código original
         for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
-            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(18, 6, utf8_decode(""), 1, 0, 'C');
             $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
+            $pdf->Cell(29, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode(""), 1, 1, 'C');
         }
     }
     $pdf->Ln(2); 
@@ -560,31 +565,35 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->Cell(190, 6, utf8_decode('BARRAS/BILLETS EN MERMA'), 1, 1, 'C', 0);
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetFillColor(220, 220, 220);
-        $pdf->Cell(12, 6, 'BARRAS', 1, 0, 'C', true);
+        $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
         $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-        $pdf->Cell(30, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM ENT.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM US.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM RET.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'L. T. S.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MERMA', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'SCRAP PZ', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'SCRAP MM', 1, 1, 'C', true);
+        $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM RET.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'L. T. S.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'M.C.', 1, 0, 'C', true);
+        $pdf->Cell(14, 6, 'SCRAP PZ', 1, 0, 'C', true);
+        $pdf->Cell(14, 6, 'SCRAP MM', 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', '', 8);
 
         
         foreach ($datosControlMerma as $fila) {
-            $pdf->Cell(12, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
-            $pdf->Cell(43, 6, utf8_decode($fila['clave']), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_usados']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
+            $pdf->SetFont('Arial', '', 6);
+            $pdf->Cell(18, 6, utf8_decode($fila['material']), 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(43, 6, utf8_decode($fila['clave'].$esExtra), 1, 0, 'C');
+            $pdf->Cell(29, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['medida']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_total_usados']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
         }
     } else {
 

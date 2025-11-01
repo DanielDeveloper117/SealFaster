@@ -31,6 +31,9 @@ try {
         exit();
     }
 
+    // Obtener observaciones si existen
+    $observaciones_inv = $_POST['observaciones_inv'] ?? '';
+
     // Decodificar JSON
     $data = json_decode($_POST['registros'], true);
 
@@ -67,7 +70,6 @@ try {
         }
 
         $id_control = (int)$fila['id_control'];
-        //$mm_retorno = (float)$fila['mm_retorno'];
         $mm_retorno = isset($fila['mm_retorno']) ? (float)$fila['mm_retorno'] : 0.00;
         $lote_pedimento = trim($fila['lote_pedimento']);
 
@@ -77,29 +79,23 @@ try {
             ':id_control' => $id_control
         ]);
 
-        // if ($stmtControl->rowCount() === 0) {
-        //     throw new Exception("No se actualizo control_almacen con id_control {$id_control}");
-        // }
-
         // Actualizar inventario_cnc
         $stmtInventario->execute([
             ':stock' => $mm_retorno,
             ':pre_stock' => $mm_retorno,
             ':lote_pedimento' => $lote_pedimento
         ]);
-
-        // if ($stmtInventario->rowCount() === 0) {
-        //     throw new Exception("No se encontro lote_pedimento {$lote_pedimento} en inventario CNC");
-        // }
     }
 
-    
-    // Actualizar requisicion
+    // Actualizar requisicion con observaciones
     $sqlRequisicion = "UPDATE requisiciones 
-                       SET estatus = 'Completada', fin_maquinado = NOW() 
+                       SET estatus = 'Completada', 
+                           fin_maquinado = NOW(),
+                           observaciones_inv = :observaciones_inv 
                        WHERE id_requisicion = :id_requisicion";
     $stmtRequisicion = $conn->prepare($sqlRequisicion);
     $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtRequisicion->bindParam(':observaciones_inv', $observaciones_inv);
     $stmtRequisicion->execute();
 
     if ($stmtRequisicion->rowCount() === 0) {
@@ -169,7 +165,6 @@ try {
         'message' => 'Stock actualizado correctamente en inventario CNC. Billets habilitados para cotizar. ' . $msjLotes
     ]);
 
-
 } catch (Throwable $e) {
     if ($conn->inTransaction()) {
         $conn->rollBack();
@@ -178,3 +173,4 @@ try {
 } finally {
     $conn = null;
 }
+?>

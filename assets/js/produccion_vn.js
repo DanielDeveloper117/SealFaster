@@ -22,23 +22,37 @@
                         }
                         if(item.a_sello == "0.00"){
                             item.a_sello = item.a_sello2;
-                        }                        
+                        }
+
+                        // Determinar si está vencida
+                        const estaVencida = item.esta_vencida == 1 || item.horas_restantes < 0;
+                        
+                        // Texto base de la opción
+                        let textoOpcion = `${item.id_cotizacion} - ${item.perfil_sello} - ${item.di_sello}/${item.de_sello}/${item.a_sello}`;
+                        
+                        // Si está vencida, agregar leyenda
+                        if (estaVencida) {
+                            textoOpcion += ` - <small style="color: #dc3545;">Vencida internamente</small>`;
+                        }
 
                         $("#buscadorCotizaciones").append(
                             `
-                            <option id="c_${item.id_cotizacion}" value="${item.id_cotizacion}"
+                            <option id="c_${item.id_cotizacion}" 
+                                    value="${item.id_cotizacion}"
                                     data-id="${item.id_cotizacion}"
                                     data-perfil="${item.perfil_sello}"
                                     data-tipomedida="${item.tipo_medida}"
-                                    data-di="${item.di_sello || item.di_sello2 }"
+                                    data-di="${item.di_sello || item.di_sello2}"
                                     data-de="${item.de_sello}"
                                     data-a="${item.a_sello}"
-                            >${item.id_cotizacion} - ${item.perfil_sello} - ${item.di_sello}/${item.de_sello}/${item.a_sello}</option>
+                                    ${estaVencida ? 'disabled style="color: #6c757d; font-style: italic; background-color: #f8f9fa;"' : ''}
+                            >${textoOpcion}</option>
                             `
                         );
                         $("#buscadorCotizaciones").trigger("chosen:updated");
                     });
                 } else {
+                    console.log('No se encontraron cotizaciones');
                 }
             },
             error: function() {
