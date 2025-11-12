@@ -26,46 +26,46 @@ if (!isset($_SESSION['id'])) {
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
     
-    <div class="titulo d-flex col-12 justify-content-center mt-3">
-        <h1>Seleccione familia del perfil</h1>
+    <div class="titulo d-flex col-12 justify-content-center">
+        <h1 class="display-5 fw-bold">Seleccione familia del perfil</h1>
     </div>
+    
     <section class="d-flex flex-column col-12 justify-content-center align-items-center">        
-        <div id="containerFamily" class="d-flex flex-column flex-md-row col-11 align-items-center align-items-md-stretch gap-3">
+        <div id="containerFamily" class="cards gap-3">
             <a class="card" href="tipo.php?tipo=rotary">
-                <img src="../assets/img/family/rotary/rotary.jpg" alt="">
-               <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Rotary<br>Rotativo</span>
+                <img class="card_img" src="../assets/img/family/rotary/rotary.jpg" alt="Sello Rotary">
+                <div class="card_info">
+                    <span class="card_title">Rotary<br><span class="card_subtitle">Rotativo</span></span>
                 </div>  
             </a>
             <a class="card" href="tipo.php?tipo=piston">
-                <img src="../assets/img/family/piston/piston.jpeg" alt="">
-                <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Piston<br>Pistón</span>
+                <img class="card_img" src="../assets/img/family/piston/piston.jpeg" alt="Sello Piston">
+                <div class="card_info">
+                    <span class="card_title">Piston<br><span class="card_subtitle">Pistón</span></span>
                 </div>
             </a>
-          
             <a class="card" href="tipo.php?tipo=backup">
-                <img src="../assets/img/family/backup/backup.jpg" alt="">
-                <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Backup<br>Respaldo</span>
+                <img class="card_img" src="../assets/img/family/backup/backup.jpg" alt="Sello Backup">
+                <div class="card_info">
+                    <span class="card_title">Backup<br><span class="card_subtitle">Respaldo</span></span>
                 </div>
             </a>
             <a class="card" href="tipo.php?tipo=guide">
-                <img src="../assets/img/family/guide/guide.jpg" alt="">
-                <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Guide<br>Guía</span>
+                <img class="card_img" src="../assets/img/family/guide/guide.jpg" alt="Sello Guide">
+                <div class="card_info">
+                    <span class="card_title">Guide<br><span class="card_subtitle">Guía</span></span>
                 </div>
             </a>
             <a class="card" href="tipo.php?tipo=wipers">
-                <img src="../assets/img/family/wiper/wiper.jpg" alt="">
-                <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Wipers<br>Limpiadores</span>
+                <img class="card_img" src="../assets/img/family/wiper/wiper.jpg" alt="Sello Wipers">
+                <div class="card_info">
+                    <span class="card_title">Wipers<br><span class="card_subtitle">Limpiadores</span></span>
                 </div>
             </a>
             <a class="card" href="tipo.php?tipo=rod">
-                <img src="../assets/img/family/rod/rod.jpg" alt="">
-                <div class="card_info d-flex justify-content-center align-items-center">
-                    <span class="card_title">Rod<br>Vástago</span>
+                <img class="card_img" src="../assets/img/family/rod/rod.jpg" alt="Sello Rod">
+                <div class="card_info">
+                    <span class="card_title">Rod<br><span class="card_subtitle">Vástago</span></span>
                 </div>
             </a>
         </div>
@@ -89,6 +89,7 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div>
     </div>
+    
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 </body>
 </html>

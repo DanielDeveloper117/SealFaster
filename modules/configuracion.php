@@ -126,8 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 <?php include(ROOT_PATH . 'includes/backend_info_user.php'); ?>
-<!-- <?php include(ROOT_PATH . 'ajax/script_migrar_fechas.php'); ?> -->
-<!-- <?php include(ROOT_PATH . 'ajax/script_fechas_vencimiento.php'); ?> -->
+
 
 <section class="d-flex flex-row col-12 justify-content-center align-items-center mt-3 mb-3">
     <div class="d-flex col-10 flex-column form-general">

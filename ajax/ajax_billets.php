@@ -17,6 +17,15 @@ try{
         }
 
         // Base de la consulta
+        // $sql = "
+        //     SELECT * FROM inventario_cnc 
+        //     WHERE material = :material 
+        //     AND proveedor = :proveedor 
+        //     AND pre_stock >= :pre_stock 
+        //     AND interior <= :interior 
+        //     AND exterior >= :exterior 
+        //     AND (estatus = 'Disponible para cotizar' OR estatus = 'En uso')
+        // ";
         $sql = "
             SELECT * FROM inventario_cnc 
             WHERE material = :material 
@@ -24,9 +33,8 @@ try{
             AND pre_stock >= :pre_stock 
             AND interior <= :interior 
             AND exterior >= :exterior 
-            AND (estatus = 'Disponible para cotizar' OR estatus = 'En uso')
+            AND estatus = 'Disponible para cotizar'
         ";
-
         // Solo agregar condiciones de exclusión si el arreglo no está vacío
         if (!empty($arreglo_excluir)) {
             $excluir_params = [];

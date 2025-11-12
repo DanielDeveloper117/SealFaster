@@ -77,8 +77,11 @@ $(document).ready(function(){
                         let inputEstatusActual = $("#inputEstatus").val();
                         if(inputEstatusActual == "En uso"){
                             $("#inputEstatus").val("En uso");
-                        }
-                        else{
+                        }else if(inputEstatusActual == "Maquinado en curso"){
+                            $("#inputEstatus").val("Maquinado en curso");
+                        }else if(inputEstatusActual == "Maquinado en curso"){
+                            $("#inputEstatus").val("Maquinado en curso");
+                        }else{
                             $("#inputEstatus").val("Disponible para cotizar");    
                         }
                         

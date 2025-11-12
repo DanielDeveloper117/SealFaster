@@ -199,7 +199,7 @@ try {
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
         //$mail->addAddress("sistemas@sellosyretenes.com");
         $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
-        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisici贸n.<br>
+        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                         Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
                         Folio de requisición: <b>" . $id_requisicion . "</b>";
 

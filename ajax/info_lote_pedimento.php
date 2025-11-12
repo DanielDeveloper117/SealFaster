@@ -15,24 +15,27 @@ try {
         // Verificar si existe el registro
         $billetResult = $stmt->fetch();
         if($stmt->rowCount() > 0){
-            // Enviar respuesta JSON
+            // Enviar respuesta JSON indicando que se encontró el lote
             echo json_encode([
                 'success' => true,
+                'message' => 'Lote encontrado',
                 'billetResult' => $billetResult
             ]);
 
         }else{
-            // Enviar respuesta JSON
+            // Enviar respuesta JSON indicando que no se encontró el lote
             echo json_encode([
                 'success' => false,
-                'billetResult' => $billetResult
+                'message' => 'Lote no encontrado',
+                'billetResult' => null
             ]);
         }
         
     }else{
         echo json_encode([
             'success' => false,
-            'error' => 'Falta el parámetro billet']);
+            'message' => 'Falta el parámetro billet'
+        ]);
         exit;
 
     }
@@ -40,7 +43,12 @@ try {
 
 } catch (PDOException $e) {
     error_log("Error en la consulta: " . $e->getMessage());
-    echo json_encode(['error' => 'Error en el servidor']);
+    // Devolver un mensaje más descriptivo para depuración sin exponer detalles sensibles
+    echo json_encode([
+        'success' => false,
+        'message' => 'Error en el servidor',
+        'error_detail' => $e->getMessage()
+    ]);
     http_response_code(500);
 } finally {
     $conn = null; // Cerrar la conexión

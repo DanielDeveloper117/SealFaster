@@ -1,159 +1,129 @@
-<?php
-require_once(__DIR__ . '/../config/rutes.php');
-require_once(ROOT_PATH . 'config/config.php');
-require_once(ROOT_PATH . 'vendor/autoload.php');
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
-
-set_error_handler(function($severity, $message, $file, $line) {
-    throw new ErrorException($message, 0, $severity, $file, $line);
-});
-
-try {
-    header('Content-Type: application/json');
-    $msjExtra = "";
-
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'error' => 'Metodo no permitido']);
-        exit();
-    }
-
-    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
-        echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
-        exit();
-    }
-
-    $data = json_decode($_POST['registros'], true);
-
-    if (!is_array($data) || count($data) === 0) {
-        echo json_encode(['success' => false, 'error' => 'Formato de datos invalido']);
-        exit();
-    }
-
-    // Contar cuántas de las barras recibidas vienen como merma
-    $barrasMermaRecibidas = 0;
-    foreach ($data as $fila) {
-        if (isset($fila['es_merma']) && $fila['es_merma'] == 1) {
-            $barrasMermaRecibidas++;
-        }
-    }
-
-    // Validar que no todas las barras recibidas sean merma
-    if ($barrasMermaRecibidas === count($data)) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'No se puede marcar todas las barras recibidas como merma. Debe quedar al menos una barra no marcada.'
-        ]);
-        exit();
-    }
+<!-- contenedor del body -->
+<div class="modal-body d-flex col-12 flex-column flex-md-row justify-content-between" style="min-height:400px; overflow-y:auto;">
+    <div id="containerBodyModalBillets_m<?= $i ?>" 
+            style="overflow-y:auto; width:<?php if ($tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {echo '100';}else{echo '62';}?>%;">
+        
+        <!-- Contenedor Simulador Mejorado -->
+        <div id="containerSimulador__m<?= $i ?>" class="d-flex flex-column mb-4 d-none">
+            <div class="d-flex align-items-center mb-3">
+                <i class="bi bi-calculator me-2 text-primary fs-5"></i>
+                <h5 class="mb-0 fw-semibold">Simular cotización</h5>
+            </div>
+            
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label for="inputSimulacionDI_m<?= $i ?>" class="form-label fw-medium">
+                        <i class="bi bi-circle me-1 text-info"></i>Diámetro Interior (mm)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-arrow-left-right text-secondary"></i>
+                        </span>
+                        <input id="inputSimulacionDI_m<?= $i ?>" 
+                               type="number" 
+                               class="form-control border-start-0" 
+                               placeholder="Ej: 45"
+                               min="0"
+                               step="1">
+                    </div>
+                </div>
+                
+                <div class="col-md-5">
+                    <label for="inputSimulacionDE_m<?= $i ?>" class="form-label fw-medium">
+                        <i class="bi bi-record-circle me-1 text-warning"></i>Diámetro Exterior (mm)
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-end-0">
+                            <i class="bi bi-arrow-left-right text-secondary"></i>
+                        </span>
+                        <input id="inputSimulacionDE_m<?= $i ?>" 
+                               type="number" 
+                               class="form-control border-start-0" 
+                               placeholder="Ej: 65"
+                               min="0"
+                               step="1">
+                    </div>
+                </div>
+                
+                <div class="col-md-2">
+                    <button type="button" id="btnBuscarClave_m<?= $i ?>" class="btn btn-primary w-100 h-100">
+                        <i class="bi bi-calculator me-1"></i>Calcular
+                    </button>
+                </div>
+            </div>
+            
+            <div class="mt-2">
+                <small class="text-muted">
+                    <i class="bi bi-info-circle me-1"></i>Ingrese los diámetros en milímetros para simular la cotización
+                </small>
+            </div>
+        </div>
+        
+        <table id="tablaBillets_m<?= $i ?>" class="table table-bordered border border-2 tabla-billets">
+            <thead>
+                <tr>
+                    <th scope="col"></th>
+                    <th scope="col">Clave</th>
+                    <th scope="col">Aprovechamiento</th>
+                    <th scope="col">Stock MM</th>
+                    <th scope="col">Estatus</th>
+                    <th scope="col">Piezas</th>
+                    <th scope="col">Medida</th>
+                    <th scope="col">Lote/pedimento</th>
+                </tr>
+            </thead>
+            <tbody>
     
-    // Obtener id_requisicion usando el primer id_control
-    $firstIdControl = $data[0]['id_control'];
-    $sqlGetRequisicion = "SELECT id_requisicion FROM control_almacen WHERE id_control = :id_control LIMIT 1";
-    $stmtGetRequisicion = $conn->prepare($sqlGetRequisicion);
-    $stmtGetRequisicion->bindParam(':id_control', $firstIdControl, PDO::PARAM_INT);
-    $stmtGetRequisicion->execute();
-    $row = $stmtGetRequisicion->fetch(PDO::FETCH_ASSOC);
+            </tbody>
+        </table>
+    </div>
+    
+    <div id="container38_m<?= $i ?>" 
+            class="d-flex flex-column <?php if ($tipoUsuario == 4 || $tipoUsuario == 5 ) {echo 'd-none';}?>" 
+            style="<?php if ($tipoUsuario != 3 && $tipoUsuario != 4 && $tipoUsuario != 5) {echo 'width:38%';} ?>;">
+        <button id="btnQuitarCircle_m<?= $i ?>" class="btn-close align-self-end d-none" style="padding-right:5%;"></button>
+        
+        <table class="table table-bordered text-secondary table-dimensiones-necesarias <?php if ($tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {echo 'd-none';}?>" 
+                style="font-size:12px !important; margin-bottom:5px;">
+            <thead class="table-dark text-white fw-bold" >
+                <tr>
+                    <th style="background-color:#000;">Dimensión</th>
+                    <th style="background-color:#3657c4;">Medida aproximada</th>
+                    <th style="background-color:#000;">Necesario para CNC</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Altura</td>
+                    <td><span id="spanAlturaCliente_m<?= $i ?>">X</span> mm</td>
+                    <td><span id="spanAlturaNecesario_m<?= $i ?>">X</span> mm</td>
+                </tr>
+                <tr>
+                    <td>Diametro Interior</td>
+                    <td><span id="spanDiCliente_m<?= $i ?>">X</span> mm</td>
+                    <td><span id="spanDiNecesario_m<?= $i ?>">X</span> mm</td>
+                </tr>
+                <tr>
+                    <td>Diametro Exterior</td>
+                    <td><span id="spanDeCliente_m<?= $i ?>">X</span> mm</td>
+                    <td><span id="spanDeNecesario_m<?= $i ?>">X</span> mm</td>
+                </tr>
+            </tbody>
+        </table>
 
-    if (!$row) {
-        throw new Exception("No se encontro requisicion asociada al id_control {$firstIdControl}");
-    }
-
-    $id_requisicion = $row['id_requisicion'];
-
-    $conn->beginTransaction();
-
-    $sqlUpdate = "UPDATE control_almacen 
-                  SET es_merma = :es_merma,
-                      mm_usados = :mm_usados,
-                      total_sellos = :total_sellos,
-                      merma_corte = :merma_corte,
-                      scrap_pz = :scrap_pz,
-                      scrap_mm = :scrap_mm
-                  WHERE id_control = :id_control";
-    $stmtUpdate = $conn->prepare($sqlUpdate);
-
-    foreach ($data as $fila) {
-        $stmtUpdate->execute([
-            ':es_merma' => $fila['es_merma'] ?? 0,
-            ':mm_usados' => $fila['mm_usados'] ?? 0,
-            ':total_sellos' => $fila['total_sellos'] ?? 0,
-            ':merma_corte' => $fila['merma_corte'] ?? 0,
-            ':scrap_pz' => $fila['scrap_pz'] ?? 0,
-            ':scrap_mm' => $fila['scrap_mm'] ?? 0,
-            ':id_control' => $fila['id_control']
-        ]);
-    }
-
-    $sqlRequisicion = "UPDATE requisiciones 
-                       SET estatus = 'Finalizada', fin_maquinado = NOW() 
-                       WHERE id_requisicion = :id_requisicion";
-    $stmtRequisicion = $conn->prepare($sqlRequisicion);
-    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmtRequisicion->execute();
-
-    $conn->commit();
-
-    $sqlCot = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
-    $stmtCot = $conn->prepare($sqlCot);
-    $stmtCot->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmtCot->execute();
-    $cot = $stmtCot->fetch(PDO::FETCH_ASSOC);
-
-    // Envio de correo
-    try {
-        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-        $mail = getMailer($conn);
-
-        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
-        $stmt = $conn->prepare($sqlCorreoInventarios);
-        $stmt->execute();
-        $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        $clave_encriptacion = 'oculto';
-        $contadorCorreos = 0;
-
-        foreach ($correosInventarios as $fila) {
-            if (!empty($fila['usuario'])) {
-                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
-                if ($correo) {
-                    //$mail->addAddress($correo);
-                    $contadorCorreos++;
-                }
-            }
-        }
-
-        $mail->addAddress("oculto");
-        $mail->isHTML(true);
-        $mail->Subject = 'Requisicion finalizada. Folio: '.$id_requisicion;
-        $mail->Body = "Se ha finalizado el maquinado de sellos.<br>
-                    Se requiere revisión de merma y actualizar el stock de los billets correspondientes en el retorno de barras.<br>
-                    Folio de requisicion: <b>".$id_requisicion."</b>";
-
-        if ($mail->send()) {
-            $msjExtra = "Correo enviado a Inventarios correctamente.";
-        } else {
-            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
-        }
-
-    } catch (Throwable $e) {
-        $msjExtra = "Error al enviar correo: " . $e->getMessage();
-    }
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'Requisicion finalizada correctamente. ' . $msjExtra,
-        'cotizaciones' => $cot['cotizaciones'] ?? null
-    ]);
-
-} catch (Throwable $e) {
-    if ($conn->inTransaction()) $conn->rollBack();
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
-} finally {
-    $conn = null;
-}
+        <div id="containerCircleBillet_m<?= $i ?>" 
+            class="d-flex flex-column justify-content-center align-items-center <?php if ($tipoUsuario == 3 || $tipoUsuario == 4) {echo 'd-none';}?>">
+            <div class="d-flex justify-content-center align-items-start">
+            <svg 
+                id="circuloSvg_m<?= $i ?>"
+                width="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
+                height="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
+                viewBox="0 0 100 100">
+            </svg>
+            </div>
+            <div class="d-flex justify-content-center align-items-start" style="font-size:18px; font-weight:700;">
+                <p>Porcentaje de aprovechamiento: <span id="spanPorcentAprov_m<?= $i ?>">0.00</span>%</p>
+            </div>
+        </div>
+    </div>
+</div>

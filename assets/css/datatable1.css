@@ -471,7 +471,7 @@
     padding: 10px;
     border: none;
     border-radius: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 0px !important;
     background-color: #00000016;
     color: #555;
     pointer-events: none;
@@ -481,7 +481,7 @@
     padding: 10px;
     border: none;
     border-radius: 5px;
-    margin-bottom: 15px;
+    margin-bottom: 0px !important;
     background-color: #fff;
     color: #555;
     box-shadow: 0 0px 4px 2px rgba(0, 0, 0, 0.1);

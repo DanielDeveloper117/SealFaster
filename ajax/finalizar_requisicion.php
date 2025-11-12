@@ -66,6 +66,19 @@ try {
 
     $id_requisicion = $row['id_requisicion'];
 
+    // Validar que no existan barras pendientes por autorizar en la requisición
+    $stmtBarraPendiente = $conn->prepare("SELECT barra_pendiente FROM requisiciones WHERE id_requisicion = :id_requisicion");
+    $stmtBarraPendiente->bindValue(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtBarraPendiente->execute();
+    $rowPendiente = $stmtBarraPendiente->fetch(PDO::FETCH_ASSOC);
+    if ($rowPendiente && isset($rowPendiente['barra_pendiente']) && intval($rowPendiente['barra_pendiente']) === 1) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'No es posible finalizar la requisición porque existen autorizaciones de barra pendientes.'
+        ]);
+        exit();
+    }
+
     $conn->beginTransaction();
 
     // Actualizar con todos los campos que vienen del frontend
@@ -85,6 +98,7 @@ try {
                       id_cotizacion = :id_cotizacion,
                       id_estimacion = :id_estimacion,
                       pz_teoricas = :pz_teoricas,
+                      causa_merma = :causa_merma,
                       justificacion_merma = :justificacion_merma
                   WHERE id_control = :id_control";
     $stmtUpdate = $conn->prepare($sqlUpdate);
@@ -109,6 +123,7 @@ try {
             ':id_cotizacion' => $fila['id_cotizacion'] ?? null,
             ':id_estimacion' => $fila['id_estimacion'] ?? null,
             ':pz_teoricas' => $fila['pz_teoricas'] ?? 0,
+            ':causa_merma' => $fila['causa_merma'] ?? '',
             ':justificacion_merma' => $fila['justificacion_merma'] ?? '',
             ':id_control' => $fila['id_control']
         ]);

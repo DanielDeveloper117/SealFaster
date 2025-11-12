@@ -26,8 +26,8 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
-     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>">
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>"> -->
 
     <?php 
           include(ROOT_PATH . 'includes/backend_info_user.php');
@@ -65,31 +65,6 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div>
         <div class="table-container">
-            <!-- <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
-                <div>
-                    <label for="selectorEstatus">Filtro estatus:</label>
-                    <select id="selectorEstatus" class="input-selector mt-2">
-                        <option disabled selected>Seleccionar</option>
-                        <?php 
-                            if($tipo_usuario=="Vendedor" && $rol_usuario=="Gerente"){
-                                echo '<option value="Autorizar1">Autorizacion de gerencia pendiente</option>';
-                                echo '<option value="Autorizada1">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">Maquinado CNC</option>';
-                            }elseif($tipo_usuario=="Administrador"){
-                                echo '<option value="Autorizar2">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">Maquinado CNC</option>';
-                            }else{
-                                echo '<option value="Pendiente">Autorizacion de gerencia pendiente</option>';
-                                echo '<option value="Autorizada1">Autorizacion de dirección pendiente</option>';
-                                echo '<option value="Produccion">Maquinado CNC</option>';
-                            }
-                        ?>
-                        <option value="Finalizada">Finalizada</option>
-                        <option value="Todo">Todo</option>
-                    </select>
-    
-                </div>
-            </div>  -->
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -139,10 +114,10 @@ if (!isset($_SESSION['id'])) {
                                             <i class="bi bi-pencil-square"></i>
                                         </button>';
                                 }else{
-                                    echo '<button class="btn-disabled2"
-                                            title="No se puede editar esta requisición">
-                                            <i class="bi bi-pencil-square"></i>
-                                        </button>';                                    
+                                    // echo '<button class="btn-disabled2"
+                                    //         title="No se puede editar esta requisición">
+                                    //         <i class="bi bi-pencil-square"></i>
+                                    //     </button>';                                    
                                 }
                                 ?>
 
@@ -179,15 +154,31 @@ if (!isset($_SESSION['id'])) {
                                                     title="Cancelar maquinado de sellos">
                                                     <i class="bi bi-ban"></i>
                                                 </button>';
+                                            if($row['barra_pendiente']==1){
+                                                echo '<button class="btn-amber btn-barras-pendientes" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalTableBarrasPendientes"
+                                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Barras pendientes de autorizar">
+                                                        <i class="bi bi-clock"></i>
+                                                    </button>';
+                                            }
                                         }
                                         break;
                                     case "Producción":
                                         $estatusString = "Producción";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            echo '<button type="button" class="btn-disabled2" 
-                                                    title="No se puede cancelar una requisición en producción">
-                                                    <i class="bi bi-ban"></i>
-                                                </button>';
+                                            // echo '<button type="button" class="btn-disabled2" 
+                                            //         title="No se puede cancelar una requisición en producción">
+                                            //         <i class="bi bi-ban"></i>
+                                            //     </button>';
+                                            if($row['barra_pendiente']==1){
+                                                echo '<button class="btn-amber btn-barras-pendientes" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalTableBarrasPendientes"
+                                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Barras pendientes de autorizar">
+                                                        <i class="bi bi-clock"></i>
+                                                    </button>';
+                                            }
                                         }else{
 
                                         }
@@ -196,10 +187,18 @@ if (!isset($_SESSION['id'])) {
                                     case "En producción":
                                         $estatusString = "Maquinado";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            echo '<button type="button" class="btn-disabled2" 
-                                                    title="No se puede cancelar una requisición en producción">
-                                                    <i class="bi bi-ban"></i>
-                                                </button>';
+                                            // echo '<button type="button" class="btn-disabled2" 
+                                            //         title="No se puede cancelar una requisición en producción">
+                                            //         <i class="bi bi-ban"></i>
+                                            //     </button>';
+                                            if($row['barra_pendiente']==1){
+                                                echo '<button class="btn-amber btn-barras-pendientes" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalTableBarrasPendientes"
+                                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Barras pendientes de autorizar">
+                                                        <i class="bi bi-clock"></i>
+                                                    </button>';
+                                            }
                                         }else{
 
                                         }
@@ -207,10 +206,10 @@ if (!isset($_SESSION['id'])) {
                                     case "Finalizada":
                                         $estatusString = "Finalizada";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            echo '<button type="button" class="btn-disabled2" 
-                                                    title="No se puede cancelar una requisición en producción">
-                                                    <i class="bi bi-ban"></i>
-                                                </button>';
+                                            // echo '<button type="button" class="btn-disabled2" 
+                                            //         title="No se puede cancelar una requisición en producción">
+                                            //         <i class="bi bi-ban"></i>
+                                            //     </button>';
                                         }else{
 
                                         }
@@ -438,7 +437,6 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
-
 <!-- //////////////////////////MODAL ADMIN DEBE AUTORIZAR /////////////////////// -->
 <div class="modal fade" id="modalAdminAutoriza" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -505,150 +503,95 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- /////////////////////////////MODAL DETALLES DEL ESTATUS DE REQUISICION //////////////////////////////// -->
-<div class="modal fade" id="modalEstatusInfo" tabindex="-1" aria-labelledby="modalEstatusLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEstatusLabel">Detalles de los estatus de requisiciones</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <!-- boton mostrar/ocultar detalles -->
-        <div class="text-start my-3">
-            <button id="toggleDetalles" class="btn btn-outline-secondary btn-sm">
-                Ver detalles del estatus de requisiciones
-            </button>
-        </div>
-        <!-- contenedor oculto de visibilidad y tabla informativa -->
-        <div id="contenedorDetalles" class="overflow-hidden" style="max-height: 0; transition: max-height 0.6s ease;">
-            <!-- visibilidad -->
-            <div class="mb-4">
-                <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
-                <ul>
-                    <li><strong>Gerencia y dirección:</strong> pueden ver <em>todas</em> las requisiciones.</li>
-                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada.</li>
-                    <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
-                </ul>
+<!-- ///////////////////////MODAL TABLA DE BARRAS PENDIENTES POR AUTORIZAR /////////////////////// -->
+<div class="modal fade" id="modalTableBarrasPendientes" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog" style="max-width: 85% !important;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form d-flex gap-2 align-items-center"><span>Barras pendientes por autorizar. Folio de requisición: </span>                    
+                    <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
+                        <input type="hidden" name="id_requisicion">
+                        <button type="submit" class="btn btn-link p-0 border-0 text-decoration-underline fs-5"></button>
+                    </form>
+                </span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <!-- tabla informativa -->
-            <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle tabla-billets">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Estatus</th>
-                            <th>Descripción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Pendiente</td>
-                            <td>Ventas gerencia o dirección deben autorizar la requisición.</td>
-                        </tr>
-                        <tr>
-                            <td>Autorizada</td>
-                            <td>Requisición autorizada. Inventarios debe dar salida a billets.</td>
-                        </tr>
-                        <tr>
-                            <td>Producción</td>
-                            <td>El maquinado del sello está pendiente de comenzar.</td>
-                        </tr>
-                        <tr>
-                            <td>Maquinado CNC</td>
-                            <td>El sello está siendo maquinado actualmente.</td>
-                        </tr>
-                        <tr>
-                            <td>Finalizada</td>
-                            <td>El proceso de maquinado ha concluido con éxito.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- progreso de estatus -->
-        <div class="text-center mt-4 mb-4" style="font-size: 12px !important;">
-            <div id="cadenaEstatusModal" class="status-chain" style="overflow-x:auto;min-height:120px;">
-                <!-- Estatus: Pendiente -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="1"></i>
-                    <span class="label">Pendiente</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="1-2"></i>
+            <div class="modal-body">
+                <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
+                    <table id="tableBarrasPendientes" class="table table-bordered border border-2 tabla-billets mb-3" style="table-layout: fixed; width: max-content;">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">ACCIONES</th>
+                                <th style="width: 130px;">PERFIL</th>
+                                <th style="width: 160px;">MATERIAL</th>
+                                <th style="width: 280px;">CLAVE</th>
+                                <th style="width: 220px;">LOTE PEDIMENTO</th>
+                                <th style="width: 130px;">MEDIDA</th>
+                                <th style="width: 80px;">PZ TEÓRICAS</th>
+                                <th style="width: 100px;">ALTURA DE PZ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
 
-                <!-- Estatus: Autorizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="2"></i>
-                    <span class="label">Autorizada</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="2-3"></i>
-
-                <!-- Estatus: Produccion -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="3"></i>
-                    <span class="label">Producción</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="3-4"></i>
-
-                <!-- Estatus: En producción -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="4"></i>
-                    <span class="label">Maquinado CNC</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="4-5"></i>
-
-                <!-- Estatus: Finalizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="5"></i>
-                    <span class="label">Finalizada</span>
+                        </tbody>
+                    </table>
                 </div>
             </div>
+            <div class="modal-footer">
+
+            </div>
         </div>
-      </div>
-      <div class="modal-footer">
-      </div>
     </div>
-  </div>
 </div>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.getElementById('toggleDetalles');
-    const contenedor = document.getElementById('contenedorDetalles');
+<!-- ///////////////////////MODAL CONFIRMAR AUTORIZAR BARRA /////////////////////// -->
+<div class="modal fade" id="modalAutorizarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-autorizar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label-modal-autorizar-barra">Confirmar autorización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p></p>
+                <form id="formAutorizarBarra">
+                    <input type="hidden" name="id_requisicion" id="autorizarIdRequisicion" value="">
+                    <input type="hidden" name="id_control" id="autorizarIdControl" value="">
+                    <input type="hidden" name="accion" id="autorizarAccion" value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnConfirmAutorizarBarra" class="btn-auth">Si, continuar</button>
+                <button type="button" id="btnCancelAutorizarBarra" class="btn-cancel" data-bs-dismiss="modal">No, cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ///////////////////////MODAL CONFIRMAR RECHAZAR BARRA /////////////////////// -->
+<div class="modal fade" id="modalRechazarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-rechazar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label-modal-rechazar-barra">Rechazar barra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRechazarBarra">
+                    <input type="hidden" id="idRequisicionRechazo" name="id_requisicion" value="">
+                    <input type="hidden" id="inputControlRechazo" name="id_control" value="">
+                    <input type="hidden" id="inputAccionRechazo" name="accion" value="">
 
-    let abierto = false;
-
-    toggleBtn.addEventListener('click', function () {
-        if (!abierto) {
-            contenedor.style.maxHeight = contenedor.scrollHeight + "px";
-            toggleBtn.textContent = "Ver menos detalles";
-            abierto = true;
-        } else {
-            contenedor.style.maxHeight = "0";
-            toggleBtn.textContent = "Ver detalles de los estatus de requisiciones";
-            abierto = false;
-        }
-    });
-
-});  
-function pintarCadenaEstatus(estatusActual) {
-    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'En producción', 'Finalizada'];
-    const index = orden.findIndex(e => e.toLowerCase() === estatusActual.toLowerCase());
-
-    const icons = document.querySelectorAll('#cadenaEstatusModal .icon');
-    icons.forEach((icon) => {
-        const step = icon.dataset.step;
-        if (step !== undefined) {
-            const isCircle = !step.includes('-');
-            const pos = isCircle ? parseInt(step) : parseInt(step.split('-')[0]);
-            if (pos <= index) {
-                icon.classList.add('item-chain-active');
-            } else {
-                icon.classList.remove('item-chain-active');
-            }
-        }
-    });
-}
-</script>
-
-
+                    <div class="mb-3">
+                        <label for="inputRazonRechazo" class="form-label">Razón del rechazo</label>
+                        <textarea id="inputRazonRechazo" name="razon" class="form-control" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnEnviarRechazo" class="btn-general">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php include("../includes/modal_estatus_requisicion.php"); ?>
 </body>
 </html>

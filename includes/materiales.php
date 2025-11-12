@@ -280,6 +280,7 @@
         <textarea id="inputBillets_m<?= $i ?>" class="d-none" name="billets" readonly></textarea>
         <textarea id="inputBilletsLotes_m<?= $i ?>" class="d-none" name="billets_lotes" readonly></textarea>
         <textarea id="inputBilletsString_m<?= $i ?>" class="d-none" name="billets_string" readonly></textarea>
+        <textarea id="inputBilletsManualmente_m<?= $i ?>" class="d-none" name="billets_manualmente" readonly></textarea>
         <input type="hidden" value="<?php echo $selloOriginal; ?>" name="perfil_sello">
         <input type="hidden" id="seraEnviado_m<?= $i ?>" value="no">
         <input type="hidden" class="id-cotizacion" name="id_cotizacion">
@@ -314,11 +315,52 @@
                 <!-- contenedor del body -->
                 <div class="modal-body d-flex col-12 justify-content-between" style="height:400px;">
                     <div class="" style="overflow-y:auto; width:62%;">
-                        <div id="containerSimulador__m<?= $i ?>" class="d-flex flex-column mb-4 d-none">
-                            <label for="inputBuscarClave_m<?= $i ?>" class="form-label">Simular cotización</label>
-                            <div class="d-flex flex-row gap-3">
-                                <input id="inputBuscarClave_m<?= $i ?>" type="text" class="form-control" placeholder="Digita una clave" style="width:65% !important;">
-                                <button type="button" id="btnBuscarClave_m<?= $i ?>" class="btn-general">Buscar clave<i class='bi bi-search' style='color:#fff; margin-left: 5px;'></i></button>
+                        <!-- Contenedor Busqueda Manual -->
+                        <div id="containerBusquedaManual__m<?= $i ?>" class="d-flex flex-column mb-4 d-none">
+                            <div class="d-flex align-items-center mb-3">
+                                <h5 class="mb-0 fw-semibold">Buscar otros billets manualmente</h5>
+                            </div>
+                            
+                            <div class="d-flex gap-2 px-3 align-items-end">
+                                <div class="">
+                                    <label for="inputBusquedaManualDI_m<?= $i ?>" class="form-label fw-medium">
+                                        Diámetro Interior
+                                    </label>
+                                    <div class="input-group">
+                                        <input id="inputBusquedaManualDI_m<?= $i ?>" 
+                                            type="number" 
+                                            class="input-text border-start-0" 
+                                            placeholder="Ej: 45"
+                                            min="0"
+                                            step="1">
+                                    </div>
+                                </div>
+                                
+                                <div class="">
+                                    <label for="inputBusquedaManualDE_m<?= $i ?>" class="form-label fw-medium">
+                                        Diámetro Exterior
+                                    </label>
+                                    <div class="input-group">
+                                        <input id="inputBusquedaManualDE_m<?= $i ?>" 
+                                            type="number" 
+                                            class="input-text border-start-0" 
+                                            placeholder="Ej: 65"
+                                            min="0"
+                                            step="1">
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-2">
+                                    <button type="button" id="btnBuscarManualmente_m<?= $i ?>" class="btn btn-general w-100 h-100">
+                                        <i class="bi bi-search me-1"></i>Buscar
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-2 px-3">
+                                <small class="text-muted">
+                                    <i class="bi bi-info-circle me-1"></i>Al seleccionar billets con esta función se indicará a sellos maquinados que la barra no fue preferencia del sistema y fue selección manual.
+                                </small>
                             </div>
                         </div>
                         <table id="tablaBillets_m<?= $i ?>" class="table table-bordered border border-2 tabla-billets">

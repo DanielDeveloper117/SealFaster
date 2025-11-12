@@ -80,6 +80,9 @@ DeepSeek: 2 puntos - 344 lineas - los estilos se ven sencillos, no impresionan m
 pero no todos. Me gusto que al buscar se ilumina el texto de otro color.
 *Que opina de la ronda?
 
+<!-- <?php include(ROOT_PATH . 'ajax/script_migrar_fechas.php'); ?> -->
+<!-- <?php include(ROOT_PATH . 'ajax/script_fechas_vencimiento.php'); ?> -->
+
 Ahora a partir de los siguientes input de la tabla, tenemos que hacer los siguientes calculos independientes de cada registro:
 *pz_teoricas son las pz que dice cotizacion_materiales
 *altura_pz desde a_sello
@@ -163,5 +166,151 @@ WHERE
     ca.lote_pedimento IS NOT NULL 
     AND ca.lote_pedimento != ''
     AND ic.lote_pedimento IS NOT NULL;
-    
+
+en el siguiente script se necesita primero consultar a la tabla control_almacen y con base a su resultado tomar caminos 
+diferentes al consultar datos, llegando a la misma respuesta. Con el id_requisicion, vamos a consultar primeramente a 
+control_almacen, si existen registros coincidentes en control_almacen que tenga el id_requisicion vamos a responder con esos 
+datos siendo con un select * para traer toda la informacion del/los registro/s. Si no hay ningun registro en control_almacen 
+entonces va a consultar a cotizacion_materiales como lo hace normalmente, despues esos datos resultantes los va a insertar 
+a control_almacen y por ultimo consultara los registros ya insertados a control_almacen. Como puede observar los datos siempre deben 
+llegar desde control_almacen y es estricto que no halla duplicados.
+
++Contexto:
+En la siguiente solicitud ajax observamos que el usuario solicita un remplazo de barra/billet. Lo que hay que desarrollar ahora, 
+es el script backend de la solicitud. Necesitamos que consulte el inventario_cnc y vamos a consultar donde el lote_pedimento sea barra_a
+y tambien donde lote_pedimento sea barra_b, como puede ver, son dos barras, se solicitara una autorizacion para remplazar la barra_a 
+por la barra_b. Entonces tomamos el registro proveniente de inventario_cnc de la barra_b, y vamos a actualizar los campos de control_almacen,
+desde inventario_cnc, tomar; inventario_cnc_b.clave, inventario_cnc_b.lote_pedimento, inventario_cnc_b.medida y actualizar control_almacen con esos datos las columnas; clave_remplazo, 
+lp_remplazo, medida_remplazo y justificacion_remplazo va a ser justificacion_remplazo recibido con post desde el frontend.
+Por ultimo elaborara el envio de correo a direccion comercial con la estructura backend solicitada, con el asunto y cuerpo solicitado 
+a continuacion. La forma de respuesta sera mensajes de exito, advertencia o error. Para los mensajes de advertencia al frontend 
+en el modal y en el elemento pValidacionSolicitarRemplazo definiremos una serie de validaciones antes de proceder con actualizacion 
+y envio de correo. 
++Validaciones:
+*ambas barras tienen que existir en inventario_cnc (si alguna no existe mostrar mensaje de la barra con lote pedimento X no existe 
+en el inventario).
+*inventario_cnc_a.material tiene que ser el mismo que inventario_cnc_b.material (si ocurre esto, mostrar los marteriales de ambas barras 
+y decir que los materiales deben de ser los mismos).
+*la barra_b tiene que tener un estatus = "Disponible para cotizar", es decir inventario_cnc_b.estatus == "Disponible para cotizar" (cuando 
+ocurra esta situacion, mostrar el estatus actual de la barra y decir que la barra tiene que estar disponible para cotizar).
+*Todos los campos recibidos con post, deben ser obligatosios (si falta uno o no tiene nada responder con que campo falta). 
+*El estatus de la requisicion debe ser "Producción" o "En producción" desde requisiciones.estatus donde id_requisicion es el recibido.
+*La justificacion tiene que tener al menos 10 caracteres (si no se cumple responder con que la justificacion debe tener minimo 10 caracteres).
++Variables importantes y elaboracion de correo:
+inventario_cnc_a = la consulta desde inventario_cnc de barra_a
+inventario_cnc_b = la consulta desde inventario_cnc de barra_b
+barraCompletaA = inventario_cnc_a.clave inventario_cnc_a.lote_pedimento (inventario_cnc_a.medida)
+barraCompletaB = inventario_cnc_b.clave inventario_cnc_b.lote_pedimento (inventario_cnc_b.medida)
+asunto: Solicitud de remplazo de barra. Folio: id_requisicion
+cuerpo: Inventarios ha solicitado la autorizacion de un remplazo de barra para la requisición de maquinado con folio: id_requisicion.
+Ingrese al sistema en el modulo de Produccion CNC para autorizar.
+La barra: barraCompletaA
+Solicita ser remplazada por: barraCompletaB
+Justificacion de remplazo de barra:
+justificacion_remplazo
++Codigo base:
+
+Ahora necesitamos un nuevo script para consultar mediante el id_requisicion, algunos registros coincidentes desde control_almacen.
+Vas a consultar todos los registros (*) de control_almacen donde sea id_requisicion la id_requisicion recibida en get.
+Despues, para cada registro vas a decidir su "situacion", si en el registro existe algo en lp_remplazo quiere decir que la 
+situacion es "remplazo", de lo contrario vas a determinar mediante la columna "es_extra" (tynint) si la situacion es "extra", es 
+decir si es_extra = 1, entonces la situacion es "extra". De modo que esas dos condicionales son las que determinen cuales registros 
+son los que se incluiran a la respuesta. Si no cumplen con esas condicionales no son parte de los registros coincidentes.
+Si tienes mejoras para la funcion javascript puedes proponerlas.
+
+desarrollar el script perteneciente a la solicitud ajax implementando las siguientes acciones del backend. 
+Vas a tomar el valor de accion y dependiendo del valor ejecutar procesos diferentes. 
+Para el valor "remplazo": vas a tomar el id_control y despues vas a actualizar el campo es_remplazo_auth a 1 tynint. 
+Para el valor "extra": vas a tomar el id_control y despues vas a actualizar el campo es_extra_auth a 1 tynint.
+Por ultimo para ambos casos vas a consultar mediante id_requisicion todos los registros coincidentes 
+desde control_almacen y vas a verificar si alguno de ellos tiene algun registro donde es_remplazo = 1 y 
+es_remplazo_auth = 0, o donde es_extra = 1 y es_extra_auth = 0, si no hay ningun registro con estas dos 
+caracteristicas actualizar el campo barra_pendiente a 0 tynint desde requisiciones donde el id_requisicion es 
+igual al id_requisicion recibido en post, eso quiere decir que ya no hay pendientes, si si hay registros 
+coincidentes con alguna de las dos caracteristicas no hacer nada y se queda en barra_pendiente = 1.
+Validaciones: 
+*todos los campos enviados al script son obligatorios.
+*debe existir id_requisicion e id_control
+*si alguno de los dos campos; es_remplazo_auth ya era 1 o es_extra_auth ya era 1, obviamente dependiendo el caso 
+si es extra o remplazo responder con esta barra ya estaba autorizada.
+*Si ya no hay registros pendientes, responder con ya no hay barras pendientes por autorizar para esta requisicion
+
+Desarrollar el backend script de la siguiente solicitud de manera que cumpla con las caracteristicas dadas. 
+Vas a agregar el nuevo registro al control_almacen con los campos recibidos obligatorios. Tomar el lote_pedimento recibido 
+y consultar a inventario_cnc para extraer y validar la existencia del registro, si el registro existe en inventario_cnc
+entonces continuar la insercion de los valores a control_almacen:
+control_almacen.material = inventario_cnc.material
+control_almacen.clave = inventario_cnc.Clave
+control_almacen.medida = inventario_cnc.Medida
+control_almacen.id_requisicion = post.id_requisicion
+control_almacen.perfil = post.perfil
+control_almacen.pz_teoricas = post.pz_teoricas
+control_almacen.altura_pz = post.altura_pz
+control_almacen.justificacion_extra = post.justificacion_extra
+control_almacen.es_extra = 1
+control_almacen.fecha_registro = now
+Despues actualizar el estatus de la barra a "En uso" desde inventario_cnc donde el lote_pedimento = post.lote_pedimento
+Luego actualizar el campo barra_pendiente = 1 desde la tabla requisiciones donde id_requisicion = post.id_requisicion
+Por ultimo prepara el envio de un correo con las siguientes caracteristicas:
+barraCompleta = $inventario_cnc['Clave'] . " " . $inventario_cnc['lote_pedimento'] . " (" . $inventario_cnc['Medida'] . ")";
+asunto: "Solicitud de barra extra. Folio: " . $id_requisicion
+cuerpo = Inventarios ha solicitado la autorización de barra extra para la requisición de maquinado con folio: " . $id_requisicion . "
+Ingrese al sistema en el módulo de Requisiciones para autorizar.
+Barra: barraCompleta
+Justificación:
+justificacion_extra;
+*Validaciones:
+-todos los campos post son obligatorios.
+-debe existir el lote_pedimento en inventario_cnc y su estatus debe ser "Disponible para cotizar"
+-pz_teoricas debe ser mayor a 0
+-altura_pz debe ser mayor a 0
+-la justificacion debe tener almenos 10 caracteres
+-todas las consultas deben ser exitosas para que la respuesta sea exitosa, si falla el envio de correo no detiene la respuesta 
+exitosa, solo decile al usuairo que todo salio bien pero el correo no (en dado caso)
+
+Desarrollar un script el cual su finalidad es rechazar una barra y dependiendo de la accion, va a hacer acciones diferentes.
+*Para ambos casos el estatus del lote_pedimento (desde control_almacen con id_control extraer el lote_pedimento en caso de 
+que la accion sea "extra" o lp_remplazo en caso que la accion sea "remplazo" y consultar a inventario_cnc para actualizar 
+el estatus) que era de remplazo/extra lo actualizaras a 
+"Disponible para cotizar", luego vas a consultar mediante id_requisicion todos los registros coincidentes 
+desde control_almacen y vas a verificar si alguno de ellos tiene algun registro donde es_remplazo = 1 y 
+es_remplazo_auth = 0, o donde es_extra = 1 y es_extra_auth = 0, si no hay ningun registro con estas dos 
+caracteristicas actualizar el campo barra_pendiente a 0 tynint desde requisiciones donde el id_requisicion es 
+igual al id_requisicion recibido en post, eso quiere decir que ya no hay pendientes, si si hay registros 
+coincidentes con alguna de las dos caracteristicas no hacer nada y se queda en barra_pendiente = 1.
+*Si accion = "remplazo": vas a actualizar a null los campos clave_remplazo, lp_remplazo y medida_remplazo, y el campo es_remplazo 
+lo actualizaras a 0. 
+*si la accion es "extra": vas a eliminar el registro de control_almacen con el id_control.
+Por ultimo prepara el envio de un correo parecido a la estructura de correo que hemos estado aplicando pero con la diferencia 
+en que ahora el contexto es que se rechazo la barra y colocando la razon del rechazo recibido en post.
+*Validaciones:
+-todos los campos post son obligatorios.
+-la razon debe tener almenos 10 caracteres
+-el lote_pedimento a actualizar de inventario_cnc debe existir
+-todas las consultas deben ser exitosas para que la respuesta sea exitosa, si falla el envio de correo no detiene la respuesta 
+exitosa, solo decirle al usuairo que todo salio bien pero el correo no (en dado caso)
+
 SELECT * FROM `inventario_cnc` WHERE estatus ="Eliminado" ORDER BY deleted_at DESC;
+
+-igualar control_almacen
+-igualar requisiciones
+-ejecutar las consultas de actualizacion
+-subir cambios en los archivos
+
+SELECT id, clave, lote_pedimento
+FROM inventario_cnc
+WHERE clave LIKE '% %' OR lote_pedimento LIKE '% %';
+
+UPDATE inventario_cnc
+SET 
+  clave = REPLACE(TRIM(clave), ' ', ''),
+  lote_pedimento = REPLACE(TRIM(lote_pedimento), ' ', '');
+
+
+SELECT id, clave
+FROM parametros
+WHERE clave LIKE '% %';
+
+UPDATE parametros
+SET 
+  clave = REPLACE(TRIM(clave), ' ', '');

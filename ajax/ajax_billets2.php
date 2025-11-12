@@ -10,22 +10,23 @@ try{
         $altura_mm = $_POST['altura_mm'];
         $diametro_interior_mm = $_POST['diametro_interior_mm'];
         $diametro_exterior_mm = $_POST['diametro_exterior_mm'];
+        
         // Verificar si 'arreglo_excluir' existe y es un array
         $arreglo_excluir = isset($_POST['arreglo_excluir']) ? $_POST['arreglo_excluir'] : [];
         if (!is_array($arreglo_excluir)) {
             $arreglo_excluir = [];
         }
 
-        // Base de la consulta
+        // Base de la consulta - SIN proveedor
         $sql = "
             SELECT * FROM inventario_cnc 
             WHERE material = :material 
             AND pre_stock >= :pre_stock 
             AND interior <= :interior 
             AND exterior >= :exterior 
-            AND (estatus = 'Disponible para cotizar' OR estatus = 'En uso')
+            AND estatus = 'Disponible para cotizar'
         ";
-
+        
         // Solo agregar condiciones de exclusión si el arreglo no está vacío
         if (!empty($arreglo_excluir)) {
             $excluir_params = [];
@@ -44,11 +45,11 @@ try{
 
         $stmt = $conn->prepare($sql);
 
-        // Asignar valores a los parámetros
-        $stmt->bindParam(':material', $material);
-        $stmt->bindParam(':pre_stock', $altura_mm);
-        $stmt->bindParam(':interior', $diametro_interior_mm);
-        $stmt->bindParam(':exterior', $diametro_exterior_mm);
+        // Asignar valores a los parámetros (sin proveedor)
+        $stmt->bindValue(':material', $material);
+        $stmt->bindValue(':pre_stock', $altura_mm);
+        $stmt->bindValue(':interior', $diametro_interior_mm);
+        $stmt->bindValue(':exterior', $diametro_exterior_mm);
 
         // Si hay valores para excluir, los asignamos
         if (!empty($arreglo_excluir)) {
@@ -64,10 +65,11 @@ try{
 
         // Devolver los resultados en formato JSON
         echo json_encode($billets);
+    } else {
+        echo json_encode(['error' => 'Parámetro material requerido']);
     }
 } catch(PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 } finally {
     $conn = null; // Cerrar la conexión
 }
-?>

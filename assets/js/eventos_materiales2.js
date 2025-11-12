@@ -17,6 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`] = [];
                 window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                 window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
+                window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                 let precioBarra = 0.00;
 
 
@@ -35,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     $(`#inputClaves_m${i}`).val(``);
                     $(`#inputBillets_m${i}`).val(``);
                     $(`#inputBilletsString_m${i}`).val(``);
+                    $(`#inputBilletsManualmente_m${i}`).val(``);
                     window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`] = [];
                 };
                 // reiniciar arreglos, milimetros/sellos necesarios, precio de barras, seleccion de billets y limpiar UI
@@ -304,6 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     window[`billetsSeleccionados_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
                 
@@ -423,6 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     window[`billetsSeleccionados_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
 
@@ -444,22 +448,22 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     console.log(`Aplicando calculos al Material _m${i}`);
                     if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                        window.DI_DESPERDICIO_DEFAULT = 1.00;
-                        window.DE_DESPERDICIO_DEFAULT = 1.00;
+                        window.DI_TOLERANCIA_DEFAULT = 1.00;
+                        window.DE_TOLERANCIA_DEFAULT = 1.00;
                     }else{
-                        window.DI_DESPERDICIO_DEFAULT = 3.00;
-                        window.DE_DESPERDICIO_DEFAULT = 1.00;
+                        window.DI_TOLERANCIA_DEFAULT = 3.00;
+                        window.DE_TOLERANCIA_DEFAULT = 1.00;
                     }
-                    console.log(`Desperdicio default DI = `, window.DI_DESPERDICIO_DEFAULT);
-                    console.log(`Desperdicio default DE = `, window.DE_DESPERDICIO_DEFAULT);    
+                    console.log(`Desperdicio default DI = `, window.DI_TOLERANCIA_DEFAULT);
+                    console.log(`Desperdicio default DE = `, window.DE_TOLERANCIA_DEFAULT);    
 
-                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_DESPERDICIO_DEFAULT))).toFixed(2);
+                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_TOLERANCIA_DEFAULT))).toFixed(2);
                     
                     if(dInteriorNecesario >= dInteriorSeleccionado){
                         dInteriorNecesario = 0.00;
                     }
 
-                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_DESPERDICIO_DEFAULT))).toFixed(2);
+                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_TOLERANCIA_DEFAULT))).toFixed(2);
 
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
                     $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);
@@ -581,6 +585,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
+                                                                data-manualmente="0"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
 
                                                             <button type="button" class="btn-general btn-circulo-billet_m${i}" 
@@ -624,6 +629,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-interior="${item.interior}"
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
+                                                                data-manualmente="0"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
 
                                                             <button type="button" class="btn-general btn-circulo-billet_m${i}" 
@@ -698,14 +704,14 @@ document.addEventListener("DOMContentLoaded", function () {
                                             $(this).text(`Mas billets de ${clave} (${contadorClaves[clave]-1})`);
                                         }
                                     });
-                                    $(`#containerSimulador__m${i}`).addClass(`d-none`);
+                                    $(`#containerBusquedaManual__m${i}`).addClass(`d-none`);
 
                                 } else {
                                     $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (0 resultados)`);
                                     $(`#tablaBillets_m${i} tbody`).append(
                                         '<tr><td colspan="6">No se encontraron billets coincidentes</td></tr>'
                                     );
-                                    $(`#containerSimulador__m${i}`).removeClass(`d-none`);
+                                    $(`#containerBusquedaManual__m${i}`).removeClass(`d-none`);
                                    
                                 }
 
@@ -719,47 +725,32 @@ document.addEventListener("DOMContentLoaded", function () {
                         });
                     }
                 });
-                // CUANDO EL USUARIO BUSCA UNA CLAVE PARA SIMULAR COTIZACION
-                $(`#btnBuscarClave_m${i}`).on(`click`, function() {
-                    let claveSimulacion = $(`#inputBuscarClave_m${i}`).val();
+                // CUANDO EL USUARIO BUSCA MANUALMENTE LAS BARRAS
+                $(`#btnBuscarManualmente_m${i}`).on(`click`, function() {
+                    let materialSeleccionado = $(`#selectorMaterial_m${i}`).val();
+                    let inputDI = $(`#inputBusquedaManualDI_m${i}`).val();
+                    let inputDE = $(`#inputBusquedaManualDE_m${i}`).val();
                     let alturaSeleccionada = parseFloat($(`#altura_mm_m${i}`).val());
                     alturaSeleccionada = parseFloat(alturaSeleccionada);
-                    let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
-                    let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
+                    let dInteriorSeleccionado = parseFloat(inputDI); // Usar los valores exactos de los inputs
+                    let dExteriorSeleccionado = parseFloat(inputDE); // Usar los valores exactos de los inputs
                     let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
-                    let dInteriorNecesario = 0.00;
-                    let dExteriorNecesario = 0.00;
 
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                        window.DI_DESPERDICIO_DEFAULT = 1.00;
-                        window.DE_DESPERDICIO_DEFAULT = 1.00;
-                    }else{
-                        window.DI_DESPERDICIO_DEFAULT = 3.00;
-                        window.DE_DESPERDICIO_DEFAULT = 1.00;
-                    }
-                    console.log(`Desperdicio default DI = `, window.DI_DESPERDICIO_DEFAULT);
-                    console.log(`Desperdicio default DE = `, window.DE_DESPERDICIO_DEFAULT);    
-
-                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_DESPERDICIO_DEFAULT))).toFixed(2);
                     
-                    if(dInteriorNecesario >= dInteriorSeleccionado){
-                        dInteriorNecesario = 0.00;
-                    }
-
-                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_DESPERDICIO_DEFAULT))).toFixed(2);
-
+                    // Mostrar las medidas exactas ingresadas por el usuario
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
                     $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);
                     $(`#spanDeCliente_m${i}`).text(dExteriorSeleccionado);
                     $(`#spanAlturaNecesario_m${i}`).text(alturaNecesario);
                     console.log(`Altura con desbaste dureza y desperdicio por agarre cnc: `, alturaNecesario);
                     
-                    $(`#spanDiNecesario_m${i}`).text(dInteriorNecesario);
-                    $(`#spanDeNecesario_m${i}`).text(dExteriorNecesario);
+                    // Para la búsqueda, usar las medidas exactas (sin tolerancias)
+                    $(`#spanDiNecesario_m${i}`).text(dInteriorSeleccionado);
+                    $(`#spanDeNecesario_m${i}`).text(dExteriorSeleccionado);
 
-                    console.log(`DI necesario calculado = `, dInteriorNecesario);
-                    console.log(`DE necesario calculado = `, dExteriorNecesario);
+                    console.log(`DI exacto para búsqueda = `, dInteriorSeleccionado);
+                    console.log(`DE exacto para búsqueda = `, dExteriorSeleccionado);
 
                     $(`#spanPorcentAprov_m${i}`).text(`0.00`);
 
@@ -767,14 +758,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     console.log(`Excluir billets en la consulta: `, window.billetsSeleccionados);
 
-                    if (claveSimulacion) {
+                    // Validar que los campos requeridos estén completos
+                    if (inputDI && inputDE && materialSeleccionado) {
                         // Realizar la llamada AJAX para obtener los billets filtrados
                         $.ajax({
-                            url: '../ajax/clave_simulacion.php', 
+                            url: '../ajax/busqueda_billets_manualmente.php', 
                             type: 'GET',
                             data: { 
-                                clave: claveSimulacion,
+                                diametro_interior: dInteriorSeleccionado, // Enviar valores exactos
+                                diametro_exterior: dExteriorSeleccionado, // Enviar valores exactos
+                                material: materialSeleccionado,
                                 stock: alturaNecesario,
+                                excluir_billets: window.billetsSeleccionados.join(',')
                             },
                             dataType: 'json',
                             success: function(data) {
@@ -783,7 +778,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 // Verifica que la respuesta tenga datos
                                 if (data.length > 0) {
 
-                                    $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (${data.length} resultados)`);
+                                    $(`#titleClavesCoincidentes_m${i}`).text(`Billets coincidentes en inventario CNC (${data.length} resultados)`);
 
                                     let clavesUnicas = {}; // Almacena las claves ya insertadas
                                     let contadorClaves = {}; // Contador de repeticiones de Clave
@@ -836,19 +831,11 @@ document.addEventListener("DOMContentLoaded", function () {
                                         let dataDEResultante = parseFloat(dExteriorSeleccionado);
                                         let dataDIResultante = parseFloat(dInteriorSeleccionado);
                                         let dataDIBillet = parseFloat(item.interior);
-                                        let porcentValid = "";
-
-                                        function calcularRadio(valor) {
-                                            return (valor / dataDEBillet) * 50;
-                                        }
-
-                                        // Recuperamos el porcentaje calculado previamente
-                                        let porcentajeAprovechamiento = item.porcentajeAprovechamiento;
-                                        if(porcentajeAprovechamiento < 0 || porcentajeAprovechamiento > 100){
-                                            porcentajeAprovechamiento = 0.00;
-                                            porcentValid = "d-none";
-                                        }
-                                        console.log("el porcentaje2 es: ",porcentValid);
+                                        
+                                        // Determinar si mostrar u ocultar el botón de selección
+                                        let mostrarBoton = item.estatus === 'Disponible para cotizar';
+                                        let claseBoton = mostrarBoton ? '' : 'd-none';
+                                        let claseEstatus = mostrarBoton ? 'text-success fw-bold' : 'text-danger fw-bold';
 
                                         // Si la clave no ha sido insertada aún, la agrega
                                         if (!clavesUnicas[item.Clave]) {
@@ -856,7 +843,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 `<tr id="fila_${cleanAttrId(item.Clave)}_m${i}" style="border-top:3px solid #95D2B3 !important;">
                                                     <td>
                                                         <div class="d-flex gap-2">
-                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i} ${claseBoton}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
                                                                 data-altura="${item.pre_stock}"
@@ -864,28 +851,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
                                                                 data-proveedor="${item.proveedor}"
+                                                                data-manualmente="1"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
-
-                                                            <button type="button" class="btn-general btn-circulo-billet_m${i} ${porcentValid}" 
-                                                                title="Ver representacion de porcentaje de aprovechamiento"
-                                                                data-altura-resultante="${alturaSeleccionada}"
-                                                                data-di-resultante="${dInteriorSeleccionado}"
-                                                                data-de-resultante="${dExteriorSeleccionado}"
-
-                                                                data-altura-necesario="${alturaNecesario}"
-                                                                data-di-necesario="${dInteriorNecesario}"
-                                                                data-de-necesario="${dExteriorNecesario}"
-
-                                                                data-di-billet="${item.interior}"
-                                                                data-de-billet="${item.exterior}"
-                                                            ><div class="d-flex justify-content-center align-items-center"><i class="icon-item bi bi-vinyl"></i><i class="bi bi-percent"></i></div></button>
                                                         </div>
                                                     </td>
                                                     <td>${item.Clave}</td>
-                                                    <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
-                                                    <td >${dataStockBillet}</td>
-                                                    <td >${item.estatus}</td>
-                                                    <td >${cabenEnBillet}</td>
+                                                    <td>${item.porcentajeAprovechamiento.toFixed(2)}%</td>
+                                                    <td>${dataStockBillet}</td>
+                                                    <td class="${claseEstatus}">${item.estatus}</td>
+                                                    <td>${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
                                                 </tr>`
@@ -899,7 +873,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 `<tr class="fila-repetida" data-clave="${item.Clave}" style="display:none;">
                                                     <td>
                                                         <div class="d-flex gap-2">
-                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i} ${claseBoton}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
                                                                 data-altura="${item.pre_stock}"
@@ -907,28 +881,15 @@ document.addEventListener("DOMContentLoaded", function () {
                                                                 data-exterior="${item.exterior}"
                                                                 data-lote="${item.lote_pedimento}"
                                                                 data-proveedor="${item.proveedor}"
+                                                                data-manualmente="1"
                                                             ><i class="icon-item bi bi-check2-square"></i></button>
-
-                                                            <button type="button" class="btn-general btn-circulo-billet_m${i} ${porcentValid}"" 
-                                                                title="Ver representacion de porcentaje de desperdicio"
-                                                                data-altura-resultante="${alturaSeleccionada}"
-                                                                data-di-resultante="${dInteriorSeleccionado}"
-                                                                data-de-resultante="${dExteriorSeleccionado}"
-
-                                                                data-altura-necesario="${alturaNecesario}"
-                                                                data-di-necesario="${dInteriorNecesario}"
-                                                                data-de-necesario="${dExteriorNecesario}"
-
-                                                                data-di-billet="${item.interior}"
-                                                                data-de-billet="${item.exterior}"
-                                                            ><div class="d-flex justify-content-center align-items-center"><i class="icon-item bi bi-vinyl"></i><i class="bi bi-percent"></i></div></button>
                                                         </div>
                                                     </td>
                                                     <td>${item.Clave}</td>
-                                                    <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
-                                                    <td >${dataStockBillet}</td>
-                                                    <td >${item.estatus}</td>
-                                                    <td >${cabenEnBillet}</td>
+                                                    <td>${item.porcentajeAprovechamiento.toFixed(2)}%</td>
+                                                    <td>${dataStockBillet}</td>
+                                                    <td class="${claseEstatus}">${item.estatus}</td>
+                                                    <td>${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>
                                                 </tr>`
@@ -983,9 +944,9 @@ document.addEventListener("DOMContentLoaded", function () {
                                     });
 
                                 } else {
-                                    $(`#titleClavesCoincidentes_m${i}`).text(`Claves coincidentes en inventario CNC (0 resultados)`);
+                                    $(`#titleClavesCoincidentes_m${i}`).text(`Billets coincidentes en inventario CNC (0 resultados)`);
                                     $(`#tablaBillets_m${i} tbody`).append(
-                                        '<tr><td colspan="6">No se encontraron billets coincidentes</td></tr>'
+                                        '<tr><td colspan="8">No se encontraron billets coincidentes</td></tr>'
                                     );
                                 }
 
@@ -994,11 +955,19 @@ document.addEventListener("DOMContentLoaded", function () {
                             },
                             error: function() {
                                 console.error('Error al realizar la petición AJAX');
-                                $(`#tablaBillets_m${i} tbody`).append('<tr><td colspan="4">Error en ajax</td></tr>');
+                                $(`#tablaBillets_m${i} tbody`).append('<tr><td colspan="8">Error en la consulta de billets</td></tr>');
                             }
                         });
+                    } else {
+                        // Mostrar mensaje de error si faltan campos
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Campos incompletos',
+                            text: 'Por favor, complete todos los campos requeridos para la busqueda manual de billets.',
+                            confirmButtonColor: '#55AD9B'
+                        });
                     }
-                });             
+                });      
                 // SELECCIONAR BILLET DE TABLA BILLETS, CALCULO PB y OBTENER MULTIPLO DE UTILIDAD
                 $(`#tablaBillets_m${i}`).on('click', `.btn-seleccionar-billet_m${i}`, function() {
                     let cabenEnBillet;
@@ -1008,6 +977,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let dataInterior = $(this).attr(`data-interior`);
                     let dataExterior = $(this).attr(`data-exterior`);
                     let lotePedimentoSeleccionado = $(this).attr(`data-lote`);
+                    let esBilletSeleccionadoManualmente = $(this).attr(`data-manualmente`) || "0";
 
                     let clavesAnterior = $(`#inputClaves_m${i}`).val() || "";
                     let billetsAnterior = $(`#inputBillets_m${i}`).val() || ""; 
@@ -1141,12 +1111,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         window[`billetsSeleccionados_m${i}`].push(lotePedimentoSeleccionado);
                         window[`BILLETS_SELECCIONADOS_LOTES_m${i}`].push(billetInfoStringLote);
                         window[`BILLETS_SELECCIONADOS_STRING_m${i}`].push(billetInfoString);
+                        if(esBilletSeleccionadoManualmente === "1"){
+                            window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`].push(lotePedimentoSeleccionado);
+                        }
 
                         $(`#precioBarra_m${i}`).val(window[`PRECIO_BARRAS_m${i}`].toFixed(2));
 
                         console.log(`Billets seleccionados_m${i} son: `, window[`billetsSeleccionados_m${i}`]);
                         console.log(`Billets Lotes string m${i} son: `, window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                         console.log(`Billets string m${i} son: `, window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
+                        console.log(`Billets manualmente m${i} son: `, window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`]);
                     }).fail(function () {
                         alert(`Hubo un error al obtener los datos.`);
                         console.error(`Error en una de las solicitudes AJAX.`);
@@ -1254,6 +1228,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     window[`billetsSeleccionados_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
 
@@ -1537,6 +1512,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     $(`#btnNoListo_m${i}`).addClass(`d-block`);
                     $(`#inputBilletsLotes_m${i}`).val(window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                     $(`#inputBilletsString_m${i}`).val(window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
+                    $(`#inputBilletsManualmente_m${i}`).val(window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`]);
                     console.log("Los Lotes strings del material son: ", window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                 });
                 // CUANDO SE HABILITA LA EDICION

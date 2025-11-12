@@ -13,8 +13,8 @@ $(document).ready(function() {
     window.conEscalon = "0";
     window.esWisperEspecial = "0";
 
-    window.DI_DESPERDICIO_DEFAULT = 3.00;
-    window.DE_DESPERDICIO_DEFAULT = 1.00;
+    window.DI_TOLERANCIA_DEFAULT = 3.00;
+    window.DE_TOLERANCIA_DEFAULT = 1.00;
 
     window.multiploResorte = 1.00;
     window.billetsSeleccionados = [];
@@ -927,11 +927,11 @@ $(document).ready(function() {
             console.log("suma", H2MasH3);
         }
         if (parseFloat(DI_R) == 0.00){
-            window.DI_DESPERDICIO_DEFAULT = 0.00;
-            window.DE_DESPERDICIO_DEFAULT = 0.00;
+            window.DI_TOLERANCIA_DEFAULT = 0.00;
+            window.DE_TOLERANCIA_DEFAULT = 0.00;
         }else{
-            window.DI_DESPERDICIO_DEFAULT = 3.00;
-            window.DE_DESPERDICIO_DEFAULT = 1.00;
+            window.DI_TOLERANCIA_DEFAULT = 3.00;
+            window.DE_TOLERANCIA_DEFAULT = 1.00;
         }
         // ************************************************************************
         // ******** si las dimensiones son validas
@@ -1140,8 +1140,8 @@ $(document).ready(function() {
 
             $(".familia-perfil").val(window.FAMILIA_PERFIL);
 
-            console.log("Desperdicio DI: ", window.DI_DESPERDICIO_DEFAULT);
-            console.log("Desperdicio DE: ", window.DE_DESPERDICIO_DEFAULT);
+            console.log("Desperdicio DI: ", window.DI_TOLERANCIA_DEFAULT);
+            console.log("Desperdicio DE: ", window.DE_TOLERANCIA_DEFAULT);
 
             if(window.CON_LABIO_DI !== "0"){
                 console.log("Si tiene labio en el DI en el material: ", window.CON_LABIO_DI);

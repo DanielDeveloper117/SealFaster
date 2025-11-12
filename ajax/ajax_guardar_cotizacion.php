@@ -27,6 +27,7 @@ try {
         $billets = $_POST['billets'];
         $billets_lotes = $_POST['billets_lotes'];
         $billets_string = $_POST['billets_string'];
+        $billets_manualmente = $_POST['billets_manualmente'];
         $tipo_medida = $_POST['tipo_medida'];
         $altura = $_POST['altura_mm'];
         $altura_caja = $_POST['altura_caja_mm'];
@@ -106,7 +107,7 @@ try {
         // --------------------------
         $arrClaves = array_map('trim', explode(',', $billets));
         $arrStrings = array_map('trim', explode(',', $billets_string));
-
+        
         $minLen = min(count($arrClaves), count($arrStrings));
         $billets_claves_lotes_arr = [];
 
@@ -115,12 +116,20 @@ try {
         }
 
         $billets_claves_lotes = implode(',', $billets_claves_lotes_arr);
+        
+        $billets_manualmente_formated = isset($_POST['billets_manualmente']) && $_POST['billets_manualmente'] !== ''
+            ? array_map('trim', explode(',', $_POST['billets_manualmente']))
+            : [];
+
+        $billets_manualmente_string = is_array($billets_manualmente_formated)
+            ? implode(',', $billets_manualmente_formated)
+            : $billets_manualmente_formated;
 
         // Preparar la consulta SQL para insertar los datos
         $stmt = $conn->prepare("
             INSERT INTO cotizacion_materiales (
                 id_cotizacion, id_usuario, familia_perfil, perfil_sello, cantidad_material, material, proveedor, 
-                claves, billets, billets_lotes, billets_claves_lotes, billets_string, billets_string2, tipo_medida, 
+                claves, billets, billets_lotes, billets_claves_lotes, billets_string, billets_string2, billets_manualmente, tipo_medida, 
                 altura, altura_caja, altura_escalon, altura_h2, altura_h3, 
                 diametro_int, diametro_ext, 
                 a_sello, tipo_medida_h, di_sello, tipo_medida_di, de_sello, tipo_medida_de, cantidad, 
@@ -131,7 +140,7 @@ try {
                 ) 
             VALUES (
                 :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
-                :claves, :billets, :billets_lotes, :billets_claves_lotes, :billets_string, :billets_string2, :tipo_medida, 
+                :claves, :billets, :billets_lotes, :billets_claves_lotes, :billets_string, :billets_string2, :billets_manualmente, :tipo_medida, 
                 :altura, :altura_caja, :altura_escalon, :altura_h2, :altura_h3, 
                 :diametro_int, :diametro_ext, 
                 :a_sello, :tipo_medida_h, :di_sello, :tipo_medida_di, :de_sello, :tipo_medida_de, :cantidad, 
@@ -163,6 +172,7 @@ try {
         $stmt->bindParam(':billets_claves_lotes', $billets_claves_lotes);
         $stmt->bindParam(':billets_string', $billets_string);
         $stmt->bindParam(':billets_string2', $billets_string2);
+        $stmt->bindParam(':billets_manualmente', $billets_manualmente_string);
         $stmt->bindParam(':tipo_medida', $tipo_medida);
         $stmt->bindParam(':altura', $altura);
         $stmt->bindParam(':altura_caja', $altura_caja);

@@ -396,15 +396,15 @@
     }
     include(ROOT_PATH . 'includes/backend_info_user.php');
     if($tipo_usuario == "Administrador"){
-        $sqlRequisiciones = "SELECT * FROM requisiciones ORDER BY id_requisicion DESC";
+        $sqlRequisiciones = "SELECT * FROM requisiciones ORDER BY id_requisicion DESC LIMIT 100";
         $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
         
     }else if($tipo_usuario == "Vendedor" && $rol_usuario=="Gerente"){
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE sucursal = :area ORDER BY id_requisicion DESC";
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE sucursal = :area ORDER BY id_requisicion DESC LIMIT 100";
         $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
         $stmtRequisiciones->bindParam(':area', $areaUser);
     }else{
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE id_vendedor = :id ORDER BY fecha_insercion DESC";
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE id_vendedor = :id ORDER BY fecha_insercion DESC LIMIT 100";
         $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
         $stmtRequisiciones->bindParam(':id', $_SESSION['id']);
     }

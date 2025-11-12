@@ -16,52 +16,53 @@ try {
         throw new ErrorException($message, 0, $severity, $file, $line);
     });
 
-    // Validar acción permitida
     $acciones_validas = ['insert', 'update', 'delete', 'insert2'];
     if (!in_array($action, $acciones_validas)) {
         throw new Exception("Acción no válida.");
     }
 
-    $clave = trim($_POST['clave'] ?? '');
-    $medida = trim($_POST['medida'] ?? '');
-    $proveedor = trim($_POST['proveedor'] ?? '');
-    $material = trim($_POST['material'] ?? '');
-    $max_usable = trim($_POST['max_usable'] ?? '');
-    $stock = trim($_POST['stock'] ?? '');
+    $clave          = trim($_POST['clave'] ?? '');
+    $medida         = trim($_POST['medida'] ?? '');
+    $proveedor      = trim($_POST['proveedor'] ?? '');
+    $material       = trim($_POST['material'] ?? ''); 
+    $max_usable     = trim($_POST['max_usable'] ?? '');
+    $stock          = trim($_POST['stock'] ?? '');
     $lote_pedimento = trim($_POST['lote_pedimento'] ?? '');
-    $estatus = trim($_POST['estatus'] ?? '');
+    $estatus        = trim($_POST['estatus'] ?? '');
 
-    if($action != 'delete'){
+    if ($action !== 'delete') {
+        foreach ([
+            'clave' => $clave,
+            'medida' => $medida,
+            'proveedor' => $proveedor,
+            'max_usable' => $max_usable,
+            'stock' => $stock,
+            'lote_pedimento' => $lote_pedimento
+        ] as $campo => $valor) {
+            if (preg_match('/\s/', $valor)) {
+                echo json_encode([
+                    'success' => false,
+                    'message' => "El campo '$campo' contiene espacios en blanco. Los registros no deben llevar espacios."
+                ]);
+                exit;
+            }
+        }
+
         $errores = [];
-    
-        if (!isset($clave) || trim($clave) === '') {
-            $errores[] = "Falta la clave".$clave;
-        }
-        if (!isset($material) || trim($material) === '') {
-            $errores[] = "Falta el material";
-        }
-        if (!isset($proveedor) || trim($proveedor) === '') {
-            $errores[] = "Falta el proveedor";
-        }
-        if (!isset($medida) || trim($medida) === '') {
-            $errores[] = "Falta la medida";
-        }
-        if (!isset($max_usable) || trim($max_usable) === '') {
-            $errores[] = "Falta el máximo usable";
-        }
-        if (!isset($stock) || trim($stock) === '') {
-            $errores[] = "Falta el stock";
-        }
-        if (!isset($lote_pedimento) || trim($lote_pedimento) === '') {
-            $errores[] = "Falta el lote/pedimento";
-        }
-        if (!isset($estatus) || trim($estatus) === '') {
-            $errores[] = "Falta el estatus";
-        }    
-        // Si hay errores, regresar solo el primero
+        if ($action === '') $errores[] = "Falta el action";
+        if ($id === null) $errores[] = "Falta el id";
+        if ($estatus === '') $errores[] = "Falta el estatus";
+        if ($clave === '') $errores[] = "Falta la clave";
+        if ($material === '') $errores[] = "Falta el material";
+        if ($proveedor === '') $errores[] = "Falta el proveedor";
+        if ($medida === '') $errores[] = "Falta la medida";
+        if ($max_usable === '') $errores[] = "Falta el maximo usable";
+        if ($stock === '') $errores[] = "Falta el stock";
+        if ($lote_pedimento === '') $errores[] = "Falta el lote/pedimento";
+
         if (!empty($errores)) {
             echo json_encode([
-                'status' => 'error',
+                'success' => false,
                 'message' => $errores[0]
             ]);
             exit;

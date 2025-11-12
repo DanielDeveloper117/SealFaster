@@ -30,7 +30,7 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/produccion_cnc.js'); ?>"></script>
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>">
+    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>"> -->
 
     <?php 
         include(ROOT_PATH . 'includes/backend_info_user.php');
@@ -63,29 +63,6 @@ if (!isset($_SESSION['id'])) {
             </div> -->
         </div>
         <div class="table-container">
-            <!-- <div class="d-flex flex-column mb-2 justify-content-start w-100" style="">
-                <div>
-                    <label for="selectorEstatus">Filtro estatus:</label>
-                    <select id="selectorEstatus" class="input-selector mt-2">
-                        <option disabled selected>Seleccionar</option>
-                        <?php if ($rol_usuario=="Gerente"): ?>
-                            <button type="button" class="btn-terracota btn-finalizar" 
-                                data-bs-toggle="modal" data-bs-target="#modalFinalizar"
-                                data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']); ?>"
-                                >Finalizar</button>
-                            <option value="Pendiente">Pendiente de maquinar</option>
-                            <option value="Maquinando">Pendienre de finalizar</option>
-                        <?php elseif ($rol_usuario!="Gerente"): ?>
-                            <span class="span-terracota">Gerencia debe finalizarla</span>
-                            <option value="Pendiente2">Pendiente de maquinar</option>
-                            <option value="Maquinando2">Pendiente de finalizar</option>
-                        <?php endif; ?>
-                        <option value="Finalizada">Finalizada</option>
-                        <option value="Todo">Todo</option>
-                    </select>
-    
-                </div>
-            </div>  -->
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -137,20 +114,20 @@ if (!isset($_SESSION['id'])) {
 
                                         // Inventarios puede agregar clave al almacen
                                         if ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-thunder btn-control-almacen" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                            echo '<button class="btn-thunder btn-entregar-barras" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
                                                     data-es_extra = "0"
                                                     data-estatus = "Autorizada"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Agregar clave a control de almacen">
+                                                    title="Agregar/remplazar barras de control de almacen">
                                                     <i class="bi bi-database-add"></i>
                                                 </button>';
-                                            echo '<button class="btn-auth btn-salida-barras" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalDarSalida"
-                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Dar salida a barras de esta requisición">
-                                                    <i class="bi bi-database-fill-check"></i>
-                                                </button>';
+                                            // echo '<button class="btn-auth btn-salida-barras" 
+                                            //         data-bs-toggle="modal" data-bs-target="#modalDarSalida"
+                                            //         data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            //         title="Dar salida a barras de esta requisición">
+                                            //         <i class="bi bi-database-fill-check"></i>
+                                            //     </button>';
                                         }
                                         break;
 
@@ -166,14 +143,23 @@ if (!isset($_SESSION['id'])) {
                                                     <i class="bi bi-file-play"></i>
                                                 </button>';
                                         } elseif ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-thunder btn-control-almacen" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                           
+                                            echo '<button class="btn-thunder btn-entregar-barras" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
                                                     data-es_extra = "1"
-                                                    data-estatus = "Producción"                                                   
-                                                    title="Agregar clave extra al control de almacen">
+                                                    data-estatus = "Producción"  
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Agregar/remplazar barras de control de almacen">
                                                     <i class="bi bi-database-add"></i>
                                                 </button>';
+                                            //  echo '<button class="btn-thunder btn-control-almacen" 
+                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            //         data-es_extra = "1"
+                                            //         data-estatus = "Producción"                                                   
+                                            //         title="Agregar/remplazar barras de control de almacen">
+                                            //         <i class="bi bi-database-add"></i>
+                                            //     </button>';    
                                         }elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
                                             // aqui no span, solo controlado por estatusString
                                         }
@@ -191,14 +177,22 @@ if (!isset($_SESSION['id'])) {
                                                     <i class="bi bi-flag"></i>
                                                 </button>';
                                         } elseif ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-thunder btn-control-almacen" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            echo '<button class="btn-thunder btn-entregar-barras" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
                                                     data-es_extra = "1"
-                                                    data-estatus = "En producción"                                                   
-                                                    title="Agregar clave extra al control de almacen">
+                                                    data-estatus = "En producción""  
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Agregar/remplazar barras de control de almacen">
                                                     <i class="bi bi-database-add"></i>
                                                 </button>';
+                                            // echo '<button class="btn-thunder btn-control-almacen" 
+                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
+                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            //         data-es_extra = "1"
+                                            //         data-estatus = "En producción"                                                   
+                                            //         title="Agregar clave extra al control de almacen">
+                                            //         <i class="bi bi-database-add"></i>
+                                            //     </button>';
                                         }else {
                                             // solo mensaje via estatusString
                                         }
@@ -208,7 +202,7 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Finalizada";
                                         // Inventarios puede agregar clave al almacen
                                         if ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-auth btn-bar-entry btn-claves-retorno" 
+                                            echo '<button class="btn-general btn-bar-entry btn-claves-retorno" 
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Retornar barras al inventario">
@@ -216,10 +210,10 @@ if (!isset($_SESSION['id'])) {
                                                 </button>';
                                         }else if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
-                                                $colorBtn = "btn-auth";
-                                                $iconStatus = '<i class="bi bi-card-list"></i>';
-                                            }else{
                                                 $colorBtn = "btn-general";
+                                                $iconStatus = '<i class="bi bi-card-list me-1"></i><i class="bi bi-clock"></i>';
+                                            }else{
+                                                $colorBtn = "btn-auth";
                                                 $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
                                             }
                                             echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
@@ -236,10 +230,10 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Completada";
                                         if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
-                                                $colorBtn = "btn-auth";
-                                                $iconStatus = '<i class="bi bi-card-list"></i>';
-                                            }else{
                                                 $colorBtn = "btn-general";
+                                                $iconStatus = '<i class="bi bi-card-list me-1"></i><i class="bi bi-clock"></i>';
+                                            }else{
+                                                $colorBtn = "btn-auth";
                                                 $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
                                             }
                                             echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
@@ -321,7 +315,7 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- //////////////////////////MODAL CNC DEBE FIRMAR /////////////////////// -->
+<!-- ??????????????????????????MODAL CNC DEBE FIRMAR /////////////////////// -->
 <div class="modal fade" id="modalCncFirma" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -374,7 +368,7 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- //////////////////////////MODAL AGREGAR CONTROL ALMACEN INVENTARIO/////////////////////// -->
+<!-- ????????????????????????MODAL AGREGAR CONTROL ALMACEN INVENTARIO/////////////////////// -->
 <div class="modal fade" id="modalControlAlmacenInventario" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -471,30 +465,45 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- //////////////////////////MODAL TABLA CONTROL ALMACEN INVENTARIO/////////////////////// -->
-<div class="modal fade" id="modalTableControAlmacenInventario" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+
+
+
+
+<!-- ///////////////////////MODAL TABLA CONTROL ALMACEN INVENTARIO ENTREGAR BARRAS/////////////////////// -->
+<div class="modal fade" id="modalTableControlAlmacenEntrega" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 85% !important;">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">Barras de control de almacen</span>
+                <span class="title-form d-flex gap-2 align-items-center"><span>Barras para entrega. Folio de requisición: </span>                    
+                    <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
+                        <input type="hidden" name="id_requisicion">
+                        <button type="submit" class="btn btn-link p-0 border-0 text-decoration-underline fs-5"></button>
+                    </form>
+                </span>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div style="width:100%;">
-                    <table id="miniTableBarrasInventario" class="table table-bordered border border-2 tabla-billets">
+                <div class="d-flex col-12 gap-3 mb-2">
+                    <div class="col-3">
+                        <button id="addExtraBillet" type="button" class="btn-general">
+                            <i class="bi bi-plus-circle"></i> Agregar barra extra
+                        </button>
+                    </div>
+                </div>
+                <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
+                    <table id="tableEntregarBarras" class="table table-bordered border border-2 tabla-billets mb-3" style="table-layout: fixed; width: max-content;">
                         <thead>
                             <tr>
-                                <th scope="col"></th>
-                                <th scope="col">MATERIAL</th>
-                                <th scope="col">LOTE PEDIMENTO</th>
-                                <th scope="col">CLAVE</th>
-                                <th scope="col">MEDIDA</th>
-                                <th scope="col">MM ENTREGA</th>
-                                <!-- <th scope="col">MM SALIDA</th>
-                                <th scope="col">LONG. TOTAL SELLOS</th>
-                                <th scope="col">MERMA POR CORTE</th>
-                                <th scope="col">SCRAP PZ</th>
-                                <th scope="col">SCRAP MM</th> -->
+                                <th style="width: 50px;">ACCIONES</th>
+                                <th style="width: 130px;">PERFIL</th>
+                                <th style="width: 160px;">MATERIAL</th>
+                                <th style="width: 280px;">CLAVE</th>
+                                <th style="width: 220px;">LOTE PEDIMENTO</th>
+                                <th style="width: 130px;">MEDIDA</th>
+                                <th style="width: 80px;">PZ TEÓRICAS</th>
+                                <th style="width: 100px;">ALTURA DE PZ</th>
+                                <th style="width: 100px;">MM TEÓRICOS</th>
+                                <th style="width: 120px;">MM ENTREGA</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -503,9 +512,116 @@ if (!isset($_SESSION['id'])) {
                     </table>
                 </div>
             </div>
+            <div class="modal-footer">
+                <div class="d-flex col-12 justify-content-center gap-3">
+                    <button id="btnEntregarBarras" type="button" class="btn-general btn-success col-3">
+                        <i class="bi bi-database-fill-check"></i> Entregar barras
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+<!-- /////////////////////// MODAL: AGREGAR BARRA EXTRA /////////////////////// -->
+<div class="modal fade" id="modalAddExtra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-add-extra" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label-modal-add-extra">Solicitar autorización de barra extra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAddExtraBillet">
+                    <input type="hidden" id="idRequisicionExtra" name="id_requisicion">
+
+                    <div class="mb-3">
+                        <label for="lotePedimentoExtra" class="lbl-general">Lote pedimento *</label>
+                        <input id="lotePedimentoExtra" name="lote_pedimento" type="text" class="form-control" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="perfilExtra" class="lbl-general">Perfil *</label>
+                        <input id="perfilExtra" name="perfil" type="text" class="form-control" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="pzTeoricasExtra" class="lbl-general">Piezas teóricas *</label>
+                            <input id="pzTeoricasExtra" name="pz_teoricas" type="number" min="0" step="1" class="form-control" required>
+                        </div>
+                        <div class="mb-3 col-6">
+                            <label for="alturaPzExtra" class="lbl-general">Altura de pieza *</label>
+                            <input id="alturaPzExtra" name="altura_pz" type="number" min="0" step="0.01" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="mb-3 col-6">
+                            <label for="mmEntregaExtra" class="lbl-general">MM Entrega *</label>
+                            <input id="mmEntregaExtra" name="mm_entrega" type="number" min="0" step="0.01" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="justificacionExtra" class="lbl-general">Justificación *</label>
+                        <textarea id="justificacionExtra" name="justificacion" class="form-control" rows="3" required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="enviarAddBillet" class="btn-general">Agregar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////MODAL SOLICITAR REMPLAZO DE BARRA A DIRECCION/////////////////////// -->
+<div class="modal fade" id="modalSolicitarRemplazoBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="d-flex justify-content-between" style="width:90%;">
+                    <h5 class="modal-title">Solicitar autorización de remplazo de barra</h5>
+                </div>
+                <button id="btnCloseModal" type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSolicitarRemplazo">                        
+                    <input id="inputIdRequisicionRemplazo" type="hidden" >
+                    <input id="inputIdControl" type="hidden">
+                    <!-- <input id="inputLoteRemplazoA" type="hidden"> -->
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:100%;">
+                            <label for="inputLoteRemplazoA" class="lbl-general">Barra a remplazar:</label>
+                            <input id="inputLoteRemplazoA" type="text" class="input-disabled">
+                        </div>  
+                    </div>                     
+                    <div class="d-flex justify-content-between ">
+                        <div class="" style="width:100%;">
+                            <label for="inputLoteRemplazoB" class="lbl-general">Nuevo lote pedimento *</label>
+                            <input id="inputLoteRemplazoB" type="text" class="input-text" placeholder="Ingrese la barra de remplazo" required>
+                        </div>  
+                    </div> 
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:100%;">
+                            <p id="pValidacionSolicitarRemplazo" class="d-none p-invalida"></p>
+                        </div>  
+                    </div>  
+                    <div class="d-flex justify-content-between">
+                        <div class="" style="width:100%;">
+                            <label for="inputJustificacionRemplazo" class="lbl-general">Justificación de remplazo *</label>
+                            <textarea id="inputJustificacionRemplazo" class="form-control" rows="3" placeholder="Ingrese la justificación del remplazo de barra..."></textarea>
+                        </div>  
+                    </div>                  
+
+                    <div class="d-flex justify-content-between mt-3">
+                        <button id="btnSolicitarRemplazoBarra" type="button" class="btn-general" tabindex="-1">Enviar</button>
+                    </div> 
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- ////////////////////////// MARCAR COMO BARRAS ENTREGADAS A CNC DE LA REQUISICION /////////////////////// -->
 <div class="modal fade" id="modalDarSalida" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -518,7 +634,7 @@ if (!isset($_SESSION['id'])) {
                 <p>Esta acción notificará a Sellos Maquinados para comenzar el maquinado. Asegurese de entregar las barras correctas.</p>
                 <div>
                     <input id="inputRequisicionDarSalida" type="hidden" name="id_requisicion" >
-                    <button id="btnDarSalidaBillets" type="button" class="btn-general">Continuar</button>
+                    <button id="btnConfirmarDarSalidaBillets" type="button" class="btn-general">Continuar</button>
                 </div>
             </div>
         </div>
@@ -556,7 +672,7 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
                     <h5 class="modal-title">Barras de requisición con folio: <span></span></h5>
-                    <div style="overflow-x: auto; width: 100%;">
+                    <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
                         <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
                             <thead>
                                 <tr>
@@ -613,13 +729,13 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-body">
                 <div style="width:100%; margin-bottom:20px;">
                     <h5 class="modal-title">Barras de requisición con folio: <span id="folioRequisicion"></span></h5>
-                    <div style="overflow-x: auto; width: 100%;">
+                    <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
                         <table class="table table-bordered border border-2 tabla-billets" style="table-layout: fixed; width: max-content;">
                             <thead>
                                 <tr>
                                     <th style="width: 70px;">Barra mermada</th>
-                                    <th style="width: 150px;">Perfil</th>
-                                    <th style="width: 200px;">Material</th>
+                                    <th style="width: 100px;">Perfil</th>
+                                    <th style="width: 150px;">Material</th>
                                     <th style="width: 250px;">Lote pedimento</th>
                                     <th style="width: 100px;">Medida</th>
                                     <th style="width: 120px;">MM Entrega</th>
@@ -678,9 +794,9 @@ if (!isset($_SESSION['id'])) {
                             <thead>
                                 <tr>
                                     <!-- <th style="width: 100px;">Cantidad</th> -->
-                                     <th style="width: 250px;">Material</th>
-                                    <th style="width: 280px;">Clave</th>
-                                    <th style="width: 250px;">Lote pedimento</th>
+                                     <th style="width: 150px;">Material</th>
+                                    <th style="width: 260px;">Clave</th>
+                                    <th style="width: 220px;">Lote pedimento</th>
                                     <th style="width: 120px;">Medida</th>
                                     <th style="width: 120px;">MM Entrega</th>
                                     <th style="width: 120px;">Total MM Usados</th>
@@ -713,148 +829,7 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
- <!-- /////////////////////////////MODAL DETALLES DEL ESTATUS DE REQUISICION //////////////////////////////// -->
-<div class="modal fade" id="modalEstatusInfo" tabindex="-1" aria-labelledby="modalEstatusLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEstatusLabel">Detalles de los estatus de requisiciones</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <!-- boton mostrar/ocultar detalles -->
-        <div class="text-start my-3">
-            <button id="toggleDetalles" class="btn btn-outline-secondary btn-sm">
-                Ver detalles del estatus de requisiciones
-            </button>
-        </div>
-        <!-- contenedor oculto de visibilidad y tabla informativa -->
-        <div id="contenedorDetalles" class="overflow-hidden" style="max-height: 0; transition: max-height 0.6s ease;">
-            <!-- visibilidad -->
-            <div class="mb-4">
-                <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
-                <ul>
-                    <li><strong>Gerencia y dirección:</strong> pueden ver <em>todas</em> las requisiciones.</li>
-                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada.</li>
-                    <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
-                </ul>
-            </div>
-            <!-- tabla informativa -->
-            <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle tabla-billets">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Estatus</th>
-                            <th>Descripción</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Pendiente</td>
-                            <td>Ventas gerencia o dirección deben autorizar la requisición.</td>
-                        </tr>
-                        <tr>
-                            <td>Autorizada</td>
-                            <td>Requisición autorizada. Inventarios debe dar salida a billets.</td>
-                        </tr>
-                        <tr>
-                            <td>Producción</td>
-                            <td>El maquinado del sello está pendiente de comenzar.</td>
-                        </tr>
-                        <tr>
-                            <td>Maquinado CNC</td>
-                            <td>El sello está siendo maquinado actualmente.</td>
-                        </tr>
-                        <tr>
-                            <td>Finalizada</td>
-                            <td>El proceso de maquinado ha concluido con éxito.</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        <!-- progreso de estatus -->
-        <div class="text-center mt-4 mb-4" style="font-size: 12px !important;">
-            <div id="cadenaEstatusModal" class="status-chain">
-                <!-- Estatus: Pendiente -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="1"></i>
-                    <span class="label">Pendiente</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="1-2"></i>
 
-                <!-- Estatus: Autorizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="2"></i>
-                    <span class="label">Autorizada</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="2-3"></i>
-
-                <!-- Estatus: Produccion -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="3"></i>
-                    <span class="label">Producción</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="3-4"></i>
-
-                <!-- Estatus: En producción -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="4"></i>
-                    <span class="label">Maquinado CNC</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="4-5"></i>
-
-                <!-- Estatus: Finalizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="5"></i>
-                    <span class="label">Finalizada</span>
-                </div>
-            </div>
-        </div>
-      </div>
-      <div class="modal-footer">
-      </div>
-    </div>
-  </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.getElementById('toggleDetalles');
-    const contenedor = document.getElementById('contenedorDetalles');
-
-    let abierto = false;
-
-    toggleBtn.addEventListener('click', function () {
-        if (!abierto) {
-            contenedor.style.maxHeight = contenedor.scrollHeight + "px";
-            toggleBtn.textContent = "Ver menos detalles";
-            abierto = true;
-        } else {
-            contenedor.style.maxHeight = "0";
-            toggleBtn.textContent = "Ver detalles de los estatus de requisiciones";
-            abierto = false;
-        }
-    });
-
-});  
-function pintarCadenaEstatus(estatusActual) {
-    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'En producción', 'Finalizada'];
-    const index = orden.findIndex(e => e.toLowerCase() === estatusActual.toLowerCase());
-
-    const icons = document.querySelectorAll('#cadenaEstatusModal .icon');
-    icons.forEach((icon) => {
-        const step = icon.dataset.step;
-        if (step !== undefined) {
-            const isCircle = !step.includes('-');
-            const pos = isCircle ? parseInt(step) : parseInt(step.split('-')[0]);
-            if (pos <= index) {
-                icon.classList.add('item-chain-active');
-            } else {
-                icon.classList.remove('item-chain-active');
-            }
-        }
-    });
-}
-</script>
+<?php include("../includes/modal_estatus_requisicion.php"); ?>
 </body>
 </html>
