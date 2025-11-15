@@ -11,11 +11,13 @@
                     <input type="hidden" id="inputId" name="id">
                     <input type="hidden" id="inputAction" name="action" value="insert">
                     <input type="hidden" id="inputEstatus" name="estatus" value="">
+                    <input type="hidden" id="inputClaveAlterna" name="clave_alterna" value="">
 
                     <div class="mb-3">
                         <label for="inputClavePost" class="lbl-general">Clave</label>
                         <input type="text" class="input-text" id="inputClavePost" name="clave" placeholder="Ingrese una clave" required>
-                        <p id="pInvalida2" class="d-none p-warning">No se encontró la clave o el precio está pendiente. No será posible cotizar con este billet.</p>
+                        <p id="pAlterna" class="d-none p-warning my-1"></p>
+                        <p id="pWarning" class="d-none p-warning"></p>
                         <p id="pValida" class="d-none p-valida"></p>
                         <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success d-none">
                             Descargar Excel de claves validas
@@ -25,14 +27,29 @@
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
                             <label for="inputMaterial" class="lbl-general">Material</label>
-                            <select id="inputMaterial" class="selector" name="material" required >
+                            <select id="inputMaterial" class="selector" name="material" required>
                                 <option disabled selected>Seleccionar</option>
+                                <option value="H-ECOPUR">H-ECOPUR</option>
+                                <option value="ECOSIL">ECOSIL</option>
+                                <option value="ECORUBBER 1">ECORUBBER 1</option>
+                                <option value="ECORUBBER 2">ECORUBBER 2</option>
+                                <option value="ECORUBBER 3">ECORUBBER 3</option>
+                                <option value="ECOPUR">ECOPUR</option>
+                                <option value="ECOTAL">ECOTAL</option>
+                                <option value="ECOMID">ECOMID</option>
+                                <option value="ECOFLON 1">ECOFLON 1</option>
+                                <option value="ECOFLON 2">ECOFLON 2</option>
+                                <option value="ECOFLON 3">ECOFLON 3</option>
                             </select>
                         </div>
                         <div class="" style="width:48%;">
                             <label for="inputProveedor" class="lbl-general">Proveedor</label>
                             <select id="inputProveedor" class="selector" name="proveedor" required>
                                 <option selected disabled>Seleccionar</option>
+                                <option value="TRYGONAL">TRYGONAL</option>
+                                <option value="CARVIFLON">CARVIFLON</option>
+                                <option value="SKF">SKF</option>
+                                <option value="SLM">SLM</option>
                             </select>
                         </div>
                     </div>

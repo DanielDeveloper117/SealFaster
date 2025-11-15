@@ -26,8 +26,9 @@
                         <li><a class="" href="../modules/produccion_vn.php">Requisiciónes</a></li>
                         <li><a class="" href="../modules/produccion_cnc.php">Producción CNC</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros</a></li>
-                        <li><a class="" href="../modules/precios.php">Claves</a></li>
-                        <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li>
+                        <li><a class="" href="../modules/precios.php">Claves SRS</a></li>
+                        <!-- <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li> -->
+                        <li><a class="" href="../modules/claves_alternas.php">Claves alternas</a></li>
                         <!-- <li><a class="" href="../modules/ingresar.php">Parametros sellos</a></li>
                         <li><a class="" href="../modules/desencriptar.php" >Desencriptar</a></li> -->
                         <li><a class="" href="../modules/users.php" >Usuarios</a></li>
@@ -58,8 +59,9 @@
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros</a></li>
-                        <li><a class="" href="../modules/precios.php">Claves</a></li>
-                        <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li>
+                        <li><a class="" href="../modules/precios.php">Claves SRS</a></li>
+                        <!-- <li><a class="" href="../modules/precios_compras.php">Precios pendientes</a></li> -->
+                        <li><a class="" href="../modules/claves_alternas.php">Claves alternas</a></li>
                         <li><a class="" href="../modules/desencriptar.php" >Desencriptar</a></li>
                         <li><a class="" href="../modules/users.php" >Usuarios</a></li>
                     ';

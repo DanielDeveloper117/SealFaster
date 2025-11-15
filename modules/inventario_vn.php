@@ -69,13 +69,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $proveedor = $_GET['proveedor'];
 
     if($proveedor == "all"){
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento,estatus, updated_at 
-                          FROM inventario_cnc WHERE material = :material";
+        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
-        $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento,estatus, updated_at 
-        FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor";
+        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
         $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
@@ -84,20 +82,20 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
-    $clave = $_GET['clave'];
+    // Eliminar todos los espacios en blanco de la clave antes de consultar
+    $Clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento,estatus, updated_at 
-                        FROM inventario_cnc WHERE clave = :clave";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE Clave = :clave ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
-    $lp = $_GET['lp'];
+    // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
+    $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento 
-                        ,estatus, updated_at FROM inventario_cnc WHERE lote_pedimento = :lp";
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE lote_pedimento = :lp ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
@@ -105,11 +103,9 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
 }else{
 
-    $sqlInventario = "SELECT id, clave, medida, proveedor, material, max_usable, pre_stock, lote_pedimento ,estatus, updated_at
-                        FROM inventario_cnc";
+    $sqlInventario = "SELECT * FROM inventario_cnc ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->execute();
-    // Obtener los resultados
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 }
 ?>
@@ -166,7 +162,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         } else { 
                             $class = 'bar-bajo';
                         }
-                        if($pre_stock < 15){
+                        if($pre_stock < 15 || $row['estatus'] == "Eliminado"){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
                         }else{
@@ -196,8 +192,8 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         // }
                 ?>
                     <tr style="<?php echo $usableStyle; ?>" >
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['clave']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['medida']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Clave']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Medida']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['material']); ?></td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['max_usable']); ?></td> -->

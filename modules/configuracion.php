@@ -24,7 +24,6 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-formulario.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-configuracion.css'); ?>">
-
     <title>Configuración</title>
 </head>
 <?php
@@ -126,7 +125,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 <?php include(ROOT_PATH . 'includes/backend_info_user.php'); ?>
-
 
 <section class="d-flex flex-row col-12 justify-content-center align-items-center mt-3 mb-3">
     <div class="d-flex col-10 flex-column form-general">

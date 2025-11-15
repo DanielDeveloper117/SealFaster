@@ -44,12 +44,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             fgetcsv($handle, 1000, ','); // Saltar encabezado
             while (($fila = fgetcsv($handle, 1000, ',')) !== FALSE) {
                 if (count($fila) >= 8) {
-                    $clave = trim($fila[0]);
+                    $clave = preg_replace('/\s+/', '', trim($fila[0]));
                     $datos[$clave] = [
                         'precio' => floatval($fila[1]),
                         'max_usable' => intval($fila[2]),
-                        'interior' => trim($fila[3]),
-                        'exterior' => trim($fila[4]),
+                        'interior' => preg_replace('/\s+/', '', trim($fila[3])), // Eliminar todos los espacios
+                        'exterior' => preg_replace('/\s+/', '', trim($fila[4])), // Eliminar todos los espacios
                         'proveedor' => trim($fila[5]),
                         'material' => trim($fila[6]),
                         'tipo' => trim($fila[7])
@@ -174,14 +174,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = $_POST['id'];
     
         if ($action === 'insert') {
-            $clave = $_POST['clave'];
-            $material = $_POST['material'];
-            $proveedor = $_POST['proveedor'];
-            $tipo = $_POST['tipo'];
-            $interior = $_POST['interior'];
-            $exterior = $_POST['exterior'];
-            $max_usable = $_POST['max_usable'];
-            $precio = $_POST['precio'];
+            // Limpiar espacios de todos los campos (excepto material, proveedor y tipo)
+            $clave = preg_replace('/\s+/', '', trim($_POST['clave'])); // Eliminar todos los espacios
+            $material = trim($_POST['material']); // Mantener espacios internos
+            $proveedor = trim($_POST['proveedor']); // Mantener espacios internos
+            $tipo = trim($_POST['tipo']); // Mantener espacios internos
+            $interior = preg_replace('/\s+/', '', trim($_POST['interior'])); // Eliminar todos los espacios
+            $exterior = preg_replace('/\s+/', '', trim($_POST['exterior'])); // Eliminar todos los espacios
+            $max_usable = preg_replace('/\s+/', '', trim($_POST['max_usable'])); // Eliminar todos los espacios
+            $precio = preg_replace('/\s+/', '', trim($_POST['precio'])); // Eliminar todos los espacios
+            
             // Validar que la clave no exista previamente
             $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave");
             $stmtCheck->bindParam(':clave', $clave);
@@ -209,6 +211,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </script>";
                 exit;
             }
+            
             // Consulta SQL para insertar en la tabla 'parametros'
             $sql = "INSERT INTO parametros (Clave, material, proveedor, tipo, interior, exterior, max_usable, precio) 
                     VALUES (:clave, :material, :proveedor, :tipo, :interior, :exterior, :max_usable, :precio)";
@@ -230,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             Swal.fire({
                                 title: 'Proceso exitoso',
                                 text: 'Registro agregado correctamete.',
-                                icon: 'success', // Puede ser 'success', 'error', 'warning', 'info', 'question'
+                                icon: 'success',
                                 confirmButtonText: 'Ok',
                                 confirmButtonColor: '#17a2b8',
                                 showCloseButton: true,
@@ -265,14 +268,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
         } elseif ($action === 'update') {
-            $clave = $_POST['clave'];
-            $material = $_POST['material'];
-            $proveedor = $_POST['proveedor'];
-            $tipo = $_POST['tipo'];
-            $interior = $_POST['interior'];
-            $exterior = $_POST['exterior'];
-            $max_usable = $_POST['max_usable'];
-            $precio = $_POST['precio'];
+            // Limpiar espacios de todos los campos (excepto material, proveedor y tipo)
+            $clave = preg_replace('/\s+/', '', trim($_POST['clave'])); // Eliminar todos los espacios
+            $material = trim($_POST['material']); // Mantener espacios internos
+            $proveedor = trim($_POST['proveedor']); // Mantener espacios internos
+            $tipo = trim($_POST['tipo']); // Mantener espacios internos
+            $interior = preg_replace('/\s+/', '', trim($_POST['interior'])); // Eliminar todos los espacios
+            $exterior = preg_replace('/\s+/', '', trim($_POST['exterior'])); // Eliminar todos los espacios
+            $max_usable = preg_replace('/\s+/', '', trim($_POST['max_usable'])); // Eliminar todos los espacios
+            $precio = preg_replace('/\s+/', '', trim($_POST['precio'])); // Eliminar todos los espacios
 
             // Validar que no exista otra fila con la misma clave
             $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave AND id != :id");
@@ -321,14 +325,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bindParam(':max_usable', $max_usable);
             $stmt->bindParam(':precio', $precio);
 
-
             if ($stmt->execute()) {
                 echo "<script type='text/javascript'>
                         $(document).ready(function(){
                             Swal.fire({
                                 title: 'Proceso exitoso',
                                 text: 'Registro actualizado correctamete.',
-                                icon: 'success', // Puede ser 'success', 'error', 'warning', 'info', 'question'
+                                icon: 'success',
                                 confirmButtonText: 'Ok',
                                 confirmButtonColor: '#17a2b8',
                                 showCloseButton: true,
@@ -374,7 +377,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             Swal.fire({
                                 title: 'Proceso exitoso',
                                 text: 'Registro eliminado correctamete.',
-                                icon: 'success', // Puede ser 'success', 'error', 'warning', 'info', 'question'
+                                icon: 'success',
                                 confirmButtonText: 'Ok',
                                 confirmButtonColor: '#17a2b8',
                                 showCloseButton: true,
@@ -425,7 +428,8 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
     $arregloSelectPrecios = $stmtPrecios->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
-    $clave = $_GET['clave'];
+    // Eliminar todos los espacios en blanco de la clave antes de consultar
+    $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
     $sqlPrecios = "SELECT * FROM parametros WHERE clave = :clave";
     $stmtPrecios = $conn->prepare($sqlPrecios);
@@ -433,6 +437,11 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
     $stmtPrecios->execute();
     $arregloSelectPrecios = $stmtPrecios->fetchAll(PDO::FETCH_ASSOC);
 
+}else if(isset($_GET["all"])){
+    $sqlInventario = "SELECT * FROM parametros ";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->execute();
+    $arregloSelectPrecios = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 }else{
     $arregloSelectPrecios = [];
 }
@@ -458,13 +467,13 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                 <thead>
                     <tr>
                         <th>Acciones</th>
+                        <th>Clave</th>
                         <th>Proveedor</th>
                         <th>Tipo</th>
                         <th>Material</th>
                         <th>Interior</th>
                         <th>Exterior</th>
                         <th>Max. Length</th>
-                        <th>Clave</th>
                         <th>Precio</th>
                     </tr>
                 </thead>
@@ -483,7 +492,7 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                                     data-exterior="<?php echo $row['exterior']; ?>"
                                     data-max_usable="<?php echo $row['max_usable']; ?>"
                                     data-precio="<?php echo $row['precio']; ?>"
-                                    >Editar</button>
+                                >Editar</button>
                                 <form class="form-delete" action="" method="POST">
                                     <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                                     <input type="hidden" name="action" value="delete">
@@ -491,13 +500,13 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
                                 </form>
                             </div>
                         </td>
+                        <td><?php echo htmlspecialchars($row['clave']); ?></td>
                         <td><?php echo htmlspecialchars($row['proveedor']); ?></td>
                         <td><?php echo htmlspecialchars($row['tipo']); ?></td>
                         <td><?php echo htmlspecialchars($row['material']); ?></td>
                         <td><?php echo htmlspecialchars($row['interior']); ?></td>
                         <td><?php echo htmlspecialchars($row['exterior']); ?></td>
                         <td><?php echo htmlspecialchars($row['max_usable']); ?></td>
-                        <td><?php echo htmlspecialchars($row['clave']); ?></td>
                         <td><?php echo htmlspecialchars($row['precio']); ?></td>
                     </tr>
                     <?php endforeach; ?>

@@ -36,17 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $id = $_POST['id'];
     
         if ($action === 'insert') {
-            $clave = $_POST['clave'];
-            $material = $_POST['material'];
-            $proveedor = $_POST['proveedor'];
-            $tipo = $_POST['tipo'];
-            $interior = $_POST['interior'];
-            $exterior = $_POST['exterior'];
-            $max_usable = $_POST['max_usable'];
-            $precio = $_POST['precio'];
+            // Limpiar espacios de todos los campos (excepto material, proveedor y tipo)
+            $clave = preg_replace('/\s+/', '', trim($_POST['clave']));
+            $material = trim($_POST['material']);
+            $proveedor = trim($_POST['proveedor']);
+            $tipo = trim($_POST['tipo']);
+            $interior = preg_replace('/\s+/', '', trim($_POST['interior']));
+            $exterior = preg_replace('/\s+/', '', trim($_POST['exterior']));
+            $max_usable = preg_replace('/\s+/', '', trim($_POST['max_usable']));
+            $precio = preg_replace('/\s+/', '', trim($_POST['precio']));
             $dolar = $_POST['dolar'];
             $precioPorcent = $precio * 0.23;
             $precio = ($precio + $precioPorcent) * $dolar; 
+            
             // Validar existencia previa de la clave
             $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave");
             $stmtCheck->bindParam(':clave', $clave);
@@ -94,17 +96,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
         } elseif ($action === 'update') {
-            $clave = $_POST['clave'];
-            $material = $_POST['material'];
-            $proveedor = $_POST['proveedor'];
-            $tipo = $_POST['tipo'];
-            $interior = $_POST['interior'];
-            $exterior = $_POST['exterior'];
-            $max_usable = $_POST['max_usable'];
-            $precio = $_POST['precio'];
+            // Limpiar espacios de todos los campos (excepto material, proveedor y tipo)
+            $clave = preg_replace('/\s+/', '', trim($_POST['clave']));
+            $material = trim($_POST['material']);
+            $proveedor = trim($_POST['proveedor']);
+            $tipo = trim($_POST['tipo']);
+            $interior = preg_replace('/\s+/', '', trim($_POST['interior']));
+            $exterior = preg_replace('/\s+/', '', trim($_POST['exterior']));
+            $max_usable = preg_replace('/\s+/', '', trim($_POST['max_usable']));
+            $precio = preg_replace('/\s+/', '', trim($_POST['precio']));
             $dolar = $_POST['dolar'];
             $precioPorcent = $precio * 0.23;
             $precio = ($precio + $precioPorcent) * $dolar; 
+            
             // Validar que no exista otra fila con la misma clave
             $stmtCheck = $conn->prepare("SELECT COUNT(*) FROM parametros WHERE Clave = :clave AND id != :id");
             $stmtCheck->bindParam(':clave', $clave);
@@ -190,7 +194,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
 }
 
-
 // Verifica si se recibió el parametro 'material' mediante GET
 if (isset($_GET['material']) && !empty($_GET['material'])) {
     $material = $_GET['material'];
@@ -202,7 +205,8 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
     $arregloSelectPrecios = $stmtPrecios->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
-    $clave = $_GET['clave'];
+    // Eliminar todos los espacios en blanco de la clave antes de consultar
+    $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
     $sqlPrecios = "SELECT * FROM parametros WHERE clave = :clave";
     $stmtPrecios = $conn->prepare($sqlPrecios);

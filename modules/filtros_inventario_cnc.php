@@ -336,6 +336,10 @@ if (!isset($_SESSION['id'])) {
                         <label for="selectorProveedor" class="lbl-general">Proveedor</label>
                         <select id="selectorProveedor" class="form-select" name="proveedor">
                             <option value="all" selected>Todos</option>
+                            <option value="TRYGONAL" >TRYGONAL</option>
+                            <option value="SKF" >SKF</option>
+                            <option value="SLM" >SLM</option>
+                            <option value="CARVIFLON" >CARVIFLON</option>
                         </select>
                     </div> 
 
@@ -528,13 +532,13 @@ if (!isset($_SESSION['id'])) {
                         });
                     } else {
                         $("#tablaClavesValidas tbody").empty();
-                        $(`#tablaClavesValidas tbody`).append(`<tr><td colspan="6">No se encontraron resultados coincidentes.</td></tr>`);
+                        $(`#tablaClavesValidas tbody`).append(`<tr><td colspan="7">No se encontraron resultados coincidentes.</td></tr>`);
 
                     }
                 },
                 error: function() {
                     $("#tablaClavesValidas tbody").empty();
-                    $(`#tablaClavesValidas tbody`).append(`<tr><td colspan="6" style="color:#dc3545;">Hubo un problema al consultar</td></tr>`);
+                    $(`#tablaClavesValidas tbody`).append(`<tr><td colspan="7" style="color:#dc3545;">Hubo un problema al consultar</td></tr>`);
                     console.error('Error al realizar la petición AJAX');
                 }
             });

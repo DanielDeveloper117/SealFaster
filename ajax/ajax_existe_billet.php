@@ -5,7 +5,8 @@ require_once(ROOT_PATH . 'config/config.php');
 try {
     header('Content-Type: application/json'); // Asegurar respuesta JSON
     if (isset($_POST['billet'])) {
-        $billet = $_POST['billet'];
+        // Eliminar todos los espacios en blanco del billet antes de consultar
+        $billet = preg_replace('/\s+/', '', trim($_POST['billet']));
 
         // Consulta optimizada con `LIMIT 1`
         $stmt = $conn->prepare("SELECT 1 FROM inventario_cnc WHERE lote_pedimento = :billet LIMIT 1");

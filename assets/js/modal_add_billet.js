@@ -4,26 +4,26 @@ $(document).ready(function(){
     window.LP_VALIDO = false;
 
     // CONSULTA AJAX PARA MATERIALES DESDE PARAMETROS2
-    $.ajax({
-        url: '../ajax/ajax_materiales_parametros2.php', 
-        type: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            if (data.length > 0) {
-                $.each(data, function(index, item) {
-                    $("#inputMaterial").append(
-                        `
-                        <option value="${item.caso}">${item.caso}</option>
-                        `
-                    );
-                });
-            } else {
-            }
-        },
-        error: function() {
-            console.error('Error al realizar la peticion AJAX');
-        }
-    });
+    // $.ajax({
+    //     url: '../ajax/ajax_materiales_parametros2.php', 
+    //     type: 'GET',
+    //     dataType: 'json',
+    //     success: function(data) {
+    //         if (data.length > 0) {
+    //             $.each(data, function(index, item) {
+    //                 $("#inputMaterial").append(
+    //                     `
+    //                     <option value="${item.caso}">${item.caso}</option>
+    //                     `
+    //                 );
+    //             });
+    //         } else {
+    //         }
+    //     },
+    //     error: function() {
+    //         console.error('Error al realizar la peticion AJAX');
+    //     }
+    // });
 
     //---------------------------------------- @ FUNCIONES ------------------------------------
     function formatTimestamp12h(timestamp) {
@@ -55,50 +55,100 @@ $(document).ready(function(){
 
     function verificarClave() {
         let claveValue = $("#inputClavePost").val(); 
+        $("#inputClaveAlterna").val(""); 
 
         if (claveValue !== "") {
             console.log("El usuario ingreso un valor en el inputClavePost.");
 
             $.ajax({
                 url: '../ajax/verificar_clave.php',
-                type: 'POST',
+                type: 'GET',
                 data: { clave: claveValue },
                 dataType: 'json',
                 success: function(data) {
-                    if (data.length > 0) {
+                    // CASO 1: Clave encontrada en parametros (array con datos)
+                    if (Array.isArray(data) && data.length > 0) {
                         let medida = data[0].interior + "/" + data[0].exterior;
                         window.CLAVE_VALIDA = true;
-                        $("#pInvalida, #pInvalida2").addClass("d-none");
+                        $("#pWarning").addClass("d-none");
                         $("#pValida").removeClass("d-none");
-                        $("#pValida").text(`Clave valida encontrada. Material: ${data[0].material}. Proveedor: ${data[0].proveedor}`);
+                        $("#pValida").text(`Clave valida encontrada. Material: ${data[0].material_corregido}. Proveedor: ${data[0].proveedor}`);
                         
-                        //$("#inputProveedor").val(data[0].proveedor);
-                        $("#inputMedida").val(medida);
+                        $("#inputMaterial").removeClass("selector").addClass("input-disabled").val(data[0].material_corregido);
+                        $("#inputProveedor").removeClass("selector").addClass("input-disabled").val(data[0].proveedor);
+                        $("#inputMedida").val(medida).removeClass("input-text").addClass("input-disabled");
+                        $("#inputMaxUsable").val(data[0].max_usable).removeClass("input-text").addClass("input-disabled");
+                        
                         let inputEstatusActual = $("#inputEstatus").val();
                         if(inputEstatusActual == "En uso"){
                             $("#inputEstatus").val("En uso");
                         }else if(inputEstatusActual == "Maquinado en curso"){
                             $("#inputEstatus").val("Maquinado en curso");
-                        }else if(inputEstatusActual == "Maquinado en curso"){
-                            $("#inputEstatus").val("Maquinado en curso");
                         }else{
                             $("#inputEstatus").val("Disponible para cotizar");    
                         }
+
+                        if(data[0].es_alterna == 1){
+                            $("#inputClavePost").val(data[0].clave_srs_utilizada);
+                            $("#pAlterna").removeClass("d-none");
+                            $("#pAlterna").text(`Clave alterna sustituida: ${data[0].clave_alterna} → ${data[0].clave_srs_utilizada}`);
+                        }else{
+                            $("#pAlterna").addClass("d-none");
+                        }
                         
-                    } else {
+                    } 
+                    // CASO 2: Clave alterna sin relación (clave_srs es null)
+                    else if (data.sin_relacion) {
                         window.CLAVE_VALIDA = false;
-                        $("#pInvalida, #pInvalida2").removeClass("d-none");
-                        $("#pValida").addClass("d-none");
-                        //$("#inputProveedor").val("");
-                        //$("#inputProveedor").html('<option selected disabled>Seleccionar</option>');
-                        //$("#inputMedida").val("");
-                        $("#inputEstatus").val("Falta precio o máx. usable");
+                        $("#pWarning").removeClass("d-none");
+                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no tiene relación con clave SRS. Se enviara correo para relacionar la clave`);
+                        $("#pValida, #pAlterna").addClass("d-none");
+                        
+                        // Resetear campos
+                        $("#inputMaterial").removeClass("input-disabled").addClass("selector");
+                        $("#inputProveedor").removeClass("input-disabled").addClass("selector");
+                        $("#inputMedida").removeClass("input-disabled").addClass("input-text");
+                        $("#inputMaxUsable").removeClass("input-disabled").addClass("input-text");
+                        $("#inputEstatus").val("Relación pendiente");
+                        $("#inputClaveAlterna").val(data.clave_alterna); 
+                        
+                    }
+                    // CASO 3: No existe en claves_alternas ni en parametros
+                    else if (data.no_encontrada) {
+                        window.CLAVE_VALIDA = false;
+                        $("#pWarning").removeClass("d-none");
+                        $("#pWarning").text(`No se encontró clave SRS, no se encontró clave alterna. Se enviará correo para validar.`);
+                        $("#pValida, #pAlterna").addClass("d-none");
+                        
+                        // Resetear campos
+                        $("#inputMaterial").removeClass("input-disabled").addClass("selector");
+                        $("#inputProveedor").removeClass("input-disabled").addClass("selector");
+                        $("#inputMedida").removeClass("input-disabled").addClass("input-text");
+                        $("#inputMaxUsable").removeClass("input-disabled").addClass("input-text");
+                        $("#inputEstatus").val("Clave nueva pendiente");
+                        $("#inputClaveAlterna").val(claveValue); 
+                        
+                    }
+                    // CASO 4: Clave alterna con relación pero no existe en parametros
+                    else if (data.no_en_parametros) {
+                        window.CLAVE_VALIDA = false;
+                        $("#pWarning").removeClass("d-none");
+                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no existe Clave SRS. Se enviará correo.`);
+                        $("#pValida, #pAlterna").addClass("d-none");
+                        
+                        // Resetear campos
+                        $("#inputMaterial").removeClass("input-disabled").addClass("selector");
+                        $("#inputProveedor").removeClass("input-disabled").addClass("selector");
+                        $("#inputMedida").removeClass("input-disabled").addClass("input-text");
+                        $("#inputMaxUsable").removeClass("input-disabled").addClass("input-text");
+                        $("#inputEstatus").val("Clave SRS inexistente");
+                        $("#inputClaveAlterna").val(data.clave_alterna); 
                     }
                     //verificarBtnGuardar();
                 },
                 error: function() {
                     console.error('Error al realizar la peticion AJAX');
-                    $('#pInvalida2').text('Error en ajax validar clave.');
+                    $('#pWarning').removeClass("d-none").text('Error en ajax validar clave.');
                 }
             });
         } else {
@@ -168,14 +218,10 @@ $(document).ready(function(){
         var inputStock=$('#inputStock').val();
         var inputLotePedimento=$('#inputLotePedimento').val();
         var inputEstatus=$('#inputEstatus').val();
+        var inputClaveAlterna=$('#inputClaveAlterna').val();
 
         var actionForm=accion;
-        let actionAfter = "";
-        if(actionForm == "delete" || actionForm == "update"){
-            actionAfter = "none";
-        }else{
-            actionAfter = "none";
-        } 
+        let actionAfter = "none";
 
         $.ajax({
             url: '../ajax/post_inventario_cnc.php',
@@ -190,7 +236,8 @@ $(document).ready(function(){
                 stock: inputStock,
                 lote_pedimento: inputLotePedimento,
                 action: actionForm,
-                estatus: inputEstatus
+                estatus: inputEstatus,
+                inputClaveAlterna: inputClaveAlterna
             },
             dataType: 'json',
             success: function(data) {
@@ -198,11 +245,15 @@ $(document).ready(function(){
                     sweetAlertResponse("success", "Proceso exitoso", data.message, actionAfter);
                     window.LP_VALIDO = true;
                     $("#modalInventario #btnCloseModal").trigger("click");
+                    
+                    // El resto del código para actualizar la UI permanece igual...
                     const fila = $(`#tr_${dataId}`);
                     const filaAfectada = $(`#tr_${dataId} td`);
+                    
                     if(actionForm == "update"){
-
-                        fila.find(".td-clave").text(inputClave);
+                        // Código para actualizar la fila en la tabla...
+                        const claveLimpia = inputClave.replace(/\s+/g, "").trim();
+                        fila.find(".td-clave").text(claveLimpia);
                         fila.find(".td-lote").text(inputLotePedimento);
                         fila.find(".td-material").text(inputMaterial);
                         fila.find(".td-proveedor").text(inputProveedor);
@@ -221,19 +272,16 @@ $(document).ready(function(){
                         barra.css("width", width + "%").removeClass("bar-alto bar-medio bar-bajo").addClass(barClass);
 
                         // Usable / No usable
-                        let usableText = "";
                         if (inputStock < 15) {
-                            usableText = "No usable";
                             fila.attr("style", "background-color: #ff00002e !important;");
                         } else {
-                            usableText = "Usable";
                             fila.removeAttr("style");
                         }
 
                         // Estatus
                         fila.find(".td-estatus").text(inputEstatus);
 
-                        // Opcional: resaltar la fila
+                        // Resaltar la fila actualizada
                         fila.addClass("bg-row-updated");
                         filaAfectada.addClass("bg-row-updated");
                         setTimeout(() => {
@@ -252,26 +300,12 @@ $(document).ready(function(){
 
                     }else if(actionForm == "delete"){  
                         fila.addClass("bg-row-deleted");  
-                        fila.addClass("bg-row-deleted");
                         setTimeout(() => {
-                            fila.removeClass("bg-row-deleted");
                             fila.removeClass("bg-row-deleted");
                             $(`#tr_${dataId}`).addClass("d-none");
                         }, 800);
-                    }else{
-                        
-                    } 
-                    // $.ajax({
-                    //     url: "../ajax/ajax_notificacion.php",
-                    //     type: "POST",
-                    //     data: { mensaje: "CNC ha "+actionForm+" un billet: "+dataClave },
-                    //     success: function(response) {
-                    //         console.log("Notificación enviada: ", response);
-                    //     },
-                    //     error: function(error) {
-                    //         console.error("Error al enviar la notificación: ", error);
-                    //     }
-                    // });
+                    }
+                    
                     $("#formInventario")[0].reset();
                 } else {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "none");
@@ -282,177 +316,176 @@ $(document).ready(function(){
                 sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "none");
             }
         });
-
     }
     //---------------------------------------- @ EVENTOS DEL DOM ------------------------------------
     // EVENTO AL CAMBIAR TIPO DE MATERIAL, CONSULTAR PROVEEDOR
-    $("#selectorMaterial, #inputMaterial").on("change", function() { 
-        $("#selectorProveedor").html('<option value="all" selected>Todos</option>');
-        $("#inputProveedor").html('<option selected disabled>Seleccionar</option>');
-        var materialSeleccionado = $(this).val();
-        $.ajax({
-            url: '../ajax/ajax_proveedores.php', 
-            type: 'POST',
-            data: { material: materialSeleccionado },
-            dataType: 'json',
-            success: function(data) {
-                if (data.length > 0) {
-                    $.each(data, function(index, item) {
-                        $("#selectorProveedor").append(
-                            `
-                            <option value="${item.proveedor}">${item.proveedor}</option>
-                            `
-                        );
-                        $("#inputProveedor").append(
-                            `
-                            <option value="${item.proveedor}">${item.proveedor}</option>
-                            `
-                        );
-                    });
-                } else {
-                }
-            },
-            error: function() {
-                console.error('Error al realizar la petición AJAX');
-            }
-        });
+    // $("#selectorMaterial, #inputMaterial").on("change", function() { 
+    //     $("#selectorProveedor").html('<option value="all" selected>Todos</option>');
+    //     $("#inputProveedor").html('<option selected disabled>Seleccionar</option>');
+    //     var materialSeleccionado = $(this).val();
+    //     $.ajax({
+    //         url: '../ajax/ajax_proveedores.php', 
+    //         type: 'POST',
+    //         data: { material: materialSeleccionado },
+    //         dataType: 'json',
+    //         success: function(data) {
+    //             if (data.length > 0) {
+    //                 $.each(data, function(index, item) {
+    //                     $("#selectorProveedor").append(
+    //                         `
+    //                         <option value="${item.proveedor}">${item.proveedor}</option>
+    //                         `
+    //                     );
+    //                     $("#inputProveedor").append(
+    //                         `
+    //                         <option value="${item.proveedor}">${item.proveedor}</option>
+    //                         `
+    //                     );
+    //                 });
+    //             } else {
+    //             }
+    //         },
+    //         error: function() {
+    //             console.error('Error al realizar la petición AJAX');
+    //         }
+    //     });
 
-    });
+    // });
     
-    $("#inputMaterial, #inputProveedor").on("change", function(){
-        let material = $("#inputMaterial").val();
-        let proveedor = $("#inputProveedor").val();
-        let maxUsable = 0; 
+    // $("#inputMaterial, #inputProveedor").on("change", function(){
+    //     let material = $("#inputMaterial").val();
+    //     let proveedor = $("#inputProveedor").val();
+    //     let maxUsable = 0; 
 
-        if(material !== "" && proveedor !== ""){
-            switch (proveedor) {
-                case "SKF":
-                    switch (material) {
-                        case "ECORUBBER 1":
-                        case "ECORUBBER 2":
-                        case "ECORUBBER 3":
-                        case "ECOSIL":
-                            maxUsable = 122.00;
-                            break;
-                        case "ECOFLON 1":
-                            maxUsable = 146.00;
-                            break;
-                        case "ECOFLON 2":
-                        case "ECOFLON 3":
-                            maxUsable = 140.00;
-                            break;
-                        case "ECOTAL":
-                            maxUsable = 138.00;
-                            break;
-                        case "ECOMID":
-                            maxUsable = 155.00;
-                            break;
-                        case "ECOPUR":
-                            maxUsable = 146.00;
-                            break;
-                        case "H-ECOPUR":
-                            maxUsable = 145.00;
-                            break;
-                    }
-                    break;
+    //     if(material !== "" && proveedor !== ""){
+    //         switch (proveedor) {
+    //             case "SKF":
+    //                 switch (material) {
+    //                     case "ECORUBBER 1":
+    //                     case "ECORUBBER 2":
+    //                     case "ECORUBBER 3":
+    //                     case "ECOSIL":
+    //                         maxUsable = 122.00;
+    //                         break;
+    //                     case "ECOFLON 1":
+    //                         maxUsable = 146.00;
+    //                         break;
+    //                     case "ECOFLON 2":
+    //                     case "ECOFLON 3":
+    //                         maxUsable = 140.00;
+    //                         break;
+    //                     case "ECOTAL":
+    //                         maxUsable = 138.00;
+    //                         break;
+    //                     case "ECOMID":
+    //                         maxUsable = 155.00;
+    //                         break;
+    //                     case "ECOPUR":
+    //                         maxUsable = 146.00;
+    //                         break;
+    //                     case "H-ECOPUR":
+    //                         maxUsable = 145.00;
+    //                         break;
+    //                 }
+    //                 break;
 
-                case "TRYGONAL":
-                    switch (material) {
-                        case "ECORUBBER 1":
-                            maxUsable = 147.00;
-                            break;
-                        case "ECORUBBER 2":
-                            maxUsable = 144.00;
-                            break;
-                        case "ECORUBBER 3":
-                            maxUsable = 146.00;
-                            break;
-                        case "ECOFLON 1":
-                        case "ECOFLON 2":
-                        case "ECOFLON 3":
-                        case "ECOMID":
-                            maxUsable = 0.00;
-                            break;
-                        case "ECOSIL":
-                            maxUsable = 146.00;
-                            break;
-                        case "ECOTAL":
-                            maxUsable = 141.00;
-                            break;
-                        case "ECOPUR":
-                        case "H-ECOPUR":
-                            maxUsable = 147.00;
-                            break;
-                    }
-                    break;
+    //             case "TRYGONAL":
+    //                 switch (material) {
+    //                     case "ECORUBBER 1":
+    //                         maxUsable = 147.00;
+    //                         break;
+    //                     case "ECORUBBER 2":
+    //                         maxUsable = 144.00;
+    //                         break;
+    //                     case "ECORUBBER 3":
+    //                         maxUsable = 146.00;
+    //                         break;
+    //                     case "ECOFLON 1":
+    //                     case "ECOFLON 2":
+    //                     case "ECOFLON 3":
+    //                     case "ECOMID":
+    //                         maxUsable = 0.00;
+    //                         break;
+    //                     case "ECOSIL":
+    //                         maxUsable = 146.00;
+    //                         break;
+    //                     case "ECOTAL":
+    //                         maxUsable = 141.00;
+    //                         break;
+    //                     case "ECOPUR":
+    //                     case "H-ECOPUR":
+    //                         maxUsable = 147.00;
+    //                         break;
+    //                 }
+    //                 break;
 
-                case "SLM":
-                    switch (material) {
-                        case "ECORUBBER 1":
-                        case "ECORUBBER 2":
-                        case "ECORUBBER 3":
-                            maxUsable = 120.00;
-                            break;
-                        case "ECOFLON 1":
-                        case "ECOFLON 2":
-                        case "ECOFLON 3":
-                        case "ECOSIL":
-                            maxUsable = 0.00;
-                            break;
-                        case "ECOTAL":
-                            maxUsable = 147.00;
-                            break;
-                        case "ECOMID":
-                            maxUsable = 140.00;
-                            break;
-                        case "ECOPUR":
-                            maxUsable = 149.00;
-                            break;
-                        case "H-ECOPUR":
-                            maxUsable = 153.00;
-                            break;
-                    }
-                    break;
+    //             case "SLM":
+    //                 switch (material) {
+    //                     case "ECORUBBER 1":
+    //                     case "ECORUBBER 2":
+    //                     case "ECORUBBER 3":
+    //                         maxUsable = 120.00;
+    //                         break;
+    //                     case "ECOFLON 1":
+    //                     case "ECOFLON 2":
+    //                     case "ECOFLON 3":
+    //                     case "ECOSIL":
+    //                         maxUsable = 0.00;
+    //                         break;
+    //                     case "ECOTAL":
+    //                         maxUsable = 147.00;
+    //                         break;
+    //                     case "ECOMID":
+    //                         maxUsable = 140.00;
+    //                         break;
+    //                     case "ECOPUR":
+    //                         maxUsable = 149.00;
+    //                         break;
+    //                     case "H-ECOPUR":
+    //                         maxUsable = 153.00;
+    //                         break;
+    //                 }
+    //                 break;
 
-                case "CARVIFLON":
-                    switch (material) {
-                        case "ECORUBBER 1":
-                        case "ECORUBBER 2":
-                        case "ECORUBBER 3":
-                        case "ECOSIL":
-                        case "ECOTAL":
-                        case "ECOMID":
-                        case "ECOPUR":
-                        case "H-ECOPUR":
-                            maxUsable = 0.00;
-                            break;
-                        case "ECOFLON 1":
-                            maxUsable = 143.00;
-                            break;
-                        case "ECOFLON 2":
-                            maxUsable = 147.00;
-                            break;
-                        case "ECOFLON 3":
-                            maxUsable = 145.00;
-                            break;
-                    }
-                    break;
+    //             case "CARVIFLON":
+    //                 switch (material) {
+    //                     case "ECORUBBER 1":
+    //                     case "ECORUBBER 2":
+    //                     case "ECORUBBER 3":
+    //                     case "ECOSIL":
+    //                     case "ECOTAL":
+    //                     case "ECOMID":
+    //                     case "ECOPUR":
+    //                     case "H-ECOPUR":
+    //                         maxUsable = 0.00;
+    //                         break;
+    //                     case "ECOFLON 1":
+    //                         maxUsable = 143.00;
+    //                         break;
+    //                     case "ECOFLON 2":
+    //                         maxUsable = 147.00;
+    //                         break;
+    //                     case "ECOFLON 3":
+    //                         maxUsable = 145.00;
+    //                         break;
+    //                 }
+    //                 break;
 
-                default:
-                    maxUsable = 0.00;
-                    break;
-            }
-            if(maxUsable == 0.00){
-                $("#inputMaxUsable").val("");
-                $("#inputMaxUsable").attr("placeholder", "Ej. 144");
+    //             default:
+    //                 maxUsable = 0.00;
+    //                 break;
+    //         }
+    //         if(maxUsable == 0.00){
+    //             $("#inputMaxUsable").val("");
+    //             $("#inputMaxUsable").attr("placeholder", "Ej. 144");
 
-            }else{
-                $("#inputMaxUsable").val(maxUsable);
-                $("#inputMaxUsable").attr("placeholder", "Ej. 144");
+    //         }else{
+    //             $("#inputMaxUsable").val(maxUsable);
+    //             $("#inputMaxUsable").attr("placeholder", "Ej. 144");
 
-            }
-        }
-    });
+    //         }
+    //     }
+    // });
 
     $("#inputClavePost").on("input change", function(){
         verificarClave();
@@ -466,10 +499,15 @@ $(document).ready(function(){
     // RESETEAR EL FORMULARIO AL CERRAR
     $("#btnCloseModal").on("click", function(){
         $("#formInventario")[0].reset();
-        $("#pValida, #pInvalida, #pInvalida2, #pInvalida3").addClass("d-none");
+        $("#pValida, #pWarning, #pInvalida3").addClass("d-none");
+        $("#inputMaterial").removeClass("input-disabled").addClass("selector");
+        $("#inputProveedor").removeClass("input-disabled").addClass("selector");
+        $("#inputMedida").removeClass("input-disabled").addClass("input-text");
+        $("#inputMaxUsable").removeClass("input-disabled").addClass("input-text");
     });
     // CAMBIAR A add AL CLICK AGREGAR REGISTRO
     $("#btnAgregar").on("click", function(){
+        $("#formInventario")[0].reset();
         $('#inputAction').val('insert');
         $("#titleModal").text("Agregar registro");
         $("#formInventario").removeAttr("target");
@@ -477,6 +515,7 @@ $(document).ready(function(){
     });
     // CAMBIAR A add AL CLICK AGREGAR REGISTRO
     $("#btnAgregar2").on("click", function(){
+        $("#formInventario")[0].reset();
         $('#inputAction').val('insert2');
         $("#titleModal").text("Agregar registro");
         $("#formInventario").attr("target", "_blank");
@@ -506,9 +545,7 @@ $(document).ready(function(){
         $('#inputMedida').val(dataMedida);
         $('#inputMaterial').val(dataMaterial);
         $('#inputMaterial').trigger("change");
-        setTimeout(() => {
-            $('#inputProveedor').val(dataProveedor);
-        }, 1000);
+        $('#inputProveedor').val(dataProveedor);
         $('#inputMaxUsable').val(dataMaxUsable);
         $('#inputStock').val(dataStock);
         $('#inputLotePedimento').val(dataLotePedimento);

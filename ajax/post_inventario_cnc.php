@@ -1,7 +1,13 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
+require_once(ROOT_PATH . 'vendor/autoload.php');
+session_start();
 
+if (!isset($_SESSION['id'])) {
+    header("Location: ../auth/cerrar_sesion.php");
+    exit;
+}
 header('Content-Type: application/json');
 
 try {
@@ -21,36 +27,21 @@ try {
         throw new Exception("Acción no válida.");
     }
 
-    $clave          = trim($_POST['clave'] ?? '');
-    $medida         = trim($_POST['medida'] ?? '');
+    // Limpiar espacios automáticamente sin notificar al usuario
+    $clave          = preg_replace('/\s+/', '', trim($_POST['clave'] ?? ''));
+    $medida         = preg_replace('/\s+/', '', trim($_POST['medida'] ?? ''));
     $proveedor      = trim($_POST['proveedor'] ?? '');
-    $material       = trim($_POST['material'] ?? ''); 
-    $max_usable     = trim($_POST['max_usable'] ?? '');
-    $stock          = trim($_POST['stock'] ?? '');
-    $lote_pedimento = trim($_POST['lote_pedimento'] ?? '');
+    $material       = trim($_POST['material'] ?? '');
+    $max_usable     = preg_replace('/\s+/', '', trim($_POST['max_usable'] ?? ''));
+    $stock          = preg_replace('/\s+/', '', trim($_POST['stock'] ?? ''));
+    $lote_pedimento = preg_replace('/\s+/', '', trim($_POST['lote_pedimento'] ?? ''));
     $estatus        = trim($_POST['estatus'] ?? '');
+    $inputClaveAlterna = preg_replace('/\s+/', '', trim($_POST['inputClaveAlterna'] ?? ''));
 
     if ($action !== 'delete') {
-        foreach ([
-            'clave' => $clave,
-            'medida' => $medida,
-            'proveedor' => $proveedor,
-            'max_usable' => $max_usable,
-            'stock' => $stock,
-            'lote_pedimento' => $lote_pedimento
-        ] as $campo => $valor) {
-            if (preg_match('/\s/', $valor)) {
-                echo json_encode([
-                    'success' => false,
-                    'message' => "El campo '$campo' contiene espacios en blanco. Los registros no deben llevar espacios."
-                ]);
-                exit;
-            }
-        }
-
         $errores = [];
-        if ($action === '') $errores[] = "Falta el action";
-        if ($id === null) $errores[] = "Falta el id";
+        if ($action === '') $errores[] = "Falta la acción";
+        if ($id === null && $action === 'update') $errores[] = "Falta el id";
         if ($estatus === '') $errores[] = "Falta el estatus";
         if ($clave === '') $errores[] = "Falta la clave";
         if ($material === '') $errores[] = "Falta el material";
@@ -70,7 +61,6 @@ try {
     }
 
     if (in_array($action, ['insert', 'insert2', 'update'])) {
-
         if (!preg_match('/^\d+\/\d+$/', $medida)) {
             throw new Exception("Formato de medida inválido. Usa formato interior/exterior.");
         }
@@ -80,11 +70,16 @@ try {
         $exterior = (int)$exterior;
     }
 
+    // Variables para acciones posteriores
+    $insertId = null;
+    $claveParaCorreo = $clave;
+    $mensajeCorreo = ""; // Para almacenar el estado del envío de correo
+
     if ($action === 'insert' || $action === 'insert2') {
         $sql = "INSERT INTO inventario_cnc 
-                (clave, medida, interior, exterior, proveedor, material, max_usable, pre_stock, stock, lote_pedimento, estatus, updated_at)
+                (clave, medida, interior, exterior, proveedor, material, max_usable, pre_stock, stock, lote_pedimento, estatus)
                 VALUES 
-                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :pre_stock, :stock, :lote_pedimento, :estatus, NOW())";
+                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :pre_stock, :stock, :lote_pedimento, :estatus)";
         $stmt = $conn->prepare($sql);
     }
 
@@ -122,33 +117,134 @@ try {
         $stmt->bindParam(':estatus', $estatus);
         $stmt->execute();
 
-        if (($action === 'insert' || $action === 'insert2') && $estatus === 'Falta precio o máx. usable') {
-            try {
-                $verificar_sql = "SELECT COUNT(*) FROM parametros WHERE Clave = :clave";
-                $stmt_verificar = $conn->prepare($verificar_sql);
-                $stmt_verificar->bindParam(':clave', $clave);
-                $stmt_verificar->execute();
-                $existe = $stmt_verificar->fetchColumn();
-                // cuando el resultado es 0 registros coincidentes agrega la nueva clave sin max usable y sin precio
-                if ($existe == 0) {
-                    $sql_parametros = "INSERT INTO parametros (Clave, material, proveedor, interior, exterior)
-                                    VALUES (:clave, :material, :proveedor, :interior, :exterior)";
-                    $stmt_parametros = $conn->prepare($sql_parametros);
-                    $stmt_parametros->bindParam(':clave', $clave);
-                    $stmt_parametros->bindParam(':material', $material);
-                    $stmt_parametros->bindParam(':proveedor', $proveedor);
-                    $stmt_parametros->bindParam(':interior', $interior);
-                    $stmt_parametros->bindParam(':exterior', $exterior);
-                    $stmt_parametros->execute();
+        // Obtener el ID del registro insertado (solo para inserts)
+        if ($action === 'insert' || $action === 'insert2') {
+            $insertId = $conn->lastInsertId();
+        }
+
+        // MANEJO DE ESTATUS ESPECIALES
+        if (in_array($estatus, ['Relación pendiente', 'Clave nueva pendiente', 'Clave SRS inexistente'])) {
+            
+            // CASO 1: "Relación pendiente" - Solo insertar/actualizar en inventario_cnc y enviar correo
+            if ($estatus === 'Relación pendiente') {
+                $asunto = "Nuevo billet con clave alterna existente - Relación pendiente";
+                $mensaje = "Se ha agregado un nuevo billet con clave alterna existente, relación pendiente de clave SRS. Clave: " . $clave;
+                
+                // Envío de correo directo (sin función)
+                $correoEnviado = false;
+                try {
+                    require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                    $mail = getMailer($conn);
+                    //$mail->addAddress("aux.sistemas@sellosyretenes.com");
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                    $mail->isHTML(true);
+                    $mail->Subject = $asunto;
+                    $mail->Body = $mensaje;
+
+                    if ($mail->send()) {
+                        $correoEnviado = true;
+                        $msjExtra = "Correo enviado a Inventarios correctamente.";
+                    } else {
+                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    }
+                } catch (Throwable $e) {
+                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
                 }
-            } catch (Exception $e) {
-                // No hacer nada si ocurre error
+                
+                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
+                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
+            }
+            
+            // CASO 2: "Clave nueva pendiente" - Insertar en claves_alternas y enviar correo
+            else if ($estatus === 'Clave nueva pendiente') {
+                // Insertar en claves_alternas (clave_srs como NULL inicialmente)
+                $sqlClavesAlternas = "INSERT INTO claves_alternas (clave_alterna, clave_srs, fecha_registro) 
+                                     VALUES (:clave_alterna, NULL, NOW()) 
+                                     ON DUPLICATE KEY UPDATE fecha_registro = NOW()";
+                $stmtClavesAlternas = $conn->prepare($sqlClavesAlternas);
+                $claveAlterna = !empty($inputClaveAlterna) ? $inputClaveAlterna : $clave;
+                $stmtClavesAlternas->bindParam(':clave_alterna', $claveAlterna);
+                $stmtClavesAlternas->execute();
+                
+                $asunto = "Nuevo billet con clave nueva - Relación pendiente";
+                $mensaje = "Se ha agregado un nuevo billet con clave nueva, relación pendiente de clave SRS. Clave: " . $clave;
+                
+                // Envío de correo directo (sin función)
+                $correoEnviado = false;
+                try {
+                    require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                    $mail = getMailer($conn);
+                    //$mail->addAddress("aux.sistemas@sellosyretenes.com");
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                    $mail->isHTML(true);
+                    $mail->Subject = $asunto;
+                    $mail->Body = $mensaje;
+
+                    if ($mail->send()) {
+                        $correoEnviado = true;
+                        $msjExtra = "Correo enviado a Inventarios correctamente.";
+                    } else {
+                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    }
+                } catch (Throwable $e) {
+                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
+                }
+                
+                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
+                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
+                
+                $claveParaCorreo = $claveAlterna;
+            }
+            
+            // CASO 3: "Clave SRS inexistente" - Insertar en claves_alternas y enviar correo
+            else if ($estatus === 'Clave SRS inexistente') {
+                // Insertar en claves_alternas (clave_srs como NULL)
+                $sqlClavesAlternas = "INSERT INTO claves_alternas (clave_alterna, clave_srs, fecha_registro) 
+                                     VALUES (:clave_alterna, NULL, NOW()) 
+                                     ON DUPLICATE KEY UPDATE fecha_registro = NOW()";
+                $stmtClavesAlternas = $conn->prepare($sqlClavesAlternas);
+                $claveAlterna = !empty($inputClaveAlterna) ? $inputClaveAlterna : $clave;
+                $stmtClavesAlternas->bindParam(':clave_alterna', $claveAlterna);
+                $stmtClavesAlternas->execute();
+                
+                $asunto = "Nuevo billet con clave nueva - Clave SRS no encontrada";
+                $mensaje = "Se ha agregado un nuevo billet con clave nueva, no se encontró la clave SRS. Clave: " . $clave;
+                
+                // Envío de correo directo (sin función)
+                $correoEnviado = false;
+                try {
+                    require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                    $mail = getMailer($conn);
+                    //$mail->addAddress("aux.sistemas@sellosyretenes.com");
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                    $mail->isHTML(true);
+                    $mail->Subject = $asunto;
+                    $mail->Body = $mensaje;
+
+                    if ($mail->send()) {
+                        $correoEnviado = true;
+                        $msjExtra = "Correo enviado a Inventarios correctamente.";
+                    } else {
+                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    }
+                } catch (Throwable $e) {
+                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
+                }
+                
+                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
+                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
+                
+                $claveParaCorreo = $claveAlterna;
             }
         }
         
+        $mensajeBase = $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.';
+        $mensajeCompleto = $mensajeBase . $mensajeCorreo;
+        
         echo json_encode([
             'success' => true,
-            'message' => $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.'
+            'message' => $mensajeCompleto,
+            'id' => $insertId
         ]);
         exit;
     }

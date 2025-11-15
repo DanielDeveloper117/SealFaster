@@ -8,6 +8,28 @@
     $stmt->execute();
     $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    $servidorEnMantenimiento = false; // Cambiar a true para activar el modo de mantenimiento
+
+    if ($servidorEnMantenimiento && $id_usuario != 71) { // ID 71 es el administrador
+        echo "<script type='text/javascript'>
+                $(document).ready(function(){
+                    Swal.fire({
+                        title: 'Aviso',
+                        text: 'El servidor se encuentra en mantenimiento. Actualización en curso para darte una mejor exteriencia. Por favor, espere unos minutos e intente de nuevo.',
+                        icon: 'info',
+                        confirmButtonText: 'Ok',
+                        confirmButtonColor: '#55AD9B',
+                        showCloseButton: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then((result) => {
+                        window.location.href = '../auth/cerrar_sesion.php';
+                    });
+                });
+            </script>";
+        exit();
+    }
+
     $tipoUsuario = 999;
     $arrayPermitidos = [
         "welcome.php",
@@ -29,6 +51,7 @@
                 "parametros_cotizador.php",
                 "precios.php",
                 "precios_compras.php",
+                "claves_alternas.php",
                 "users.php"
             ]);
             if(!in_array($selfFile, $arrayPermitidos)){
@@ -74,6 +97,7 @@
                 "cotizaciones.php",
                 "precios.php",
                 "precios_compras.php",
+                "claves_alternas.php",
                 "desencriptar.php",
                 "users.php"
             ]);
