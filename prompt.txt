@@ -479,3 +479,45 @@ estatus = "Disponible para cotizar", lo que se busca es agregar condicionales en
 *Si la clave es valida y el estatus = "En uso" o "Maquinado en curso" o "Eliminado" o "Disponible para cotizar" mantener el estatus.
 *Si la clave es valida y tiene otro estatus diferente a los anteriores cambiar el estatus = "Disponible para cotizar".
 *Pero si la clave no es valida, mantener la clave (no sustituirla a "PENDIENTE") y cambiar estatus = "Clave incorrecta".
+
+usar jquery y Al dar click al siguiente boton mostrar un modal bootstrap con .show() despues mostrar en el modal una lista o forma de lista
+de comentarios y archivos adjuntos.
+*El titulo del modal sera "Añadir comentarios y archivos adjuntos para esta cotizacion".
+*En el cuerpo mostrar un listado en vertical de lo siguiente:
+-si no hay registros mostrar un recuadro con borde punteado, al centro incluir el texto "+ Agregar", entonces al darle click 
+adicionara un formulario en forma de rectangulo (del mismo ancho del boton bordeado) el cual su borde sera solid y mostrando
+un input #inputComentario (name comentario) y un boton debajo #inputAdjunto de "Añadir adjunto" (name ruta_adjunto), inputos ocultos #inputIdCotizacionAdicion.
+Debajo como todo formulario un boton de Agregar (para agregar registro con los datos del formulario)
+-si esta un formulario visible (solo debe haber uno hasta agregar el registro) no mostrar el boton de borde punteado.
+-si hay registros mostrar el listado de comentarios con adjuntos (rectangulos borde solid) pero solo de vista y con una opcion 
+de eliminar registro y debajo mostrar el boton bordeado para indicar que es posible agregar otro.
+*el campo oculto #inputIdCotizacionAdicion lo va a auto llenar con #inputIdCotizacion
+*usaremos la estructura ajax.
+*ambos input visibles son requeridos, cuando el servidor responde con success (backend pendiente) agregar en el listado el frontend (refrescar el contenedor).
+*Cada que abren el modal consultara mediante ajax los registros, nosotros debemos pasarle con get los campos id_cotizacion para despues 
+saber cuantos registros habria coincidentes.
+*Al mostrar listado de registros si hay un archivo mostrar el nombre del archivo y extension el cual sera un enlace para mostrar el adjunto en una 
+nueva pestaña, eso mostrarlo en lugar del boton de agregar adjunto (dado quer el boton de agregar solo aparece si es el formulario por llenar).
+
+Se ve bastante bien, asi funciona perfectamente hasta ahora, ahora procedamos con el backend:
+*el campo ruta_adjunto en el frontend sera cambiado por nombre_archivo, el cual procesaremos despues en el backend.
+*cargar_comentarios_adjuntos.php sera el backend que se encargue consultar la tabla comentarios_adjuntos, donde id_cotizacion = 
+get.id_cotizacion, retornara un arreglo de registros.
+*agregar_comentario_adjunto.php, agregara el registro agregará a la tabla los siguientes campos:
+id_cotizacion = post.id_cotizacion, comentario = post.comentario, ruta_adjunto = RUTA + post.nombre_archivo.
+*para saber la ruta del adjunto vamos a hacer lo siguiente:
+ROOT_PATH . "files/adjuntos_cotizaciones/[id_cotizacion]/[post.nombre_archivo]".
+*Recuerde que ahora vamos a enviar solo un archivo por registro, y tal archivo lo vamos a guardar y en el backend adicionar 
+la ruta anteriormente mencionada.
+*eliminar_comentario_adjunto.php solamente eliminara el registro mediante su id (campo id de la tabla comentarios_adjuntos).
+*para eliminar el registro considerar un input oculto para identificar el registro unico.
+
+vamos a modificar el backend proveniente del siguiente frontend. El script debe de ser capaz de decidir que accion hacer 
+dependiendo del parametro origen.
+*si el origen es "coti", consultar normalmente por id_cotizacion (ya hecho).
+*si el origen es "requi", consultar la id_requisicion en la tabla requisiciones, despues en la columna descomponer los 
+id_cotizacion de la columna cotizaciones (formato separado por comas: 13467985,89985464) y despues con esos ids vas a consultar 
+la tabla de comentarios_adjuntos para extraer los registros como cuando el origen es coti.
+
+necesitamos un selector para seleccionar las cotizaciones, cuando el origen es requi, tenemos que mostrar el selector para 
+seleccionar en el formulario a que cotizacion nos queremos referir al enviar los datos en el formulario de agregar.

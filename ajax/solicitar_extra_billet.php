@@ -176,20 +176,20 @@ try {
                 
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
+                    $mail->isHTML(true);
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                     $barraCompleta = $inventario_cnc['Clave'] . " " . $lote_pedimento . " (" . $inventario_cnc['Medida'] . ")";
                     $asunto = "Solicitud de barra extra. Folio: " . $id_requisicion;
                     
-                    $cuerpo = "Inventarios ha solicitado la autorización de barra extra para la requisición de maquinado con folio: " . $id_requisicion . ".\n\n";
-                    $cuerpo .= "Ingrese al sistema en el módulo de Requisiciones para autorizar.\n\n";
-                    $cuerpo .= "Barra: " . $barraCompleta . "\n\n";
-                    $cuerpo .= "Justificación:\n";
-                    $cuerpo .= $justificacion_extra;
+                    $cuerpo = "Inventarios ha solicitado la autorización de barra extra para la requisición de maquinado con folio: <b>" . $id_requisicion . "</b>.</br>";
+                    $cuerpo .= "Ingrese al sistema en el módulo de Requisiciones para autorizar.</br>";
+                    $cuerpo .= "Barra: <b>" . $barraCompleta . "</b></br>";
+                    $cuerpo .= "Justificación:</br><b>";
+                    $cuerpo .= $justificacion_extra."</b>";
 
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
-
                     // Agregar correo de prueba
-                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
 
                     if (!$mail->send()) {
                         throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);

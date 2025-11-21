@@ -8,8 +8,34 @@
     $stmt->execute();
     $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
+    $servidorEnMantenimientoAdvertencia = false; // Cambiar a true para activar la advertencia de mantenimiento
     $servidorEnMantenimiento = false; // Cambiar a true para activar el modo de mantenimiento
 
+    if ($servidorEnMantenimientoAdvertencia) { 
+        echo "<script type='text/javascript'>
+                $(document).ready(function(){
+                    Swal.fire({
+                        title: 'Aviso',
+                        text: 'Actualización programada a las 10:45 AM. Asegurece de guardar su trabajo para evitar perdida de datos.',
+                        icon: 'info',
+                        width: '600px',
+                        padding: '10px',
+                        timer: 4000,
+                        position: 'bottom',
+                        toast: true,
+                        showConfirmButton: false,
+                        //confirmButtonText: 'Ok',
+                        //confirmButtonColor: '#55AD9B',
+                        showCloseButton: true,
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then((result) => {
+                        
+                    });
+                });
+            </script>";
+        
+    }
     if ($servidorEnMantenimiento && $id_usuario != 71) { // ID 71 es el administrador
         echo "<script type='text/javascript'>
                 $(document).ready(function(){

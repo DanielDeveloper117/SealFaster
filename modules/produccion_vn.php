@@ -98,6 +98,7 @@ if (!isset($_SESSION['id'])) {
                                 </form>
 
                                 <?php
+
                                 if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
                                     echo '<button class="btn-thunder edit-btn"
                                             data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
@@ -126,6 +127,17 @@ if (!isset($_SESSION['id'])) {
                                 switch ($row['estatus']) {
                                     case "Pendiente":
                                         $estatusString = "Pendiente";
+                                        $esMia = "0";
+                                        if ($row['id_vendedor'] == $_SESSION['id']) {
+                                            $esMia = "1";
+                                        }
+                                        echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                                data-origen="requi"
+                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                data-es-mia="' . $esMia . '"
+                                                title="Comentarios y archivos adjuntos para esta requisición">
+                                                <i class="bi bi-chat-left-text"></i>
+                                            </button>';
                                         if ($tipo_usuario === "Vendedor" && $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-auth btn-gerente-autoriza" 
                                                     data-bs-toggle="modal" data-bs-target="#modalGerenteAutoriza"
@@ -266,6 +278,8 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </section>
+<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
+<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <!-- Modal para agregar/editar registro -->
 <div class="modal fade" id="modalAgregarEditar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg">

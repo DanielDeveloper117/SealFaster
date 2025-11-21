@@ -196,23 +196,23 @@ try {
                         }
                     }
                 }
-
+                $mail->isHTML(true);
+                // Agregar correo de prueba
+                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $tipoBarra = $accion === 'remplazo' ? 'remplazo de barra' : 'barra extra';
                     $barraCompleta = $registroControl['clave'] . " " . $lote_a_actualizar . " (" . $registroControl['medida'] . ")";
                     $asunto = "Solicitud rechazada para $tipoBarra. Folio: " . $id_requisicion;
                     
-                    $cuerpo = "Se ha rechazado la solicitud de $tipoBarra para la requisición de maquinado con folio: " . $id_requisicion . ".\n\n";
-                    $cuerpo .= "Barra rechazada: " . $barraCompleta . "\n\n";
-                    $cuerpo .= "Razón del rechazo:\n";
-                    $cuerpo .= $razon . "\n\n";
+                    $cuerpo = "Se ha rechazado la solicitud de $tipoBarra para la requisición de maquinado con folio: <b>" . $id_requisicion . "</b>.</br>";
+                    $cuerpo .= "Barra rechazada: <b>" . $barraCompleta . "</b></br>";
+                    $cuerpo .= "Razón del rechazo:</br><b>";
+                    $cuerpo .= $razon . "</b>";
 
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
 
-                    // Agregar correo de prueba
-                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
 
                     if (!$mail->send()) {
                         throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);

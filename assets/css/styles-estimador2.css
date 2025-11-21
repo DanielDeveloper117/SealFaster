@@ -214,7 +214,26 @@ a{
   text-align: left; 
   max-width: 60%;  
 }
-
+.input-file {
+    width: 100%;
+    text-align: center;
+    padding: 12px;
+    border: none;
+    border-radius: 5px;
+    color: #000;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 0px 1px 1px #55AD9B;
+}
+.input-file:hover {
+    background-color: #95D2B3; 
+    color: #fff;
+    box-shadow: 0 4px 8px rgba(85, 173, 155, 1.2);
+    transform: translateY(-4px);
+}
+.input-file:active {
+    background-color: #95D2B3; 
+}
 /* *** ESTILOS DE SELECTORES *** */
 
 /* *** FIN ESTILOS DE SELECTORES *** */
@@ -301,6 +320,25 @@ label{
 }
 .btn-todos-detalles:hover {
   background-color: #95D2B3; /* menta */
+}
+.btn-eliminar{
+ 
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #ca4747 !important;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    border-radius: .25rem;
+}
+.btn-eliminar:hover{
+    background-color: #f24242f0 !important;
 }
 #btnCotizar, #btnPrevisualizar{
   height:65px;

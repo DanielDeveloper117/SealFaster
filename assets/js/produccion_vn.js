@@ -119,7 +119,7 @@
             // Eliminar del arreglo (usa == para tolerar cadena vs número)
             cotizacionesSeleccionadas = cotizacionesSeleccionadas.filter(id => id != idAEliminar);
             // Actualizar el input oculto
-            $('#inputCotizaciones').val(cotizacionesSeleccionadas.join(','));
+            $('#inputCotizaciones').val(cotizacionesSeleccionadas.join(', '));
             // Eliminar la fila visualmente
             fila.remove();
         });
@@ -194,7 +194,7 @@
             cotizacionesSeleccionadas = [];
 
             let cotizacionesStr = $dataCotizaciones || "";
-            let cotizacionesArray = cotizacionesStr.split(',').map(id => id.trim()).filter(id => id !== '');
+            let cotizacionesArray = cotizacionesStr.split(', ').map(id => id.trim()).filter(id => id !== '');
 
             cotizacionesSeleccionadas = cotizacionesArray;
 

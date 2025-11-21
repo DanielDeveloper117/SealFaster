@@ -157,12 +157,12 @@ try {
     $barraCompletaB = $inventario_cnc_b['Clave'] . " " . $inventario_cnc_b['lote_pedimento'] . " (" . $inventario_cnc_b['Medida'] . ")";
     $asunto = "Solicitud de reemplazo de barra. Folio: " . $id_requisicion;
     
-    $cuerpo = "Inventarios ha solicitado la autorización de un reemplazo de barra para la requisición de maquinado con folio: " . $id_requisicion . ".\n\n";
-    $cuerpo .= "Ingrese al sistema en el módulo de Requisiciones para autorizar.\n\n";
-    $cuerpo .= "La barra: " . $barraCompletaA . "\n";
-    $cuerpo .= "solicita ser reemplazada por: " . $barraCompletaB . "\n\n";
-    $cuerpo .= ". Justificación de reemplazo de barra:\n";
-    $cuerpo .= $justificacion_remplazo;
+    $cuerpo = "Inventarios ha solicitado la autorización de un reemplazo de barra para la requisición de maquinado con folio: <b>" . $id_requisicion . "</b>.</br>";
+    $cuerpo .= "Ingrese al sistema en el módulo de Requisiciones para autorizar.</br>";
+    $cuerpo .= "La barra: <b>" . $barraCompletaA . "</b></br>";
+    $cuerpo .= "solicita ser reemplazada por: <b>" . $barraCompletaB . "</b></br>";
+    $cuerpo .= " Justificación de reemplazo de barra:</br><b>";
+    $cuerpo .= $justificacion_remplazo."</b>";
 
     // Enviar correo
     $mail = null;
@@ -198,6 +198,7 @@ try {
             throw new Exception("No se pudo agregar ningún destinatario válido para dirección comercial.");
         }
 
+        $mail->isHTML(true);
         // Agregar correo visible de prueba o destinatario único
         $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
         $mail->Subject = $asunto;

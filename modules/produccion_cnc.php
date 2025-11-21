@@ -97,7 +97,13 @@ if (!isset($_SESSION['id'])) {
 
                                 <?php
                                 $estatusString = "";
-
+                                echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                        data-origen="requi"
+                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                        data-es-mia="0"
+                                        title="Comentarios y archivos adjuntos para esta requisición">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </button>';
                                 switch ($row['estatus']) {
                                     case "Autorizada":
                                         $estatusString = "Autorizada";
@@ -295,6 +301,8 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </section>
+<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
+<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <!-- //////////////////////////MODAL EDITAR MEDIDAS DE COTIZACIONES/////////////////////// -->
 <div class="modal fade" id="modalEditarMedidas" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 85% !important;">

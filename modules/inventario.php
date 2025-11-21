@@ -189,6 +189,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Existencia</th>
                         <th>Usabilidad</th>
                         <th>Estatus</th>
+                        <th>Fecha de Ingreso</th>
                         <th>Actualización</th>
                     </tr>
                 </thead>
@@ -253,6 +254,15 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         </td>
                         <td class="td-usable"><?= $usableText; ?></td>
                         <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?></td>
+                        <td class="td-created">
+                            <?php
+                                if (!empty($row['created_at'])) {
+                                    echo date("d/m/Y h:i:s A", strtotime($row['created_at']));
+                                } else {
+                                    echo "fecha no disponible";
+                                }
+                            ?>
+                        </td>
                         <td class="td-updated">
                             <?php
                                 if (!empty($row['updated_at'])) {

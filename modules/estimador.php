@@ -247,11 +247,19 @@ if (!isset($_SESSION['id'])) {
                 </div>
             </div>
         </div> 
-        <div class="mb-3 d-flex col-12 justify-content-start <?= ($tipoUsuario == 5) ? 'd-none' : '' ?>">
+        <div class="mb-3 d-flex col-12 gap-2 flex-column flex-md-row justify-content-center justify-content-md-between <?= ($tipoUsuario == 5) ? 'd-none' : '' ?>">
             <div class="d-flex col-12 col-md-5 flex-column mt-3">
                 <?php include(ROOT_PATH . 'includes/backend_info_user.php'); ?>
                 <label for="inputVendedor" class="label-estimador">Nombre del vendedor</label>
                 <input id="inputVendedor" type="text" class="input-estimador" value="<?= $nombreUser ?>" required readonly tabindex="-1">
+            </div>
+            <div class="d-flex col-12 col-md-3 flex-column justify-content-end">
+                <button type="button" id="btnModalComentariosAdjuntos" class="btn-general mt-4 btn-modal-comentarios-adjuntos" 
+                        data-origen="coti"
+                        data-es-mia="1">
+                        Comentarios y adjuntos
+                        <i class='bi bi-chat-left-text' style='color:#fff; margin-left: 5px;'></i>
+                </button>
             </div>
         </div>
         <div class="mb-3 d-flex col-12 flex-column justify-content-start">
@@ -338,6 +346,8 @@ if (!isset($_SESSION['id'])) {
     </div>
   </div>
 </div>
+
+<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 
 <script>
@@ -345,7 +355,7 @@ if (!isset($_SESSION['id'])) {
 </script>
 <?php?>
 <script src="<?= controlCache('../assets/js/'.$archivoEventos.''); ?>"></script>
-
+<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <script>
 $(document).ready(function(){
     // $.ajax({

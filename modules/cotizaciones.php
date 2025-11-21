@@ -524,7 +524,7 @@ if (!isset($_SESSION['id'])) {
                             
                             // Clase CSS condicional
                             $clase_fila = $esta_vencida ? 'fila-vencida' : '';
-                    ?>
+                        ?>
                         <tr class="<?= $clase_fila ?>">
                             <td class="td-first-actions">
                                 <div class="d-flex gap-2 container-actions">
@@ -566,7 +566,23 @@ if (!isset($_SESSION['id'])) {
                                         title="<?= ($row['archivada'] == 0) ? 'Archivar/desactivar esta cotización' : 'Desarchivar/activar esta cotización' ?>">                                    
                                         <i class="bi bi-<?= ($row['archivada'] == 0) ? 'archive' : 'archive-fill' ?>"></i>
                                     </button>
-                            
+                                    <?php
+                                        $esMia = "0";
+                                        if ($row['id_usuario'] == $_SESSION['id']) {
+                                            $esMia = "1";
+                                        }
+                                        if($esta_vencida == false){
+
+                                            echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                                    data-origen="coti"
+                                                    data-es-mia="' . $esMia . '"
+                                                    data-id_cotizacion="' . htmlspecialchars($row['id_cotizacion']) . '"
+                                                    title="Comentarios y archivos adjuntos para esta cotización">
+                                                    <i class="bi bi-chat-left-text"></i>
+                                                </button>';
+                                        }
+
+                                    ?>
                                 </div>
                                 
                             </td>
@@ -1155,6 +1171,8 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
+<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
+<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
    <script>
         document.addEventListener('DOMContentLoaded', function() {

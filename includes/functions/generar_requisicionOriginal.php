@@ -58,6 +58,15 @@ class PDF extends FPDF {
         $this->Cell(0, 15, "www.sellosyretenes.com", 0, 0, 'R');
     }
 
+    // Función para verificar si hay espacio suficiente para las firmas
+    function CheckPageBreak($heightNeeded) {
+        if($this->GetY() + $heightNeeded > $this->PageBreakTrigger) {
+            $this->AddPage('P');
+            return true;
+        }
+        return false;
+    }
+
 }
 
 session_start();
@@ -149,7 +158,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(50, 6, 'OPERADOR CNC:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
-    $pdf->Cell(140, 6, utf8_decode($arregloRequisicion['operador_cnc']), 1, 1, 'L', 0);
+    $pdf->Cell(140, 6, utf8_decode($arregloRequisicion['maquina']." ".$arregloRequisicion['operador_cnc']), 1, 1, 'L', 0);
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(50, 6, 'INICIO MAQUINADO:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
@@ -273,20 +282,6 @@ if (isset($_GET['id_requisicion'])) {
 
         $alturaTexto = utf8_decode(implode("\n", $alturas));
         $numLineasAltura = count($alturas);
-        //if ($familiaPerfil == "wipers") {
-
-            // if($cotGeneral['tipo_medida']=="Sello"){
-            // } else {
-            //     $alturas[] = "Total:";
-            //     $alturas[] = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
-            // }
-        //} else {
-            // if($cotGeneral['tipo_medida']=="Sello"){
-                //$alturaTexto = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
-            // } else {
-            //     $alturaTexto = $cotGeneral['a_sello2']."mm/".mm_a_pulgadas($cotGeneral['a_sello2']).'"';
-            // }
-        //}
 
         // === Calcular altura total del renglon ===
         //$rowHeight = ($familiaPerfil == "wipers") ? ($numLineasAltura * $lineHeight) : 6;
@@ -300,20 +295,10 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->Cell(10, $rowHeight, utf8_decode("-"), 1, 0, 'C');
         $pdf->Cell(15, $rowHeight, utf8_decode($cotGeneral['perfil_sello']), 1, 0, 'C');
         $pdf->Cell(23, $rowHeight, utf8_decode("-"), 1, 0, 'C');
-        // $pdf->Cell(12, $rowHeight, utf8_decode($cotGeneral['tipo_medida']), 1, 0, 'C');
-        //$pdf->Cell(33, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
-        //$pdf->Cell(33, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
 
         $textoDI = utf8_decode(implode("\n", $arrayDI));
         $textoDE = utf8_decode(implode("\n", $arrayDE));
         $alturaTexto = utf8_decode(implode("\n", $alturas));
-        // if($cotGeneral['tipo_medida']=="Sello"){
-        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello'].'mm/'.$cotGeneral['di_sello_inch'].'"'), 1, 0, 'C');
-        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello'].'mm/'.$cotGeneral['de_sello_inch'].'"'), 1, 0, 'C');
-        // } else {
-        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['di_sello2'].'mm/'.$cotGeneral['di_sello_inch2'].'"'), 1, 0, 'C');
-        //     $pdf->Cell(29, $rowHeight, utf8_decode($cotGeneral['de_sello2'].'mm/'.$cotGeneral['de_sello_inch2'].'"'), 1, 0, 'C');
-        // }
 
         // === Celda de altura (usa MultiCell si es wipers)
         //if ($familiaPerfil == "wipers") {
@@ -325,98 +310,96 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->SetXY($x + 66, $y);
         $pdf->MultiCell(33, $lineHeight, $alturaTexto, 1, 'L');
         $pdf->SetXY($x + 99, $y);
-        // } else {
-        //     $pdf->Cell(33, $rowHeight, utf8_decode($alturaTexto), 1, 0, 'C');
-        // }
 
         // === Celda de Claves vacia
         $pdf->Cell(43, $rowHeight, utf8_decode("-"), 1, 1, 'C');
         //**************************************************************** */
-
-
 
         // === Tabla de materiales ===
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220);
         $pdf->SetFont('Arial', 'B', 9);
 
-        //$pdf->Cell(29, 6, 'Precio unitario', 1, 1, 'C', true);
-
         $pdf->SetFont('Arial', '', 8);
-foreach ($cotizacionData as $cot) {
-    // Separar por comas los registros combinados
-    $billets = array_map('trim', explode(',', $cot['billets_claves_lotes']));
-    $CONTEO_CLAVES += count($billets);
+        foreach ($cotizacionData as $cot) {
+            // Separar por comas los registros combinados
+            $billets = array_map('trim', explode(',', $cot['billets_claves_lotes']));
+            $CONTEO_CLAVES += count($billets);
 
-    $bloques = [];
-    foreach ($billets as $item) {
-        // Ejemplo: "M280350-4 TU.MID6G.14329 (280/350) 7 pz"
-        // Extraemos las partes principales
-        if (preg_match('/^([^\s]+)\s+([^\(]+)\s*(\([^)]+\)\s*\d+\s*pz)?$/i', $item, $m)) {
-            $clave = trim($m[1] ?? '');
-            $lote = trim($m[2] ?? '');
-            $resto = trim($m[3] ?? '');
-        } else {
-            // Si no coincide el formato esperado, lo dejamos completo en una sola línea
-            $clave = $item;
-            $lote = '';
-            $resto = '';
+            $bloques = [];
+            foreach ($billets as $item) {
+                // Ejemplo: "F2050070-1 TU.F2.46082051 (50/70) 2 pz"
+                // Aqui el primer bloque (antes del primer espacio) es el lote
+                if (preg_match('/^([^\s]+)\s+([^\s]+)\s*(\([^)]+\)\s*\d+\s*pz)?$/i', $item, $m)) {
+                    $lote = trim($m[1] ?? '');  // <-- ahora el lote es el primero
+                    $clave = trim($m[2] ?? '');
+                    $resto = trim($m[3] ?? '');
+                } else {
+                    $lote = trim($item);
+                    $clave = '';
+                    $resto = '';
+                }
+
+                // Normalizamos billets_manualmente
+                $manuales = !empty($cot['billets_manualmente'])
+                    ? array_map(fn($v) => strtoupper(trim($v)), explode(',', $cot['billets_manualmente']))
+                    : [];
+
+                // Normalizamos el lote actual
+                $lote_normalizado = strtoupper(trim($lote));
+
+                // Si el lote actual fue insertado manualmente, marcar con *
+                if (in_array($lote_normalizado, $manuales)) {
+                    $lote .= '*';
+                }
+
+                // Formato de salida final
+                $bloques[] = trim($clave . "\n" . $lote . ($resto ? "\n" . $resto : ''));
+            }
+
+
+            // Añadimos separador visual entre cada bloque
+            $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
+
+            // Calculamos la altura total en base al número de líneas
+            $lineHeight = 5;
+            $numLines = 0;
+            foreach ($bloques as $b) {
+                $numLines += substr_count($b, "\n") + 1;
+            }
+            // + líneas de separación
+            $numLines += count($bloques) - 1;
+            $rowHeight = $numLines * $lineHeight;
+
+            // Celdas previas
+            $pdf->Cell(10, $rowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+            $pdf->Cell(15, $rowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+            $pdf->Cell(23, $rowHeight, utf8_decode($cot['material']), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
+
+            // Guardar posición actual antes del MultiCell
+            $x = $pdf->GetX();
+            $y = $pdf->GetY();
+
+            // Celda con los bloques formateados
+            $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
+
+            // Regresar a la posición para mantener alineación de la tabla
+            $pdf->SetXY($x + 43, $y);
+            $pdf->Cell(0, $rowHeight, "", 1, 1, 'C');
         }
-
-        // Formato solicitado:
-        // lote
-        // clave
-        // (di/de) n pz
-        $bloques[] = trim($lote . "\n" . $clave . ($resto ? "\n" . $resto : ''));
-    }
-
-    // Añadimos separador visual entre cada bloque
-    $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
-
-    // Calculamos la altura total en base al número de líneas
-    $lineHeight = 5;
-    $numLines = 0;
-    foreach ($bloques as $b) {
-        $numLines += substr_count($b, "\n") + 1;
-    }
-    // + líneas de separación
-    $numLines += count($bloques) - 1;
-    $rowHeight = $numLines * $lineHeight;
-
-    // Celdas previas
-    $pdf->Cell(10, $rowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-    $pdf->Cell(15, $rowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-    $pdf->Cell(23, $rowHeight, utf8_decode($cot['material']), 1, 0, 'C');
-    $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
-    $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
-    $pdf->Cell(33, $rowHeight, utf8_decode(""), 1, 0, 'C');
-
-    // Guardar posición actual antes del MultiCell
-    $x = $pdf->GetX();
-    $y = $pdf->GetY();
-
-    // Celda con los bloques formateados
-    $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
-
-    // Regresar a la posición para mantener alineación de la tabla
-    $pdf->SetXY($x + 43, $y);
-    $pdf->Cell(0, $rowHeight, "", 1, 1, 'C');
-}
-
-
-
+        if(!empty($cot['billets_manualmente'])){
+            $pdf->SetFont('Arial', '', 10);
+            $pdf->Cell(190, 6,utf8_decode("*Esta cotización cuenta con barras seleccionadas manualmente y no fueron sugeridas por el sistema."), 0, 1, 'L');
+            $pdf->SetFont('Arial', '', 8);
+        }
         // // Separacion entre cotizaciones
         $pdf->Ln(5); 
-        // $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(24, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(28, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(28, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(28, 6, utf8_decode(""), 1, 0, 'C');
-        // $pdf->Cell(43, 6, utf8_decode(""), 1, 1, 'C');
     }
-
+    // VERIFICAR SI HAY ESPACIO SUFICIENTE PARA LAS FIRMAS (aprox. 50mm)
+    $pdf->CheckPageBreak(50);
     // Espaciado antes de las firmas
     $pdf->Ln(17);
 
@@ -477,7 +460,7 @@ foreach ($cotizacionData as $cot) {
     $pdf->Cell(190, 6,"CONTROL DE BARRAS", 0, 1, 'C');
     $pdf->Ln(4); 
     $pdf->SetFont('Arial', 'B', 8);
-    $pdf->Cell(190, 6,"Info: MM Ent. (MM Entrada), MM Us. (MM Usados), MM. Ret. (MM Retorno), L.T.S. (Longitud Total de Sellos)", 0, 1, 'L');
+    $pdf->Cell(190, 6,"Info: MM Ent. (MM Entrada), MM Us. (MM Usados), MM. Ret. (MM Retorno), L.T.S. (Longitud Total de Sellos), M.C. (Merma por Corte)", 0, 1, 'L');
     $pdf->Ln(2); 
 
     $pdf->SetTextColor(0, 0, 0);
@@ -485,16 +468,17 @@ foreach ($cotizacionData as $cot) {
     $pdf->Cell(190, 6, utf8_decode('BARRAS/BILLETS'), 1, 1, 'C', 0);
     $pdf->SetFont('Arial', 'B', 7);
     $pdf->SetFillColor(220, 220, 220);
-    $pdf->Cell(12, 6, 'BARRAS', 1, 0, 'C', true);
+    $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
     $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-    $pdf->Cell(30, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM ENT.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM US.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MM RET.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'L. T. S.', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'MERMA', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'SCRAP PZ', 1, 0, 'C', true);
-    $pdf->Cell(15, 6, 'SCRAP MM', 1, 1, 'C', true);
+    $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'MM RET.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'L. T. S.', 1, 0, 'C', true);
+    $pdf->Cell(12, 6, 'M.C.', 1, 0, 'C', true);
+    $pdf->Cell(14, 6, 'SCRAP PZ', 1, 0, 'C', true);
+    $pdf->Cell(14, 6, 'SCRAP MM', 1, 1, 'C', true);
 
     $pdf->SetFont('Arial', '', 8);
 
@@ -506,36 +490,53 @@ foreach ($cotizacionData as $cot) {
                 $barrasExtra[] = $fila['clave']." (".$fila['lote_pedimento'].")";
                 $esExtra = "*";
             }
-            $pdf->Cell(12, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
-            $pdf->Cell(43, 6, utf8_decode($fila['clave'].$esExtra), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_usados']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
+            $clave = "";
+            $lote_pedimento = "";
+            $medida = "";
+            if($fila['es_remplazo'] == 1 && $fila['es_remplazo_auth'] == 1){
+                $clave = $fila['clave_remplazo'];
+                $lote_pedimento = $fila['lp_remplazo'];
+                $medida = $fila['medida_remplazo'];
+            }else{
+                $clave = $fila['clave'];
+                $lote_pedimento = $fila['lote_pedimento'];
+                $medida = $fila['medida'];
+            }
+            $pdf->SetFont('Arial', '', 6);
+            $pdf->Cell(18, 6, utf8_decode($fila['material']), 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(43, 6, utf8_decode($clave.$esExtra), 1, 0, 'C');
+            $pdf->Cell(29, 6, utf8_decode($lote_pedimento), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($medida), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_total_usados']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
         }
     } else {
         // Si no hay registros, usar los renglones vacíos como en el código original
         for ($i = 1; $i <= $CONTEO_CLAVES; $i++) {
-            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(18, 6, utf8_decode(""), 1, 0, 'C');
             $pdf->Cell(43, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode(""), 1, 1, 'C');
+            $pdf->Cell(29, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode(""), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode(""), 1, 1, 'C');
         }
     }
     $pdf->Ln(2); 
     $pdf->SetFont('Arial', 'I', 8);
     if(!empty($barrasExtra)){
-        $pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
+        //$pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
+        $pdf->Cell(190, 6,"*La o las barras fueron agregadas como barras extra.", 0, 1, 'L');
     }
 
     $pdf->Ln(4); 
@@ -553,31 +554,35 @@ foreach ($cotizacionData as $cot) {
         $pdf->Cell(190, 6, utf8_decode('BARRAS/BILLETS EN MERMA'), 1, 1, 'C', 0);
         $pdf->SetFont('Arial', 'B', 7);
         $pdf->SetFillColor(220, 220, 220);
-        $pdf->Cell(12, 6, 'BARRAS', 1, 0, 'C', true);
+        $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
         $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-        $pdf->Cell(30, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM ENT.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM US.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MM RET.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'L. T. S.', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'MERMA', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'SCRAP PZ', 1, 0, 'C', true);
-        $pdf->Cell(15, 6, 'SCRAP MM', 1, 1, 'C', true);
+        $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'MM RET.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'L. T. S.', 1, 0, 'C', true);
+        $pdf->Cell(12, 6, 'M.C.', 1, 0, 'C', true);
+        $pdf->Cell(14, 6, 'SCRAP PZ', 1, 0, 'C', true);
+        $pdf->Cell(14, 6, 'SCRAP MM', 1, 1, 'C', true);
 
         $pdf->SetFont('Arial', '', 8);
 
         
         foreach ($datosControlMerma as $fila) {
-            $pdf->Cell(12, 6, utf8_decode($fila['cantidad_barras']), 1, 0, 'C');
-            $pdf->Cell(43, 6, utf8_decode($fila['clave']), 1, 0, 'C');
-            $pdf->Cell(30, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_usados']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
-            $pdf->Cell(15, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
+            $pdf->SetFont('Arial', '', 6);
+            $pdf->Cell(18, 6, utf8_decode($fila['material']), 1, 0, 'C');
+            $pdf->SetFont('Arial', '', 8);
+            $pdf->Cell(43, 6, utf8_decode($fila['clave'].$esExtra), 1, 0, 'C');
+            $pdf->Cell(29, 6, utf8_decode($fila['lote_pedimento']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['medida']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_total_usados']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['mm_retorno']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['total_sellos']), 1, 0, 'C');
+            $pdf->Cell(12, 6, utf8_decode($fila['merma_corte']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_pz']), 1, 0, 'C');
+            $pdf->Cell(14, 6, utf8_decode($fila['scrap_mm']), 1, 1, 'C');
         }
     } else {
 

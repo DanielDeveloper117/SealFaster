@@ -134,7 +134,7 @@
                 $sucursal = $_POST['sucursal'];
                 $cliente = $_POST['cliente'];
                 $fechahora = $_POST['fechahora'];
-                $folio = $_POST['folio'];
+                // $folio = $_POST['folio'];
                 $num_pedido = $_POST['num_pedido'];
                 $factura = $_POST['factura'];
                 $paqueteria = $_POST['paqueteria'];
@@ -155,7 +155,7 @@
                             sucursal = :sucursal,
                             cliente = :cliente,
                             fechahora = :fechahora,
-                            folio = :folio,
+                            
                             num_pedido = :num_pedido,
                             factura = :factura,
                             paqueteria = :paqueteria,
@@ -171,7 +171,7 @@
                 $stmt->bindParam(':sucursal', $sucursal);
                 $stmt->bindParam(':cliente', $cliente);
                 $stmt->bindParam(':fechahora', $fechahora);
-                $stmt->bindParam(':folio', $folio);
+                //$stmt->bindParam(':folio', $folio);
                 $stmt->bindParam(':num_pedido', $num_pedido);
                 $stmt->bindParam(':factura', $factura);
                 $stmt->bindParam(':paqueteria', $paqueteria);
@@ -179,7 +179,7 @@
                 $stmt->execute();
 
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("success", "Proceso exitoso", "Registro actualizado correctamete.", "self");
+                sweetAlertResponse("success", "Proceso exitoso", "Registro actualizado correctamete.", "none");
                 });</script>';
 
             } catch (Throwable $e) {

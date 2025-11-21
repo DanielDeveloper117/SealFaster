@@ -278,6 +278,25 @@ label{
 .btn-todos-detalles:hover {
   background-color: #95D2B3; /* menta */
 }
+.btn-eliminar{
+ 
+    display: inline-block;
+    font-weight: 400;
+    line-height: 1.5;
+    color: #ffffff;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #ca4747 !important;
+    border: 1px solid transparent;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    border-radius: .25rem;
+}
+.btn-eliminar:hover{
+    background-color: #f24242f0 !important;
+}
 #btnCotizar, #btnPrevisualizar{
   height:65px;
   font-size:23px;

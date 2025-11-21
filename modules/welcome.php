@@ -149,29 +149,44 @@ if (!isset($_SESSION['id'])) {
 <script>
     $(document).ready(function(){
         document.querySelector('.animate-img').classList.add('visible');
-        // $.ajax({
-        //     url: "../ajax/ajax_notificacion.php",
-        //     type: "POST",
-        //     data: { mensaje: "El usuario ha cargado welcome. <?= $usuario_desencriptado; ?>" },
-        //     success: function(response) {
-        //         console.log("Notificacion enviada: ", response);
-        //     },
-        //     error: function(error) {
-        //         console.error("Error al enviar la notificacion: ", error);
-        //     }
-        // });
-        //   Swal.fire({
-        //     title: 'Novedades',
-        //     text: 'Ahora puede seleccionar el tipo de medida (Sello, Metal o Muestra) para cada medida individualmente, también se mostrarán en las requisiciones. Se corrigieron bugs al generar PDF y al archivar cotizaciones.',
-        //     icon: 'info',
-        //     confirmButtonText: 'Entendido',
-        //     width: '400px',  // Tamaño pequeño del modal
-        //     padding: '10px',  // Relleno para que se vea agradable
-        //     position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
-        //     toast: true, // Mostrar como un "toast", que es una notificación pequeña
-        //     //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
-        //     showConfirmButton: true // Mostrar el botón de confirmación
-        // });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "El usuario ha cargado welcome. <?= $usuario_desencriptado; ?>" },
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
+
+        // Verificar si ya existe la preferencia en localStorage
+        if (!localStorage.getItem("welcomeUpdateToastShown")) {
+            Swal.fire({
+                title: 'Actualización',
+                text: 'Ahora se pueden agregar comentarios y archivos adjuntos a las cotizaciones individualmente. Se corrigieron errores menores al editar las cotizaciones de una requisición.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '400px',
+                padding: '10px',
+                position: 'bottom-end',
+                toast: true,
+                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+                showConfirmButton: true,
+                showCloseButton: false,
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente',
+                inputAttributes: {
+                id: 'noMostrarCheckbox'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                // Guardar preferencia en localStorage
+                localStorage.setItem("welcomeUpdateToastShown", "1");
+                }
+            });
+        }
     });
 </script>
 </body>

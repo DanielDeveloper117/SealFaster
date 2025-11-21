@@ -160,7 +160,9 @@ try {
                         }
                     }
                 }
-
+                $mail->isHTML(true);
+                // Agregar correo de prueba adicional si se desea
+                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $tipoBarra = $accion === 'remplazo' ? 'reemplazo de barra' : 'barra extra';
@@ -179,14 +181,12 @@ try {
                     $barraCompleta = trim(($claveBarra ?? '') . ' ' . ($loteBarra ?? '') . ' (' . ($medidaBarra ?? '') . ')');
                     $asunto = "Barra autorizada: $tipoBarra. Folio: " . $id_requisicion;
 
-                    $cuerpo = "Se ha autorizado $tipoBarra para la requisición de maquinado con folio: " . $id_requisicion . ".\n\n";
-                    $cuerpo .= "Barra autorizada: " . $barraCompleta . "\n\n";
+                    $cuerpo = "Se ha autorizado $tipoBarra para la requisición de maquinado con folio: <b>" . $id_requisicion . "</b>.</br>";
+                    $cuerpo .= "Barra autorizada: <b>" . $barraCompleta . "</b>";
 
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
 
-                    // Agregar correo de prueba adicional si se desea
-                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
 
                     if (!$mail->send()) {
                         throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);

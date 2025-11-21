@@ -83,7 +83,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
 }else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
     // Eliminar todos los espacios en blanco de la clave antes de consultar
-    $Clave = preg_replace('/\s+/', '', trim($_GET['clave']));
+    $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
     $sqlInventario = "SELECT * FROM inventario_cnc WHERE Clave = :clave ";
     $stmtInventario = $conn->prepare($sqlInventario);
@@ -134,6 +134,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                 <thead>
                     <tr>
                         <th>Clave</th>
+                        <th>Lote/Pedimento</th>
                         <th>Medida</th>
                         <th>Proveedor</th>
                         <th>Material</th>
@@ -142,8 +143,8 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Estatus</th>
                         <th>Existencia</th>
                         <!-- <th>Stock</th> -->
-                        <th>Lote/Pedimento</th>
                         <th>Usabilidad</th>
+                        <th>Fecha de Ingreso</th>
                         <th>Actualización</th>
                     </tr>
                 </thead>
@@ -193,6 +194,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                 ?>
                     <tr style="<?php echo $usableStyle; ?>" >
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Clave']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Medida']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['material']); ?></td>
@@ -205,8 +207,16 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             </div>
                         </td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['stock']); ?></td> -->
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo $usableText; ?></td>
+                        <td class="td-created">
+                            <?php
+                                if (!empty($row['created_at'])) {
+                                    echo date("d/m/Y h:i:s A", strtotime($row['created_at']));
+                                } else {
+                                    echo "fecha no disponible";
+                                }
+                            ?>
+                        </td>
                         <td class="td-updated">
                             <?php
                                 if (!empty($row['updated_at'])) {
