@@ -265,11 +265,11 @@ if (!isset($_SESSION['id'])) {
                         <td>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="span-status"><?= htmlspecialchars($estatusString ?? '') ?></span>
-                                <button class="btn btn-sm btn-outline-success" onclick="pintarCadenaEstatus('<?= $row['estatus'] ?? '' ?>')" 
-                                    data-bs-toggle="modal" data-bs-target="#modalEstatusInfo">
+                                <button class="btn btn-sm btn-outline-success btn-estatus" 
+                                        data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']??""); ?>" 
+                                        title="Ver historial de estatus">
                                     <i class="bi bi-info-circle"></i>
                                 </button>
-
                             </div>
                         </td>
                         <td><?= htmlspecialchars($row['nombre_vendedor']??""); ?></td>

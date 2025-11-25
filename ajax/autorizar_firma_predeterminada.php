@@ -52,17 +52,29 @@ try {
 
     // Iniciar transacción para consistencia
     $conn->beginTransaction();
+    $sqlUserInfo = "SELECT * FROM login WHERE id = :id_usuario";
+    $stmtUserInfo = $conn->prepare($sqlUserInfo);
+    $stmtUserInfo->bindParam(':id_usuario', $id_usuario);
+    $stmtUserInfo->execute();
+    $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
 
+    $clave_encriptacion = 'SRS2024#tides';
+    $nombre_encriptado = $arregloUser['nombre'];
+    $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
     // Actualizacion de requisicion
     if ($autoriza === "g") {
         $sql = "UPDATE requisiciones SET 
                     estatus = 'Autorizada',
-                    ruta_firma = :ruta
+                    ruta_firma = :ruta,
+                    autorizo = :autorizo,
+                    fecha_autorizacion = NOW()
                 WHERE id_requisicion = :id_requisicion";
     } elseif ($autoriza === "a") {
         $sql = "UPDATE requisiciones SET 
                     estatus = 'Autorizada',
-                    ruta_firma_admin = :ruta
+                    ruta_firma_admin = :ruta,
+                    autorizo = :autorizo,
+                    fecha_autorizacion = NOW()
                 WHERE id_requisicion = :id_requisicion";
     } else {
         echo json_encode(['error' => "Parametro 't' no valido"]);
@@ -72,6 +84,7 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':ruta', $rutaBD);
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmt->bindParam(':autorizo', $nombreUser);
     $stmt->execute();
 
     // 1. Obtener cotizaciones asociadas para actualizar pre-stock

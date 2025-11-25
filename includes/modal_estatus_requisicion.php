@@ -27,9 +27,7 @@
     color: #000;
     white-space: nowrap;
 }
-#contenedorDetalles {
-    transition: max-height 0.6s ease-in-out;
-}
+
 
 </style>
 <!-- /////////////////////////////MODAL DETALLES DEL ESTATUS DE REQUISICION //////////////////////////////// -->
@@ -37,97 +35,45 @@
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content shadow-lg">
       <div class="modal-header">
-        <h5 class="modal-title" id="modalEstatusLabel">Detalles de los estatus de requisiciones</h5>
+        <h5 class="modal-title" id="modalEstatusLabel">Historial de estatus</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
       </div>
       <div class="modal-body">
-        <!-- boton mostrar/ocultar detalles -->
-        <div class="text-start my-3">
-            <button id="toggleDetalles" class="btn btn-outline-secondary btn-sm">
-                Ver detalles del estatus de requisiciones
-            </button>
-        </div>
         <!-- contenedor oculto de visibilidad y tabla informativa -->
-        <div id="contenedorDetalles" class="overflow-hidden" style="max-height: 0; transition: max-height 0.6s ease;">
-            <!-- visibilidad -->
-            <div class="mb-4">
-                <h6 class="fw-bold">Visibilidad de Requisiciones</h6>
-                <ul>
-                    <li><strong>Gerencia y dirección:</strong> pueden ver <em>todas</em> las requisiciones.</li>
-                    <li><strong>CNC:</strong> solo verán las requisiciones cuyo estatus sea a partir de autorizada.</li>
-                    <li><strong>Vendedor:</strong> solo ve requisiciones que ha creado con su usuario.</li>
-                </ul>
-            </div>
+        <div id="contenedorDetalles" class="overflow-hidden" style="">
             <!-- tabla informativa -->
             <div class="table-responsive mb-4">
                 <table class="table table-bordered align-middle tabla-billets">
                     <thead class="table-light">
                         <tr>
                             <th>Estatus</th>
-                            <th>Descripción</th>
+                            <th>Detalles</th>
+                            <th>Fecha</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr id="trPendiente" class="">
                             <td>Pendiente</td>
-                            <td>Ventas gerencia o dirección deben autorizar la requisición.</td>
+                            <td>Ingreso de requisición al sistema.</td>
+                            <td id="fechaInsercion"></td>
                         </tr>
-                        <tr>
+                        <tr id="trAutorizada" class="d-none">
                             <td>Autorizada</td>
-                            <td>Requisición autorizada. Inventarios debe dar salida a billets.</td>
+                            <td id="infoAutorizo"></td>
+                            <td id="fechaAutorizacion"></td>
                         </tr>
-                        <tr>
+                        <tr id="trProduccion" class="d-none">
                             <td>Producción</td>
-                            <td>El maquinado del sello está pendiente de comenzar.</td>
+                            <td>El maquinado del sello está en proceso.</td>
+                            <td id="fechaInicioMaquinado"></td>
                         </tr>
-                        <tr>
-                            <td>Maquinado CNC</td>
-                            <td>El sello está siendo maquinado actualmente.</td>
-                        </tr>
-                        <tr>
+                        <tr id="trFinalizada" class="d-none">
                             <td>Finalizada</td>
                             <td>El proceso de maquinado ha concluido con éxito.</td>
+                            <td id="fechaFinMaquinado"></td>
                         </tr>
                     </tbody>
                 </table>
-            </div>
-        </div>
-        <!-- progreso de estatus -->
-        <div class="text-center mt-4 mb-4" style="font-size: 12px !important;">
-            <div id="cadenaEstatusModal" class="status-chain" style="overflow-x:auto;min-height:120px;">
-                <!-- Estatus: Pendiente -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="1"></i>
-                    <span class="label">Pendiente</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="1-2"></i>
-
-                <!-- Estatus: Autorizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="2"></i>
-                    <span class="label">Autorizada</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="2-3"></i>
-
-                <!-- Estatus: Produccion -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="3"></i>
-                    <span class="label">Producción</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="3-4"></i>
-
-                <!-- Estatus: En producción -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="4"></i>
-                    <span class="label">Maquinado CNC</span>
-                </div>
-                <i class="bi bi-dash icon" data-step="4-5"></i>
-
-                <!-- Estatus: Finalizada -->
-                <div class="d-flex flex-column align-items-center position-relative">
-                    <i class="bi bi-check-circle-fill icon" data-step="5"></i>
-                    <span class="label">Finalizada</span>
-                </div>
             </div>
         </div>
       </div>
@@ -138,39 +84,73 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const toggleBtn = document.getElementById('toggleDetalles');
-    const contenedor = document.getElementById('contenedorDetalles');
-
-    let abierto = false;
-
-    toggleBtn.addEventListener('click', function () {
-        if (!abierto) {
-            contenedor.style.maxHeight = contenedor.scrollHeight + "px";
-            toggleBtn.textContent = "Ver menos detalles";
-            abierto = true;
-        } else {
-            contenedor.style.maxHeight = "0";
-            toggleBtn.textContent = "Ver detalles de los estatus de requisiciones";
-            abierto = false;
-        }
+    // 1. Al hacer click en el botón principal del modal de estatus
+    $(document).on('click', '.btn-estatus', function() {
+        // Obtener datos del botón clickeado
+        const $boton = $(this);
+        // Obtener ID de requisición
+        let idRequisicionActual = $boton.data('id-requisicion');
+        // Mostrar el modal
+        $('#modalEstatusInfo').modal('show');
+        // Cargar la información de los estatus
+        cargarEstatusRequisicion(idRequisicionActual);
     });
-
 });  
-function pintarCadenaEstatus(estatusActual) {
-    const orden = ['Creada', 'Pendiente', 'Autorizada', 'Producción', 'En producción', 'Finalizada'];
-    const index = orden.findIndex(e => e.toLowerCase() === estatusActual.toLowerCase());
-
-    const icons = document.querySelectorAll('#cadenaEstatusModal .icon');
-    icons.forEach((icon) => {
-        const step = icon.dataset.step;
-        if (step !== undefined) {
-            const isCircle = !step.includes('-');
-            const pos = isCircle ? parseInt(step) : parseInt(step.split('-')[0]);
-            if (pos <= index) {
-                icon.classList.add('item-chain-active');
+function cargarEstatusRequisicion(idRequisicion) {
+    $("#fechaInsercion").text('Cargando...');
+    $("#infoAutorizo").text('Cargando...');
+    $("#fechaAutorizacion").text('Cargando...');
+    $("#fechaInicioMaquinado").text('Cargando...');
+    $("#fechaFinMaquinado").text('Cargando...');
+    // Realizar una solicitud AJAX para obtener los datos de estatus
+    $.ajax({
+        url: '../ajax/get_requisicion.php',
+        method: 'GET',
+        data: { id_requisicion: idRequisicion },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                $("#fechaInsercion").text(response.data.fecha_insercion || 'No disponible');
+                $("#trAutorizada,#trProduccion,#trFinalizada").removeClass('d-none');
+                switch(response.data.estatus) {
+                    case 'Pendiente':
+                        $("#trAutorizada,#trProduccion,#trFinalizada").addClass('d-none');
+                        break;
+                    case 'Autorizada':
+                        $("#trProduccion,#trFinalizada").addClass('d-none');
+                        break;
+                    case 'Producción' || 'En Producción':
+                        $("#trFinalizada").addClass('d-none');
+                        break;
+                    case 'Finalizada' || 'Completada':
+                        $("#trAutorizada,#trProduccion,#trFinalizada").removeClass('d-none');
+                        break;
+                    default:
+                        // Si el estatus no coincide con ninguno, ocultar todas las filas excepto Pendiente
+                        $("#trPendiente").removeClass('d-none');
+                        $("#trAutorizada").addClass('d-none');
+                        $("#trProduccion").addClass('d-none');
+                        $("#trFinalizada").addClass('d-none');
+                    break;
+                }
+           
+                $("#infoAutorizo").text(response.data.autorizo ? 'Autorizado por ' + response.data.autorizo : 'No disponible');
+                $("#fechaAutorizacion").text(response.data.fecha_autorizacion || 'No disponible');
+            
+                $("#fechaInicioMaquinado").text(response.data.fecha_entrega_barras || 'No disponible');
+        
+                $("#fechaFinMaquinado").text(response.data.fin_maquinado || 'No disponible');
+                
             } else {
-                icon.classList.remove('item-chain-active');
+                $("#fechaInsercion").text('No disponible');
+                $("#infoAutorizo").text('No disponible');
+                $("#fechaAutorizacion").text('No disponible');
+                $("#fechaInicioMaquinado").text('No disponible');
+                console.error('Error al obtener estatus:', response.message);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error en la solicitud AJAX:', error);
         }
     });
 }

@@ -30,6 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['token'] ?? '';
     $id_requisicion = $_POST['id_requisicion'] ?? '';
     $autoriza = $_POST['t'] ?? '';
+    $id_usuario = $_POST["id_usuario"] ?? null;
 
     try {
         // Validar token
@@ -51,13 +52,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });</script><h3 class="p-5">Proceso finalizado, puede cerrar esta pestaña.</h3>';
             exit;
         }
-
+        
         // Iniciar transacción para consistencia
         $conn->beginTransaction();
+        $sqlUserInfo = "SELECT * FROM login WHERE id = :id_usuario";
+        $stmtUserInfo = $conn->prepare($sqlUserInfo);
+        $stmtUserInfo->bindParam(':id_usuario', $id_usuario);
+        $stmtUserInfo->execute();
+        $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
+
+        $clave_encriptacion = 'SRS2024#tides';
+        $nombre_encriptado = $arregloUser['nombre'];
+        $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
 
         // 1. Actualizar requisición
-        $sql = "UPDATE requisiciones SET estatus = 'Autorizada' WHERE id_requisicion = :id_requisicion";
+        $sql = "UPDATE requisiciones SET estatus = 'Autorizada',
+                    autorizo = :autorizo,
+                    fecha_autorizacion = NOW() 
+                WHERE id_requisicion = :id_requisicion";
         $stmt = $conn->prepare($sql);
+        $stmt->bindParam(':autorizo', $nombreUser);
         $stmt->bindParam(':id_requisicion', $id_requisicion);
         $stmt->execute();
 
@@ -416,6 +430,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                     <input type="hidden" name="action" value="autorizada">
                     <input type="hidden" name="token" value="<?= htmlspecialchars($token); ?>">
                     <input type="hidden" id="inputPredeterminada" name="predeterminada" value="0">
+                    <input type="hidden" name="id_usuario" value="<?= htmlspecialchars($_GET['u']); ?>">
                     <button id="btnContinuar" type="button" class="btn-general">Continuar</button>
                 </form>
             </div>

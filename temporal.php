@@ -1,306 +1,251 @@
 <?php
-$sqlCotizaciones = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
-$stmtCotizaciones = $conn->prepare($sqlCotizaciones);
-$stmtCotizaciones->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-$stmtCotizaciones->execute();
-$result = $stmtCotizaciones->fetch(PDO::FETCH_ASSOC);
+require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'config/config.php');
+require_once(ROOT_PATH . 'vendor/autoload.php');
 
-if (!$result || empty($result['cotizaciones'])) {
-    echo 'No se encontraron cotizaciones.';
-    exit;
-}
+session_start();
 
-$cotizacion_ids = explode(', ', $result['cotizaciones']);
+// Convertir warnings/notices a excepciones
+set_error_handler(function($severity, $message, $file, $line) {
+    throw new ErrorException($message, 0, $severity, $file, $line);
+});
 
-$sql = "SELECT * FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion ORDER BY cantidad_material ASC";
-$stmt = $conn->prepare($sql);
-$CONTEO_CLAVES = 0;
-$pdf->SetTextColor(0, 0, 0);
-$pdf->SetFillColor(220, 220, 220);
-$pdf->SetFont('Arial', 'B', 9);
+try {
+    header('Content-Type: application/json');
 
-// CABECERA DE LA TABLA
-$pdf->Cell(10, 6, 'Cant.', 1, 0, 'C', true);
-$pdf->Cell(15, 6, 'Perfil', 1, 0, 'C', true);
-$pdf->Cell(23, 6, 'Material', 1, 0, 'C', true);
-$pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
-$pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
-$pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
-$pdf->Cell(43, 6, 'Lote Pedimento/Clave', 1, 1, 'C', true);
+    // Solo aceptar POST
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        http_response_code(405);
+        echo json_encode(['error' => 'Metodo no permitido. Solo se acepta POST.']);
+        exit;
+    }
 
-foreach ($cotizacion_ids as $id_cotizacion) {
-    $stmt->bindValue(':id_cotizacion', $id_cotizacion, PDO::PARAM_INT);
+    // Validacion de parametros
+    if (!isset($_POST['id_requisicion'], $_POST['t']) || empty($_POST['id_requisicion']) || empty($_POST['t'])) {
+        echo json_encode(['error' => "Parametros faltantes o invalidos"]);
+        exit;
+    }
+
+    $id_requisicion = $_POST['id_requisicion'];
+    $autoriza = $_POST['t'];
+
+    // Validar que id_requisicion sea numero
+    if (!preg_match('/^\d+$/', $id_requisicion)) {
+        echo json_encode(['error' => "Parametro id_requisicion invalido"]);
+        exit;
+    }
+
+    $id_usuario = $_SESSION['id'] ?? null;
+    if (!$id_usuario) {
+        echo json_encode(['error' => "Sesion invalida o expirada"]);
+        exit;
+    }
+
+    $nombreArchivo = $id_usuario . ".png";
+    $rutaBD = 'files/signatures/' . $nombreArchivo;
+
+    // Validar que exista el archivo de firma
+    if (!file_exists(ROOT_PATH . $rutaBD)) {
+        echo json_encode(['error' => "No existe la firma del usuario en el sistema"]);
+        exit;
+    }
+
+    // Iniciar transacción para consistencia
+    $conn->beginTransaction();
+    $sqlUserInfo = "SELECT * FROM login WHERE id = :id_usuario";
+    $stmtUserInfo = $conn->prepare($sqlUserInfo);
+    $stmtUserInfo->bindParam(':id_usuario', $id_usuario);
+    $stmtUserInfo->execute();
+    $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
+
+    $clave_encriptacion = 'SRS2024#tides';
+    $nombre_encriptado = $arregloUser['nombre'];
+    $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
+    // Actualizacion de requisicion
+    if ($autoriza === "g") {
+        $sql = "UPDATE requisiciones SET 
+                    estatus = 'Autorizada',
+                    ruta_firma = :ruta,
+                    autorizo = :autorizo,
+                    fecha_autorizacion = NOW()
+                WHERE id_requisicion = :id_requisicion";
+    } elseif ($autoriza === "a") {
+        $sql = "UPDATE requisiciones SET 
+                    estatus = 'Autorizada',
+                    ruta_firma_admin = :ruta,
+                    autorizo = :autorizo,
+                    fecha_autorizacion = NOW()
+                WHERE id_requisicion = :id_requisicion";
+    } else {
+        echo json_encode(['error' => "Parametro 't' no valido"]);
+        exit;
+    }
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bindParam(':ruta', $rutaBD);
+    $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmt->bindParam(':autorizo', $nombreUser);
     $stmt->execute();
-    $cotizacionData = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    if (empty($cotizacionData)) continue;
-    
-    $cotGeneral = $cotizacionData[0];
-    
-    // Query para información del perfil
-    $sqlPerfil = "SELECT * FROM perfiles WHERE perfil = :perfil";
-    $stmtPerfil = $conn->prepare($sqlPerfil);
-    $stmtPerfil->bindParam(':perfil', $cotGeneral['perfil_sello']);
-    $stmtPerfil->execute();
-    $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-    $familiaPerfil = $arregoPerfil["tipo"] ?? '';
-    
-    $pdf->SetFont('Arial', '', 8);
 
-    // === PREPARAR DATOS PARA LAS COLUMNAS (COMUNES) ===
-    $arrayDI = [];
-    $arrayDE = [];
-    $alturas = [];
-    
-    // Llenar arrays con los datos
-    $alturas[] = "Total:";
-    $arrayDI[] = "";
-    $arrayDE[] = "";
-    $alturas[] = $cotGeneral['a_sello']."mm/".mm_a_pulgadas($cotGeneral['a_sello']).'"';
-    $arrayDI[] = $cotGeneral['di_sello']."mm/".mm_a_pulgadas($cotGeneral['di_sello']).'"';
-    $arrayDE[] = $cotGeneral['de_sello']."mm/".mm_a_pulgadas($cotGeneral['de_sello']).'"';
-    
-    // Agregar alturas adicionales si existen
-    $alturasAdicionales = [
-        'altura_caja' => 'Caja:',
-        'altura_escalon' => 'Escalón:', 
-        'altura_h2' => 'H2:',
-        'altura_h3' => 'H3:'
-    ];
-    
-    foreach ($alturasAdicionales as $campo => $etiqueta) {
-        if ($cotGeneral[$campo] !== "0.00" && $cotGeneral[$campo] !== "0") {
-            $alturas[] = $etiqueta;
-            $alturas[] = $cotGeneral[$campo]."mm/".mm_a_pulgadas($cotGeneral[$campo]).'"';
-            $arrayDI[] = "";
-            $arrayDE[] = "";
-            $arrayDI[] = "";
-            $arrayDE[] = "";
-        }
-    }
-    
-    $alturas[] = '              '.$cotGeneral['tipo_medida_h'];
-    $arrayDI[] = $cotGeneral['tipo_medida_di'];
-    $arrayDE[] = $cotGeneral['tipo_medida_de'];
-    
-    // === CALCULAR ALTURA MÁXIMA PARA LAS COLUMNAS MULTILÍNEA ===
-    $lineHeight = 4;
-    $numLineasAltura = count($alturas);
-    $numLineasDI = count($arrayDI);
-    $numLineasDE = count($arrayDE);
-    $maxLineas = max($numLineasAltura, $numLineasDI, $numLineasDE);
-    $rowHeightGeneral = $maxLineas * $lineHeight;
+    // 1. Obtener cotizaciones asociadas para actualizar pre-stock
+    $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
+    $stmtRequisicion = $conn->prepare($sqlRequisicion);
+    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
+    $stmtRequisicion->execute();
+    $result = $stmtRequisicion->fetch(PDO::FETCH_ASSOC);
 
-    // =============================================
-    // ESTRATEGIA 1: MÚLTIPLES REGISTROS (> 1)
-    // =============================================
-    if (count($cotizacionData) > 1) {
-        
-        // === RENGLÓN GENERAL (PRIMER RENGLÓN) ===
-        $xStart = $pdf->GetX();
-        $yStart = $pdf->GetY();
-        
-        // Celda 1: Cantidad (guion)
-        $pdf->Cell(10, $rowHeightGeneral, utf8_decode("-"), 1, 0, 'C');
-        
-        // Celda 2: Perfil (dato real)
-        $pdf->Cell(15, $rowHeightGeneral, utf8_decode($cotGeneral['perfil_sello']), 1, 0, 'C');
-        
-        // Celda 3: Material (guion)
-        $pdf->Cell(23, $rowHeightGeneral, utf8_decode("-"), 1, 0, 'C');
-        
-        // Celda 4: Diámetro Interior (MultiCell - datos reales)
-        $x = $pdf->GetX();
-        $y = $pdf->GetY();
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $arrayDI)), 1, 'C');
-        $pdf->SetXY($x + 33, $y);
-        
-        // Celda 5: Diámetro Exterior (MultiCell - datos reales)
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $arrayDE)), 1, 'C');
-        $pdf->SetXY($x + 66, $y);
-        
-        // Celda 6: Alturas (MultiCell - datos reales)
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $alturas)), 1, 'L');
-        $pdf->SetXY($x + 99, $y);
-        
-        // Celda 7: Claves (guion)
-        $pdf->Cell(43, $rowHeightGeneral, utf8_decode("-"), 1, 1, 'C');
-        
-        // === RENGLONES INDIVIDUALES (REGISTROS ESPECÍFICOS) ===
-        foreach ($cotizacionData as $cot) {
-            // Preparar datos de billets para este registro específico
-            $billets = array_map('trim', explode(',', $cot['billets_claves_lotes']));
-            $CONTEO_CLAVES += count($billets);
-            
-            $bloques = [];
-            foreach ($billets as $item) {
-                if (preg_match('/^([^\s]+)\s+([^\s]+)\s*(\([^)]+\)\s*\d+\s*pz)?$/i', $item, $m)) {
-                    $lote = trim($m[1] ?? '');
-                    $clave = trim($m[2] ?? '');
-                    $resto = trim($m[3] ?? '');
-                } else {
-                    $lote = trim($item);
-                    $clave = '';
-                    $resto = '';
-                }
+    if ($result && !empty($result['cotizaciones'])) {
+        $cotizacion_ids = explode(', ', $result['cotizaciones']);
+
+        // 2. Actualizar estado de cada cotización
+        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+        $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
+
+        // 3. Preparar consulta para actualizar inventario
+        $sqlUpdatePreStock = "UPDATE inventario_cnc SET pre_stock = pre_stock - :consumo_total, estatus = 'En uso', updated_at = NOW() WHERE lote_pedimento = :lote_pedimento";
+        $stmtUpdatePreStock = $conn->prepare($sqlUpdatePreStock);
+
+        // 4. Array para acumular consumo por lote_pedimento
+        $consumoPorLote = [];
+
+        foreach ($cotizacion_ids as $id_cotizacion) {
+            // Actualizar estado de la cotización
+            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtUpdateCotizacion->execute();
+
+            // Obtener todas las estimaciones de esta cotización
+            $sqlEstimaciones = "SELECT id_cotizacion, a_sello, material, billets_lotes FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
+            $stmtEstimaciones = $conn->prepare($sqlEstimaciones);
+            $stmtEstimaciones->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtEstimaciones->execute();
+            $estimaciones = $stmtEstimaciones->fetchAll(PDO::FETCH_ASSOC);
+
+            foreach ($estimaciones as $estimacion) {
+                $a_sello = floatval($estimacion['a_sello']);
+                $material = $estimacion['material'];
+                $billets_lotes = $estimacion['billets_lotes'];
+
+                // Determinar desbaste por material
+                $desbaste = 2.50; // Valor por defecto (material duro)
                 
-                $manuales = !empty($cot['billets_manualmente'])
-                    ? array_map(fn($v) => strtoupper(trim($v)), explode(',', $cot['billets_manualmente']))
-                    : [];
+                $materialesBlandos = ['H-ECOPUR', 'ECOSIL', 'ECORUBBER 1', 'ECORUBBER 2', 'ECORUBBER 3', 'ECOPUR'];
+                $materialesDuros = ['ECOTAL', 'ECOMID', 'ECOFLON 1', 'ECOFLON 2', 'ECOFLON 3'];
+                
+                if (in_array($material, $materialesBlandos)) {
+                    $desbaste = 2.00;
+                } elseif (in_array($material, $materialesDuros)) {
+                    $desbaste = 2.50;
+                }
+
+                // Procesar cada billet/lote
+                if (!empty($billets_lotes)) {
+                    $billets = array_map('trim', explode(',', $billets_lotes));
                     
-                $lote_normalizado = strtoupper(trim($lote));
-                if (in_array($lote_normalizado, $manuales)) {
-                    $lote .= '*';
+                    foreach ($billets as $billet) {
+                        // Extraer lote_pedimento y cantidad de piezas
+                        // Formato: "R2T047062-1 (47/62) 1 pz"
+                        if (preg_match('/^([^\s]+)\s+\([^)]+\)\s+(\d+)\s+pz$/i', $billet, $matches)) {
+                            $lote_pedimento = trim($matches[1]);
+                            $cantidad_piezas = intval($matches[2]);
+                            
+                            // Calcular consumo para este billet
+                            $altura_por_pieza = $a_sello + $desbaste;
+                            $consumo_total = $altura_por_pieza * $cantidad_piezas;
+                            
+                            // Acumular consumo por lote_pedimento
+                            if (!isset($consumoPorLote[$lote_pedimento])) {
+                                $consumoPorLote[$lote_pedimento] = 0;
+                            }
+                            $consumoPorLote[$lote_pedimento] += $consumo_total;
+                        }
+                    }
                 }
-                
-                $bloques[] = trim($clave . "\n" . $lote . ($resto ? "\n" . $resto : ''));
             }
-            
-            $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
-            
-            // Calcular altura para la columna de claves
-            $numLinesClaves = 0;
-            foreach ($bloques as $b) {
-                $numLinesClaves += substr_count($b, "\n") + 1;
-            }
-            $numLinesClaves += count($bloques) - 1;
-            $rowHeightClaves = $numLinesClaves * $lineHeight;
-            
-            // === DIBUJAR RENGLÓN INDIVIDUAL ===
-            $xStart = $pdf->GetX();
-            $yStart = $pdf->GetY();
-            
-            // Celda 1: Cantidad (dato real)
-            $pdf->Cell(10, $rowHeightClaves, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-            
-            // Celda 2: Perfil (dato real)
-            $pdf->Cell(15, $rowHeightClaves, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-            
-            // Celda 3: Material (dato real)
-            $pdf->Cell(23, $rowHeightClaves, utf8_decode($cot['material']), 1, 0, 'C');
-            
-            // Celda 4: Diámetro Interior (vacío)
-            $pdf->Cell(33, $rowHeightClaves, "", 1, 0, 'C');
-            
-            // Celda 5: Diámetro Exterior (vacío)
-            $pdf->Cell(33, $rowHeightClaves, "", 1, 0, 'C');
-            
-            // Celda 6: Alturas (vacío)
-            $pdf->Cell(33, $rowHeightClaves, "", 1, 0, 'C');
-            
-            // Celda 7: Claves (MultiCell - datos reales)
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
-            $pdf->SetXY($x + 43, $y + $rowHeightClaves);
         }
-        
-    } 
-    // =============================================
-    // ESTRATEGIA 2: UN SOLO REGISTRO (= 1)
-    // =============================================
-    else {
-        $cot = $cotizacionData[0]; // Único registro
-        
-        // Preparar datos de billets
-        $billets = array_map('trim', explode(',', $cot['billets_claves_lotes']));
-        $CONTEO_CLAVES += count($billets);
-        
-        $bloques = [];
-        foreach ($billets as $item) {
-            if (preg_match('/^([^\s]+)\s+([^\s]+)\s*(\([^)]+\)\s*\d+\s*pz)?$/i', $item, $m)) {
-                $lote = trim($m[1] ?? '');
-                $clave = trim($m[2] ?? '');
-                $resto = trim($m[3] ?? '');
-            } else {
-                $lote = trim($item);
-                $clave = '';
-                $resto = '';
-            }
-            
-            $manuales = !empty($cot['billets_manualmente'])
-                ? array_map(fn($v) => strtoupper(trim($v)), explode(',', $cot['billets_manualmente']))
-                : [];
-                
-            $lote_normalizado = strtoupper(trim($lote));
-            if (in_array($lote_normalizado, $manuales)) {
-                $lote .= '*';
-            }
-            
-            $bloques[] = trim($clave . "\n" . $lote . ($resto ? "\n" . $resto : ''));
+
+        // 5. Actualizar pre_stock en inventario_cnc para cada lote
+        foreach ($consumoPorLote as $lote_pedimento => $consumo_total) {
+            $stmtUpdatePreStock->bindValue(':consumo_total', $consumo_total);
+            $stmtUpdatePreStock->bindValue(':lote_pedimento', $lote_pedimento);
+            $stmtUpdatePreStock->execute();
         }
-        
-        $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
-        
-        // Calcular altura para la columna de claves
-        $numLinesClaves = 0;
-        foreach ($bloques as $b) {
-            $numLinesClaves += substr_count($b, "\n") + 1;
-        }
-        $numLinesClaves += count($bloques) - 1;
-        $rowHeightClaves = $numLinesClaves * $lineHeight;
-        
-        // USAR LA MISMA ALTURA PARA TODAS LAS CELDAS (la máxima)
-        $finalRowHeight = max($rowHeightGeneral, $rowHeightClaves);
-        
-        // === DIBUJAR ÚNICO RENGLÓN COMPLETO ===
-        $xStart = $pdf->GetX();
-        $yStart = $pdf->GetY();
-        
-        // Celda 1: Cantidad (dato real)
-        $pdf->Cell(10, $finalRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-        
-        // Celda 2: Perfil (dato real)
-        $pdf->Cell(15, $finalRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-        
-        // Celda 3: Material (dato real)
-        $pdf->Cell(23, $finalRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
-        
-        // Celda 4: Diámetro Interior (MultiCell - datos reales)
-        $x = $pdf->GetX();
-        $y = $pdf->GetY();
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $arrayDI)), 1, 'C');
-        $pdf->SetXY($x + 33, $y);
-        
-        // Celda 5: Diámetro Exterior (MultiCell - datos reales)
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $arrayDE)), 1, 'C');
-        $pdf->SetXY($x + 66, $y);
-        
-        // Celda 6: Alturas (MultiCell - datos reales)
-        $pdf->MultiCell(33, $lineHeight, utf8_decode(implode("\n", $alturas)), 1, 'L');
-        $pdf->SetXY($x + 99, $y);
-        
-        // Celda 7: Claves (MultiCell - datos reales)
-        $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
-        
-        // Mover a siguiente línea
-        $pdf->SetXY($xStart, $yStart + $finalRowHeight);
     }
-    
-    // === COMENTARIOS Y NOTAS (COMÚN PARA AMBOS CASOS) ===
-    $sqlComentarios = "SELECT * FROM comentarios_adjuntos WHERE id_cotizacion = :id_cotizacion";
-    $stmtComentarios = $conn->prepare($sqlComentarios);
-    $stmtComentarios->bindParam(':id_cotizacion', $id_cotizacion, PDO::PARAM_INT);
-    $stmtComentarios->execute();
-    $arrayComentarios = $stmtComentarios->fetchAll(PDO::FETCH_ASSOC);
-    
-    if(count($arrayComentarios) > 0){
-        foreach($arrayComentarios as $comentario){
-            $pdf->SetFont('Arial', 'B', 10);
-            $pdf->Cell(25, 6, utf8_decode("Comentario:"), 1, 0, 'R', 1);
-            $pdf->SetFont('Arial', '', 9);
-            $pdf->Cell(165, 6, utf8_decode($comentario["comentario"]), 1, 1, 'L', 0);
+
+    // Confirmar transacción
+    $conn->commit();
+
+    ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
+    $mail = null; // Inicializar para evitar "undefined variable" en catch
+
+    try {
+        require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        $mail = getMailer($conn);
+
+        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+        $stmt = $conn->prepare($sqlCorreoInventarios);
+        $stmt->execute();
+        $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$correosInventarios || count($correosInventarios) === 0) {
+            throw new Exception("No se encontro ningun correo de inventarios.");
         }
-        $pdf->Ln(5);
+
+        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'oculta'; // mejor mover a config.php
+        $contadorCorreos = 0;
+
+        foreach ($correosInventarios as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AAA', $clave_encriptacion);
+                if ($correo) {
+                    //$mail->addAddress($correo);
+                    $contadorCorreos++;
+                }
+            }
+        }
+
+        if ($contadorCorreos === 0) {
+            throw new Exception("No se pudo agregar ningun destinatario valido para inventarios.");
+        }
+
+        // Agregar correo visible de prueba o destinatario unico
+        $mail->addAddress("oculto");
+        $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
+        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
+                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
+                        Folio de requisición: <b>" . $id_requisicion . "</b>";
+
+        if (!$mail->send()) {
+            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        }
+        ///////////////////////////////////////////////////////////////////////////////////////
+        // Respuesta exitosa
+        echo json_encode([
+            'success' => true,
+            'message' => "Requisición autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
+        ]);
+
+    } catch (Throwable $e) {
+        echo json_encode([
+            'success' => true,
+            'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
+                         addslashes($e->getMessage()) .
+                         (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
+        ]);
     }
-    
-    if(!empty($cotGeneral['billets_manualmente'])){
-        $pdf->SetFont('Arial', '', 10);
-        $pdf->Cell(190, 6,utf8_decode("*Esta cotización cuenta con barras seleccionadas manualmente y no fueron sugeridas por el sistema."), 0, 1, 'L');
-        $pdf->SetFont('Arial', '', 8);
+
+} catch (PDOException $e) {
+    // Revertir transacción en caso de error
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
     }
-    
-    // Separación entre cotizaciones
-    $pdf->Ln(5); 
+    echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
+} catch (Throwable $e) {
+    // Revertir transacción en caso de error
+    if ($conn->inTransaction()) {
+        $conn->rollBack();
+    }
+    echo json_encode(['error' => 'Error inesperado: ' . $e->getMessage()]);
+} finally {
+    $conn = null;
 }
-?>

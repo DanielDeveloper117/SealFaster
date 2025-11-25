@@ -7,10 +7,6 @@ if (!isset($_SESSION['id'])) {
     header("Location: ../auth/cerrar_sesion.php");
     exit;
 }
-// if($_SESSION["id"] != 71){
-//     header("Location: ../auth/cerrar_sesion.php");
-//     exit;
-// }
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -149,6 +145,7 @@ if (!isset($_SESSION['id'])) {
 <script>
     $(document).ready(function(){
         document.querySelector('.animate-img').classList.add('visible');
+        /*
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
@@ -160,8 +157,9 @@ if (!isset($_SESSION['id'])) {
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
-
+        */
         // Verificar si ya existe la preferencia en localStorage
+        /*
         if (!localStorage.getItem("welcomeUpdateToastShown")) {
             Swal.fire({
                 title: 'Actualización',
@@ -187,6 +185,7 @@ if (!isset($_SESSION['id'])) {
                 }
             });
         }
+        */
     });
 </script>
 </body>

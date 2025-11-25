@@ -98,8 +98,10 @@ if (!isset($_SESSION['id'])) {
                                 </form>
 
                                 <?php
+                                $esMia = "0";
 
                                 if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
+                                    $esMia = "1";
                                     echo '<button class="btn-thunder edit-btn"
                                             data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                             data-folio="' . htmlspecialchars($row['folio']) . '"
@@ -120,24 +122,18 @@ if (!isset($_SESSION['id'])) {
                                     //         <i class="bi bi-pencil-square"></i>
                                     //     </button>';                                    
                                 }
-                                ?>
 
-                                <?php
                                 $estatusString = "";
+                                echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                        data-origen="requi"
+                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                        data-es-mia="' . $esMia . '"
+                                        title="Comentarios y archivos adjuntos para esta requisición">
+                                        <i class="bi bi-chat-left-text"></i>
+                                    </button>';
                                 switch ($row['estatus']) {
                                     case "Pendiente":
                                         $estatusString = "Pendiente";
-                                        $esMia = "0";
-                                        if ($row['id_vendedor'] == $_SESSION['id']) {
-                                            $esMia = "1";
-                                        }
-                                        echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
-                                                data-origen="requi"
-                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                data-es-mia="' . $esMia . '"
-                                                title="Comentarios y archivos adjuntos para esta requisición">
-                                                <i class="bi bi-chat-left-text"></i>
-                                            </button>';
                                         if ($tipo_usuario === "Vendedor" && $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-auth btn-gerente-autoriza" 
                                                     data-bs-toggle="modal" data-bs-target="#modalGerenteAutoriza"
@@ -242,11 +238,11 @@ if (!isset($_SESSION['id'])) {
                         <td>
                             <div class="d-flex align-items-center gap-1">
                                 <span class="span-status"><?= htmlspecialchars($estatusString ?? '') ?></span>
-                                <button class="btn btn-sm btn-outline-success" onclick="pintarCadenaEstatus('<?= $row['estatus'] ?? '' ?>')" 
-                                    data-bs-toggle="modal" data-bs-target="#modalEstatusInfo">
+                                <button class="btn btn-sm btn-outline-success btn-estatus" 
+                                        data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']??""); ?>" 
+                                        title="Ver historial de estatus">
                                     <i class="bi bi-info-circle"></i>
                                 </button>
-
                             </div>
                         </td>
                         <td><?= htmlspecialchars($row['sucursal']??""); ?></td>
@@ -308,7 +304,7 @@ if (!isset($_SESSION['id'])) {
                             <select id="inputSucursal" class="selector" name="sucursal" required >
                                 <option value="" selected disabled>Seleccionar</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
-                                <option value="Sucursal Tame">Sucursal Tame</option>
+                                <option value="Sucursal Industrias">Sucursal Industrias</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
                                 <option value="Sucursal Queretaro">Sucursal Queretaro</option>
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>

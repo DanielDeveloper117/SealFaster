@@ -521,3 +521,20 @@ la tabla de comentarios_adjuntos para extraer los registros como cuando el orige
 
 necesitamos un selector para seleccionar las cotizaciones, cuando el origen es requi, tenemos que mostrar el selector para 
 seleccionar en el formulario a que cotizacion nos queremos referir al enviar los datos en el formulario de agregar.
+
+Intentaremos dar una solucion a un problema frecuente en cuando a la gestion de un inventario, en un sistema en produccion.
+Una empresa de maquinado de sellados hidraulicos cuenta con un sistema cuya funcion principal es gestionar cotizaciones y 
+requisiciones para el maquinado de sellos hidraulicos, el area de ventas accede a la interfaz para cotizar el maquinado de un 
+determinado perfil de sello. Tal interfaz, muestra el stock de barras cilindricas de material en teoria disponibles para el 
+maquinado en un torno CNC. Al seleccionar la o las barras, el sistema realiza el calculo correspondiente de los costos por milimetro. 
+El stock se gestiona de manera en que cada registro es una barra/billet/cilindro de material y cada uno de ellos cuenta con stock, 
+osease los milimetros que en teoria existen de ese cilindro de material. Cuando los supervisores autorizan el maquinado del sello 
+cotizado el pre-stock (que es la copia del stock) disminuye, y de esa manera se representa el nuevo stock hipotetico para que los 
+demas vendedores puedan usar las barras basandose en el prestock. Al terminar el maquinado el encargado actualiza el stock real 
+midiendo la barra y automaticamente se actualiza el prestock. El dilema es que el prestock disminuye solo si se autoriza el 
+maquinado (por peticion de direccion, no es negociable) y el problema ocurre cuando algun vendedor usa la misma barra en otra 
+cotizacion, cuando se autoriza el maquinado (los supervisores no revisan el inventario) el prestock disminuye las veces 
+que sea necesario y se permite que los vendedores usen las barras dado que hipoteticamente despues del maquinado aun quedaria 
+stock de la barra. Que solucion propondia para evitar que se use la misma barra los vendedores sin bloquear tales barras, es 
+decir, seguir permitiendo la seleccion, teniendo en cuenta de que tal barra la pueden usar en multiples cotizaciones actualmente 
+causando conflicto y prestock negativo.

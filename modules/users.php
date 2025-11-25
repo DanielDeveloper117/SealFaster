@@ -318,7 +318,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div>
     </div>
 </section>
-
+<style>
+    .pass-container .btn{
+        height:-webkit-fill-available;
+        border: 1px solid #bbb;
+    }
+    .pass-container .btn i{
+        color: #bbb;
+    }
+    .pass-container .btn:hover{
+        border: 1px solid #55AD9B;
+    }
+    .pass-container .btn:hover i{
+        color: #55AD9B;
+    }
+</style>
 <!-- Modal para agregar/editar registro -->
 <div class="modal fade" id="modalAgregarEditar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -356,9 +370,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="5">EXTERNO</option>
                             </select>
                         </div>
-                        <div class="" style="width:48%;">
+                        <div class="pass-container" style="width:48%;">
                             <label for="inputPass" class="lbl-general">Password</label>
-                            <input id="inputPass" type="text" class="input-text" name="password" placeholder="" required>
+                            <div class="d-flex col-12 justify-content-evenly align-items-center gap-1">
+                                <button id="btnCopyPass" type="button" class="btn" title="Copiar password"><i class="bi bi-clipboard"></i></button>
+                                <input id="inputPass" type="password" class="input-text" name="password" placeholder="" required>
+                                <button id="btnShowPass" type="button" class="btn" title="Ver password"><i class="bi bi-eye"></i></button>
+                            </div>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
@@ -432,7 +450,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }, 500); // suficiente para que se regeneren los selects
         });
 
-
         // CAMBIAR A add AL CLICK AGREGAR REGISTRO
         $("#btnAgregar").on("click", function(){
             $('#modalAgregarEditar').modal('show');
@@ -470,7 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }if(inputTipo == "3"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
-                                <option value="Sucursal Tame">Sucursal Tame</option>
+                                <option value="Sucursal Industrias">Sucursal Industrias</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
                                 <option value="Sucursal Queretaro">Sucursal Queretaro</option>
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>
@@ -510,6 +527,79 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         });
         // FIN SELECTORES DE USUARIO
+
+        // --- 1. Toggle Password Visibility (Ver/Ocultar Contraseña) ---
+        $('#btnShowPass').on('click', function() {
+            // Target the input field and the icon inside the button
+            // Seleccionamos el input y el ícono dentro del botón
+            const $input = $('#inputPass');
+            const $icon = $(this).find('i');
+
+            // Check current input type
+            // Verificamos el tipo de input actual
+            if ($input.attr('type') === 'password') {
+                // Switch to text to show password
+                // Cambiamos a texto para mostrar la contraseña
+                $input.attr('type', 'text');
+                
+                // Update icon to 'eye-slash' (closed eye)
+                // Actualizamos el ícono a 'ojo tachado'
+                $icon.removeClass('bi-eye').addClass('bi-eye-slash');
+            } else {
+                // Switch back to password to hide it
+                // Regresamos a tipo password para ocultarla
+                $input.attr('type', 'password');
+                
+                // Revert icon to 'eye'
+                // Revertimos el ícono al 'ojo' normal
+                $icon.removeClass('bi-eye-slash').addClass('bi-eye');
+            }
+        });
+
+        // --- 2. Copy to Clipboard (Copiar al Portapapeles) ---
+        $('#btnCopyPass').on('click', function() {
+            const password = $('#inputPass').val();
+            const $btn = $(this);
+            const $icon = $btn.find('i');
+            const originalIconClass = 'bi-clipboard';
+
+            // Validate if password is not empty
+            // Validar si la contraseña no está vacía
+            if (!password) return;
+
+            // Use the Clipboard API
+            // Usar la API del Portapapeles
+            navigator.clipboard.writeText(password).then(function() {
+                // --- UX Feedback (Feedback Visual) ---
+                
+                // Change icon to checkmark to indicate success
+                // Cambiar ícono a palomita para indicar éxito
+                $icon.removeClass(originalIconClass).addClass('bi-check-lg');
+                $btn.css('border-color', '#198754'); // Bootstrap success color (green)
+                $icon.css('color', '#198754');
+
+                // Revert back after 1.5 seconds
+                // Revertir cambios después de 1.5 segundos
+                setTimeout(function() {
+                    $icon.removeClass('bi-check-lg').addClass(originalIconClass);
+                    // Remove inline styles to return to CSS defaults
+                    // Remover estilos en línea para volver a los defaults de CSS
+                    $btn.attr('style', ''); 
+                    $icon.attr('style', '');
+                }, 1500);
+
+            }).catch(function(err) {
+                console.error('Error copying to clipboard: ', err);
+            });
+        });
+
+        // --- 3. Security Reset (Reset de Seguridad) ---
+        // Ensure password is hidden again when modal closes
+        // Asegurar que la contraseña se oculte de nuevo al cerrar el modal
+        $('#modalAgregarEditar').on('hidden.bs.modal', function () {
+            $('#inputPass').attr('type', 'password');
+            $('#btnShowPass i').removeClass('bi-eye-slash').addClass('bi-eye');
+        });
 
         // RESETEAR EL FORMULARIO AL CERRAR
         $("#btnCloseModal").on("click", function(){

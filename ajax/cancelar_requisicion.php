@@ -31,7 +31,13 @@ try {
     $id_requisicion = intval($_POST['id_requisicion']);
 
     // Actualizar estatus a Pendiente
-    $stmt = $conn->prepare("UPDATE requisiciones SET estatus = 'Pendiente' WHERE id_requisicion = :id_requisicion");
+    $stmt = $conn->prepare("UPDATE requisiciones 
+                            SET estatus = 'Pendiente',
+                            ruta_firma = null,
+                            ruta_firma_admin = null,
+                            autorizo = null,
+                            fecha_autorizacion = null
+                            WHERE id_requisicion = :id_requisicion");
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmt->execute();
 
