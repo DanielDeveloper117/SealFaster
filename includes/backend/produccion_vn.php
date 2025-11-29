@@ -74,8 +74,9 @@
                 $areaGerenteEncriptado = openssl_encrypt($area_desencriptada, 'AES-128-ECB', $clave_encriptacion);
 
                 if($sucursal == "Ventas Nacionales"){
-                    $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND rol = 'Gerente' OR rol = 'CORREO_DIRECCION'";
+                    $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND (rol = 'Gerente' AND area = :area) OR rol = 'CORREO_DIRECCION'";
                     $stmt = $conn->prepare($sqlCorreoVentasGerencia);
+                    $stmt->bindParam(':area', $areaGerenteEncriptado);   
                 }else{
                     $sqlCorreoVentasGerencia = "SELECT usuario FROM login WHERE lider = 3 AND area = :area AND rol = 'Gerente'";
                     $stmt = $conn->prepare($sqlCorreoVentasGerencia);

@@ -4,8 +4,11 @@ require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
 
 session_start();
+if (!isset($_SESSION['id'])) {
+    header("Location: ../auth/cerrar_sesion.php");
+    exit;
+}
 
-// Convertir warnings/notices a excepciones
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
@@ -13,81 +16,40 @@ set_error_handler(function($severity, $message, $file, $line) {
 try {
     header('Content-Type: application/json');
 
-    // Solo aceptar POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         http_response_code(405);
-        echo json_encode(['error' => 'Metodo no permitido. Solo se acepta POST.']);
+        echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
         exit;
     }
 
-    // Validacion de parametros
-    if (!isset($_POST['id_requisicion'], $_POST['t']) || empty($_POST['id_requisicion']) || empty($_POST['t'])) {
-        echo json_encode(['error' => "Parametros faltantes o invalidos"]);
+    // Validación básica del parámetro
+    if (!isset($_POST['id_requisicion']) || !ctype_digit($_POST['id_requisicion'])) {
+        echo json_encode(['success' => false, 'message' => "Parámetros incompletos o inválidos."]);
         exit;
     }
 
-    $id_requisicion = $_POST['id_requisicion'];
-    $autoriza = $_POST['t'];
+    $id_requisicion = intval($_POST['id_requisicion']);
 
-    // Validar que id_requisicion sea numero
-    if (!preg_match('/^\d+$/', $id_requisicion)) {
-        echo json_encode(['error' => "Parametro id_requisicion invalido"]);
-        exit;
-    }
-
-    $id_usuario = $_SESSION['id'] ?? null;
-    if (!$id_usuario) {
-        echo json_encode(['error' => "Sesion invalida o expirada"]);
-        exit;
-    }
-
-    $nombreArchivo = $id_usuario . ".png";
-    $rutaBD = 'files/signatures/' . $nombreArchivo;
-
-    // Validar que exista el archivo de firma
-    if (!file_exists(ROOT_PATH . $rutaBD)) {
-        echo json_encode(['error' => "No existe la firma del usuario en el sistema"]);
-        exit;
-    }
-
-    // Iniciar transacción para consistencia
-    $conn->beginTransaction();
-    $sqlUserInfo = "SELECT * FROM login WHERE id = :id_usuario";
-    $stmtUserInfo = $conn->prepare($sqlUserInfo);
-    $stmtUserInfo->bindParam(':id_usuario', $id_usuario);
-    $stmtUserInfo->execute();
-    $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
-
-    $clave_encriptacion = 'SRS2024#tides';
-    $nombre_encriptado = $arregloUser['nombre'];
-    $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
-    // Actualizacion de requisicion
-    if ($autoriza === "g") {
-        $sql = "UPDATE requisiciones SET 
-                    estatus = 'Autorizada',
-                    ruta_firma = :ruta,
-                    autorizo = :autorizo,
-                    fecha_autorizacion = NOW()
-                WHERE id_requisicion = :id_requisicion";
-    } elseif ($autoriza === "a") {
-        $sql = "UPDATE requisiciones SET 
-                    estatus = 'Autorizada',
-                    ruta_firma_admin = :ruta,
-                    autorizo = :autorizo,
-                    fecha_autorizacion = NOW()
-                WHERE id_requisicion = :id_requisicion";
-    } else {
-        echo json_encode(['error' => "Parametro 't' no valido"]);
-        exit;
-    }
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':ruta', $rutaBD);
+    // Actualizar estatus a Pendiente
+    $stmt = $conn->prepare("UPDATE requisiciones 
+                            SET estatus = 'Pendiente',
+                            ruta_firma = null,
+                            ruta_firma_admin = null,
+                            autorizo = null,
+                            fecha_autorizacion = null
+                            WHERE id_requisicion = :id_requisicion");
     $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmt->bindParam(':autorizo', $nombreUser);
     $stmt->execute();
 
-    // 1. Obtener cotizaciones asociadas para actualizar pre-stock
+    if ($stmt->rowCount() === 0) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'No se encontró la requisición o no se realizaron cambios.'
+        ]);
+        exit;
+    }
+
+    // 1. Obtener cotizaciones asociadas para actualizar inventario
     $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
     $stmtRequisicion = $conn->prepare($sqlRequisicion);
     $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
@@ -98,90 +60,90 @@ try {
         $cotizacion_ids = explode(', ', $result['cotizaciones']);
 
         // 2. Actualizar estado de cada cotización
-        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Autorizada', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Cotización', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
         $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
 
-        // 3. Preparar consulta para actualizar inventario
-        $sqlUpdatePreStock = "UPDATE inventario_cnc SET pre_stock = pre_stock - :consumo_total, estatus = 'En uso', updated_at = NOW() WHERE lote_pedimento = :lote_pedimento";
-        $stmtUpdatePreStock = $conn->prepare($sqlUpdatePreStock);
+        // 3. Obtener todos los lotes pedimento únicos de las cotizaciones
+        $placeholders = str_repeat('?,', count($cotizacion_ids) - 1) . '?';
+        $sqlBillets = "SELECT DISTINCT billets FROM cotizacion_materiales WHERE id_cotizacion IN ($placeholders)";
+        $stmtBillets = $conn->prepare($sqlBillets);
+        $stmtBillets->execute($cotizacion_ids);
+        $billetsResults = $stmtBillets->fetchAll(PDO::FETCH_ASSOC);
 
-        // 4. Array para acumular consumo por lote_pedimento
-        $consumoPorLote = [];
-
-        foreach ($cotizacion_ids as $id_cotizacion) {
-            // Actualizar estado de la cotización
-            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
-            $stmtUpdateCotizacion->execute();
-
-            // Obtener todas las estimaciones de esta cotización
-            $sqlEstimaciones = "SELECT id_cotizacion, a_sello, material, billets_lotes FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
-            $stmtEstimaciones = $conn->prepare($sqlEstimaciones);
-            $stmtEstimaciones->bindValue(':id_cotizacion', $id_cotizacion);
-            $stmtEstimaciones->execute();
-            $estimaciones = $stmtEstimaciones->fetchAll(PDO::FETCH_ASSOC);
-
-            foreach ($estimaciones as $estimacion) {
-                $a_sello = floatval($estimacion['a_sello']);
-                $material = $estimacion['material'];
-                $billets_lotes = $estimacion['billets_lotes'];
-
-                // Determinar desbaste por material
-                $desbaste = 2.50; // Valor por defecto (material duro)
-                
-                $materialesBlandos = ['H-ECOPUR', 'ECOSIL', 'ECORUBBER 1', 'ECORUBBER 2', 'ECORUBBER 3', 'ECOPUR'];
-                $materialesDuros = ['ECOTAL', 'ECOMID', 'ECOFLON 1', 'ECOFLON 2', 'ECOFLON 3'];
-                
-                if (in_array($material, $materialesBlandos)) {
-                    $desbaste = 2.00;
-                } elseif (in_array($material, $materialesDuros)) {
-                    $desbaste = 2.50;
-                }
-
-                // Procesar cada billet/lote
-                if (!empty($billets_lotes)) {
-                    $billets = array_map('trim', explode(',', $billets_lotes));
-                    
-                    foreach ($billets as $billet) {
-                        // Extraer lote_pedimento y cantidad de piezas
-                        // Formato: "R2T047062-1 (47/62) 1 pz"
-                        if (preg_match('/^([^\s]+)\s+\([^)]+\)\s+(\d+)\s+pz$/i', $billet, $matches)) {
-                            $lote_pedimento = trim($matches[1]);
-                            $cantidad_piezas = intval($matches[2]);
-                            
-                            // Calcular consumo para este billet
-                            $altura_por_pieza = $a_sello + $desbaste;
-                            $consumo_total = $altura_por_pieza * $cantidad_piezas;
-                            
-                            // Acumular consumo por lote_pedimento
-                            if (!isset($consumoPorLote[$lote_pedimento])) {
-                                $consumoPorLote[$lote_pedimento] = 0;
-                            }
-                            $consumoPorLote[$lote_pedimento] += $consumo_total;
-                        }
-                    }
+        // 4. Extraer todos los lotes pedimento únicos
+        $lotesUnicos = [];
+        foreach ($billetsResults as $row) {
+            if (!empty($row['billets'])) {
+                $billets = array_map('trim', explode(',', $row['billets']));
+                foreach ($billets as $billet) {
+                    $lotesUnicos[$billet] = true;
                 }
             }
         }
 
-        // 5. Actualizar pre_stock en inventario_cnc para cada lote
-        foreach ($consumoPorLote as $lote_pedimento => $consumo_total) {
-            $stmtUpdatePreStock->bindValue(':consumo_total', $consumo_total);
-            $stmtUpdatePreStock->bindValue(':lote_pedimento', $lote_pedimento);
-            $stmtUpdatePreStock->execute();
+        // 5. Actualizar inventario para cada lote único
+        if (!empty($lotesUnicos)) {
+            $lotesArray = array_keys($lotesUnicos);
+            $placeholdersLotes = str_repeat('?,', count($lotesArray) - 1) . '?';
+            
+            $sqlUpdateInventario = "UPDATE inventario_cnc 
+                                   SET pre_stock = stock, 
+                                       estatus = 'Disponible para cotizar', 
+                                       updated_at = NOW() 
+                                   WHERE lote_pedimento IN ($placeholdersLotes)";
+            
+            $stmtUpdateInventario = $conn->prepare($sqlUpdateInventario);
+            $stmtUpdateInventario->execute($lotesArray);
+        }
+
+        // 6. Actualizar estado de cada cotización (esto se mantiene igual)
+        foreach ($cotizacion_ids as $id_cotizacion) {
+            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtUpdateCotizacion->execute();
         }
     }
 
-    // Confirmar transacción
-    $conn->commit();
-
-    ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
-    $mail = null; // Inicializar para evitar "undefined variable" en catch
+    // Preparar correo (esta parte se mantiene igual)
+    $mail = null;
 
     try {
         require_once(ROOT_PATH . 'includes/PHPMailer.php');
         $mail = getMailer($conn);
 
-        //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
+        // Obtener id_vendedor de la requisición
+        $stmt = $conn->prepare("SELECT id_vendedor FROM requisiciones WHERE id_requisicion = :id_requisicion");
+        $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+        $stmt->execute();
+        $idVendedor = $stmt->fetch(PDO::FETCH_ASSOC)['id_vendedor'] ?? null;
+
+        if (!$idVendedor) {
+            throw new Exception("No se encontró el vendedor asociado.");
+        }
+
+        // Obtener correo del vendedor
+        $stmt = $conn->prepare("SELECT usuario FROM login WHERE id = :id_usuario");
+        $stmt->bindParam(':id_usuario', $idVendedor, PDO::PARAM_INT);
+        $stmt->execute();
+        $correoVendedor = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        if (!$correoVendedor || count($correoVendedor) === 0) {
+            throw new Exception("No se encontró correo de vendedor.");
+        }
+
+        
+        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
+        $contadorCorreos = 0;
+
+        foreach ($correoVendedor as $fila) {
+            if (!empty($fila['usuario'])) {
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                if ($correo) {
+                    //$mail->addAddress($correo); // activar si quieres enviar al vendedor real
+                    $contadorCorreos++;
+                }
+            }
+        }
+
         $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
         $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
@@ -191,12 +153,9 @@ try {
             throw new Exception("No se encontro ningun correo de inventarios.");
         }
 
-        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'oculta'; // mejor mover a config.php
-        $contadorCorreos = 0;
-
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
-                $correo = openssl_decrypt($fila['usuario'], 'AAA', $clave_encriptacion);
+                $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
                     //$mail->addAddress($correo);
                     $contadorCorreos++;
@@ -205,47 +164,38 @@ try {
         }
 
         if ($contadorCorreos === 0) {
-            throw new Exception("No se pudo agregar ningun destinatario valido para inventarios.");
+            throw new Exception("No se pudo agregar ningún destinatario válido.");
         }
 
-        // Agregar correo visible de prueba o destinatario unico
-        $mail->addAddress("oculto");
-        $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
-        $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
-                        Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
-                        Folio de requisición: <b>" . $id_requisicion . "</b>";
+        // Correo visible de prueba
+        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+        $mail->Subject = 'Requisición cancelada. Folio: '.$id_requisicion;
+        $mail->Body = "Se ha cancelado la autorización de una requisición.<br>Folio: <b>$id_requisicion</b>";
+        $mail->AltBody = "Se ha cancelado la autorización de una requisición. Folio: $id_requisicion";
 
         if (!$mail->send()) {
             throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
         }
-        ///////////////////////////////////////////////////////////////////////////////////////
-        // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisición autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
-        ]);
 
     } catch (Throwable $e) {
+        // Si falla el correo, igual devolvemos éxito pero con advertencia
         echo json_encode([
             'success' => true,
-            'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
-                         addslashes($e->getMessage()) .
-                         (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
+            'message' => "Requisición cancelada correctamente, pero hubo un error al enviar correo: " . addslashes($e->getMessage())
         ]);
+        exit;
     }
 
+    // Respuesta exitosa general
+    echo json_encode([
+        'success' => true,
+        'message' => 'Requisición cancelada correctamente y correos enviados con éxito.'
+    ]);
+
 } catch (PDOException $e) {
-    // Revertir transacción en caso de error
-    if ($conn->inTransaction()) {
-        $conn->rollBack();
-    }
-    echo json_encode(['error' => 'Error de base de datos: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Error de base de datos: ' . $e->getMessage()]);
 } catch (Throwable $e) {
-    // Revertir transacción en caso de error
-    if ($conn->inTransaction()) {
-        $conn->rollBack();
-    }
-    echo json_encode(['error' => 'Error inesperado: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'message' => 'Error inesperado: ' . $e->getMessage()]);
 } finally {
     $conn = null;
 }

@@ -993,33 +993,9 @@ $(document).ready(function() {
             let tipoMedidaDE = $('#selectorTipoMedidaDE').val();
             let tipoMedidaH = $('#selectorTipoMedidaH').val();
 
-            // if(window.TIPO_MEDIDA_SELLO == "Sello"){
-            //     diClienteSello = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
-            //     deClienteSello = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
-            //     alturaClienteSello = parseFloat($('#altura_mm_cliente').val()) || 0.00; 
-            //     diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
-            //     deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
-            //     alturaClienteSelloInch = parseFloat($('#altura_inch_cliente').val()) || 0.00;
-            //     diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
-            //     deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
-            //     alturaClienteSello2 = parseFloat($('#altura_mm_cliente2').val()) || 0.00;
-            //     diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
-            //     deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
-            //     alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
-            // }else{
-            //     diClienteSello = parseFloat($('#diametro_interior_mm_cliente2').val()) || 0.00;
-            //     deClienteSello = parseFloat($('#diametro_exterior_mm_cliente2').val()) || 0.00;
-            //     alturaClienteSello = parseFloat($('#altura_mm_cliente2').val()) || 0.00; 
-            //     diClienteSelloInch = parseFloat($('#diametro_interior_inch_cliente2').val()) || 0.00;
-            //     deClienteSelloInch = parseFloat($('#diametro_exterior_inch_cliente2').val()) || 0.00;
-            //     alturaClienteSelloInch = parseFloat($('#altura_inch_cliente2').val()) || 0.00;
-            //     diClienteSello2 = parseFloat($('#diametro_interior_mm_cliente').val()) || 0.00;
-            //     deClienteSello2 = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0.00;
-            //     alturaClienteSello2 = parseFloat($('#altura_mm_cliente').val()) || 0.00;
-            //     diClienteSelloInch2 = parseFloat($('#diametro_interior_inch_cliente').val()) || 0.00;
-            //     deClienteSelloInch2 = parseFloat($('#diametro_exterior_inch_cliente').val()) || 0.00;
-            //     alturaClienteSelloInch2 = parseFloat($('#altura_inch_cliente').val()) || 0.00;
-            // }
+            if(!tipoMedidaDE || tipoMedidaDE == null || tipoMedidaDE == ""){
+                tipoMedidaDE = tipoMedidaDI;
+            }
 
             $.ajax({
                 url: '../ajax/ajax_guardar_cotizacion.php',
@@ -1981,6 +1957,31 @@ $(document).ready(function() {
         }
     });
 
+    $(document).on('click', '.btn-detalle-estatus', function(){
+        let detalle = $(this).data("detalle");
+        Swal.fire({
+            title: "Detalle del estatus",
+            text: detalle,
+            icon: "info",
+            showConfirmButton: true,
+            confirmButtonText: "Entendido",
+            timer: null,
+            toast: true,
+            width: '500px',
+            position: "bottom"
+        });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Se vio el detalle de una barra: "+detalle },
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
+    });
     // GUARDAR LA COTIZACION DESIDIENDO CUALES FORMULARIOS VA A ENVIAR
     $("#btnGuardarCotizacion").on("click", function () {
         $(this).addClass("d-none");

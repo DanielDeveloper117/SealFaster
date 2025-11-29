@@ -136,11 +136,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Clave</th>
                         <th>Lote/Pedimento</th>
                         <th>Medida</th>
+                        <th>Estatus</th>
                         <th>Proveedor</th>
                         <th>Material</th>
                         <!-- <th>Máx Usable</th> -->
                         <th>Pre Stock</th> 
-                        <th>Estatus</th>
                         <th>Existencia</th>
                         <!-- <th>Stock</th> -->
                         <th>Usabilidad</th>
@@ -152,55 +152,43 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                 <?php
                     foreach ($arregloSelectInventario as $row) {
                         $max_usable = $row['max_usable'];
-                        $pre_stock = $row['pre_stock'];
-                        $width = $max_usable > 0 ? ($pre_stock / $max_usable) * 100 : 0; // Calcular el porcentaje
+                        $stock = $row['pre_stock'];
+                        $width = $max_usable > 0 ? ($stock / $max_usable) * 100 : 0; // Calcular el porcentaje
                         $usableStyle="";
                         $usableText="";
-                        if ($pre_stock >= $max_usable * 0.75) { 
+                        if ($stock >= $max_usable * 0.75) { 
                             $class = 'bar-alto';
-                        } elseif ($pre_stock >= $max_usable * 0.25) { 
+                        } elseif ($stock >= $max_usable * 0.25) { 
                             $class = 'bar-medio';
                         } else { 
                             $class = 'bar-bajo';
                         }
-                        if($pre_stock < 15 || $row['estatus'] == "Eliminado"){
+                        if($stock == 0 || $row['estatus'] == "Eliminado"){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
+                        }elseif($row['estatus'] != "Eliminado" && $stock > 0 && $stock < 15){
+                            $usableText = "No usable";
+                            $usableStyle = "background-color:#ff572263 !important;";
                         }else{
                             $usableText = "Usable";
                         }
 
-
-                        // $stock = $row['stock'];
-                        // $usableStyle="";
-                        // $usableText="";
-                        // // iluminar si stock es menor a 15
-                        // if($stock < 15){
-                        //     $usableStyle = "background-color:#ff00002e !important;";
-                        //     $usableText = "No usable";
-                        // }else{
-                        //     $usableText = "Usable";
-                        // }
-                        // $max_usable = $row['max_usable'];
-                        // $width = $max_usable > 0 ? ($stock / $max_usable) * 100 : 0; // Calcular el porcentaje
-                        // // Determinar la clase de la barra según el stock
-                        // if ($stock >= $max_usable * 0.75) { // 75% o más
-                        //     $class = 'bar-alto';
-                        // } elseif ($stock >= $max_usable * 0.25) { // Entre 25% y 75%
-                        //     $class = 'bar-medio';
-                        // } else { // Menos de 25%
-                        //     $class = 'bar-bajo';
-                        // }
                 ?>
                     <tr style="<?php echo $usableStyle; ?>" >
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Clave']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Medida']); ?></td>
+                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>"><?php 
+                        if($row['stock']==0){
+                            echo("No disponible, sin stock");
+                        }elseif($row['estatus']=="Eliminado"){
+                            echo("Archivado");
+                        }else{echo($row['estatus']);
+                        } ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['material']); ?></td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['max_usable']); ?></td> -->
-                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['pre_stock']); ?></td>
-                        <td style="<?php echo $usableStyle; ?>" class="td-estatus"><?= htmlspecialchars($row['estatus']); ?></td>
+                        <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['pre_stock']); ?></td> 
                         <td style="<?php echo $usableStyle; ?>">
                             <div class="existencia-barra">
                                 <span class="bar <?php echo $class; ?>" style="width: <?php echo htmlspecialchars($width); ?>%;"></span>
@@ -208,7 +196,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         </td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['stock']); ?></td> -->
                         <td style="<?php echo $usableStyle; ?>"><?php echo $usableText; ?></td>
-                        <td class="td-created">
+                        <td class="td-created" style="<?php echo $usableStyle; ?>">
                             <?php
                                 if (!empty($row['created_at'])) {
                                     echo date("d/m/Y h:i:s A", strtotime($row['created_at']));
@@ -217,7 +205,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                 }
                             ?>
                         </td>
-                        <td class="td-updated">
+                        <td class="td-updated" style="<?php echo $usableStyle; ?>">
                             <?php
                                 if (!empty($row['updated_at'])) {
                                     echo date("d/m/Y h:i:s A", strtotime($row['updated_at']));
@@ -247,6 +235,17 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 
         $('#btnExportarDatos').on('click', function() {
             $(".buttons-excel").trigger("click");
+        });
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Se ha cargado el inventario vn" },
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
         });
     });
 </script>

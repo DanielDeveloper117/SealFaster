@@ -223,6 +223,19 @@ $(document).ready(function(){
         var actionForm=accion;
         let actionAfter = "none";
 
+        const fila = $(`#tr_${dataId}`);
+        const filaAfectada = $(`#tr_${dataId} td`);
+        
+        if(actionForm == "delete"){  
+            sweetAlertResponse("success", "Proceso exitoso", "Registro afectado correctamente", "none");
+            fila.addClass("bg-row-deleted");  
+            setTimeout(() => {
+                fila.removeClass("bg-row-deleted");
+                $(`#tr_${dataId}`).addClass("d-none");
+            }, 800);
+            return;
+        }
+
         $.ajax({
             url: '../ajax/post_inventario_cnc.php',
             type: 'POST',
@@ -245,10 +258,6 @@ $(document).ready(function(){
                     sweetAlertResponse("success", "Proceso exitoso", data.message, actionAfter);
                     window.LP_VALIDO = true;
                     $("#modalInventario #btnCloseModal").trigger("click");
-                    
-                    // El resto del código para actualizar la UI permanece igual...
-                    const fila = $(`#tr_${dataId}`);
-                    const filaAfectada = $(`#tr_${dataId} td`);
                     
                     if(actionForm == "update"){
                         // Código para actualizar la fila en la tabla...
@@ -566,10 +575,40 @@ $(document).ready(function(){
         var actionForm=$('#inputAction').val();
         ajaxBackend(inputId, actionForm);
     });        
-    // CLICK A ELIMINAR REFGISTRO
+    // CLICK A ELIMINAR REGISTRO
     $('#inventarioTable').on('click', '.delete-btn', function() {
+        sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
+        return;
         var dataId = $(this).data('id');
-        ajaxBackend(dataId, 'delete');
+        var dataLP = $(this).data('lp');
+        $("#modalSolicitarArchivar").modal("show");
+
+        $("#inputIdBarra").val(dataId);
+        $("#modalSolicitarArchivar p strong").text(dataLP);
+    });
+    // ENVIAR SOLICITUD PARA ARCHIVAR BARRA
+    $("#btnContinuarSolicitarArchivar").on("click", function(){
+        let idBarra = $("#inputIdBarra").val();
+        let justificacion = $("#inputJustificacionSolicitarArchivar").val().trim();
+
+        if(!idBarra || idBarra == null || idBarra == ""){
+            sweetAlertResponse("warning", "Advertencia", "Falta el id de la barra", "none");
+            return;
+        }        
+        if(!justificacion){
+            sweetAlertResponse("warning", "Advertencia", "La justificación es obligatoria", "none");
+            return;
+        }
+        if(justificacion.length < 10){
+            sweetAlertResponse("warning", "Advertencia", "La justificación debe tener al menos 10 caracteres", "none");
+            return;
+        }
+        ajaxBackend(idBarra, 'delete');
+    });
+    // CLICK A DESARCHIVAR/ACTIVAR BARRA
+    $('#inventarioTable').on('click', '.btn-activar-barra', function() {
+        sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
+        return;
     });
     $("#overlay").addClass("d-none");
     $("body").removeClass("scroll-disablado");

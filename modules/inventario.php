@@ -181,14 +181,14 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Acciones</th>
                         <th>Clave</th>
                         <th>Lote/Pedimento</th>
+                        <th>Medida</th>
+                        <th>Estatus</th>
                         <th>Material</th>
                         <th>Proveedor</th>
-                        <th>Medida</th>
                         <th>Max. Usable</th>
                         <th>Stock</th>
                         <th>Existencia</th>
                         <th>Usabilidad</th>
-                        <th>Estatus</th>
                         <th>Fecha de Ingreso</th>
                         <th>Actualización</th>
                     </tr>
@@ -198,10 +198,14 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         $stock = $row['stock'];
                         $usableStyle="";
                         $usableText="";
+                        $estatusString = "";
                         // iluminar si stock es menor a 15 o esta eliminado
-                        if($stock < 15 || $row['estatus'] == "Eliminado"){
+                        if($stock == 0 || $row['estatus'] == "Eliminado"){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
+                        }elseif($row['estatus'] != "Eliminado" && $stock > 0 && $stock < 15){
+                            $usableText = "No usable";
+                            $usableStyle = "background-color:#ff572263 !important;";
                         }else{
                             $usableText = "Usable";
                         }
@@ -215,10 +219,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         } else { // Menos de 25%
                             $class = 'bar-bajo';
                         }
+                   
                         
                     ?>
                     <tr id="tr_<?= $row['id']; ?>" class="fila-inventario" style="<?= $usableStyle; ?>">
-                        <td class="acciones d-flex flex-column">
+                        <td class="acciones d-flex flex-column" style="<?php echo $usableStyle; ?>">
                             <div class="d-flex flex-column">
                                 <button class="btn-general edit-btn mb-1" 
                                     data-id="<?= $row['id']; ?>"
@@ -234,27 +239,52 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                     Editar<i class="bi bi-pencil-square px-2"></i>
                                 </button>
                                 <form class="form-delete">
-                                    <button type="button" class="btn-eliminar delete-btn" data-id="<?= $row['id']; ?>">
-                                        Eliminar<i class="bi bi-trash3 px-2"></i>
-                                    </button>
+                                    <?php
+                                    if($row['estatus'] == "Disponible para cotizar"){                                      
+                                        echo '
+                                            <button type="button" class="btn-eliminar delete-btn" 
+                                                    data-id='.$row["id"].'
+                                                    data-lp='.$row["lote_pedimento"].'
+                                                    title="Archivar registro (marcar como no disponible para cotizar)">
+                                                Archivar<i class="bi bi-archive px-2"></i>
+                                            </button>
+                                        ';
+                                    }else if($row['estatus'] == "Eliminado"){
+                                        echo '
+                                            <button type="button" class="btn-thunder btn-activar-barra" 
+                                                    data-id='.$row["id"].'
+                                                    title="Desarchivar/activar barra para cotizar">
+                                                Activar barra<i class="bi bi-archive-fill px-2"></i>
+                                            </button>
+                                        '; 
+                                    }else{
+                                        echo '<p>'.htmlspecialchars($row['estatus']).'</p>';
+                                    }
+                                    ?>
                                 </form>
                             </div>
                         </td>
-                        <td class="td-clave"><?= htmlspecialchars($row['Clave']); ?></td>
-                        <td class="td-lote"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
-                        <td class="td-material"><?= htmlspecialchars($row['material']); ?></td>
-                        <td class="td-proveedor"><?= htmlspecialchars($row['proveedor']); ?></td>
-                        <td class="td-medida"><?= htmlspecialchars($row['Medida']); ?></td>
-                        <td class="td-max_usable"><?= htmlspecialchars($row['max_usable']); ?></td>
-                        <td class="td-stock"><?= htmlspecialchars($row['stock']); ?></td>
-                        <td class="td-barra">
+                        <td class="td-clave" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['Clave']); ?></td>
+                        <td class="td-lote" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
+                        <td class="td-medida" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['Medida']); ?></td>
+                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>"><?php 
+                        if($row['stock']==0){
+                            echo("No disponible, sin stock");
+                        }elseif($row['estatus']=="Eliminado"){
+                            echo("Archivado");
+                        }else{echo($row['estatus']);
+                        } ?></td>
+                        <td class="td-material" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['material']); ?></td>
+                        <td class="td-proveedor" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['proveedor']); ?></td>
+                        <td class="td-max_usable" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['max_usable']); ?></td>
+                        <td class="td-stock" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['stock']); ?></td>
+                        <td class="td-barra" style="<?php echo $usableStyle; ?>">
                             <div class="existencia-barra">
                                 <span class="bar <?= $class; ?>" style="width: <?= htmlspecialchars($width); ?>%;"></span>
                             </div>
                         </td>
-                        <td class="td-usable"><?= $usableText; ?></td>
-                        <td class="td-estatus"><?= htmlspecialchars($row['estatus']); ?></td>
-                        <td class="td-created">
+                        <td class="td-usable" style="<?php echo $usableStyle; ?>"><?= $usableText; ?></td>
+                        <td class="td-created" style="<?php echo $usableStyle; ?>"> 
                             <?php
                                 if (!empty($row['created_at'])) {
                                     echo date("d/m/Y h:i:s A", strtotime($row['created_at']));
@@ -263,7 +293,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                 }
                             ?>
                         </td>
-                        <td class="td-updated">
+                        <td class="td-updated" style="<?php echo $usableStyle; ?>">
                             <?php
                                 if (!empty($row['updated_at'])) {
                                     echo date("d/m/Y h:i:s A", strtotime($row['updated_at']));
@@ -281,7 +311,31 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
         </div>
     </div>
 </section>
-
+<!-- //////////////////////////MODAL: FORMULARIO SOLICITAR ARCHIVAR BARRA /////////////////////// -->
+<div class="modal fade" id="modalSolicitarArchivar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">Solicitar archivar barra a dirección</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Describa la razón por la cual desea archivar la barra: <strong></strong></p>
+                <form id="formSolicitarArchivar">
+                    <input id="inputIdBarra" type="hidden">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="" style="width:100%;">
+                            <label for="inputJustificacionSolicitarArchivar" class="lbl-general">Justificación *</label>
+                            <textarea id="inputJustificacionSolicitarArchivar" class="form-control" rows="3" placeholder="Ingrese la justificación..."></textarea>
+                        </div>  
+                    </div>  
+                    <button id="btnContinuarSolicitarArchivar" type="button" class="btn-general">Continuar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ////////////////////////////////////////////////////////////////////////////////////////// -->
 <?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
 
 <script>

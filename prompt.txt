@@ -538,3 +538,77 @@ que sea necesario y se permite que los vendedores usen las barras dado que hipot
 stock de la barra. Que solucion propondia para evitar que se use la misma barra los vendedores sin bloquear tales barras, es 
 decir, seguir permitiendo la seleccion, teniendo en cuenta de que tal barra la pueden usar en multiples cotizaciones actualmente 
 causando conflicto y prestock negativo.
+
+A continuacion un codigo frontend que muestra la respuesta de una solicitud ajax y en el archivo adjunto el backend de la peticion.
+Observe que en el switch, capturamos el item.estatus para decidir que informacion mostrarle al usuario, sin embargo, el estatus 
+"En cotización" no existe en la tabla inventario_cnc, por lo tanto, se necesita que el backend determine si el registro tiene ese estatus 
+mediante una serie de condicionales basadas en la existencia de la barra de entre las cotizaciones vigentes no archivadas.
+Su deber sera adicionar el bloque de codigo que consultara ademas de la tabla inventario_cnc, la tabla cotizacion_materiales 
+y determinar si la cotizacion no esta archivada y si es vigente, si es vigente y no esta archivada, quiere decir que esta 
+"apartada" y no es posible seleccionar la barra pero si mostrar que ocurre. A partir del arreglo resultante $billets va a 
+consultar la tabla cotizacion_materiales para decidir si el registro cumple con el estatus "En cotización".
+Proporcionare los nombres de las columnas que podrian serle utiles para desarrollar.
+*Tabla: cotizacion_materiales
+*columnas:
+-id_estimacion: id unico del registro.
+-id_cotizacion: pueden existir hasta 5 registros con la misma id_cotizacion, eso conforma una cotizacion.
+-material: es el mismo material que el de inventario_cnc.material, la columna se puede usar para filtrar dado que son miles de estimaciones.
+-billets: cadena que contiene las barras que usa esa estimacion, los lote pedimento estan separados por coma y 
+espacio (ejemplo: "PSM040068-3, PU044074-1, PU231226-15, PU240212-78, PU240212-79").
+-vendedor: esta cadena registra a nombre de que vendedor esta la cotizacion.
+-archivada: tynint que registra si la cotizacion esta archivada = 1, o si no lo esta = 0 (cuando esta archivada quiere decir que el 
+vendedor no utilizara/ocupara las barras de cada estimacion).
+-fecha_insercion: datetime que registra la creacion de la cotizacion.
+-fecha_vencimiento: datetime que determina cuando una cotizacion esta vencida (72 horas a partir de su creacion).
+
+
+¿Una cotización es vigente solo si fecha_vencimiento > NOW()?
+asi es.
+
+¿O hay algún otro campo que determine vigencia?
+no, solo la fecha, a los vendedores se les hace saber si es vigente mediante esa condicion. En algun lugar del frontend por ejemplo:
+$esta_vencida = false;
+if (!empty($row['fecha_vencimiento']) && $row['fecha_vencimiento'] != '0000-00-00 00:00:00') {
+    $fecha_vencimiento = new DateTime($row['fecha_vencimiento']);
+    $esta_vencida = ($fecha_vencimiento < $fecha_actual);
+}
+
+¿El campo lote_pedimento de inventario_cnc es exactamente igual a los valores en el campo billets de cotizacion_materiales?
+Asi es, el lote_pedimento de inventario_cnc es el mismo que el que se encontraría en la cadena de la cotizacion billets.
+
+¿Los lotes en billets siempre están en el formato exacto "PU240212-78" sin espacios extra?
+en inventario_cnc si.
+
+¿Cuántos registros aproximados tiene cotizacion_materiales?
+4173, sin embargo, cada dia se agregan aproximadamente 80 estimaciones (registros).
+
+¿Cuántos billets máximo podría devolver una consulta típica?
+ajax_billets.php devuelve un rango de 0 a 80, depende del inventario coincidente.
+
+Si un billet tiene estatus "En uso" en inventario_cnc pero también está en una cotización vigente, ¿qué estatus debería prevalecer?
+En uso, el estatus "En cotización" solo aplica cuando el estatus en inventario_cnc era "Disponible para cotizar".
+
+¿Debo considerar solo cotizaciones con el mismo material que se está consultando?
+Se observa que el arreglo resultante $billets ya devuelve resultados filtrados con el material enviado, por lo tanto no tiene caso 
+consultar otros materiales en cotizacion_materiales, debe ser el mismo
+
+¿Los campos id_cotizacion, vendedor, fecha_vencimiento deben agregarse al JSON de respuesta solo cuando el billet está "En cotización"?
+Si, cuando ocurre ese estatus, debemos mostrarle al vendedor los detalles en el frontend para que sepa que cotizacion, que vendedor la 
+apartó, cuando estara disponible.
+
+¿La fecha_vencimiento debe formatearse de alguna manera específica para el frontend?
+Con el formato datetime desde la base de datos está bien.
+
+Otras consideraciones:
+*Puede ocurrir que la barra se encuente "En cotización" en varias cotizaciones, sin embargo, al implementar este nuevo cambio ya no ocurrira 
+en el futuro, mientrastanto con el primer registro esta bien.
+*Manejar todo con sql puede ser deficiente, dado que es probable que los nombres de los lotes pedimento sean muy parecidos, consultas como 
+LIKE, serian poco fiables, mejor que el codigo backend realice los calculos y no dejarle todo a SQL.
+*Cuando la estimacion tenga una cadena con un solo lote pedimento el formato ya no tiene comas ni espacio, siendo por ejemplo asi: "PU240212-78", 
+pero cuando hay mas de una barra, la cadena es algo asi: "PSM040068-3, PU044074-1".
+*Su propuesta de codigo parece ir por buen camino, sin embargo genere un codigo que tome en cuenta las implicaciones y aclaraciones.
+
+ejecutar las consultas:
+update cotizacion_materiales set tipo_medida_de = tipo_medida_di where perfil_sello = "R13" and tipo_medida_de = "null";
+update inventario_cnc set pre_stock = stock;
+update inventario_cnc set estatus = "Disponible para cotizar" where estatus = "Eliminado";

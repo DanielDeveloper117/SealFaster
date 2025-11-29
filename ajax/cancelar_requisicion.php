@@ -49,7 +49,61 @@ try {
         exit;
     }
 
-    // Preparar correo
+    // 1. Obtener cotizaciones asociadas para actualizar inventario
+    $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
+    $stmtRequisicion = $conn->prepare($sqlRequisicion);
+    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
+    $stmtRequisicion->execute();
+    $result = $stmtRequisicion->fetch(PDO::FETCH_ASSOC);
+
+    if ($result && !empty($result['cotizaciones'])) {
+        $cotizacion_ids = explode(', ', $result['cotizaciones']);
+
+        // 2. Actualizar estado de cada cotización
+        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Cotización', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+        $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
+
+        // 3. Obtener todos los lotes pedimento únicos de las cotizaciones
+        $placeholders = str_repeat('?,', count($cotizacion_ids) - 1) . '?';
+        $sqlBillets = "SELECT DISTINCT billets FROM cotizacion_materiales WHERE id_cotizacion IN ($placeholders)";
+        $stmtBillets = $conn->prepare($sqlBillets);
+        $stmtBillets->execute($cotizacion_ids);
+        $billetsResults = $stmtBillets->fetchAll(PDO::FETCH_ASSOC);
+
+        // 4. Extraer todos los lotes pedimento únicos
+        $lotesUnicos = [];
+        foreach ($billetsResults as $row) {
+            if (!empty($row['billets'])) {
+                $billets = array_map('trim', explode(',', $row['billets']));
+                foreach ($billets as $billet) {
+                    $lotesUnicos[$billet] = true;
+                }
+            }
+        }
+
+        // 5. Actualizar inventario para cada lote único
+        if (!empty($lotesUnicos)) {
+            $lotesArray = array_keys($lotesUnicos);
+            $placeholdersLotes = str_repeat('?,', count($lotesArray) - 1) . '?';
+            
+            $sqlUpdateInventario = "UPDATE inventario_cnc 
+                                   SET pre_stock = stock, 
+                                       estatus = 'Disponible para cotizar', 
+                                       updated_at = NOW() 
+                                   WHERE lote_pedimento IN ($placeholdersLotes)";
+            
+            $stmtUpdateInventario = $conn->prepare($sqlUpdateInventario);
+            $stmtUpdateInventario->execute($lotesArray);
+        }
+
+        // 6. Actualizar estado de cada cotización (esto se mantiene igual)
+        foreach ($cotizacion_ids as $id_cotizacion) {
+            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
+            $stmtUpdateCotizacion->execute();
+        }
+    }
+
+    // Preparar correo (esta parte se mantiene igual)
     $mail = null;
 
     try {
@@ -97,9 +151,6 @@ try {
         if (!$correosInventarios || count($correosInventarios) === 0) {
             throw new Exception("No se encontro ningun correo de inventarios.");
         }
-
-        //$clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides'; // mejor mover a config.php
-        //$contadorCorreos = 0;
 
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {

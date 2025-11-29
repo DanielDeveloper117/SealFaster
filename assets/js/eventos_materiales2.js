@@ -570,14 +570,74 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                         // Recuperamos el porcentaje calculado previamente
                                         let porcentajeAprovechamiento = item.porcentajeAprovechamiento;
+                                        // Determinar si mostrar u ocultar el botón de selección
+                                        let mostrarBoton = item.estatus === 'Disponible para cotizar';
+                                        let claseBoton = mostrarBoton ? '' : 'd-none';
+                                        let claseEstatus = mostrarBoton ? 'text-success fw-bold' : 'text-danger fw-bold';
+                                        let textoAdicionalEstatus = "";
 
+                                        switch(item.estatus){
+                                            case "Eliminado": 
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Preguntar disponibilidad de la barra con stock a inventarios'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "En cotización":
+                                                claseEstatus = 'text-warning fw-bold';
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Apartada por ${item.vendedor}. Se libera el ${item.fecha_vencimiento} automáticamente o pida que el vendedor archive la cotización ${item.id_cotizacion} para liberar la barra'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "En uso":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='La barra se encuentra en una requisición autorizada pendiente de maquinar'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Maquinado en curso":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='La barra se liberará al finalizar el maquinado con el nuevo stock disponible'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Clave incorrecta":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Comuniquese con inventarios o soporte para validación y cambio de clave'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Relación pendiente":
+                                            case "Clave nueva pendiente":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Comuniquese con soporte para verificar la relación de claves de esta barra'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            default:
+                                                textoAdicionalEstatus = "";
+                                            break;
+                                        }
                                         // Si la clave no ha sido insertada aún, la agrega
                                         if (!clavesUnicas[item.Clave]) {
                                             $(`#tablaBillets_m${i} tbody`).append(
                                                 `<tr id="fila_${cleanAttrId(item.Clave)}_m${i}" style="border-top:3px solid #95D2B3 !important;">
                                                     <td>
                                                         <div class="d-flex gap-2">
-                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i} ${claseBoton}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
                                                                 data-proveedor="${item.proveedor}"
@@ -606,7 +666,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
-                                                    <td >${item.estatus}</td>
+                                                    <td class="${claseEstatus}">${item.estatus=="Eliminado"?"Barra archivada":item.estatus} ${textoAdicionalEstatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
@@ -621,7 +681,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 `<tr class="fila-repetida" data-clave="${item.Clave}" style="display:none;">
                                                     <td>
                                                         <div class="d-flex gap-2">
-                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i}" 
+                                                            <button type="button" class="btn-general btn-seleccionar-billet_m${i} ${claseBoton}" 
                                                                 title="Seleccionar este billet"
                                                                 data-clave="${item.Clave}"
                                                                 data-proveedor="${item.proveedor}"
@@ -650,7 +710,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td >${dataStockBillet}</td>
-                                                    <td >${item.estatus}</td>
+                                                    <td class="${claseEstatus}">${item.estatus=="Eliminado"?"Barra archivada":item.estatus} ${textoAdicionalEstatus}</td>
                                                     <td >${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>
@@ -836,6 +896,63 @@ document.addEventListener("DOMContentLoaded", function () {
                                         let mostrarBoton = item.estatus === 'Disponible para cotizar';
                                         let claseBoton = mostrarBoton ? '' : 'd-none';
                                         let claseEstatus = mostrarBoton ? 'text-success fw-bold' : 'text-danger fw-bold';
+                                        let textoAdicionalEstatus = "";
+
+                                        switch(item.estatus){
+                                            case "Eliminado": 
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Preguntar disponibilidad de la barra con stock a inventarios'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "En cotización":
+                                                claseEstatus = 'text-warning fw-bold';
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Apartada por ${item.vendedor}. Se libera el ${item.fecha_vencimiento} automáticamente o pida que el vendedor archive la cotización ${item.id_cotizacion} para liberar la barra'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "En uso":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='La barra se encuentra en una requisición autorizada pendiente de maquinar'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Maquinado en curso":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='La barra se liberará al finalizar el maquinado con el nuevo stock disponible'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Clave incorrecta":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Comuniquese con inventarios o soporte para validación y cambio de clave'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            case "Relación pendiente":
+                                            case "Clave nueva pendiente":
+                                                textoAdicionalEstatus = `
+                                                    <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
+                                                        style='padding-left:5px;font-size:20px;'
+                                                        data-detalle='Comuniquese con soporte para verificar la relación de claves de esta barra'>
+                                                    </i>
+                                                `;
+                                            break;
+                                            default:
+                                                textoAdicionalEstatus = "";
+                                            break;
+                                        }
 
                                         // Si la clave no ha sido insertada aún, la agrega
                                         if (!clavesUnicas[item.Clave]) {
@@ -858,7 +975,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${item.porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td>${dataStockBillet}</td>
-                                                    <td class="${claseEstatus}">${item.estatus}</td>
+                                                    <td class="${claseEstatus}">${item.estatus=="Eliminado"?"Barra archivada":item.estatus} ${textoAdicionalEstatus}</td>
                                                     <td>${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}">${item.lote_pedimento}</td>
@@ -888,7 +1005,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                     <td>${item.Clave}</td>
                                                     <td>${item.porcentajeAprovechamiento.toFixed(2)}%</td>
                                                     <td>${dataStockBillet}</td>
-                                                    <td class="${claseEstatus}">${item.estatus}</td>
+                                                    <td class="${claseEstatus}">${item.estatus=="Eliminado"?"Barra archivada":item.estatus} ${textoAdicionalEstatus}</td>
                                                     <td>${cabenEnBillet}</td>
                                                     <td id="td_interior_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.interior}/${item.exterior}</td>
                                                     <td id="td_lote_${cleanAttrId(item.lote_pedimento)}_m${i}" >${item.lote_pedimento}</td>

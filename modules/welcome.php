@@ -159,14 +159,15 @@ if (!isset($_SESSION['id'])) {
         });
         */
         // Verificar si ya existe la preferencia en localStorage
-        /*
-        if (!localStorage.getItem("welcomeUpdateToastShown")) {
+    
+
+        if (!localStorage.getItem("welcomeUpdate2ToastShown")) {
             Swal.fire({
                 title: 'Actualización',
-                text: 'Ahora se pueden agregar comentarios y archivos adjuntos a las cotizaciones individualmente. Se corrigieron errores menores al editar las cotizaciones de una requisición.',
+                text: 'Descripción de estatus de barras mejorado al cotizar. Los billets seleccionados en cotizaciones vigentes se apartaran con estatus "En cotización" automáticamente para evitar problemas de stock. Para liberar las barras antes de la vigencia archive la cotización.',
                 icon: 'info',
                 confirmButtonText: 'Entendido',
-                width: '400px',
+                width: '500px',
                 padding: '10px',
                 position: 'bottom-end',
                 toast: true,
@@ -181,11 +182,11 @@ if (!isset($_SESSION['id'])) {
             }).then((result) => {
                 if (result.isConfirmed && result.value) {
                 // Guardar preferencia en localStorage
-                localStorage.setItem("welcomeUpdateToastShown", "1");
+                localStorage.setItem("welcomeUpdate2ToastShown", "1");
                 }
             });
         }
-        */
+        
     });
 </script>
 </body>

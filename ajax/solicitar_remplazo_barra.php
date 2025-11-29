@@ -105,7 +105,6 @@ try {
     }
 
     // Actualizar control_almacen con los datos de la barra B
-    // Corregir cláusula WHERE (antes estaba AND) y ejecutar la actualización
     $stmtUpdate = $conn->prepare("
         UPDATE control_almacen 
         SET es_remplazo = 1,
@@ -137,6 +136,111 @@ try {
 
     if (!$stmtUpdateInventario->execute()) {
         throw new Exception("Error al actualizar estatus de inventario_cnc para la barra de reemplazo");
+    }
+
+    if($inventario_cnc_a['Clave'] == $inventario_cnc_b['Clave']){
+        // Iniciar transacción
+        $conn->beginTransaction();
+
+        try {
+            // 1. Verificar que exista el registro en control_almacen
+            $stmtCheck = $conn->prepare("
+                SELECT * FROM control_almacen 
+                WHERE id_control = :id_control 
+                AND id_requisicion = :id_requisicion
+            ");
+            $stmtCheck->bindParam(':id_control', $id_control, PDO::PARAM_INT);
+            $stmtCheck->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $stmtCheck->execute();
+            $registro = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+            if (!$registro) {
+                
+                throw new Exception("No se encontró el registro con id_control: $id_control e id_requisicion: $id_requisicion");
+            }
+
+            // 2. Verificar si ya estaba autorizado según la acción
+            if (isset($registro['es_remplazo_auth']) && $registro['es_remplazo_auth'] == 1) {
+                throw new Exception("Esta barra de reemplazo ya estaba autorizada");
+            }
+            
+            // Actualizar autorización de reemplazo
+            $stmtUpdate = $conn->prepare("
+                UPDATE control_almacen 
+                SET es_remplazo_auth = 1 
+                WHERE id_control = :id_control
+            ");
+            $stmtUpdate->bindParam(':id_control', $id_control, PDO::PARAM_INT);
+
+            if (!$stmtUpdate->execute()) {
+                $conn->rollBack(); 
+                throw new Exception("Error al actualizar la autorización de la barra");
+            }
+
+            // 3. Consultar todos los registros de la requisición para verificar pendientes
+            $stmtPendientes = $conn->prepare("
+                SELECT 
+                    es_remplazo, es_remplazo_auth, 
+                    es_extra, es_extra_auth 
+                FROM control_almacen 
+                WHERE id_requisicion = :id_requisicion
+            ");
+            $stmtPendientes->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $stmtPendientes->execute();
+            $registrosRequisicion = $stmtPendientes->fetchAll(PDO::FETCH_ASSOC);
+
+            $hayPendientes = false;
+
+            foreach ($registrosRequisicion as $reg) {
+                // Verificar si hay reemplazos pendientes de autorizar
+                if (isset($reg['es_remplazo']) && $reg['es_remplazo'] == 1 && 
+                    isset($reg['es_remplazo_auth']) && $reg['es_remplazo_auth'] == 0) {
+                    $hayPendientes = true;
+                    break;
+                }
+                
+                // Verificar si hay extras pendientes de autorizar
+                if (isset($reg['es_extra']) && $reg['es_extra'] == 1 && 
+                    isset($reg['es_extra_auth']) && $reg['es_extra_auth'] == 0) {
+                    $hayPendientes = true;
+                    break;
+                }
+            }
+
+            // 4. Actualizar barra_pendiente en requisiciones si no hay pendientes
+            if (!$hayPendientes) {
+                $stmtRequisicion = $conn->prepare("
+                    UPDATE requisiciones 
+                    SET barra_pendiente = 0 
+                    WHERE id_requisicion = :id_requisicion
+                ");
+                $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+                
+                if (!$stmtRequisicion->execute()) {
+                    $conn->rollBack(); 
+                    throw new Exception("Error al actualizar el estado de la requisición");
+                }
+            }
+
+            // Confirmar transacción
+            $conn->commit();
+
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Barra remplazada correctamente, autorización automática "
+            ]);
+            exit;
+
+        } catch (Exception $e) {
+            error_log("Error en solicitar_remplazo_barra: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+            http_response_code(500);
+            exit;
+        }
     }
 
     // --- Nueva consulta: marcar en requisiciones que hay una barra pendiente (barra_pendiente = 1)
