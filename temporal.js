@@ -1,115 +1,231 @@
-// Traer los lotes pedimento de la requisicion para que CNC llene los campos para finalizar la requisicion
-function ajaxTraerClavesControlAlmacen(idRequisicion){
+function ajaxBackend(idBillet, accion){
+    var dataId = idBillet;
+    var inputClave=$('#inputClavePost').val();
+    var inputMaterial=$('#inputMaterial').val();
+    var inputProveedor=$('#inputProveedor').val();
+    var inputMedida=$('#inputMedida').val();
+    var inputMaxUsable=$('#inputMaxUsable').val();
+    var inputStock=$('#inputStock').val();
+    var inputLotePedimento=$('#inputLotePedimento').val();
+    var inputEstatus=$('#inputEstatus').val();
+    var inputJustificacion=$("#inputJustificacionSolicitarArchivar").val() || "";
+    var inputClaveAlterna=$('#inputClaveAlterna').val();
+
+    var actionForm=accion;
+    let actionAfter = "none";
+    if(actionForm == "delete"){
+        actionAfter = "self";
+    }
+
+    const fila = $(`#tr_${dataId}`);
+    const filaAfectada = $(`#tr_${dataId} td`);
+    
+    // Crear FormData para enviar archivos
+    var formData = new FormData();
+    formData.append('id', dataId);
+    formData.append('clave', inputClave);
+    formData.append('material', inputMaterial);
+    formData.append('proveedor', inputProveedor);
+    formData.append('medida', inputMedida);
+    formData.append('max_usable', inputMaxUsable);
+    formData.append('stock', inputStock);
+    formData.append('lote_pedimento', inputLotePedimento);
+    formData.append('action', actionForm);
+    formData.append('estatus', inputEstatus);
+    formData.append('justificacion_archivado', inputJustificacion);
+    formData.append('inputClaveAlterna', inputClaveAlterna);
+    
+    // Agregar archivo solo para la acción "delete"
+    if (actionForm == "delete") {
+        var fotoArchivar = $('#inputFotoArchivar')[0].files[0];
+        if (!fotoArchivar) {
+            sweetAlertResponse("warning", "Archivo requerido", "Debe subir una fotografía de la barra.", "none");
+            return;
+        }
+        formData.append('foto_archivar', fotoArchivar);
+    }
+
     $.ajax({
-        url: '../ajax/barras_para_finalizar.php',
-        type: 'get',
-        data: { 
-            id_requisicion: idRequisicion
-        },
+        url: '../ajax/post_inventario_cnc.php',
+        type: 'POST',
+        data: formData,
+        processData: false,  // Importante para FormData
+        contentType: false,  // Importante para FormData
         dataType: 'json',
         success: function(data) {
-            $('#modalFinalizar tbody').empty();
+            if (data.success) {
+                sweetAlertResponse("success", "Proceso exitoso", data.message, actionAfter);
+                window.LP_VALIDO = true;
+                $("#modalInventario #btnCloseModal").trigger("click");
+                
+                if(actionForm == "update"){
+                    // Código para actualizar la fila en la tabla...
+                    const claveLimpia = inputClave.replace(/\s+/g, "").trim();
+                    fila.find(".td-clave").text(claveLimpia);
+                    fila.find(".td-lote").text(inputLotePedimento);
+                    fila.find(".td-material").text(inputMaterial);
+                    fila.find(".td-proveedor").text(inputProveedor);
+                    fila.find(".td-medida").text(inputMedida);
+                    fila.find(".td-max_usable").text(inputMaxUsable);
+                    fila.find(".td-stock").text(inputStock);
+                    fila.find(".td-updated").text(formatTimestamp12h(getTimestampNow()));
 
-            if (data.success && data.billets.length > 0) {
-                $.each(data.billets, function(index, billet) {
-                    // Calcular desbaste según material
-                    let material = billet.material || '';
-                    let desbasteMaterial = calcularDesbaste(material);
+                    // Barra de stock
+                    const width = inputMaxUsable > 0 ? (inputStock / inputMaxUsable) * 100 : 0;
+                    let barClass = "bar-bajo";
+                    if (inputStock >= inputMaxUsable * 0.75) barClass = "bar-alto";
+                    else if (inputStock >= inputMaxUsable * 0.25) barClass = "bar-medio";
+
+                    const barra = fila.find(".td-barra .bar");
+                    barra.css("width", width + "%").removeClass("bar-alto bar-medio bar-bajo").addClass(barClass);
+
+                    // Usable / No usable
+                    if (inputStock < 15) {
+                        fila.attr("style", "background-color: #ff00002e !important;");
+                    } else {
+                        fila.removeAttr("style");
+                    }
+
+                    // Estatus
+                    fila.find(".td-estatus").text(inputEstatus);
+
+                    // Resaltar la fila actualizada
+                    fila.addClass("bg-row-updated");
+                    filaAfectada.addClass("bg-row-updated");
+                    setTimeout(() => {
+                        fila.removeClass("bg-row-updated");
+                        filaAfectada.removeClass("bg-row-updated");
+                    }, 1200);
+
+                    const btn = fila.find('.edit-btn');
+                    btn.attr('data-clave', inputClave);
+                    btn.attr('data-lote_pedimento', inputLotePedimento);
+                    btn.attr('data-material', inputMaterial);
+                    btn.attr('data-proveedor', inputProveedor);
+                    btn.attr('data-medida', inputMedida);
+                    btn.attr('data-max_usable', inputMaxUsable);
+                    btn.attr('data-stock', inputStock);
+
+                }else if(actionForm == "delete"){  
+                    $("#modalSolicitarArchivar .btn-close").trigger("click");
                     
-                    // Calcular campos iniciales
-                    let pzTeoricas = billet.pz_teoricas ? (billet.pz_teoricas || 0) : 0;
-                    let alturaPz = billet.altura_pz ? (parseFloat(billet.altura_pz) || 0) : 0;
-                    let mmTeoricos = (pzTeoricas * (alturaPz + desbasteMaterial)).toFixed(2);
-                    let longTSellos = (pzTeoricas * alturaPz).toFixed(2);
+                    // Limpiar el campo de archivo y preview
+                    $('#inputFotoArchivar').val('');
+                    $('#previewFotoArchivar').empty();
 
-                    $('#modalFinalizar tbody').append(`
-                        <tr class="data-row" data-id-control="${billet.id_control}" data-lote="${billet.lote_pedimento}" data-desbaste="${desbasteMaterial}">
-                            <input type="hidden" tabindex="-1" name="id_control" value="${billet.id_control || ''}">
-                            <input type="hidden" tabindex="-1" name="es_merma" class="es_merma" value="${billet.es_merma || '0'}">
-                            <input type="hidden" tabindex="-1" name="mm_teoricos" class="mm_teoricos" value="${billet.mm_teoricos || mmTeoricos}">
-                            <input type="hidden" tabindex="-1" name="mm_merma_real" class="mm_merma_real" value="${billet.mm_merma_real || ''}">
-                            <input type="hidden" tabindex="-1" name="id_cotizacion" class="id_cotizacion" value="${billet.id_cotizacion ? billet.id_cotizacion : ''}">
-                            <input type="hidden" tabindex="-1" name="id_estimacion" class="id_estimacion" value="${billet.id_cotizacion ? billet.id_estimacion : ''}">
+                    fila.find(".acciones .edit-btn").remove();
+                    fila.find(".acciones .form-delete .delete-btn").remove();
+                    // Estatus
+                    fila.find(".td-estatus").text("Solicitado para archivar");
+                    // Buscar el <p>
+                    let p = fila.find(".acciones .form-delete p");
 
-                            <!-- Perfil Sello: Input editable si no hay cotización -->
-                            <td>
-                                ${billet.perfil_sello ? 
-                                    `<input type="text" class="input-disabled perfil_sello" name="perfil_sello" value="${billet.perfil_sello}" placeholder="Ingrese perfil sello" required>` : 
-                                    `<input type="text" class="input-text perfil_sello" name="perfil_sello" value="${billet.perfil_sello || ''}" placeholder="Ingrese perfil sello" required>`
-                                }
-                            </td>
-                            
-                            <td><p class="input-disabled material">${billet.material || 'No se encontró material'}</p></td>
-                            <td>
-                                <div>
-                                    <p class="input-disabled lote_pedimento mb-0"> ${billet.lote_pedimento || ''}</p>
-                                    ${billet.pendiente_autorizar && parseInt(billet.pendiente_autorizar) === 1 ? '<small class="text-warning">Pendiente por autorizar</small>' : ''}
-                                </div>
-                            </td>
-                            <td><p class="input-disabled medida">${billet.medida || '?/?'}</p></td>
-                            <td><p class="input-disabled mm_entrega">${billet.mm_entrega || '0'}</p></td>
-                            
-                            <!-- Piezas Teóricas: Input editable si no hay cotización -->
-                            <td>
-                                ${billet.pz_teoricas ? 
-                                    `<input type="number" class="input-disabled pz_teoricas" name="pz_teoricas" value="${pzTeoricas}" step="1" min="0" placeholder="Pz teóricas" required>` : 
-                                    `<input type="number" class="input-text pz_teoricas" name="pz_teoricas" value="${billet.pz_teoricas || ''}" step="1" min="0" placeholder="Pz teóricas" required>`
-                                }
-                            </td>
-                            
-                            <td><input type="number" class="input-text pz_maquinadas" name="pz_maquinadas" value="${billet.pz_maquinadas || ''}" step="1" min="0" required></td>
-                            <td>
-                                <input type="number" 
-                                    ${billet.altura_pz ? 'tabindex="-1"' : ''}
-                                    class="${billet.altura_pz ? 'input-disabled' : 'input-text'} altura_pz" 
-                                    name="altura_pz" 
-                                    value="${billet.altura_pz || alturaPz}" 
-                                    step="0.01" 
-                                    min="0" 
-                                    ${billet.altura_pz ? '' : 'required'}>
-                            </td>                            
-                            <td><input type="number" class="input-text mm_usados" name="mm_usados" value="${billet.mm_usados || ''}" step="0.01" min="0" required></td>
-                            <td><input type="number" tabindex="-1" class="input-disabled long_t_sellos" name="total_sellos" value="${billet.total_sellos || longTSellos}" step="0.01" min="0" required></td>
-                            <td><input type="number" tabindex="-1" class="input-disabled merma_corte" name="merma_corte" value="${billet.merma_corte || ''}" step="0.01" min="0" required></td>
-                            <td><input type="number" tabindex="-1" class="input-disabled scrap_pz" name="scrap_pz" value="${billet.scrap_pz || ''}" step="1" min="0"></td>
-                            <td><input type="number" tabindex="-1" class="input-disabled scrap_mm" name="scrap_mm" value="${billet.scrap_mm || ''}" step="0.01" min="0"></td>
-                            <td><input type="number" tabindex="-1" class="input-disabled mm_total_usados" name="mm_total_usados" value="${billet.mm_total_usados || ''}" step="0.01" min="0"></td>
-                        </tr>
-                        <tr class="row-justificar ${billet.justificacion_merma ? '' : 'd-none'}">
-                            <td colspan="14">
-                                <div class="d-flex flex-column justify-content-start align-items-start">
-                                    <label class="mb-2 text-danger">Justificación de merma requerida para <strong>${billet.lote_pedimento || ''}</strong>:</label> 
-                                    <div class="d-flex flex-row gap-3 align-items-start w-100">
-                                        <div class="flex-shrink-0" style="width: 200px;">
-                                            <select class="form-select causa_merma" name="causa_merma" required>
-                                                <option value="">Seleccione causa...</option>
-                                                <option value="Error humano" ${billet.causa_merma === 'Error humano' ? 'selected' : ''}>Error humano</option>
-                                                <option value="Filo de herramienta gastada" ${billet.causa_merma === 'Filo de herramienta gastada' ? 'selected' : ''}>Filo de herramienta gastada</option>
-                                                <option value="Daño en la materia prima" ${billet.causa_merma === 'Daño en la materia prima' ? 'selected' : ''}>Daño en la materia prima</option>
-                                                <option value="Sellos especiales" ${billet.causa_merma === 'Sellos especiales' ? 'selected' : ''}>Sellos especiales</option>
-                                            </select>
-                                            <small class="text-muted">Causa principal</small>
-                                        </div>
-                                        <div class="flex-grow-1">
-                                            <input type="text" class="form-control justificacion_merma" name="justificacion_merma" value="${billet.justificacion_merma || ''}" placeholder="Detalle adicional de la justificación..." required>
-                                            <small class="text-muted">Detalle adicional de la justificación</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    `);
+                    // Si no existe, crearlo e insertarlo
+                    if (p.length === 0) {
+                        fila.find(".acciones .form-delete").append("<p></p>");
+                        p = fila.find(".acciones .form-delete p");
+                    }
 
-                    // Agregar event listeners para los cálculos
-                    agregarEventListenersCalculos(billet.id_control);
-                });
+                    // Asignar el texto
+                    p.text("Solicitud enviada para archivar");
+
+                    // Resaltar la fila actualizada
+                    fila.addClass("bg-row-updated");
+                    filaAfectada.addClass("bg-row-updated");
+
+                    setTimeout(() => {
+                        fila.removeClass("bg-row-updated");
+                        filaAfectada.removeClass("bg-row-updated");
+                    }, 1200);
+
+                    // Quitar estilos inline del tr y de sus td (version jQuery)
+                    fila.attr("style", "");
+                    fila.attr("style", "background-color:#ffeb3b2e !important;");
+                    fila.find("td").attr("style", "");
+                    fila.find("td").attr("style", "background-color:#ffeb3b2e !important;");
+
+                    $("#modalSolicitarArchivar").modal("hide");
+
+                }else if(actionForm == "autorizar_archivado"){  
+                    $("#modalAutorizarBarraArchivada .btn-close").trigger("click");
+
+                    fila.find(".acciones .edit-btn").remove();
+                    fila.find(".acciones .form-delete .btn-autorizar-archivado").remove();
+                    // Estatus
+                    fila.find(".td-estatus").text("Archivado");
+                    // Buscar el <p>
+                    let p = fila.find(".acciones .form-delete p");
+
+                    // Si no existe, crearlo e insertarlo
+                    if (p.length === 0) {
+                        fila.find(".acciones .form-delete").append("<p></p>");
+                        p = fila.find(".acciones .form-delete p");
+                    }
+
+                    // Asignar el texto
+                    p.text("Autorizado para archivar");
+                    p.append("<i class='bi bi-archive-fill px-2'></i>");
+
+                    // Resaltar la fila actualizada
+                    fila.addClass("bg-row-updated");
+                    filaAfectada.addClass("bg-row-updated");
+
+                    setTimeout(() => {
+                        fila.removeClass("bg-row-updated");
+                        filaAfectada.removeClass("bg-row-updated");
+                    }, 1200);
+
+                    // Quitar estilos inline del tr y de sus td (version jQuery)
+                    fila.attr("style", "");
+                    fila.attr("style", "background-color:#9e9e9e90 !important;");
+                    fila.find("td").attr("style", "");
+                    fila.find("td").attr("style", "background-color:#9e9e9e90 !important;")
+
+                    $("#modalAutorizarBarraArchivada").modal("hide");
+                }
+                
+                $("#formInventario")[0].reset();
             } else {
-                $('#modalFinalizar tbody').append('<tr><td colspan="14" class="text-center">No hay barras disponibles para esta requisición.</td></tr>');
+                sweetAlertResponse("warning", "Hubo un problema", data.message, "none");
             }
         },
-        error: function(xhr, status, error) {
+        error: function (xhr, status, error) {
             console.error('Error al realizar la petición AJAX:', error);
-            sweetAlertResponse("error", "Error", "Error al consultar los datos de las barras: " + error, "none");
+            sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "none");
         }
     });
 }
+
+// Agregar esta función para mostrar preview de la imagen
+$(document).ready(function() {
+    $('#inputFotoArchivar').on('change', function(e) {
+        var file = e.target.files[0];
+        var preview = $('#previewFotoArchivar');
+        
+        if (file) {
+            // Validar tamaño (máx. 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                sweetAlertResponse("warning", "Archivo muy grande", "La imagen no debe superar los 5MB.", "none");
+                $(this).val('');
+                preview.empty();
+                return;
+            }
+            
+            // Validar tipo de archivo
+            if (!file.type.match('image.*')) {
+                sweetAlertResponse("warning", "Tipo de archivo inválido", "Solo se permiten archivos de imagen.", "none");
+                $(this).val('');
+                preview.empty();
+                return;
+            }
+            
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                preview.html('<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">');
+            }
+            reader.readAsDataURL(file);
+        } else {
+            preview.empty();
+        }
+    });
+});

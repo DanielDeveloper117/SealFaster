@@ -160,7 +160,7 @@ if (!isset($_SESSION['id'])) {
         */
         // Verificar si ya existe la preferencia en localStorage
     
-
+        /*
         if (!localStorage.getItem("welcomeUpdate2ToastShown")) {
             Swal.fire({
                 title: 'Actualización',
@@ -186,7 +186,7 @@ if (!isset($_SESSION['id'])) {
                 }
             });
         }
-        
+        */    
     });
 </script>
 </body>

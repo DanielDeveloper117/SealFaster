@@ -218,40 +218,49 @@ $(document).ready(function(){
         var inputStock=$('#inputStock').val();
         var inputLotePedimento=$('#inputLotePedimento').val();
         var inputEstatus=$('#inputEstatus').val();
+        var inputJustificacion=$("#inputJustificacionSolicitarArchivar").val() || "";
         var inputClaveAlterna=$('#inputClaveAlterna').val();
 
         var actionForm=accion;
         let actionAfter = "none";
+        if(actionForm == "delete"){
+            actionAfter = "self";
+        }
 
         const fila = $(`#tr_${dataId}`);
         const filaAfectada = $(`#tr_${dataId} td`);
         
-        if(actionForm == "delete"){  
-            sweetAlertResponse("success", "Proceso exitoso", "Registro afectado correctamente", "none");
-            fila.addClass("bg-row-deleted");  
-            setTimeout(() => {
-                fila.removeClass("bg-row-deleted");
-                $(`#tr_${dataId}`).addClass("d-none");
-            }, 800);
-            return;
+        // Crear FormData para enviar archivos
+        var formData = new FormData();
+        formData.append('id', dataId);
+        formData.append('clave', inputClave);
+        formData.append('material', inputMaterial);
+        formData.append('proveedor', inputProveedor);
+        formData.append('medida', inputMedida);
+        formData.append('max_usable', inputMaxUsable);
+        formData.append('stock', inputStock);
+        formData.append('lote_pedimento', inputLotePedimento);
+        formData.append('action', actionForm);
+        formData.append('estatus', inputEstatus);
+        formData.append('justificacion_archivado', inputJustificacion);
+        formData.append('inputClaveAlterna', inputClaveAlterna);
+        
+        // Agregar archivo solo para la acción "delete"
+        if (actionForm == "delete") {
+            var fotoArchivar = $('#inputFotoArchivar')[0].files[0];
+            if (!fotoArchivar) {
+                sweetAlertResponse("warning", "Archivo requerido", "Debe subir una fotografía de la barra.", "none");
+                return;
+            }
+            formData.append('foto_archivar', fotoArchivar);
         }
 
         $.ajax({
             url: '../ajax/post_inventario_cnc.php',
             type: 'POST',
-            data: { 
-                id: dataId,
-                clave: inputClave,
-                material: inputMaterial,
-                proveedor: inputProveedor,
-                medida: inputMedida,
-                max_usable: inputMaxUsable,
-                stock: inputStock,
-                lote_pedimento: inputLotePedimento,
-                action: actionForm,
-                estatus: inputEstatus,
-                inputClaveAlterna: inputClaveAlterna
-            },
+            data: formData,
+            processData: false,  // Importante para FormData
+            contentType: false,  // Importante para FormData
             dataType: 'json',
             success: function(data) {
                 if (data.success) {
@@ -308,11 +317,81 @@ $(document).ready(function(){
                         btn.attr('data-stock', inputStock);
 
                     }else if(actionForm == "delete"){  
-                        fila.addClass("bg-row-deleted");  
+                        $("#modalSolicitarArchivar .btn-close").trigger("click");
+                        
+                        // Limpiar el campo de archivo y preview
+                        $('#inputFotoArchivar').val('');
+                        $('#previewFotoArchivar').empty();
+
+                        fila.find(".acciones .edit-btn").remove();
+                        fila.find(".acciones .form-delete .delete-btn").remove();
+                        // Estatus
+                        fila.find(".td-estatus").text("Solicitado para archivar");
+                        // Buscar el <p>
+                        let p = fila.find(".acciones .form-delete p");
+
+                        // Si no existe, crearlo e insertarlo
+                        if (p.length === 0) {
+                            fila.find(".acciones .form-delete").append("<p></p>");
+                            p = fila.find(".acciones .form-delete p");
+                        }
+
+                        // Asignar el texto
+                        p.text("Solicitud enviada para archivar");
+
+                        // Resaltar la fila actualizada
+                        fila.addClass("bg-row-updated");
+                        filaAfectada.addClass("bg-row-updated");
+
                         setTimeout(() => {
-                            fila.removeClass("bg-row-deleted");
-                            $(`#tr_${dataId}`).addClass("d-none");
-                        }, 800);
+                            fila.removeClass("bg-row-updated");
+                            filaAfectada.removeClass("bg-row-updated");
+                        }, 1200);
+
+                        // Quitar estilos inline del tr y de sus td (version jQuery)
+                        fila.attr("style", "");
+                        fila.attr("style", "background-color:#ffeb3b2e !important;");
+                        fila.find("td").attr("style", "");
+                        fila.find("td").attr("style", "background-color:#ffeb3b2e !important;");
+
+                        $("#modalSolicitarArchivar").modal("hide");
+
+                    }else if(actionForm == "autorizar_archivado"){  
+                        $("#modalAutorizarBarraArchivada .btn-close").trigger("click");
+
+                        fila.find(".acciones .edit-btn").remove();
+                        fila.find(".acciones .form-delete .btn-autorizar-archivado").remove();
+                        // Estatus
+                        fila.find(".td-estatus").text("Archivado");
+                        // Buscar el <p>
+                        let p = fila.find(".acciones .form-delete p");
+
+                        // Si no existe, crearlo e insertarlo
+                        if (p.length === 0) {
+                            fila.find(".acciones .form-delete").append("<p></p>");
+                            p = fila.find(".acciones .form-delete p");
+                        }
+
+                        // Asignar el texto
+                        p.text("Autorizado para archivar");
+                        p.append("<i class='bi bi-archive-fill px-2'></i>");
+
+                        // Resaltar la fila actualizada
+                        fila.addClass("bg-row-updated");
+                        filaAfectada.addClass("bg-row-updated");
+
+                        setTimeout(() => {
+                            fila.removeClass("bg-row-updated");
+                            filaAfectada.removeClass("bg-row-updated");
+                        }, 1200);
+
+                        // Quitar estilos inline del tr y de sus td (version jQuery)
+                        fila.attr("style", "");
+                        fila.attr("style", "background-color:#9e9e9e90 !important;");
+                        fila.find("td").attr("style", "");
+                        fila.find("td").attr("style", "background-color:#9e9e9e90 !important;")
+
+                        $("#modalAutorizarBarraArchivada").modal("hide");
                     }
                     
                     $("#formInventario")[0].reset();
@@ -326,6 +405,40 @@ $(document).ready(function(){
             }
         });
     }
+
+    // Agregar esta función para mostrar preview de la imagen
+    $(document).ready(function() {
+        $('#inputFotoArchivar').on('change', function(e) {
+            var file = e.target.files[0];
+            var preview = $('#previewFotoArchivar');
+            
+            if (file) {
+                // Validar tamaño (máx. 5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    sweetAlertResponse("warning", "Archivo muy grande", "La imagen no debe superar los 5MB.", "none");
+                    $(this).val('');
+                    preview.empty();
+                    return;
+                }
+                
+                // Validar tipo de archivo
+                if (!file.type.match('image.*')) {
+                    sweetAlertResponse("warning", "Tipo de archivo inválido", "Solo se permiten archivos de imagen.", "none");
+                    $(this).val('');
+                    preview.empty();
+                    return;
+                }
+                
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.html('<img src="' + e.target.result + '" class="img-thumbnail" style="max-width: 200px; max-height: 200px;">');
+                }
+                reader.readAsDataURL(file);
+            } else {
+                preview.empty();
+            }
+        });
+    });
     //---------------------------------------- @ EVENTOS DEL DOM ------------------------------------
     // EVENTO AL CAMBIAR TIPO DE MATERIAL, CONSULTAR PROVEEDOR
     // $("#selectorMaterial, #inputMaterial").on("change", function() { 
@@ -577,19 +690,37 @@ $(document).ready(function(){
     });        
     // CLICK A ELIMINAR REGISTRO
     $('#inventarioTable').on('click', '.delete-btn', function() {
-        sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
-        return;
+        //sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
+        //return;
+        
+        // resetear formulario
+        $('#formSolicitarArchivar')[0].reset();
+        $('#previewFotoArchivar').empty(); // Limpiar el preview de la imagen
+        
         var dataId = $(this).data('id');
         var dataLP = $(this).data('lp');
         $("#modalSolicitarArchivar").modal("show");
 
         $("#inputIdBarra").val(dataId);
+        $('#inputLotePedimento').val(dataLP);
         $("#modalSolicitarArchivar p strong").text(dataLP);
+    });
+    // Limpiar formulario cuando se cierra el modal
+    $('#modalSolicitarArchivar').on('hidden.bs.modal', function () {
+        $('#formSolicitarArchivar')[0].reset();
+        $('#previewFotoArchivar').empty();
+    });
+
+    // Limpiar formulario cuando se hace clic en la X
+    $('#modalSolicitarArchivar .btn-close').on('click', function() {
+        $('#formSolicitarArchivar')[0].reset();
+        $('#previewFotoArchivar').empty();
     });
     // ENVIAR SOLICITUD PARA ARCHIVAR BARRA
     $("#btnContinuarSolicitarArchivar").on("click", function(){
         let idBarra = $("#inputIdBarra").val();
         let justificacion = $("#inputJustificacionSolicitarArchivar").val().trim();
+        $('#inputLotePedimento').val();
 
         if(!idBarra || idBarra == null || idBarra == ""){
             sweetAlertResponse("warning", "Advertencia", "Falta el id de la barra", "none");
@@ -605,14 +736,68 @@ $(document).ready(function(){
         }
         ajaxBackend(idBarra, 'delete');
     });
-    // CLICK A DESARCHIVAR/ACTIVAR BARRA
-    $('#inventarioTable').on('click', '.btn-activar-barra', function() {
-        sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
-        return;
+    // CLICK A DESARCHIVAR/ACTIVAR BARRA, PROCESO INVERSO A ARCHIVAR
+    $('#inventarioTable').on('click', '.btn-autorizar-archivado', function() {
+        //sweetAlertResponse("info", "Información", "Función en desarrollo", "none");
+        var dataId = $(this).data('id');
+        var dataLP = $(this).data('lp');
+        $("#modalAutorizarBarraArchivada").modal("show");
+        $("#inputIdBarraArchivada").val(dataId);
+        $('#inputLotePedimento').val(dataLP);
+    });
+    // AUTORIZAR ARCHIVAR LA BARRA
+    $("#btnConfirmAutorizarBarraArchivada").on("click", function(){
+        let idBarra = $("#inputIdBarraArchivada").val();
+        
+        if(!idBarra || idBarra == null || idBarra == ""){
+            sweetAlertResponse("warning", "Advertencia", "Falta el id de la barra", "none");
+            return;
+        } 
+        ajaxBackend(idBarra, 'autorizar_archivado');
+    });
+    // CLICK A VER LA JUSTIFICACION Y FOTO PARA ARCHIVAR (versión SweetAlert con imagen clickeable)
+    $('#inventarioTable').on('click', '.btn-ver-justificacion', function() {
+        var dataJus = $(this).data('jus');
+        var dataRuta = $(this).data('ruta');
+        var dataLote = $(this).data('lote');
+        var dataFecha = $(this).data('fecha');
+        
+        // Crear contenido HTML para el sweetalert
+        var contentHtml = '<div class="text-start">';
+        contentHtml += '<h6>Justificación:</h6>';
+        contentHtml += '<div class="border rounded p-3 mb-3" style="min-height: 100px; max-height: 200px; overflow-y: auto; background-color: #f8f9fa;">';
+        contentHtml += dataJus || 'Sin justificación proporcionada.';
+        contentHtml += '</div>';
+        
+        if (dataRuta && dataRuta.trim() !== '') {
+            contentHtml += '<h6>Fotografía:</h6>';
+            contentHtml += '<div class="text-center">';
+            contentHtml += '<a href="' + dataRuta + '" target="_blank" title="Haz clic para ver la imagen completa">';
+            contentHtml += '<img src="' + dataRuta + '" alt="Foto de la barra" class="img-fluid rounded border" style="max-height: 200px; cursor: pointer;" ';
+            contentHtml += 'onerror="this.style.display=\'none\'; this.parentElement.innerHTML=\'<p class=\'text-muted\'>Error al cargar la imagen</p>\';" ';
+            contentHtml += 'onclick="window.open(\'' + dataRuta + '\', \'_blank\');">';
+            contentHtml += '</a>';
+            contentHtml += '<p class="small text-muted mt-1">Lote: ' + (dataLote || 'N/A') + ' | Fecha: ' + (dataFecha || 'N/A') + '</p>';
+            contentHtml += '<p class="small text-muted m-0">Haz clic en la imagen para verla en tamaño completo</p>';
+            contentHtml += '</div>';
+        } else {
+            contentHtml += '<div class="text-center text-muted">';
+            contentHtml += '<i class="bi bi-image" style="font-size: 3rem;"></i>';
+            contentHtml += '<p>No hay fotografía disponible</p>';
+            contentHtml += '</div>';
+        }
+        contentHtml += '</div>';
+        
+        Swal.fire({
+            title: 'Solicitud de archivado',
+            html: contentHtml,
+            width: '700px',
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#55AD9B'
+        });
     });
     $("#overlay").addClass("d-none");
     $("body").removeClass("scroll-disablado");
-
-
-
 });

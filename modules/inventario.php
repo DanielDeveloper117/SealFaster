@@ -59,6 +59,15 @@ if (!isset($_SESSION['id'])) {
         margin-top:10px !important;
         margin-bottom:10px !important;
     }
+    .fila-inventario .form-delete p{
+        margin-bottom:0px !important;
+    }
+    /* Agrega esto a tu CSS si quieres */
+    .img-fluid[cursor="pointer"]:hover {
+        opacity: 0.8;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    }
 </style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
@@ -140,6 +149,12 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         $stmtInventario = $conn->prepare($sqlInventario);
                         $stmtInventario->execute();
                         $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+}elseif(isset($_GET['archivados'])){
+    $sqlInventario = "SELECT * FROM inventario_cnc WHERE solicita_archivado = 1 AND estatus = 'Eliminado'";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 }else{
 
     $sqlInventario = "SELECT * FROM inventario_cnc ";
@@ -158,7 +173,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     <div class="col-11">
         <div class="titulo mt-3 mb-3">
             <h1>Inventario CNC</h1>
-            <div class="d-flex flex-row justify-content-start col-3">
+            <div class="d-flex flex-row justify-content-start col-12 col-md-3">
                 <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
                         data-bs-toggle="modal" data-bs-target="#modalInventario">
                     <i class="bi bi-file-plus" style="font-size:24px;"></i>
@@ -199,13 +214,16 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         $usableStyle="";
                         $usableText="";
                         $estatusString = "";
-                        // iluminar si stock es menor a 15 o esta eliminado
-                        if($stock == 0 || $row['estatus'] == "Eliminado"){
+                        // iluminar segun su estatus y stock
+                        if($stock == 0){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
                         }elseif($row['estatus'] != "Eliminado" && $stock > 0 && $stock < 15){
                             $usableText = "No usable";
                             $usableStyle = "background-color:#ff572263 !important;";
+                        }elseif($row['estatus'] == "Eliminado"){
+                            $usableText = "No usable";
+                            $usableStyle = "background-color:#9e9e9e90 !important;";
                         }else{
                             $usableText = "Usable";
                         }
@@ -225,42 +243,91 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                     <tr id="tr_<?= $row['id']; ?>" class="fila-inventario" style="<?= $usableStyle; ?>">
                         <td class="acciones d-flex flex-column" style="<?php echo $usableStyle; ?>">
                             <div class="d-flex flex-column">
-                                <button class="btn-general edit-btn mb-1" 
-                                    data-id="<?= $row['id']; ?>"
-                                    data-clave="<?= $row['Clave']; ?>"
-                                    data-medida="<?= $row['Medida']; ?>"
-                                    data-proveedor="<?= $row['proveedor']; ?>"
-                                    data-material="<?= $row['material']; ?>"
-                                    data-max_usable="<?= $row['max_usable']; ?>"
-                                    data-stock="<?= $row['stock']; ?>"
-                                    data-lote_pedimento="<?= $row['lote_pedimento']; ?>"
-                                    data-estatus="<?= $row['estatus']; ?>"
-                                >
-                                    Editar<i class="bi bi-pencil-square px-2"></i>
-                                </button>
-                                <form class="form-delete">
+                                <?php if ($row['estatus'] != "Eliminado"): ?>
+                                    <button class="btn-general edit-btn mb-1" 
+                                        data-id="<?= $row['id']; ?>"
+                                        data-clave="<?= $row['Clave']; ?>"
+                                        data-medida="<?= $row['Medida']; ?>"
+                                        data-proveedor="<?= $row['proveedor']; ?>"
+                                        data-material="<?= $row['material']; ?>"
+                                        data-max_usable="<?= $row['max_usable']; ?>"
+                                        data-stock="<?= $row['stock']; ?>"
+                                        data-lote_pedimento="<?= $row['lote_pedimento']; ?>"
+                                        data-estatus="<?= $row['estatus']; ?>"
+                                    >
+                                        Editar<i class="bi bi-pencil-square px-2"></i>
+                                    </button>
+                                <?php endif; ?>
+                                <form class="form-delete d-flex flex-column gap-2">
                                     <?php
                                     if($row['estatus'] == "Disponible para cotizar"){                                      
                                         echo '
                                             <button type="button" class="btn-eliminar delete-btn" 
                                                     data-id='.$row["id"].'
                                                     data-lp='.$row["lote_pedimento"].'
-                                                    title="Archivar registro (marcar como no disponible para cotizar)">
+                                                    title="Archivar registro (marcar como no disponible para cotizar y solicitar archivar la barra)">
                                                 Archivar<i class="bi bi-archive px-2"></i>
                                             </button>
                                         ';
                                     }else if($row['estatus'] == "Eliminado"){
-                                        echo '
-                                            <button type="button" class="btn-thunder btn-activar-barra" 
-                                                    data-id='.$row["id"].'
-                                                    title="Desarchivar/activar barra para cotizar">
-                                                Activar barra<i class="bi bi-archive-fill px-2"></i>
-                                            </button>
-                                        '; 
+                                        if($tipo_usuario === "Administrador"){
+                                            echo '';
+                                            if($row['archivado_auth'] == 0){
+                                                echo '
+                                                    <button type="button" class="btn-auth btn-autorizar-archivado" 
+                                                            data-id='.$row["id"].'
+                                                            data-lp='.$row["lote_pedimento"].'
+                                                            title="Autorizar">
+                                                        Autorizar archivado<i class="bi bi-archive-fill px-2"></i>
+                                                    </button>
+                                                '; 
+                                            }
+                                            if($row['archivado_auth'] == 1){
+                                                echo '<p>';
+                                                echo 'Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>';
+                                                echo '</p>';
+
+                                            }
+                                            echo '
+                                                <button type="button" class="btn-general btn-ver-justificacion" 
+                                                        data-id="'.$row["id"].'"
+                                                        data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
+                                                        data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
+                                                        data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
+                                                        data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
+                                                        title="Ver la justificación y fotografía de la solicitud">
+                                                    Ver justificación <i class="bi bi-chat-text px-2"></i>
+                                                </button>
+                                            '; 
+                                            
+                                            
+                                        }else{
+                                            
+                                            echo '
+                                                <button type="button" class="btn-general btn-ver-justificacion" 
+                                                        data-id="'.$row["id"].'"
+                                                        data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
+                                                        data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
+                                                        data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
+                                                        data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
+                                                        title="Ver la justificación y fotografía de la solicitud">
+                                                    Ver justificación <i class="bi bi-chat-text px-2"></i>
+                                                </button>
+                                            '; 
+                                            echo '<p>';
+                                            if($row['archivado_auth'] == 0){
+                                                echo 'Solicitud enviada para archivar';
+                                            }elseif($row['archivado_auth'] == 1){
+                                                echo 'Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>';
+                                                
+                                            }
+                                            echo '</p>';
+                                        }
                                     }else{
                                         echo '<p>'.htmlspecialchars($row['estatus']).'</p>';
                                     }
                                     ?>
+                                    
                                 </form>
                             </div>
                         </td>
@@ -321,16 +388,82 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
             </div>
             <div class="modal-body">
                 <p>Describa la razón por la cual desea archivar la barra: <strong></strong></p>
-                <form id="formSolicitarArchivar">
+                <form id="formSolicitarArchivar" enctype="multipart/form-data">
                     <input id="inputIdBarra" type="hidden">
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:100%;">
                             <label for="inputJustificacionSolicitarArchivar" class="lbl-general">Justificación *</label>
-                            <textarea id="inputJustificacionSolicitarArchivar" class="form-control" rows="3" placeholder="Ingrese la justificación..."></textarea>
+                            <textarea id="inputJustificacionSolicitarArchivar" class="form-control" rows="3" placeholder="Ingrese la justificación..." required></textarea>
                         </div>  
-                    </div>  
+                    </div>
+                    <div class="mb-3">
+                        <label for="inputFotoArchivar" class="lbl-general">Fotografía de la barra *</label>
+                        <input type="file" id="inputFotoArchivar" class="form-control" accept="image/*" capture="environment" required>
+                        <small class="form-text text-muted">Suba una foto que muestre el estado actual de la barra (máx. 5MB)</small>
+                        <div id="previewFotoArchivar" class="mt-2"></div>
+                    </div>
                     <button id="btnContinuarSolicitarArchivar" type="button" class="btn-general">Continuar</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Modal para ver justificación y foto -->
+<div class="modal fade" id="modalVerJustificacionFoto" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Solicitud de archivado</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Justificación:</h6>
+                        <div id="justificacionTexto" class="border rounded p-3 mb-3" style="min-height: 150px; max-height: 300px; overflow-y: auto;">
+                            <!-- La justificación se insertará aquí -->
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Fotografía de la barra:</h6>
+                        <div id="fotoContenedor" class="text-center">
+                            <div id="sinFoto" class="d-none">
+                                <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
+                                <p class="text-muted mt-2">No hay fotografía disponible</p>
+                            </div>
+                            <img id="fotoBarra" src="" alt="Foto de la barra" 
+                                 class="img-fluid rounded border" 
+                                 style="max-height: 300px; display: none;">
+                        </div>
+                        <div id="infoFoto" class="mt-2 small text-muted">
+                            <!-- Información de la foto se insertará aquí -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- ///////////////////////MODAL CONFIRMAR AUTORIZAR ARCHIVADO BARRA /////////////////////// -->
+<div class="modal fade" id="modalAutorizarBarraArchivada" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-autorizar-barra-archivada" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="label-modal-autorizar-barra-archivada">Confirmar autorización</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>¿Desea continuar con la autorización para archivar esta barra?</p>
+                <form id="formAutorizarBarraArchivada">
+                    <input id="inputIdBarraArchivada" type="hidden" name="id"  value="">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" id="btnConfirmAutorizarBarraArchivada" class="btn-auth">Si, continuar</button>
+                <button type="button" id="btnCancelAutorizarBarraArchivada" class="btn-cancel" data-bs-dismiss="modal">No, cancelar</button>
             </div>
         </div>
     </div>

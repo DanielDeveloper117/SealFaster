@@ -22,7 +22,7 @@ try {
         throw new ErrorException($message, 0, $severity, $file, $line);
     });
 
-    $acciones_validas = ['insert', 'update', 'delete', 'insert2'];
+    $acciones_validas = ['insert', 'update', 'delete', 'insert2', 'autorizar_archivado'];
     if (!in_array($action, $acciones_validas)) {
         throw new Exception("Acción no válida.");
     }
@@ -38,7 +38,7 @@ try {
     $estatus        = trim($_POST['estatus'] ?? '');
     $inputClaveAlterna = preg_replace('/\s+/', '', trim($_POST['inputClaveAlterna'] ?? ''));
 
-    if ($action !== 'delete') {
+    if ($action !== 'delete' && $action !== 'autorizar_archivado') {
         $errores = [];
         if ($action === '') $errores[] = "Falta la acción";
         if ($id === null && $action === 'update') $errores[] = "Falta el id";
@@ -250,19 +250,206 @@ try {
     }
 
     if ($action === 'delete') {
-        if (empty($id)) throw new Exception("ID requerido para eliminar.");
-
-        $stmt = $conn->prepare("UPDATE inventario_cnc SET estatus = 'Eliminado', deleted_at = NOW() WHERE id = :id");
+        // Validar que se haya subido una imagen
+        if (!isset($_FILES['foto_archivar']) || $_FILES['foto_archivar']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception("Debe subir una fotografía de la barra para solicitar su archivado.");
+        }
+        
+        $justificacion_archivado = $_POST['justificacion_archivado'];
+        if (empty($id)) throw new Exception("ID requerido para archivar.");
+        if (empty($justificacion_archivado)) throw new Exception("Justificación requerida para archivar.");
+        if (strlen($justificacion_archivado) < 10) throw new Exception("Justificación debe tener mínimo 10 caracteres.");
+        
+        // Validar y procesar el archivo de imagen
+        $file = $_FILES['foto_archivar'];
+        
+        // Validar tipo de archivo
+        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        $file_type = mime_content_type($file['tmp_name']);
+        
+        if (!in_array($file_type, $allowed_types)) {
+            throw new Exception("Solo se permiten archivos de imagen (JPEG, PNG, GIF, WebP).");
+        }
+        
+        // Validar tamaño (máx. 5MB)
+        $max_size = 5 * 1024 * 1024; // 5MB
+        if ($file['size'] > $max_size) {
+            throw new Exception("La imagen no debe superar los 5MB.");
+        }
+        
+        // Crear directorio si no existe
+        $upload_dir = ROOT_PATH . 'files/fotos/barras/';
+        if (!file_exists($upload_dir)) {
+            mkdir($upload_dir, 0775, true);
+        }
+        
+        // Generar nombre único para el archivo
+        $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
+        $filename = 'barra_' . $id . '_' . time() . '.' . strtolower($file_extension);
+        $file_path = $upload_dir . $filename;
+        
+        // Mover archivo subido
+        if (!move_uploaded_file($file['tmp_name'], $file_path)) {
+            throw new Exception("Error al guardar la imagen en el servidor.");
+        }
+        
+        // Ruta relativa para guardar en la base de datos
+        $ruta_foto_barra = '../files/fotos/barras/' . $filename;
+        
+        // Actualizar registro con la ruta de la foto
+        $stmt = $conn->prepare("UPDATE inventario_cnc 
+                                SET estatus = 'Eliminado', 
+                                    solicita_archivado = 1, 
+                                    justificacion_archivado = :justificacion_archivado,
+                                    ruta_foto_barra = :ruta_foto_barra,
+                                    deleted_at = NOW() 
+                                WHERE id = :id");
+        $stmt->bindParam(':justificacion_archivado', $justificacion_archivado);
+        $stmt->bindParam(':ruta_foto_barra', $ruta_foto_barra);
         $stmt->bindParam(':id', $id);
         $stmt->execute();
+        
+        // Preparar y enviar correo (no crítico para la operación)
+        $mensajeCorreo = "";
+        try {
+            require_once(ROOT_PATH . 'includes/PHPMailer.php');
+            $mail = getMailer($conn);
 
+            // Obtener correos de dirección comercial
+            $sqlCorreoDireccion = "SELECT usuario FROM login WHERE rol = 'CORREO_DIRECCION'";
+            $stmtCorreos = $conn->prepare($sqlCorreoDireccion);
+            $stmtCorreos->execute();
+            $correosDireccion = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($correosDireccion && count($correosDireccion) > 0) {
+                $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
+                $contadorCorreos = 0;
+
+                foreach ($correosDireccion as $fila) {
+                    if (!empty($fila['usuario'])) {
+                        $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                        if ($correo) {
+                            //$mail->addAddress($correo);
+                            $contadorCorreos++;
+                        }
+                    }
+                }
+                
+                if ($contadorCorreos > 0) {
+                    // Preparar contenido del correo
+                    $mail->isHTML(true);
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                    
+                    $asunto = "Solicitud para archivar barra";
+                    
+                    $cuerpo = "Inventarios ha solicitado la autorización para archivar una barra del inventario de billets.</br>";
+                    $cuerpo .= "Ingrese al sistema en el módulo de Inventario CNC para autorizar.</br>";
+                    $cuerpo .= "Barra: <b>" . $lote_pedimento . "</b></br>";
+                    $cuerpo .= "Justificación:</br><b>";
+                    $cuerpo .= $justificacion_archivado . "</b></br>";
+                    $cuerpo .= "Fotografía adjunta en el sistema.</br>";
+                    
+                    // Mostrar imagen en el correo (opcional)
+                    $cuerpo .= "<p>Vista previa de la foto:</p>";
+                    $cuerpo .= "<img src='cid:barra_foto' alt='Foto de la barra' style='max-width: 300px; max-height: 300px;'>";
+                    
+                    $mail->Subject = $asunto;
+                    $mail->Body = $cuerpo;
+                    $mail->AddEmbeddedImage($file_path, 'barra_foto', $filename);
+                    
+                    if (!$mail->send()) {
+                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    }
+                    
+                    $mensajeCorreo = " y correo enviado para autorización";
+                } else {
+                    throw new Exception("No se pudieron agregar destinatarios para el correo");
+                }
+            }
+        } catch (Throwable $e) {
+            $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
+        }
+
+        // Respuesta exitosa
         echo json_encode([
             'success' => true,
-            'message' => "Registro eliminado correctamente."
+            'message' => "Solicitud para archivar la barra enviada correctamente." . $mensajeCorreo,
+            'ruta_foto' => $ruta_foto_barra // Opcional: devolver la ruta si es necesario
         ]);
         exit;
     }
 
+    if ($action === 'autorizar_archivado') {
+        
+        if (empty($id)) throw new Exception("ID requerido para archivar.");
+
+        $stmt = $conn->prepare("UPDATE inventario_cnc 
+                                    SET estatus = 'Eliminado', 
+                                        archivado_auth = 1, 
+                                        updated_at = NOW() 
+                                    WHERE id = :id");
+        $stmt->bindParam(':id', $id);
+        $stmt->execute();
+        // Preparar y enviar correo (no crítico para la operación)
+        $mensajeCorreo = "";
+        try {
+            require_once(ROOT_PATH . 'includes/PHPMailer.php');
+            $mail = getMailer($conn);
+
+            // Obtener correos de inventarios
+            $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
+            $stmtCorreos = $conn->prepare($sqlCorreoInventarios);
+            $stmtCorreos->execute();
+            $correosInventarios = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
+
+            if ($correosInventarios && count($correosInventarios) > 0) {
+                $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
+                $contadorCorreos = 0;
+
+                foreach ($correosInventarios as $fila) {
+                    if (!empty($fila['usuario'])) {
+                        $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
+                        if ($correo) {
+                            //$mail->addAddress($correo);
+                            $contadorCorreos++;
+                        }
+                    }
+                }
+                
+                if ($contadorCorreos > 0) {
+                    // Preparar contenido del correo
+                    $mail->isHTML(true);
+                    $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                    
+                    $asunto = "Solicitud autorizada para archivar barra";
+                    
+                    $cuerpo = "Dirección comercial ha autorizado el archivado de una barra del inventario de billets.</br>";
+                    $cuerpo .= "Barra: <b>" . $lote_pedimento . "</b></br>";
+
+                    $mail->Subject = $asunto;
+                    $mail->Body = $cuerpo;
+                    // Agregar correo de prueba
+
+                    if (!$mail->send()) {
+                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    }
+                    
+                    $mensajeCorreo = " y correo enviado a inventarios";
+                } else {
+                    throw new Exception("No se pudieron agregar destinatarios para el correo");
+                }
+            }
+        } catch (Throwable $e) {
+            $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
+        }
+
+        // Respuesta exitosa
+        echo json_encode([
+            'success' => true,
+            'message' => "Barra archivada correctamente." . $mensajeCorreo
+        ]);
+        exit;
+    }
 } catch (Throwable $e) {
     echo json_encode([
         'success' => false,

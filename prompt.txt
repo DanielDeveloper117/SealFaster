@@ -612,3 +612,22 @@ ejecutar las consultas:
 update cotizacion_materiales set tipo_medida_de = tipo_medida_di where perfil_sello = "R13" and tipo_medida_de = "null";
 update inventario_cnc set pre_stock = stock;
 update inventario_cnc set estatus = "Disponible para cotizar" where estatus = "Eliminado";
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

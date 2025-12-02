@@ -12,7 +12,7 @@ $options = new QROptions([
     'scale'      => 6,
 ]);
 
-$url = 'https://sellosyretenes.com/plataforma/estimador/cotizador/modules/firma.php?id_requisicion=2';
+$url = 'https://sellosyretenes.com/sealfaster/modules/firma.php?id_requisicion=2';
 
 $qr = new QRCode($options);
 $matrix = $qr->getMatrix($url);

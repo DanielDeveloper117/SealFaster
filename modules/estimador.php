@@ -126,7 +126,7 @@ if (!isset($_SESSION['id'])) {
 
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
+    <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador2.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/select2-selector.css'); ?>">
@@ -354,6 +354,7 @@ if (!isset($_SESSION['id'])) {
     const cantidadMateriales = <?= (int)$cantidadMateriales ?>;
 </script>
 <?php?>
+
 <script src="<?= controlCache('../assets/js/'.$archivoEventos.''); ?>"></script>
 <script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <script>

@@ -58,6 +58,8 @@ if (!isset($_SESSION['id'])) {
     .dt-scroll{
         margin-top:10px !important;
         margin-bottom:10px !important;
+    }.btn-ver-justificacion:hover{
+        cursor: pointer !important;
     }
 </style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
@@ -163,12 +165,16 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         } else { 
                             $class = 'bar-bajo';
                         }
-                        if($stock == 0 || $row['estatus'] == "Eliminado"){
+                        // iluminar segun su estatus y stock
+                        if($stock == 0){
                             $usableStyle = "background-color:#ff00002e !important;";
                             $usableText = "No usable";
                         }elseif($row['estatus'] != "Eliminado" && $stock > 0 && $stock < 15){
                             $usableText = "No usable";
                             $usableStyle = "background-color:#ff572263 !important;";
+                        }elseif($row['estatus'] == "Eliminado"){
+                            $usableText = "No usable";
+                            $usableStyle = "background-color:#9e9e9e90 !important;";
                         }else{
                             $usableText = "Usable";
                         }
@@ -182,7 +188,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         if($row['stock']==0){
                             echo("No disponible, sin stock");
                         }elseif($row['estatus']=="Eliminado"){
-                            echo("Archivado");
+                            echo("Archivado <i class='bi bi-question-circle btn-ver-justificacion' data-jus='".$row["justificacion_archivado"]."'></i>");
                         }else{echo($row['estatus']);
                         } ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
@@ -246,6 +252,11 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
             error: function(error) {
                 console.error("Error al enviar la notificacion: ", error);
             }
+        });
+        // CLICK A VER LA JUSTIFICACION DE ARCHIVAR
+        $('#inventarioTable').on('click', '.btn-ver-justificacion', function() {
+            var dataJus = $(this).data('jus');
+            sweetAlertResponse("info", "Justificación", dataJus, "none");
         });
     });
 </script>

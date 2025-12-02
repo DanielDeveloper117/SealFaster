@@ -477,7 +477,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
                     // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
+                    let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
 
+                    if(window.perfilSello.includes("R16") && tipoDurezaMateriales == "duros"){
+                        sweetAlertResponse("warning", "Falta informacion","No es posible maquinar este sello con materiales duros", "none");
+                        return;
+                    }
                     mostrarBtnBillets(elMaterial, elProveedor, laCantidad, window[`DIMENSIONES_VALIDAS_m${i}`]);
                 });
                 // EVENTO VER MODAL DE BILLETS, AJAX traer billets coincidentes
@@ -494,7 +499,19 @@ document.addEventListener("DOMContentLoaded", function () {
                     let dExteriorNecesario = 0.00;
                     let materialConLabioDI = "_m"+window.CON_LABIO_DI;
                     let materialConLabioDE = "_m"+window.CON_LABIO_DE;
-
+                    let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
+                    if(!materialSeleccionado || materialSeleccionado === "" || materialSeleccionado==null){
+                        $(`#selectorMaterial_m${i}`).val("");
+                        $(`#btnCerrarModalBillets_m${i}`).trigger("click");
+                        $(`#tablaBillets_m${i} tbody`).empty();
+                        sweetAlertResponse("warning", "Falta informacion","Seleccione un material", "none");
+                        return;
+                    }
+                    if(!proveedorSeleccionado || proveedorSeleccionado === "" || proveedorSeleccionado==null){
+                        $(`#selectorProveedor_m${i}`).val("");
+                        sweetAlertResponse("warning", "Falta informacion","Seleccione un proveedor", "none");
+                        return;
+                    }
                     console.log(`Aplicando calculos al Material _m${i}`);
                     if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
                         window.DI_TOLERANCIA_DEFAULT = 1.00;
@@ -622,7 +639,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                         let porcentajeAprovechamiento = item.porcentajeAprovechamiento;
 
                                         // Determinar si mostrar u ocultar el botón de selección
-                                        let mostrarBoton = item.estatus === 'Disponible para cotizar';
+                                        let mostrarBoton = ['Disponible para cotizar', 'En cotización'].includes(item.estatus);
+
                                         let claseBoton = mostrarBoton ? '' : 'd-none';
                                         let claseEstatus = mostrarBoton ? 'text-success fw-bold' : 'text-danger fw-bold';
                                         let textoAdicionalEstatus = "";
@@ -641,7 +659,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 textoAdicionalEstatus = `
                                                     <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
                                                         style='padding-left:5px;font-size:20px;'
-                                                        data-detalle='Apartada por ${item.vendedor}. Se libera el ${item.fecha_vencimiento} automáticamente o pida que el vendedor archive la cotización ${item.id_cotizacion} para liberar la barra'>
+                                                        data-detalle='La barra se encuentra en una cotización vigente no archivada. Se libera el ${item.fecha_vencimiento} automáticamente o al archivarla.'>
                                                     </i>
                                                 `;
                                             break;
@@ -943,7 +961,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                         let dataDIBillet = parseFloat(item.interior);
                                         
                                         // Determinar si mostrar u ocultar el botón de selección
-                                        let mostrarBoton = item.estatus === 'Disponible para cotizar';
+                                        let mostrarBoton = ['Disponible para cotizar', 'En cotización'].includes(item.estatus);
                                         let claseBoton = mostrarBoton ? '' : 'd-none';
                                         let claseEstatus = mostrarBoton ? 'text-success fw-bold' : 'text-danger fw-bold';
                                         let textoAdicionalEstatus = "";
@@ -962,7 +980,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                                 textoAdicionalEstatus = `
                                                     <i class='text-secondary bi bi-question-circle-fill btn-detalle-estatus'
                                                         style='padding-left:5px;font-size:20px;'
-                                                        data-detalle='Apartada por ${item.vendedor}. Se libera el ${item.fecha_vencimiento} automáticamente o pida que el vendedor archive la cotización ${item.id_cotizacion} para liberar la barra'>
+                                                        data-detalle='La barra se encuentra en una cotización vigente no archivada. Se libera el ${item.fecha_vencimiento} automáticamente o al archivarla.'>
                                                     </i>
                                                 `;
                                             break;

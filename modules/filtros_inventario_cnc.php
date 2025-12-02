@@ -302,7 +302,18 @@ if (!isset($_SESSION['id'])) {
                         Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
                     </a>
                 </div>
-                
+                 <!-- Barras Archivadas -->
+                <div class="function-card">
+                    <div class="function-icon">
+                        <i class="bi bi-archive"></i>
+                    </div>
+                    <h3 class="function-title">Barras archivadas y pendientes</h3>
+                    <p class="function-description">Consultar las barras archivadas y pendientes de autorización del inventario CNC en una nueva pestaña.</p>
+                    <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'inventario_vn.php';}else{echo 'inventario.php?archivados';}?>" 
+                       class="function-button" target="_blank">
+                        Consultar<i class="bi bi-arrow-up-right mx-2"></i>
+                    </a>
+                </div>               
 
             </div>
         </div>

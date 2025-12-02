@@ -9,14 +9,42 @@
     $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 
     $servidorEnMantenimientoAdvertencia = false; // Cambiar a true para activar la advertencia de mantenimiento
+    $horaProgramada = "1:00 PM";
     $servidorEnMantenimiento = false; // Cambiar a true para activar el modo de mantenimiento
+
+    //$urlValida = "https://sellosyretenes.com/sealfaster";
+    $urlValida = "http://localhost/cotizador/";
+    $urlActual = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
+                . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+
+    if (strpos($urlActual, $urlValida) === false) {
+        echo "<script type='text/javascript'>
+                $(document).ready(function(){
+                    Swal.fire({
+                        title: 'Nueva ubicacion disponible',
+                        html: 'El enlace al sistema que estas usando ya no es la correcto.<br>' +
+                            'Haz clic en el boton para ir al nuevo sitio.',
+                        icon: 'warning',
+                        confirmButtonText: 'Ir al nuevo sitio',
+                        confirmButtonColor: '#55AD9B',
+                        allowOutsideClick: false,
+                        allowEscapeKey: false
+                    }).then((result) => {
+                        if(result.isConfirmed){
+                            window.location.href = '$urlValida';
+                        }
+                    });
+                });
+            </script>";
+        exit(); // Detener la carga de la pagina actual
+    }
 
     if ($servidorEnMantenimientoAdvertencia) { 
         echo "<script type='text/javascript'>
                 $(document).ready(function(){
                     Swal.fire({
                         title: 'Aviso',
-                        text: 'Actualización programada a las 10:45 AM. Asegurece de guardar su trabajo para evitar perdida de datos.',
+                        text: 'Actualización programada a las ".$horaProgramada.". Asegurece de guardar su trabajo para evitar perdida de datos.',
                         icon: 'info',
                         width: '600px',
                         padding: '10px',

@@ -23,7 +23,7 @@ try {
     $token = bin2hex(random_bytes(32));
 
     // URL que se codificará
-    $url = "https://sellosyretenes.com/plataforma/estimador/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
+    $url = "https://sellosyretenes.com/sealfaster/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
     //$url = "http://localhost/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
 
 

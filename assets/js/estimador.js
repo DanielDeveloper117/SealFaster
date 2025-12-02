@@ -405,11 +405,11 @@ $(document).ready(function() {
         SECCION = (parseFloat(DE_R) - parseFloat(DI_R)) / 2;
         
         let esAdvertencia = false; // si solo es rechazo de advertencia en limitantes de dimensiones, no aplica return false;
-        // *********** no importan para limitantes de dimensiones ********
-        // let selectorTipoMedidaDI = $("#selectorTipoMedidaDI").val();
-        // let selectorTipoMedidaDE = $("#selectorTipoMedidaDE").val();
-        // let selectorTipoMedidaH = $("#selectorTipoMedidaH").val();
-        
+        if(tipoDurezaMateriales == "duros" && perfilSello == "R16"){
+            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
+            $("#containerErrorDimensiones_cliente span").text('No es posible maquinar con materiales duros.');
+            return false;
+        }
         // *******CODIGO DE VALIDACION/LIMITANTES DE MEDIDAS MINIMAS Y MAXIMAS DEL MAQUINADO, SI UNA SE CUMPLE SE RECHAZA Y RETORNA FALSE ********
         // Definicion de limitantes por dureza y herramienta
         const limitantesHerramientas1 = {
@@ -438,6 +438,7 @@ $(document).ready(function() {
                 202: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 52 },
             }
         };
+
         const limitantesHerramientas2 = {
             blandos: {
                 112: { DI_MIN: 5, DI_MAX: 844.5, DE_MIN: 10.5, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 10 },
@@ -464,32 +465,35 @@ $(document).ready(function() {
                 202: { DI_MIN: 60, DI_MAX: 842.5, DE_MIN: 12.5, DE_MAX: 850, SECCION_MIN: 3.75, SECCION_MAX: 45, H_MIN: 4, H_MAX: 52 },
             }
         };
+
+        // Para K02-P/K02-R, tomando el ÚLTIMO bloque (con SECCION_MIN: 2.75)
         const limitantesHerramientas3 = {
             blandos: {
-                112: { DI_MIN: 5.5, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 10 },
-                212: { DI_MIN: 7.5, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 17 },
-                103: { DI_MIN: 11, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 13 },
-                104: { DI_MIN: 11, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 13 },
-                113: { DI_MIN: 16.5, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 31.5 },
-                114: { DI_MIN: 16.5, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 31.5 },
-                139: { DI_MIN: 14.5, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 43.5 },
-                102: { DI_MIN: 23, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 43.5 },
-                201: { DI_MIN: 60, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 43.5 },
-                202: { DI_MIN: 60, DI_MAX: 845.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 3.5, H_MAX: 43.5 },
+                112: { DI_MIN: 5.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 10 },
+                212: { DI_MIN: 7.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 17 },
+                103: { DI_MIN: 11, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 13 },
+                104: { DI_MIN: 11, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 13 },
+                113: { DI_MIN: 16.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 31.5 },
+                114: { DI_MIN: 16.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 31.5 },
+                139: { DI_MIN: 14.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 43.5 },
+                102: { DI_MIN: 23, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 43.5 },
+                201: { DI_MIN: 60, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 43.5 },
+                202: { DI_MIN: 60, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 43.5 },
             },
             duros: {
-                112: { DI_MIN: 5.5, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 7 },
-                212: { DI_MIN: 7.5, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 14 },
-                103: { DI_MIN: 11, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 10 },
-                104: { DI_MIN: 11, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 10 },
-                113: { DI_MIN: 16.5, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 29.5 },
-                114: { DI_MIN: 16.5, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 29.5 },
-                139: { DI_MIN: 14.5, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 40.5 },
-                102: { DI_MIN: 23, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 40.5 },
-                201: { DI_MIN: 60, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 40.5 },
-                202: { DI_MIN: 60, DI_MAX: 845.5, DE_MIN: 12.6, DE_MAX: 850, SECCION_MIN: 3.25, SECCION_MAX: 45, H_MIN: 4, H_MAX: 40.5 },
+                112: { DI_MIN: 5.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 7 },
+                212: { DI_MIN: 7.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 14 },
+                103: { DI_MIN: 11, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 10 },
+                104: { DI_MIN: 11, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 10 },
+                113: { DI_MIN: 16.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 28.5 },
+                114: { DI_MIN: 16.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 28.5 },
+                139: { DI_MIN: 14.5, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 40.5 },
+                102: { DI_MIN: 23, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 40.5 },
+                201: { DI_MIN: 60, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 40.5 },
+                202: { DI_MIN: 60, DI_MAX: 844.5, DE_MIN: 10.6, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 40.5 },
             }
         };
+
         // NOTA: h023 y h024 no llevan h, pero si le dejamos el "0" solamente al inicio, da error
         const limitantesHerramientas4 = {
             blandos: {
@@ -513,6 +517,7 @@ $(document).ready(function() {
                 h024: { DI_MIN: 37, DI_MAX: 845.5, DE_MIN: 26.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 5, H_MAX: 38 },
             }
         };
+
         const limitantesHerramientas5 = {
             blandos: {
                 113: { DI_MIN: 22, DI_MAX: 845.5, DE_MIN: 26.5, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 30 },
@@ -535,6 +540,7 @@ $(document).ready(function() {
                 h024: { DI_MIN: 37, DI_MAX: 845.5, DE_MIN: 26.5, DE_MAX: 850, SECCION_MIN: 2.75, SECCION_MAX: 45, H_MIN: 5, H_MAX: 38 },
             }
         };
+
         const limitantesHerramientas6 = {
             blandos: {
                 112: { DI_MIN: 5, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 10 },
@@ -561,6 +567,7 @@ $(document).ready(function() {
                 202: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 9.5, DE_MAX: 850, SECCION_MIN: 2.25, SECCION_MAX: 45, H_MIN: 2.6, H_MAX: 52 },
             }
         };
+
         const limitantesHerramientas7 = {
             blandos: {
                 112: { DI_MIN: 5, DI_MAX: 845, DE_MIN: 10, DE_MAX: 850, SECCION_MIN: 2.50, SECCION_MAX: 10, H_MIN: 2.5, H_MAX: 10 },
@@ -587,6 +594,64 @@ $(document).ready(function() {
                 202: { DI_MIN: 60, DI_MAX: 845, DE_MIN: 65, DE_MAX: 850, SECCION_MIN: 2.50, SECCION_MAX: 22, H_MIN: 2.5, H_MAX: 22 },
             }
         };
+
+        // Nuevas limitantes del archivo txt
+        const limitantesHerramientas8 = {
+            blandos: {
+                134: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 4.5, H_MIN: 1, H_MAX: 4.5 },
+                135: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 4.5, H_MIN: 1, H_MAX: 4.5 },
+                136: { DI_MIN: 21, DI_MAX: 840.8, DE_MIN: 30.2, DE_MAX: 850, SECCION_MIN: 4.6, SECCION_MAX: 13, H_MIN: 4.6, H_MAX: 13 },
+                137: { DI_MIN: 21, DI_MAX: 840.8, DE_MIN: 30.2, DE_MAX: 850, SECCION_MIN: 4.6, SECCION_MAX: 13, H_MIN: 4.6, H_MAX: 13 },
+                126: { DI_MIN: 44, DI_MAX: 822, DE_MIN: 72, DE_MAX: 850, SECCION_MIN: 14, SECCION_MAX: 22, H_MIN: 14, H_MAX: 22 },
+                127: { DI_MIN: 44, DI_MAX: 822, DE_MIN: 72, DE_MAX: 850, SECCION_MIN: 14, SECCION_MAX: 22, H_MIN: 14, H_MAX: 22 }
+            },
+            duros: {
+                134: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 4.5, H_MIN: 1, H_MAX: 4.5 },
+                135: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 4.5, H_MIN: 1, H_MAX: 4.5 },
+                136: { DI_MIN: 21, DI_MAX: 840.8, DE_MIN: 30.2, DE_MAX: 850, SECCION_MIN: 4.6, SECCION_MAX: 13, H_MIN: 4.6, H_MAX: 13 },
+                137: { DI_MIN: 21, DI_MAX: 840.8, DE_MIN: 30.2, DE_MAX: 850, SECCION_MIN: 4.6, SECCION_MAX: 13, H_MIN: 4.6, H_MAX: 13 },
+                126: { DI_MIN: 44, DI_MAX: 822, DE_MIN: 72, DE_MAX: 850, SECCION_MIN: 14, SECCION_MAX: 22, H_MIN: 14, H_MAX: 22 },
+                127: { DI_MIN: 44, DI_MAX: 822, DE_MIN: 72, DE_MAX: 850, SECCION_MIN: 14, SECCION_MAX: 22, H_MIN: 14, H_MAX: 22 }
+            }
+        };
+
+        const limitantesHerramientas9 = {
+            blandos: {
+                134: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 3.5, H_MIN: 1, H_MAX: 3.5 },
+                135: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 12, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 3.5, H_MIN: 1, H_MAX: 3.5 },
+                136: { DI_MIN: 21, DI_MAX: 842.8, DE_MIN: 28.2, DE_MAX: 850, SECCION_MIN: 3.6, SECCION_MAX: 10.5, H_MIN: 3.6, H_MAX: 10.5 },
+                137: { DI_MIN: 21, DI_MAX: 842.8, DE_MIN: 28.2, DE_MAX: 850, SECCION_MIN: 3.6, SECCION_MAX: 10.5, H_MIN: 3.6, H_MAX: 10.5 }
+            },
+            duros: {} // "no es posible el maquinado"
+        };
+
+        const limitantesHerramientas10 = {
+            blandos: {
+                112: { DI_MIN: 4.5, DI_MAX: 848, DE_MIN: 6.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 10 },
+                212: { DI_MIN: 6, DI_MAX: 848, DE_MIN: 8, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 17 },
+                103: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 11, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 13 },
+                104: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 11, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 13 },
+                113: { DI_MIN: 15.5, DI_MAX: 848, DE_MIN: 17.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 31.5 },
+                114: { DI_MIN: 15.5, DI_MAX: 848, DE_MIN: 17.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 31.5 },
+                139: { DI_MIN: 13.5, DI_MAX: 848, DE_MIN: 15.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 50.8 },
+                102: { DI_MIN: 22, DI_MAX: 848, DE_MIN: 24, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 50.8 },
+                201: { DI_MIN: 59, DI_MAX: 848, DE_MIN: 61, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 55 },
+                202: { DI_MIN: 59, DI_MAX: 848, DE_MIN: 61, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 55 },
+            },
+            duros: {
+                112: { DI_MIN: 4.5, DI_MAX: 848, DE_MIN: 6.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 7 },
+                212: { DI_MIN: 6, DI_MAX: 848, DE_MIN: 8, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 14 },
+                103: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 11, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 10 },
+                104: { DI_MIN: 10, DI_MAX: 848, DE_MIN: 11, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 10 },
+                113: { DI_MIN: 15.5, DI_MAX: 848, DE_MIN: 17.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 28.5 },
+                114: { DI_MIN: 15.5, DI_MAX: 848, DE_MIN: 17.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 28.5 },
+                139: { DI_MIN: 13.5, DI_MAX: 848, DE_MIN: 15.5, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 47.8 },
+                102: { DI_MIN: 22, DI_MAX: 848, DE_MIN: 24, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 47.8 },
+                201: { DI_MIN: 59, DI_MAX: 848, DE_MIN: 61, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 52 },
+                202: { DI_MIN: 59, DI_MAX: 848, DE_MIN: 61, DE_MAX: 850, SECCION_MIN: 1, SECCION_MAX: 45, H_MIN: 1, H_MAX: 52 },
+            }
+        };
+
         // arreglo de objetos de arreglos de grupo de perfiles y grupo de limitantes de herramienta
         const gruposPerfiles = [
             {
@@ -601,7 +666,8 @@ $(document).ready(function() {
                     'S08-P', 'S08-PE', 'S08-R', 
                     'S16-A', 'S17-P', 'S17-R', 
                     'S35-P'
-                ],limitantes: limitantesHerramientas1
+                ],
+                limitantes: limitantesHerramientas1
             },
             {
                 perfiles: [
@@ -613,33 +679,75 @@ $(document).ready(function() {
                     'S04-PD',
                     'S07-F', 'S07-P', 
                     'S21-P'
-                ],limitantes: limitantesHerramientas2
+                ],
+                limitantes: limitantesHerramientas2
             },
             {
                 perfiles: [
                     'K02-P', 'K02-R'
-                ],limitantes: limitantesHerramientas3
+                ],
+                limitantes: limitantesHerramientas3 // Usando el ÚLTIMO bloque (SECCION_MIN: 2.75)
             },
             {
                 perfiles: [
                     'S02-P', 'S02-R',
                     'S18-P', 'S18-R'
-                ],limitantes: limitantesHerramientas4
+                ],
+                limitantes: limitantesHerramientas4
             },
             {
                 perfiles: [
                     'S04-P', 'S24-P'
-                ],limitantes: limitantesHerramientas5
+                ],
+                limitantes: limitantesHerramientas5
             },
             {
                 perfiles: [
-                    'K08-DS', 'K08-ES','S09-DS', 'S09-ES'
-                ],limitantes: limitantesHerramientas6
+                    'A01', 'A02', 'A04', 'A05', 'A07', 'A08', 'A09', 'A10'
+                ],
+                limitantes: limitantesHerramientas1 // Igual que grupo 1
+            },
+            {
+                perfiles: [
+                    'k08-ES', 'K08-DS', 'S09-ES', 'S09-DS'
+                ],
+                limitantes: limitantesHerramientas6 // Igual que grupo 1
             },
             {
                 perfiles: [
                     'K08-D', 'K08-E', 'K08-P', 'S09-E', 'S09-P', 'S09-D'
-                ],limitantes: limitantesHerramientas7
+                ],
+                limitantes: limitantesHerramientas7
+            },
+            {
+                perfiles: [
+                    'R09-F', 'R10-F'
+                ],
+                limitantes: limitantesHerramientas7 // Igual que grupo 8
+            },
+            {
+                perfiles: [
+                    'R09-FS', 'R10-FS'
+                ],
+                limitantes: limitantesHerramientas1 // Igual que grupo 1
+            },
+            {
+                perfiles: [
+                    'R13'
+                ],
+                limitantes: limitantesHerramientas8
+            },
+            {
+                perfiles: [
+                    'R16'
+                ],
+                limitantes: limitantesHerramientas9
+            },
+            {
+                perfiles: [
+                    'ST08', 'ST09', 'ST10', 'ST11', 'ST12', 'ST13', 'F01', 'F02'
+                ],
+                limitantes: limitantesHerramientas10
             }
         ];
 
@@ -746,86 +854,6 @@ $(document).ready(function() {
             //     esAdvertencia = true;
             // }
         }
-        // dentro de validarCamposDimensiones
-        // if (perfilesConLimitantes.includes(perfilSello) &&
-        // (tipoDurezaMateriales == "blandos" || tipoDurezaMateriales == "duros")) {
-        //     let limitantesHerramientaEncontrados = obtenerLimitantesPorPerfil(perfilSello);
-        //     const resultado = obtenerHerramientaSegunDimensiones(limitantesHerramientaEncontrados, tipoDurezaMateriales, DI_R, DE_R, ALTURA_R, SECCION);
-
-        //     if (!resultado) {
-        //         // Mensaje simple (para usuario sin conocimientos)
-        //         let mensajeSimple = "No se encontró herramienta para maquinar tales dimensiones.";
-
-        //         // Mensaje tecnico (para operador CNC)
-        //         let mensajeTecnico = "No se encontró herramienta para maquinar tales dimensiones.<br>";
-        //         mensajeTecnico += `Material: ${tipoDurezaMateriales}<br>`;
-        //         mensajeTecnico += `Dimensiones dadas: DI=${DI_R}, DE=${DE_R}, H=${ALTURA_R}, Seccion=${SECCION}<br><br>`;
-        //         mensajeTecnico += "Rangos de herramientas disponibles:<br>";
-
-        //         const herramientas = limitantesHerramientas[tipoDurezaMateriales];
-        //         for (const numHerramienta in herramientas) {
-        //             const lim = herramientas[numHerramienta];
-        //             mensajeTecnico += `Herramienta ${numHerramienta}: `;
-        //             mensajeTecnico += `DI [${lim.DI_MIN}-${lim.DI_MAX}], `;
-        //             mensajeTecnico += `DE [${lim.DE_MIN}-${lim.DE_MAX}], `;
-        //             mensajeTecnico += `H [${lim.H_MIN}-${lim.H_MAX}], `;
-        //             mensajeTecnico += `Seccion [${lim.SECCION_MIN}-${lim.SECCION_MAX}]<br>`;
-        //         }
-        //         $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de ");
-        //         $("#containerErrorDimensiones_cliente span").html(mensajeSimple);
-        //         //$("#containerErrorDimensiones_cliente span").html(mensajeTecnico);
-
-        //         window.DIMENSIONES_VALIDAS = false;
-        //         return false;
-        //     }
-
-        //     // Si se encontró herramienta válida
-        //     const { numHerramienta, limitante } = resultado;
-        //     console.log("Herramienta seleccionada automaticamente:", numHerramienta);
-        //     console.log("Limitante aplicada:", limitante);
-
-        //     // Mensaje técnico cuando las dimensiones son 
-        //     let mensajeSencilloValidadas = `Dimensiones validas.`;
-        //     let mensajeTecnicoValidadas = `Dimensiones validas.<br>`;
-        //     mensajeTecnicoValidadas += `Herramienta a usar: ${numHerramienta}<br>`;
-        //     mensajeTecnicoValidadas += `Rango de dimensiones permitido por esta herramienta:<br>`;
-        //     mensajeTecnicoValidadas += `DI [${limitante.DI_MIN}-${limitante.DI_MAX}], `;
-        //     mensajeTecnicoValidadas += `DE [${limitante.DE_MIN}-${limitante.DE_MAX}], `;
-        //     mensajeTecnicoValidadas += `H [${limitante.H_MIN}-${limitante.H_MAX}], `;
-        //     mensajeTecnicoValidadas += `Seccion [${limitante.SECCION_MIN}-${limitante.SECCION_MAX}]`;
-        //     $("#containerErrorDimensiones_cliente span").css("color", "#28a745");
-        //     $("#containerErrorDimensiones_cliente span").html(mensajeSencilloValidadas);
-
-
-        //     let restricciones = [];
-
-        //     function agregarRestriccion(tipo, valor, min, max) {
-        //         restricciones.push(`Para ${tipoDurezaMateriales}, el ${tipo} debe estar entre ${min} y ${max} mm (valor: ${valor})`);
-        //     }
-
-        //     if (DI_R < limitante.DI_MIN || DI_R > limitante.DI_MAX) {
-        //         agregarRestriccion("Diametro interior", DI_R, limitante.DI_MIN, limitante.DI_MAX);
-        //     }
-        //     if (DE_R < limitante.DE_MIN || DE_R > limitante.DE_MAX) {
-        //         agregarRestriccion("Diametro exterior", DE_R, limitante.DE_MIN, limitante.DE_MAX);
-        //     }
-        //     if (SECCION < limitante.SECCION_MIN || SECCION > limitante.SECCION_MAX) {
-        //         agregarRestriccion("Seccion radial", SECCION, limitante.SECCION_MIN, limitante.SECCION_MAX);
-        //     }
-        //     if (ALTURA_R < limitante.H_MIN) {
-        //         agregarRestriccion("Altura", ALTURA_R, limitante.H_MIN, limitante.H_MAX);
-        //     }
-        //     if (ALTURA_R > limitante.H_MAX) {
-        //         agregarRestriccion("Altura", ALTURA_R, limitante.H_MIN, limitante.H_MAX);
-        //     }
-
-        //     // if (restricciones.length > 0) {
-        //     //     $("#containerErrorDimensiones_cliente span").html(restricciones.join("<br>"));
-        //     //     esAdvertencia = true;
-        //     // }
-        // }
-        // ********************************************************************************************************************************************************
-
 
         // ********************************************************************************************************************************************************
         // ******** otras validaciones estaticas importantes, no modificar ********
@@ -935,11 +963,6 @@ $(document).ready(function() {
         }
         // ************************************************************************
         // ******** si las dimensiones son validas
-        // if(esAdvertencia == false){
-        //     $("#containerErrorDimensiones_cliente span").text('');
-        // }else{
-        //     $("#containerErrorDimensiones_cliente span").html(mensajeTecnicoValidadas);
-        // }
         $(`#containerErrorDimensiones_m${window.esWisper} span`).text('');
         $(`#containerErrorDimensiones_m${window.conEscalon} span`).text('');
         $(`#containerErrorDimensiones_m${window.esWisperEspecial} span`).text('');
@@ -1230,18 +1253,6 @@ $(document).ready(function() {
 
     const isUserFive = $("#isFive").val();
     if(isUserFive == "0"){
-        // Inicializar Chosen
-        // $('#selectorCliente').chosen({
-        //     no_results_text: "Sin resultados para:",
-        //     placeholder_text_single: "Seleccione un cliente",
-        //     search_contains: true,
-        //     width: "100%"
-        // });
-
-        // const $selector = $('#selectorCliente');
-        // const $chosen = $selector.next('.chosen-container');
-        // $chosen.addClass('chosen-loading');
-
         // Inicializar Select2
         const $selector = $('#selectorCliente');
         const $select2Container = $selector.next('.select2-container');
@@ -1467,29 +1478,10 @@ $(document).ready(function() {
 
             // para wispers
             habilitarBoton("#btnOtrasAlturas");
-            // habilitarInput("#inputAlturaCaja");
-            // habilitarInput("#inputAlturaCajaInch");
-            // habilitarInput("#inputAlturaEscalon");
-            // habilitarInput("#inputAlturaEscalonInch");
-            // habilitarInput("#inputAlturaH2");
-            // habilitarInput("#inputAlturaH2Inch");
-            // habilitarInput("#inputAlturaH3");
-            // habilitarInput("#inputAlturaH3Inch");
         }else{
             $("#altura_mm_cliente").trigger("input");
             resetear_materiales_completados();
         }
-        // $(".tipo-medida").val(window.TIPO_MEDIDA_SELLO);
-        // $("#spanTipoMedida").text(window.TIPO_MEDIDA_SELLO);
-
-        // if(window.TIPO_MEDIDA_SELLO == "Sello"){
-        //     $("#lblMedidaPrimaria").text("Digitar medida Sello");
-        //     $("#lblMedidaSecundaria").text("Digitar medida Metal (opcional)");
-        // }else{
-        //     $("#lblMedidaPrimaria").text("Digitar medida Metal");
-        //     $("#lblMedidaSecundaria").text("Digitar medida Sello (opcional)");
-        // }
-        
     });
 
     // -----------------------------ALTURA--------------------------------------------------------------------
@@ -2020,7 +2012,8 @@ $(document).ready(function() {
                     confirmButtonText: 'Ok',
                     confirmButtonColor: '#55AD9B',
                 }).then((result) => {
-                    if (result.isConfirmed || result.dismiss === Swal.DismissReason.close || result.dismiss === Swal.DismissReason.overlay) {
+                    if (result.isConfirmed) {
+
                         //window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
                         const savedDefault = localStorage.getItem('filtroDefault') || '0';
                         window.location.href = `cotizaciones.php?cot=u&default=${savedDefault}`;
