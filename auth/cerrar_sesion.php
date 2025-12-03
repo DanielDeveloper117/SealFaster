@@ -24,7 +24,7 @@ if ($username_row) {
 // Destruir la sesión
 session_destroy();
 
-// Redirigir a index.html
-header("Location: ../index.html");
+// Redirigir a index.php
+header("Location: ../index.php");
 exit; // Asegurar que el script se detenga después de la redirección
 ?>

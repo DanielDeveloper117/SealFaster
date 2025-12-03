@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const enlace = document.getElementById('enlaceCotizaciones');
 
+  const guia = document.getElementById('imgGuia');
+
   if (enlace) {
     const url = new URL(enlace.href, window.location.origin);
     // asegurar que cot siempre esté presente
@@ -81,4 +83,19 @@ document.addEventListener('DOMContentLoaded', () => {
   //   e.preventDefault();
   //   window.location = "../auth/cerrar_sesion.php";
   // });
+  if(guia){
+    guia.addEventListener('click', () => {
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Click a guia" },
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
+    });
+  }
 });

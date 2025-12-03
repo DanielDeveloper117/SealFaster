@@ -50,7 +50,12 @@
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a href="../modules/produccion_vn.php">Requisiciones</a></li>
-                    ';
+                        <li><a href="../files/GUIA-PARA-COTIZACION-Y-REQUISICION-DE-MAQUINADO-DE-SELLOS.pdf" target="_blank" class="pe-4 position-relative">
+                                <img id="imgGuia" class="position-absolute" src="../assets/img/general/ug.png" title="Ver guía de usuario vendedor">
+                            </a>
+                        </li>
+                        ';        
+                        //<i class="bi bi-journal-text position-absolute" style="top: 10px;left:20px;"></i>
                 break;
                 case 0:
                     # sistemas

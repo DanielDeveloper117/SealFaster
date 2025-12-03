@@ -65,6 +65,16 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div>
         <div class="table-container">
+            <div class="row mb-3">
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
+                    <button id="btnFiltrosBusqueda" type="button" 
+                            class="btn-purple" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalFiltrosBusqueda">
+                        <i class="bi bi-funnel"></i> Filtros de busqueda
+                    </button>
+                </div>
+            </div>
             <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
@@ -276,6 +286,136 @@ if (!isset($_SESSION['id'])) {
 </section>
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
 <script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
+<!-- ///////////MODAL SELECCIONAR FILTROS DE BUSQUEDA////////////////// -->
+<div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title" id="modalLabel">
+                    <i class="bi bi-funnel"></i> Filtros de búsqueda de requisiciones
+                </h4>
+                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Mostrar filtros activos si existen -->
+                <div id="filtrosActivosContainer" class="filtros-activos" style="display: none;">
+                    <h6><i class="bi bi-funnel-fill"></i> Filtros activos:</h6>
+                    <div id="filtrosActivosList"></div>
+                </div>
+
+                <form id="formFiltros" action="" method="GET">
+                    <!-- Sección: Filtros por categoría -->
+                    <div class="form-section mb-3">
+                        <h5>Filtros por estatus</h5>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="estatus" class="lbl-general">
+                                    <i class="bi bi-list-ol"></i> Estatus de requisición
+                                </label>
+                                <select class="form-select" id="estatus" name="estatus">
+                                    <option value="">Todos los estatus</option>
+                                    <option value="pendiente" <?= ($preferencias['estatus'] == 'pendiente') ? 'selected' : '' ?>>Pendiente de autorizar</option>
+                                    <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?>>Autorizada</option>
+                                    <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>En producción</option>
+                                    <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Filtros por fecha -->
+                    <div class="form-section mb-3">
+                        <h5>Filtros por fecha</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_inicio" class="lbl-general">
+                                    <i class="bi bi-calendar-check"></i> Fecha desde
+                                </label>
+                                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" value="<?= $preferencias['fecha_inicio'] ?>">
+                                <small class="form-text text-muted">Fecha de inicio del rango</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_fin" class="lbl-general">
+                                    <i class="bi bi-calendar-x"></i> Fecha hasta
+                                </label>
+                                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" value="<?= $preferencias['fecha_fin'] ?>">
+                                <small class="form-text text-muted">Fecha de fin del rango</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sección: Opciones adicionales -->
+                    <div class="form-section mb-3">
+                        <h5>Opciones adicionales</h5>
+                        <div class="row">
+                            <div class="checkbox-container col-md-6 mb-3">
+                                <label class="form-check-label">
+                                    <i class="bi bi-table"></i> <strong>Default al cargar la tabla</strong>
+                                </label>
+                                <div class="form-check">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault0" value="0" 
+                                            <?= ($preferencias['default'] == '0') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault0">
+                                            Todas
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault1" value="1" 
+                                            <?= ($preferencias['default'] == '1' || $preferencias['default'] === '') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault1">
+                                            Solo las de hoy (default)
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault2" value="2" 
+                                            <?= ($preferencias['default'] == '2') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault2">
+                                            Solo de esta semana
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault3" value="3" 
+                                            <?= ($preferencias['default'] == '3') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioDefault3">
+                                            Solo de este mes
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Orden de los registros según id_requisicion -->
+                            <div class="col-md-6 mb-3">
+                                <label for="orden" class="lbl-general">
+                                    <i class="bi bi-arrow-down-up"></i> Orden
+                                </label>
+                                <select class="form-select" id="orden" name="orden">
+                                    <option value="des" <?= ($preferencias['orden'] == 'des') ? 'selected' : '' ?>>Descendente (mas recientes primero)</option>
+                                    <option value="asc" <?= ($preferencias['orden'] == 'asc') ? 'selected' : '' ?>>Ascendente</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones del formulario -->
+                    <div class="d-flex gap-2 justify-content-end">
+                        <button type="submit" class="btn-general">
+                            <i class="bi bi-search"></i> Consultar
+                        </button>
+                        <button type="button" class="btn btn-outline-danger" id="btnLimpiarFormulario" onclick="limpiarTodosFiltros()">
+                            <i class="bi bi-arrow-clockwise"></i> Limpiar filtros
+                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- Modal para agregar/editar registro -->
 <div class="modal fade" id="modalAgregarEditar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg">
@@ -603,5 +743,85 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <?php include("../includes/modal_estatus_requisicion.php"); ?>
+<script>
+// JavaScript para mostrar filtros activos
+function mostrarFiltrosActivos() {
+    const filtros = [];
+    const container = document.getElementById('filtrosActivosContainer');
+    const list = document.getElementById('filtrosActivosList');
+    
+    // Estatus
+    const estatusSelect = document.getElementById('estatus');
+    if (estatusSelect.value) {
+        const text = estatusSelect.options[estatusSelect.selectedIndex].text;
+        filtros.push(`<span class="filtro-tag">Estatus: ${text}</span>`);
+    }
+    
+    // Fechas
+    const fechaInicio = document.getElementById('fecha_inicio').value;
+    const fechaFin = document.getElementById('fecha_fin').value;
+    if (fechaInicio && fechaFin) {
+        filtros.push(`<span class="filtro-tag">Fecha: ${fechaInicio} a ${fechaFin}</span>`);
+    } else if (fechaInicio) {
+        filtros.push(`<span class="filtro-tag">Desde: ${fechaInicio}</span>`);
+    } else if (fechaFin) {
+        filtros.push(`<span class="filtro-tag">Hasta: ${fechaFin}</span>`);
+    }
+    
+    // Default
+    const defaultRadios = document.querySelectorAll('input[name="default"]:checked');
+    if (defaultRadios.length > 0 && defaultRadios[0].value !== '1') {
+        const labels = {
+            '0': 'Todas',
+            '2': 'Esta semana',
+            '3': 'Este mes'
+        };
+        if (labels[defaultRadios[0].value]) {
+            filtros.push(`<span class="filtro-tag">${labels[defaultRadios[0].value]}</span>`);
+        }
+    }
+    
+    // Orden
+    const ordenSelect = document.getElementById('orden');
+    if (ordenSelect.value === 'asc') {
+        filtros.push(`<span class="filtro-tag">Orden: Ascendente</span>`);
+    }
+    
+    // Mostrar u ocultar contenedor
+    if (filtros.length > 0) {
+        list.innerHTML = filtros.join('');
+        container.style.display = 'block';
+    } else {
+        container.style.display = 'none';
+    }
+}
+
+// Función para limpiar filtros
+function limpiarTodosFiltros() {
+    document.getElementById('formFiltros').reset();
+    document.getElementById('estatus').value = '';
+    document.getElementById('fecha_inicio').value = '';
+    document.getElementById('fecha_fin').value = '';
+    document.querySelector('input[name="default"][value="1"]').checked = true;
+    document.getElementById('orden').value = 'des';
+    
+    // Actualizar vista de filtros activos
+    mostrarFiltrosActivos();
+}
+
+// Mostrar filtros activos al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    mostrarFiltrosActivos();
+    
+    // Actualizar filtros activos cuando cambien los campos
+    document.getElementById('estatus').addEventListener('change', mostrarFiltrosActivos);
+    document.getElementById('fecha_inicio').addEventListener('change', mostrarFiltrosActivos);
+    document.getElementById('fecha_fin').addEventListener('change', mostrarFiltrosActivos);
+    document.querySelectorAll('input[name="default"]').forEach(radio => {
+        radio.addEventListener('change', mostrarFiltrosActivos);
+    });
+    document.getElementById('orden').addEventListener('change', mostrarFiltrosActivos);
+});
+</script>
 </body>
 </html>

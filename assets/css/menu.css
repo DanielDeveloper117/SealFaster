@@ -203,7 +203,9 @@ html {
   text-shadow: 0 0 3px #fff, 0 0 10px #fff, 0 0px 10px #54aa9a, 0 0 10px #56AA9A;
   text-decoration: underline;
 }
-
+#imgGuia{
+  height: 34px;
+}
 .user-menu {
   position: relative;
 }

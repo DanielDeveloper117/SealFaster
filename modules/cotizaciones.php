@@ -409,9 +409,6 @@ if (!isset($_SESSION['id'])) {
             // También puedes loguear $e y $e2 en tu sistema de logs
         }
     }
-
-
-
 ?>
 
     <title>Cotizaciones</title>
@@ -1176,7 +1173,8 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
    <script>
         document.addEventListener('DOMContentLoaded', function() {
-                // Verificar si ya existe la preferencia en localStorage
+            // Verificar si ya existe la preferencia en localStorage
+            /*
             if (!localStorage.getItem("ocultarInfoVigencias")) {
                 Swal.fire({
                     title: 'Información importante',
@@ -1201,6 +1199,7 @@ if (!isset($_SESSION['id'])) {
                     }
                 });
             }
+            */
             // Add hover effects to action buttons
             const actionButtons = document.querySelectorAll('.container-actions button');
             actionButtons.forEach(button => {

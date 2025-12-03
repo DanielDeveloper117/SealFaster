@@ -1,30 +1,180 @@
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i&subset=greek-ext');
 
+/* --- Reset & Base --- */
 html, body {
     margin: 0;
     padding: 0;
     height: 100%;
     min-height: 100vh;
-    overflow: auto;
+    overflow: hidden; /* Evita scrollbars innecesarios por animaciones / Avoid unnecessary scrollbars */
+    font-family: 'Noto Sans', sans-serif;
 }
 
 body {
-    background-image: url('../../assets/img/general/background_login.jpg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-attachment: fixed;
-    font-family: 'Noto Sans', sans-serif;
-}
-.input-container {
-    text-align: start;
-}
-.input-container label {
-    font-size: 16px;
-    color: #fff;
-    margin-bottom: 5px;
+    background-color: #000; /* Fondo negro por defecto / Default black background */
 }
 
+/* --- Background Slider & Overlay --- */
+.background-slider {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+}
+
+.slide-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7); /* Overlay opaco / Opaque overlay */
+    z-index: 2;
+}
+
+.slides-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+.slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out; /* Desvanecido de 0.5s / 0.5s Fade transition */
+    z-index: 1;
+}
+
+.slide.active {
+    opacity: 1;
+}
+
+/* --- Progress Bar --- */
+.slider-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px; /* Altura sutil / Subtle height */
+    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.progress-bar {
+    height: 100%;
+    background: #a7933e; /* Color corporativo / Corporate color */
+    background: #55AD9B;
+    width: 0%;
+}
+
+/* --- Header Layout --- */
+.login-header {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+    padding: 1rem 2rem;
+    animation: slideDown 1s ease-out forwards; /* Entrada animada / Animated entrance */
+}
+
+/* --- Main Content Layout --- */
+.main-content {
+    position: relative;
+    z-index: 10;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- Form Container Styles --- */
+.form-container {
+    background-color: #07101cba;
+    padding: 2rem;
+    border-radius: 1rem;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden; /* Importante para el shimmer / Important for shimmer */
+    transition: transform 0.3s ease, all 0.3s ease;
+    
+    /* Animación de entrada inicial / Initial entrance animation */
+    opacity: 0; 
+    transform: scale(0.9);
+    animation: zoomInFade 0.8s ease-out 0.5s forwards; 
+}
+
+/* Hover Effect: Scale Card */
+.form-container:hover {
+    background-color: #07101ce3;
+    scale: 1.05; /* Escala sutil / Subtle scale */
+    box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+}
+
+/* --- Shimmer Effect (Reflejo de luz) --- */
+.form-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%; /* Empieza fuera a la izquierda / Starts off-screen left */
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(
+        to right,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.1) 50%, /* Luz tenue / Dim light */
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: skewX(-25deg); /* Inclinación diagonal / Diagonal skew */
+    transition: none;
+}
+
+.form-container:hover::before {
+    animation: shimmer 2s infinite; /* Corre la animación al hacer hover / Runs animation on hover */
+}
+
+/* --- User Icon Styles --- */
+.user-icon-container {
+    
+    position: relative;
+}
+
+.user-icon-circle {
+    font-size: 4rem;
+    color: #a7933e;
+    color: #d3d3d391;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+}
+
+.login-title {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    background: linear-gradient(90deg, #fff, #a7933e, #fff);
+    background: linear-gradient(90deg, #fff, #55AD9B, #fff);
+    background-size: 200%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textGradient 3s linear infinite;
+    margin: 0;
+}
+
+/* --- Existing Inputs & Buttons (Preserved) --- */
+.input-container { text-align: start; position: relative; }
+.input-container label { font-size: 16px; color: #fff; margin-bottom: 5px; }
 .input-container input {
     border: none;
     border-bottom: 1px solid #555;
@@ -33,16 +183,15 @@ body {
     padding: 8px 0 5px 0;
     font-size: 14px;
     color: #fff;
+    transition: border-color 0.3s;
+}
+.input-container input:focus { 
+    border: none; 
+    outline: none; 
+    border-bottom: 1px solid #e74c3c;
+    border-bottom: 1px solid #55AD9B;
 }
 
-.input-container input:focus {
-    border: none;
-    outline: none;
-    border-bottom: 1px solid #e74c3c;
-}
-.input-pass{
-    position: relative;
-}
 .btn-toggle-password {
     position: absolute;
     right: 0;
@@ -54,68 +203,86 @@ body {
     font-size: 18px;
     padding: 0 5px;
 }
+.btn-toggle-password:hover { color: #fff; }
 
-.btn-toggle-password:hover {
+.btn-login {
+    z-index: 999;
+    background-color: #a7933e;
+    background-color: #55AD9B;
     color: #fff;
+    border: none;
+    transition: background-color 0.3s;
 }
+.btn-login:hover { 
+    background-color: #caa604; 
+    background-color: #95D2B3;
+}
+
+/* --- Footer & Slogan --- */
 .text-slogan {
-    font-family: 'Segoe UI', 'Helvetica Neue', sans-serif;
-    color: #1d2d50;
-    text-shadow: 0 0 3px rgba(0, 51, 102, 0.5);
-    font-size: 32px;
-    font-weight: 400;
-    text-align: center;
+    font-family: 'Segoe UI', sans-serif;
+    color: #fff; /* Cambiado a blanco para contrastar header / Changed to white for header contrast */
+    text-shadow: 0 0 5px rgba(0, 0, 0, 0.8);
+    font-size: 24px;
+    font-weight: 300;
+    text-align: right;
+    letter-spacing: 1px;
 }
 
 footer {
-    background: #000;
-    color: #fff;
+    position: absolute;
+    bottom: 0;
+    background: transparent; /* Footer transparente / Transparent footer */
+    color: rgba(255,255,255,0.7);
     text-align: center;
-    padding: 20px 10px;
+    padding: 5px;
     width: 100%;
-    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+    font-size: 0.85rem;
+    animation: slideUp 1s ease-out forwards;
 }
 
-footer p {
-    margin: 0;
-    font-size: 1em;
+/* --- ANIMATIONS (Keyframes) --- */
+
+/* 1. Shimmer Effect */
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
 }
 
-.form-container {
-    /* background: linear-gradient(
-        to bottom right,
-        rgba(31, 41, 55, 0.5),
-        rgba(31, 41, 55, 0.5)
-    ); */
-    background-color: #07101cdb;
-    padding: 2rem;
-    border-radius: 1rem;
-    color: #fff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5); /* para simular profundidad */
-    transition: background 1s ease;
-}
-.btn-login {
-    background-color: #a7933e;
-    color: #fff;
-    border: none;
+/* 2. Entrance Animations */
+@keyframes slideDown {
+    from { transform: translateY(-100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-.btn-login:hover {
-    background-color: #caa604;
-
+@keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
 }
 
-.div-a:hover {
-    text-decoration: underline;
+@keyframes zoomInFade {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
 }
 
-/* Responsive */
-@media screen and (max-width: 991px) {
-    body{
-        background-position: initial !important;
+@keyframes textGradient {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+
+/* 3. Responsive Adjustments */
+@media screen and (max-width: 768px) {
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        text-align: center;
     }
     .text-slogan {
-        font-size: 30px;
-        font-weight: 500;
+        text-align: center;
+        margin-top: 10px;
+        font-size: 18px;
+    }
+    .logo-container img {
+        max-height: 50px;
     }
 }
