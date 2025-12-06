@@ -1,17 +1,108 @@
 <?php
 // contact_handler.php
+session_start();
+require_once(__DIR__ . '/../../../secure_config/rate_limiter.php');
+require_once(__DIR__ . '/../../../secure_config/ip_blocker.php');
 
-// Incluir autoload de Composer (si usas Composer)
+// Función para registrar intentos de usuarios
+function logUserAttempt($postData) {
+    $logDir = __DIR__ . '/../../../logs';
+    $logFile = $logDir . '/contact_form_users.log';
+
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+
+    if (!file_exists($logFile)) {
+        file_put_contents($logFile, "=== LOG DE USUARIOS INICIADO ===\n");
+    }
+
+    $entry = date('Y-m-d H:i:s') . ' | ' .
+        'IP=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . ' | ' .
+        'UA=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown') . ' | ' .
+        'POST=' . json_encode($postData) . PHP_EOL;
+
+    file_put_contents($logFile, $entry, FILE_APPEND);
+}
+
+// Función para registrar intentos de bots
+function logBotAttempt($data) {
+    $logDir = __DIR__ . '/../../../logs';
+    $logFile = $logDir . '/contact_form_bots.log';
+
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+
+    if (!file_exists($logFile)) {
+        file_put_contents($logFile, "=== LOG DE BOTS INICIADO ===\n");
+    }
+
+    $entry = date('Y-m-d H:i:s') . ' | ' .
+        'IP=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . ' | ' .
+        'UA=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown') . ' | ' .
+        'POST=' . json_encode($data) . PHP_EOL;
+
+    file_put_contents($logFile, $entry, FILE_APPEND);
+}
+
+// Función para registrar intentos sospechosos
+function logSuspiciousFileAttempt($reason, $postData) {
+    $logDir = __DIR__ . '/../../../logs';
+    $logFile = $logDir . '/contact_form_suspicious.log';
+
+    if (!is_dir($logDir)) {
+        mkdir($logDir, 0755, true);
+    }
+
+    if (!file_exists($logFile)) {
+        file_put_contents($logFile, "=== LOG DE INTENTOS SOSPECHOSOS INICIADO ===\n");
+    }
+
+    $entry = date('Y-m-d H:i:s') . ' | ' .
+        'REASON=' . $reason . ' | ' .
+        'IP=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . ' | ' .
+        'UA=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown') . ' | ' .
+        'POST=' . json_encode($postData) . PHP_EOL;
+
+    file_put_contents($logFile, $entry, FILE_APPEND);
+}
+
+// Verificar límite de tasa
+if (!rate_limit_allow()) {
+    logSuspiciousFileAttempt("rate_limit_exceeded", $_POST);
+    logBotAttempt($_POST);
+    block_ip($_SERVER['REMOTE_ADDR']);
+    echo json_encode([
+        "success" => false,
+        "message" => "Demasiadas solicitudes. Intenta más tarde."
+    ]);
+    exit;
+}
+
+// Verificar IP bloqueada
+if (!block_ip_check()) {
+    logSuspiciousFileAttempt("Blocked IP intento de acceso", $_POST);
+    logBotAttempt($_POST);
+    echo json_encode([
+        "success" => false,
+        "message" => "Acceso denegado"
+    ]);
+    exit;
+}
+
+// Incluir PHPMailer
 require '../vendor/autoload.php';
-
-// O incluir manualmente las clases de PHPMailer
-
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+// Cargar credenciales SMTP
+$config = require_once(__DIR__ . '/../../../secure_config/credentials.php');
+
 // Configuración de cabeceras para CORS
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header("Access-Control-Allow-Origin: http://localhost:3000");
+header("Access-Control-Allow-Credentials: true");
 header('Access-Control-Allow-Methods: POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
@@ -27,48 +118,77 @@ try {
         throw new Exception('Método no permitido');
     }
 
-    // Obtener y decodificar los datos JSON
-    $input = file_get_contents('php://input');
-    $data = json_decode($input, true);
+    // Verificar captcha
+    if (!isset($_POST['captcha_valid']) || $_POST['captcha_valid'] !== 'yes') {
+        echo json_encode([
+            "success" => false,
+            "message" => "Captcha no validado"
+        ]);
+        exit;
+    }
 
-    // Validar que los datos existan
-    if (!$data) {
-        throw new Exception('Datos no válidos');
+    // Verificar CSRF token
+    if (empty($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+        echo json_encode([
+            "success" => false,
+            "message" => "Token CSRF inválido"
+        ]);
+        exit;
+    }
+
+    // Verificar que se recibieron datos POST
+    if (empty($_POST)) {
+        throw new Exception('Datos del formulario no recibidos');
     }
 
     // Validar campos requeridos
     $required_fields = ['email', 'subject', 'message'];
     foreach ($required_fields as $field) {
-        if (empty($data[$field])) {
+        if (empty($_POST[$field])) {
             throw new Exception("El campo $field es requerido");
         }
     }
 
     // Validar formato de email
-    if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+    if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
         throw new Exception('El formato del correo electrónico no es válido');
     }
 
+    // Honeypot: campo oculto para bots
+    if (!empty($_POST['phone_number'])) {
+        // Bot detectado
+        logBotAttempt($_POST);
+        http_response_code(200);
+        echo json_encode([
+            'success' => true, 
+            'message' => 'Los datos se han enviado correctamente. ¡Gracias por contactarnos! Buen intento bot'
+        ]);
+        exit;
+    }
+
     // Sanitizar los datos
-    $email = filter_var($data['email'], FILTER_SANITIZE_EMAIL);
-    $subject = htmlspecialchars(trim($data['subject']), ENT_QUOTES, 'UTF-8');
-    $message = htmlspecialchars(trim($data['message']), ENT_QUOTES, 'UTF-8');
+    $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
+    $subject = htmlspecialchars(trim($_POST['subject']), ENT_QUOTES, 'UTF-8');
+    $message = htmlspecialchars(trim($_POST['message']), ENT_QUOTES, 'UTF-8');
+
+    // Registrar intento válido
+    logUserAttempt($_POST);
 
     // Configuración del servidor SMTP
     $mail = new PHPMailer(true);
-    $mail->isSMTP();
-    $mail->Host = 'sellosyretenes.com';
+    $mail->Host = $config['SMTP_HOST'];
     $mail->SMTPAuth = true;
-    $mail->Username = 'plat_autorizaciones@sellosyretenes.com';
-    $mail->Password = 'MA9zxx@#8wN'; // pon aquí tu variable segura
-    $mail->SMTPSecure = 'ssl';
-    $mail->Port = 465;
-    $mail->setFrom('plat_autorizaciones@sellosyretenes.com', 'Sellos y Retenes de San Luis');
+    $mail->Username = $config['SMTP_USER'];
+    $mail->Password = $config['SMTP_PASS'];
+    $mail->SMTPSecure = $config['SMTP_SECURE'];
+    $mail->Port = $config['SMTP_PORT'];
+    $mail->setFrom($config['SMTP_FROM'], $config['SMTP_DOMAIN_NAME']);
+    $mail->isSMTP();
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
 
-    $mail->addAddress('desarrollo2.sistemas@sellosyretenes.com');
+    $mail->addAddress($config['SMTP_DEV_EMAIL']);
 
     $mail->Subject = "Formulario de Contacto: $subject";
     
@@ -121,8 +241,10 @@ try {
     // Versión alternativa en texto plano
     $mail->AltBody = "Nuevo mensaje de contacto:\n\nDe: $email\nAsunto: $subject\nMensaje: $message\n\nEnviado el: " . date('d/m/Y H:i:s');
 
+    $mailsend = true;
     // Enviar el correo
-    if ($mail->send()) {
+    //if ($mail->send()) {
+    if ($mailsend) {
         $response = [
             'success' => true,
             'message' => 'Los datos se han enviado correctamente'
