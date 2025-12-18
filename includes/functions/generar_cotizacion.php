@@ -62,6 +62,7 @@ if (isset($_GET['id_cotizacion'])) {
         $fecha = $arregloSelectCotizacion['fecha'];
         $hora = $arregloSelectCotizacion['hora'];
         $estatus_completado = $arregloSelectCotizacion['estatus_completado'];
+        $esSimulacion = $arregloSelectCotizacion['simulacion'];
 
         // Información general de la cotización
         $pageWidth = $pdf->GetPageWidth();
@@ -86,6 +87,9 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Cell(50, 8, utf8_decode("Estatus: ". $estatus_completado), 0, 0, '', 0);
         $pdf->SetFont('Arial', 'B', 11);
         $pdf->Cell(100, 8, utf8_decode('Cotización vigente "SALVO PREVIA VENTA"'), 0, 0, '', 0);
+        if($esSimulacion == 1){
+            $pdf->Cell(100, 8, utf8_decode('Material no sujeto a stock físico (simulación de costos)'), 0, 0, '', 0);
+        }
         $pdf->SetFont('Arial', '', 11);
         $pdf->Ln(10);
         

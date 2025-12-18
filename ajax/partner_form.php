@@ -5,7 +5,7 @@ require_once(__DIR__ . '/../../../secure_config/ip_blocker.php');
 
 function logUserAttempt($postData, $fileData) {
     $logDir = __DIR__ . '/../../../logs';
-    $logFile = $logDir . '/contact_form_users.log';
+    $logFile = $logDir . '/partner_form_users.log';
 
     if (!is_dir($logDir)) {
         mkdir($logDir, 0755, true);
@@ -32,7 +32,7 @@ function logUserAttempt($postData, $fileData) {
 function logBotAttempt($data) {
     // Carpeta de logs (en base al archivo actual)
     $logDir = __DIR__ . '/../../../logs';
-    $logFile = $logDir . '/contact_form_bots.log';
+    $logFile = $logDir . '/partner_form_bots.log';
 
     // Crear carpeta si no existe
     if (!is_dir($logDir)) {
@@ -56,7 +56,7 @@ function logBotAttempt($data) {
 
 function logSuspiciousFileAttempt($reason, $postData, $fileData = null) {
     $logDir = __DIR__ . '/../../../logs';
-    $logFile = $logDir . '/contact_form_suspicious.log';
+    $logFile = $logDir . '/partner_form_suspicious.log';
 
     if (!is_dir($logDir)) {
         mkdir($logDir, 0755, true);
@@ -579,8 +579,8 @@ try {
                      "Enviado desde: oculto\n" .
                      "Fecha: " . date('d/m/Y H:i:s');
 
-    $mailsend = true;
     // Enviar el correo
+    $mailsend = true;
     //if ($mail->send()) {
     if ($mailsend) {
         $response = [

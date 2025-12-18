@@ -46,8 +46,20 @@ if (!isset($_SESSION['id'])) {
                 ////////////////////////////PHP MAILER -> cotizador/vendedor a cliente ////////////////
                 try {
                     if($_POST["remitente"] == "cotizador"){
-                        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                        $mail = getMailer($conn);
+                        //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                        //$mail = getMailer($conn);
+                        $mail = new PHPMailer(true);
+                        $mail->isSMTP();
+                        $mail->Host = $HOST;
+                        $mail->SMTPAuth = true;
+                        $mail->Username = $USER;
+                        $mail->Password = $PASS; 
+                        $mail->SMTPSecure = $SECURE;
+                        $mail->Port = $PORT;
+                        $mail->setFrom($FROM, $DOMAIN_NAME);
+                        $mail->isHTML(true);
+                        $mail->CharSet = 'UTF-8';
+                        $mail->Encoding = 'base64';
                         $mail->addAddress($correo_cliente);
                         //$mail->Subject = 'Cotizacion Sello SRS. ID: '.$idCotizacion;
                         $mail->Subject = 'Cotización de Maquinado de Sello SRS.';
@@ -65,11 +77,11 @@ if (!isset($_SESSION['id'])) {
                         $mail->send();
                         // Enviar el correo primero
 
-                        $passMail = "MA9zxx@#8wN";
+                        $passMail = $PASS;
                         // Conectarse por IMAP a la cuenta
                         $imapStream = imap_open(
-                            '{sellosyretenes.com:993/imap/ssl}INBOX.Sent',
-                            'plat_autorizaciones@sellosyretenes.com',
+                            '{'.$HOST.':993/imap/ssl}INBOX.Sent',
+                            $USER,
                             $passMail
                         );
 
@@ -77,7 +89,7 @@ if (!isset($_SESSION['id'])) {
                         $asunto = 'Cotizacion de Maquinado de Sello SRS.';
                         $cuerpoCorreo = "Estimado cliente, en este correo se le envia la cotizacion del maquinado del sello que ha solicitado.<br>Este es un envio automatico, favor de no contestarlo.<br>Cualquier situacion comunicarse con el agente de ventas.";
                         // Crear el mensaje completo
-                        $message = "From: plat_autorizaciones@sellosyretenes.com\r\n";
+                        $message = "From: {$USER}\r\n";
                         $message .= "To: {$correo_cliente}\r\n";
                         $message .= "Subject: {$asunto}\r\n";
                         $message .= "Date: " . date('r') . "\r\n";
@@ -87,7 +99,7 @@ if (!isset($_SESSION['id'])) {
                         $message .= $cuerpoCorreo;
 
                         // Guardarlo en la carpeta "Sent"
-                        imap_append($imapStream, "{sellosyretenes.com:993/imap/ssl}INBOX.Sent", $message);
+                        imap_append($imapStream, "{".$HOST.":993/imap/ssl}INBOX.Sent", $message);
                         imap_close($imapStream);
 
                         echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -136,7 +148,7 @@ if (!isset($_SESSION['id'])) {
                         // Configuracion para usar sendmail local (sin SMTP ni password)
                         $mail->isMail();
                         $mail->CharSet = 'UTF-8';
-                        $mail->setFrom($correo_sesion, 'Sellos y Retenes de San Luis');
+                        $mail->setFrom($correo_sesion, $DOMAIN_NAME);
                         $mail->addAddress($correo_cliente);
                         $mail->Subject = $asunto_correo;
                         $mail->isHTML(true);

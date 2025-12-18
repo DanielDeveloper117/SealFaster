@@ -8,7 +8,7 @@ $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
 $usuarioUser = "";
 if ($arregloUser) {
     // Clave de encriptacionn
-    $clave_encriptacion = 'SRS2024#tides';
+    $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
     // Desencriptar el nombre
     $usuario_encriptado = $arregloUser['usuario'];

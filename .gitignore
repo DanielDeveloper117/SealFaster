@@ -3,4 +3,4 @@
 /examples
 /modules/debug_autorizacion.log
 /files
-.env
+secure_config/.env

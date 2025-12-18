@@ -1,7 +1,7 @@
 <?php
 require_once(__DIR__ . '/../../config/rutes.php');
-require ROOT_PATH . 'vendor/autoload.php';
 require_once(ROOT_PATH . 'config/config.php');
+require ROOT_PATH . 'vendor/autoload.php';
 session_start();
 
 use Endroid\QrCode\QrCode;
@@ -23,8 +23,11 @@ try {
     $token = bin2hex(random_bytes(32));
 
     // URL que se codificará
-    $url = "https://sellosyretenes.com/sealfaster/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
-    //$url = "http://localhost/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
+    if($DEV_MODE === false){
+        $url = "https://".$BASE_URL."/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
+    }else{
+        $url = "http://localhost/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
+    }
 
 
     // Guardar token en base de datos

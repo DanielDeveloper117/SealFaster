@@ -21,11 +21,12 @@ try {
         SELECT valor 
         FROM parametros2 
         WHERE caso = :caso 
-        AND limite_inferior <= :di 
-        AND :di <= limite_superior
+        AND limite_inferior <= :di1 
+        AND :di2 <= limite_superior
     ");
     $stmt->bindValue(':caso', $nombreMaterialPrefijo, PDO::PARAM_STR);
-    $stmt->bindValue(':di', $diametroInterior);
+    $stmt->bindValue(':di1', $diametroInterior);
+    $stmt->bindValue(':di2', $diametroInterior);
     $stmt->execute();
     $registroMaterial = $stmt->fetch(PDO::FETCH_ASSOC);
 

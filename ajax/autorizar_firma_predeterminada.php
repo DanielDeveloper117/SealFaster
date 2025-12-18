@@ -2,6 +2,8 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 session_start();
 
@@ -58,7 +60,7 @@ try {
     $stmtUserInfo->execute();
     $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
 
-    $clave_encriptacion = 'SRS2024#tides';
+    $clave_encriptacion = $PASS_UNCRIPT;
     $nombre_encriptado = $arregloUser['nombre'];
     $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
     // Actualizacion de requisicion
@@ -178,8 +180,20 @@ try {
     $mail = null; // Inicializar para evitar "undefined variable" en catch
 
     try {
-        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-        $mail = getMailer($conn);
+        //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        //$mail = getMailer($conn);
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = $USER;
+        $mail->Password = $PASS; 
+        $mail->SMTPSecure = $SECURE;
+        $mail->Port = $PORT;
+        $mail->setFrom($FROM, $DOMAIN_NAME);
+        $mail->isHTML(true);
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
 
         //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
         $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
@@ -191,14 +205,16 @@ try {
             throw new Exception("No se encontro ningun correo de inventarios.");
         }
 
-        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides'; // mejor mover a config.php
+        $clave_encriptacion = $PASS_UNCRIPT ?? ''; 
         $contadorCorreos = 0;
 
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo);
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
                     $contadorCorreos++;
                 }
             }
@@ -209,8 +225,7 @@ try {
         }
 
         // Agregar correo visible de prueba o destinatario unico
-        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->addAddress($DEV_EMAIL);
         $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
         $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                         Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>

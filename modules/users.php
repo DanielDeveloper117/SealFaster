@@ -68,7 +68,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $lider = (int)$lider;
 
                 // Encriptacion
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
                 $usuario_encriptado = openssl_encrypt($usuario, 'AES-128-ECB', $clave_encriptacion);
                 $password_encriptada = openssl_encrypt($password, 'AES-128-ECB', $clave_encriptacion);
                 $nombre_encriptado = openssl_encrypt($nombre, 'AES-128-ECB', $clave_encriptacion);
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Convertir el valor de lider a entero
                 $lider = (int)$lider;
                 // Encriptación
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
                 $usuario_encriptado = openssl_encrypt($usuario, 'AES-128-ECB', $clave_encriptacion);
                 $password_encriptada = openssl_encrypt($password, 'AES-128-ECB', $clave_encriptacion);
                 $nombre_encriptado = openssl_encrypt($nombre, 'AES-128-ECB', $clave_encriptacion);
@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <?php foreach ($arregloSelectUsers as $row):?>
                     <?php 
                         // Clave de encriptaci܇on
-                        $clave_encriptacion = 'SRS2024#tides';
+                        $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
                         $usuario_encriptado = $row['usuario'];
                         $row['usuario'] = openssl_decrypt($usuario_encriptado, 'AES-128-ECB', $clave_encriptacion);

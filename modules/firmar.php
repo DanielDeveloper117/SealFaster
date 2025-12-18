@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtUserInfo->execute();
         $arregloUser = $stmtUserInfo->fetch(PDO::FETCH_ASSOC);
 
-        $clave_encriptacion = 'SRS2024#tides';
+        $clave_encriptacion = $PASS_UNCRIPT;
         $nombre_encriptado = $arregloUser['nombre'];
         $nombreUser = openssl_decrypt($nombre_encriptado, 'AES-128-ECB', $clave_encriptacion);
 
@@ -245,7 +245,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtCorreos->execute();
         $correosInventarios = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
 
-        $clave_encriptacion = 'SRS2024#tides';
+        $clave_encriptacion = $PASS_UNCRIPT;
         $arregloCorreos = [];
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
@@ -262,8 +262,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // 9. Enviar correo
         if (!empty($arregloCorreos)) {
-            require_once(ROOT_PATH . 'includes/PHPMailer.php');
-            $mail = getMailer($conn);
+            //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+            //$mail = getMailer($conn);
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host = $HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = $USER;
+            $mail->Password = $PASS; 
+            $mail->SMTPSecure = $SECURE;
+            $mail->Port = $PORT;
+            $mail->setFrom($FROM, $DOMAIN_NAME);
+            $mail->isHTML(true);
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
             $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
             $body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                         Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
@@ -274,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             foreach ($arregloCorreos as $correo) {
                 //$mail->addAddress($correo);
             }
-            $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // destinatario de control
+            $mail->addAddress($DEV_EMAIL); // destinatario de control
 
             if (!$mail->send()) {
                 $text_alert .= " Pero hubo un error al enviar el correo: " . $mail->ErrorInfo;

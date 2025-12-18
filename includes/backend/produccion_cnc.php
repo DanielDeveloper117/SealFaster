@@ -63,33 +63,169 @@
             ////////////////////////////////////////////////////////////////////////
         }
     }
-    if (($tipo_usuario == "CNC" && ($rol_usuario == "Gerente" ||  $rol_usuario == "Auxiliar")) || $tipo_usuario == "Administrador") {
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
-        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
-    }else if($tipo_usuario == "CNC" && ($rol_usuario != "Gerente" && $rol_usuario != "Auxiliar")){
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' AND maquina = :maquina ORDER BY fecha_insercion DESC";
-        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
-        $stmtRequisiciones->bindParam(':maquina', $rolUser);
-    } else{
-        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE estatus != 'Pendiente' ORDER BY fecha_insercion DESC";
-        $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+
+include(ROOT_PATH . 'includes/backend_info_user.php');
+
+try {
+    $preferencias = $_SESSION['filtros_requisiciones_cnc'] ?? [
+        'estatus' => '',
+        'fecha_inicio' => '',
+        'fecha_fin' => '',
+        'default' => 2,
+        'orden' => 'des'
+    ];
+    // --------- LECTURA DE GET ----------
+    $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : null;
+    $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
+    $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
+    $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias["default"]; // Default: 2 = Esta semana
+    $orden = isset($_GET['orden']) && $_GET['orden'] === 'asc' ? 'ASC' : 'DESC';
+
+    $params = [];
+    
+    // --------- BASE QUERY POR TIPO Y ROL DE USUARIO (NUNCA mostrar "Pendiente") ----------
+    $condicionBase = "estatus != 'Pendiente'";
+    
+    if (($tipo_usuario == "CNC" && ($rol_usuario == "Gerente" || $rol_usuario == "Auxiliar")) || $tipo_usuario == "Administrador") {
+        // Gerente/Auxiliar CNC o Administrador - ve todas las requisiciones NO PENDIENTES
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE $condicionBase";
+    } else if ($tipo_usuario == "CNC" && ($rol_usuario != "Gerente" && $rol_usuario != "Auxiliar")) {
+        // Operador CNC - ve solo las de su máquina NO PENDIENTES
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE $condicionBase AND maquina = :maquina";
+        $params[':maquina'] = $rolUser;
+    } else if ($tipo_usuario == "Vendedor" && $rol_usuario == "Gerente") {
+        // Gerente de ventas - ve las de su área/sucursal NO PENDIENTES
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE $condicionBase AND sucursal = :area";
+        $params[':area'] = $areaUser;
+    } else if ($tipo_usuario == "Vendedor") {
+        // Vendedor regular - ve solo sus propias requisiciones NO PENDIENTES
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE $condicionBase AND id_vendedor = :id";
+        $params[':id'] = $_SESSION['id'];
+    } else {
+        // Otros tipos de usuario (Inventarios, etc.) - ve todas NO PENDIENTES
+        $sqlRequisiciones = "SELECT * FROM requisiciones WHERE $condicionBase";
     }
- 
+
+    // --------- APLICAR FILTROS ADICIONALES (EXCLUYENDO "Pendiente") ----------
+
+    // Filtro por estatus (SOLO estatus no pendientes)
+    if ($estatus) {
+        switch($estatus) {
+            case 'autorizada':
+                $sqlRequisiciones .= " AND estatus = 'Autorizada'";
+                break;
+            case 'produccion':
+                $sqlRequisiciones .= " AND (estatus = 'Producción' OR estatus = 'En producción')";
+                break;
+            case 'finalizada':
+                $sqlRequisiciones .= " AND estatus = 'Finalizada'";
+                break;
+            // NO INCLUIR 'pendiente' como opción
+        }
+    }
+
+    // Filtros de Fechas
+    if ($fecha_inicio && $fecha_fin) {
+        $sqlRequisiciones .= " AND DATE(fecha_insercion) BETWEEN :fecha_inicio AND :fecha_fin";
+        $params[':fecha_inicio'] = $fecha_inicio;
+        $params[':fecha_fin'] = $fecha_fin;
+    } elseif ($fecha_inicio) {
+        $sqlRequisiciones .= " AND DATE(fecha_insercion) >= :fecha_inicio";
+        $params[':fecha_inicio'] = $fecha_inicio;
+    } elseif ($fecha_fin) {
+        $sqlRequisiciones .= " AND DATE(fecha_insercion) <= :fecha_fin";
+        $params[':fecha_fin'] = $fecha_fin;
+    } elseif ($default > 0) { 
+        // Solo se ejecuta si NO hay fecha específica seleccionada
+        switch ($default) {
+            case 1: // hoy
+                $sqlRequisiciones .= " AND DATE(fecha_insercion) = CURDATE()";
+                break;
+            case 2: // esta semana (DEFAULT)
+                $sqlRequisiciones .= " AND YEARWEEK(fecha_insercion, 1) = YEARWEEK(CURDATE(), 1)";
+                break;
+            case 3: // este mes
+                $sqlRequisiciones .= " AND YEAR(fecha_insercion) = YEAR(CURDATE()) 
+                                    AND MONTH(fecha_insercion) = MONTH(CURDATE())";
+                break;
+            // case 0: "Todas" - no se agrega condición
+        }
+    }
+
+    // --------- ORDEN ----------
+    $sqlRequisiciones .= " ORDER BY id_requisicion $orden";
+
+    // --------- EJECUCIÓN ----------
+    $stmtRequisiciones = $conn->prepare($sqlRequisiciones);
+    
+    foreach ($params as $k => $v) {
+        $type = is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR;
+        $stmtRequisiciones->bindValue($k, $v, $type);
+    }
+    
     $stmtRequisiciones->execute();
     $arregloSelectRequisiciones = $stmtRequisiciones->fetchAll(PDO::FETCH_ASSOC);
 
-    // function btnManager($estatus){
-    //     switch ($estatus){
-    //         case 'Producción':
-    //         break;
-    //         case 'En producción':
-                
-    //         break;
-    //         case 'Finalizada':
-    //         break;
-    //         default:
-    //         break;
-    //     }
+    // --------- GUARDAR PREFERENCIAS EN SESIÓN ----------
+    $_SESSION['filtros_requisiciones_cnc'] = [
+        'estatus' => $estatus,
+        'fecha_inicio' => $fecha_inicio,
+        'fecha_fin' => $fecha_fin,
+        'default' => $default,
+        'orden' => $orden
+    ];
 
-    // }
+} catch (Throwable $e) {
+    // Fallback robusto en caso de error (TAMBIÉN EXCLUYE "Pendiente")
+    try {
+        $condicionFallback = "estatus != 'Pendiente'";
+        
+        if (($tipo_usuario == "CNC" && ($rol_usuario == "Gerente" || $rol_usuario == "Auxiliar")) || $tipo_usuario == "Administrador") {
+            $sqlFallback = "SELECT * FROM requisiciones WHERE $condicionFallback ORDER BY id_requisicion DESC";
+            $stmtRequisiciones = $conn->prepare($sqlFallback);
+        } else if ($tipo_usuario == "CNC" && ($rol_usuario != "Gerente" && $rol_usuario != "Auxiliar")) {
+            $sqlFallback = "SELECT * FROM requisiciones WHERE $condicionFallback AND maquina = :maquina ORDER BY id_requisicion DESC";
+            $stmtRequisiciones = $conn->prepare($sqlFallback);
+            $stmtRequisiciones->bindParam(':maquina', $rolUser);
+        } else if ($tipo_usuario == "Vendedor" && $rol_usuario == "Gerente") {
+            $sqlFallback = "SELECT * FROM requisiciones WHERE $condicionFallback AND sucursal = :area ORDER BY id_requisicion DESC";
+            $stmtRequisiciones = $conn->prepare($sqlFallback);
+            $stmtRequisiciones->bindParam(':area', $areaUser);
+        } else if ($tipo_usuario == "Vendedor") {
+            $sqlFallback = "SELECT * FROM requisiciones WHERE $condicionFallback AND id_vendedor = :id ORDER BY id_requisicion DESC";
+            $stmtRequisiciones = $conn->prepare($sqlFallback);
+            $stmtRequisiciones->bindParam(':id', $_SESSION['id']);
+        } else {
+            $sqlFallback = "SELECT * FROM requisiciones WHERE $condicionFallback ORDER BY id_requisicion DESC";
+            $stmtRequisiciones = $conn->prepare($sqlFallback);
+        }
+        
+        $stmtRequisiciones->execute();
+        $arregloSelectRequisiciones = $stmtRequisiciones->fetchAll(PDO::FETCH_ASSOC);
+        
+        error_log("Error en filtros de requisiciones (CNC): " . $e->getMessage());
+
+    } catch (Throwable $e2) {
+        // Si también falla el fallback
+        $arregloSelectRequisiciones = [];
+        error_log("Error crítico en filtros de requisiciones (CNC): " . $e2->getMessage());
+    }
+}
+
+// --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
+$preferencias = $_SESSION['filtros_requisiciones_cnc'] ?? [
+    'estatus' => '',
+    'fecha_inicio' => '',
+    'fecha_fin' => '',
+    'default' => 2, // Default: 2 = Esta semana
+    'orden' => 'des'
+];
+
+// Sobreescribir con valores actuales de GET si existen
+if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];
+if (isset($_GET['fecha_inicio'])) $preferencias['fecha_inicio'] = $_GET['fecha_inicio'];
+if (isset($_GET['fecha_fin'])) $preferencias['fecha_fin'] = $_GET['fecha_fin'];
+if (isset($_GET['default'])) $preferencias['default'] = $_GET['default'];
+if (isset($_GET['orden'])) $preferencias['orden'] = $_GET['orden'];
+
 ?>

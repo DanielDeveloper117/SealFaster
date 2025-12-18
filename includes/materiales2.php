@@ -1,6 +1,5 @@
 <?php for ($i = 1; $i <= $cantidadMateriales; $i++): ?>
     <form id="estimateForm_m<?= $i ?>" method="post"> 
-        <!-- PRIMER FORMULARIO - MATERIAL 1 -->
         <section id="sectionContainerMaterial_m<?= $i ?>" class="section-container d-none">
             <?php
                 $numeroMaterial="";
@@ -31,9 +30,26 @@
                     }
                 ?>
                 <div class="controles pb-5 d-flex col-9 flex-column border-gray">
-                    <h4>Selección de billets para el maquinado</h4>
+                    <div class="d-flex justify-content-between">
+                        <h4>Selección de billets para el maquinado</h4>
+                        <?php if ($cantidadMateriales != 1):  ?>
+                        <div id="containerOmitirElemento_m<?= $i ?>" class="d-flex align-items-center gap-2">
+                            <input
+                                id="checkboxOmitirElemento_m<?= $i ?>"
+                                type="checkbox"
+                                class="form-check-input"
+                                val="<?= $i ?>"
+                                aria-label="Omitir el elemento del perfil"
+                                style="width: 25px; height: 25px;"
+                            />
+                            <label for="checkboxOmitirElemento_m<?= $i ?>" class="mb-0">
+                                Omitir elemento
+                            </label>
+                        </div>
+                        <?php endif; ?>
+                    </div>
 
-                    <div class="d-flex col-12 justify-content-center">
+                    <div id="containerPags_m<?= $i ?>" class="d-flex col-12 justify-content-center">
                         <div id="pag1_m<?= $i ?>" class="d-flex col-12 flex-column flex-md-row justify-content-evenly mt-4" >
                       
                             <input type="hidden" id="diametro_interior_mm_m<?= $i ?>" class="input-estimador" step="0.01" min="0"  name="diametro_interior_mm"  required  placeholder="Ingrese las dimensiones">
@@ -76,6 +92,7 @@
                                 <div class="d-flex flex-column align-items-start" style="height:100%;">
                                     <label for="btnBillets_m<?= $i ?>" class="label-estimador">Seleccionar claves de Billet</label>
                                     <button id="btnBillets_m<?= $i ?>" type="button" class="btn-disabled mb-2" data-bs-toggle="modal" data-bs-target="#modalBillets_m<?= $i ?>" disabled>Ver billets disponibles</button>
+                                    <button id="btnBilletsSimulacion_m<?= $i ?>" type="button" class="d-none btn-disabled mb-2" data-bs-toggle="modal" data-bs-target="#modalBilletsSimulacion_m<?= $i ?>" disabled>Ver barras coincidentes</button>
                                     <!-- <span>Desbaste añadido por pieza: 2.5 mm</span> -->
                                     <div class="d-flex flex-column">
                                         <div id="containerFaltanSiNo_m<?= $i ?>" class="text-faltan">
@@ -89,6 +106,9 @@
                                             <span>Sobran: </span>
                                             <span id="spanMilimetrosSobrantes_m<?= $i ?>">0</span>
                                             <span> milímetros</span>
+                                        </div>
+                                        <div id="containerBarraSeleccionadaSimulacion_m<?= $i ?>" class="d-none text-no-faltan">
+                                            <span></span>
                                         </div>
                                     </div>
                                     <div class="mb-3" style="width:100%; overflow-x:auto;">
@@ -119,7 +139,10 @@
 
                         <div id="pag2_m<?= $i ?>" class="d-none col-12 flex-column justify-content-center align-items-center mt-4">
                             <div class="col-11 d-flex flex-column">
-                                <div class="" style="min-height: max-content;width:100%; overflow-x:auto;">
+                                <div class="mb-2" style="overflow-y: auto;
+                                                        width: 100%;
+                                                        overflow-x: auto;
+                                                        height: 100px !important;">
                                     <table id="miniTableCostoBarra_m<?= $i ?>" class="table table-bordered border border-2 tabla-billets">
                                         <thead>
                                             <tr>
@@ -164,7 +187,7 @@
                                 <input type="hidden" id="inputCostoPreparacionDI_m<?= $i ?>" class="input-estimador" value="" name="costo_preparacion_di_barra" step="0.01" min="0" placeholder="Intente con otra clave">
                                 <input type="hidden" id="inputCostoResorte_m<?= $i ?>" class="input-estimador" value="" name="costo_resorte" step="0.01" min="0" placeholder="No aplica">
 
-                                <div class="d-flex flex-column flex-md-row gap-5 justify-content-between align-items-end" style="height:100%;">
+                                <div class="d-flex flex-column flex-md-row gap-5 justify-content-between align-items-end" >
                                     <button id="btnAtras_m<?= $i ?>" type="button" class="btn-general mt-4"><< Atras</button>
                                     <button id="btnNoListo_m<?= $i ?>" type="button" class="btn-general d-none mt-4">Habilitar edición<i class='bi bi-pencil' style='color:#fff; margin-left: 5px;'></i></button>
                                     <button id="btnListo_m<?= $i ?>" type="button" class="btn-disabled mt-4" disabled>Marcar como completado<i class='bi bi-check2-circle' style='color:#fff; margin-left: 5px;'></i></button>
@@ -179,6 +202,9 @@
                             <input type="hidden" id="inputPorcentDescuentoMayoreo_m<?= $i ?>" class="input-span-porcent" name="descuento_mayoreo_porcent" placeholder="0">
                           
                         </div>
+                    </div>
+                    <div id="containerAltPags_m<?= $i ?>" class="d-none">
+                        <span class="text-truncate fst-italic">Este elemento fue omitido para cotizar</span>
                     </div>
                 </div>
             </div>
@@ -213,7 +239,7 @@
 
     </form>
 
-    <!-- MODAL DE SELECCIONAR CLAVES -->
+    <!-- MODAL DE SELECCIONAR BILLETS -->
     <div class="modal fade" id="modalBillets_m<?= $i ?>" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" >
         <!-- Contenedor del header, body y footer del modal -->
         <div class="modal-dialog" style="max-width: 95% !important;">
@@ -348,5 +374,61 @@
             </div>
         </div>
     </div>
+    <!-- MODAL DE SELECCIONAR CLAVE SIMULACION -->
+    <div class="modal fade" id="modalBilletsSimulacion_m<?= $i ?>" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" >
+        <!-- Contenedor del header, body y footer del modal -->
+        <div class="modal-dialog" style="max-width: 95% !important;">
+            <div class="modal-content" style="height:95%;">
+                <!-- contenedor del titulo -->
+                <div class="modal-header justify-content-between">
+                    <h5 id="titleClavesCoincidentesSimulacion_m<?= $i ?>" class="modal-title text-success">Seleccione una clave para calcular costos</h5>
+                    <button id="btnCerrarModalBilletsSimulacion_m<?= $i ?>" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <!-- contenedor del body -->
+                <div class="modal-body d-flex col-12 justify-content-between" style="height:400px;">
+                    <div id="containerBodyModalBilletsSimulacion_m<?= $i ?>" class="" style="overflow-y:auto; width:100%;">
+                        <table id="tablaBilletsSimulacion_m<?= $i ?>" class="table table-bordered border border-2 tabla-billets">
+                            <thead>
+                                <tr>
+                                    <th scope="col"></th>
+                                    <th scope="col">Clave</th>
+                                    <th scope="col">Aprovechamiento</th>
+                                    <th scope="col">Medida</th>
+                                    <th scope="col">Max. Length</th>
+                                    <th scope="col">Material</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+        
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="container38Simulacion_m<?= $i ?>" 
+                            class="d-flex flex-column d-none" 
+                            style="<?php if ($tipoUsuario != 3 && $tipoUsuario != 4 && $tipoUsuario != 5) {echo 'width:38%';} ?>;">
+                        <button id="btnQuitarCircleSimulacion_m<?= $i ?>" class="btn-close align-self-end d-none" style="padding-right:5%;"></button>
 
+                        <div id="containerCircleBilletSimulacion_m<?= $i ?>" 
+                            class="d-flex flex-column justify-content-center align-items-center <?php if ($tipoUsuario == 3 || $tipoUsuario == 4) {echo 'd-none';}?>">
+                            <div class="d-flex justify-content-center align-items-start">
+                            <svg 
+                                id="circuloSvgSimulacion_m<?= $i ?>"
+                                width="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
+                                height="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
+                                viewBox="0 0 100 100">
+                            </svg>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-start" style="font-size:18px; font-weight:700;">
+                                <p>Porcentaje de aprovechamiento: <span id="spanPorcentAprovSimulacion_m<?= $i ?>">0.00</span>%</p>
+                            </div>
+                        </div>
+ 
+                    </div>
+                </div>
+                <!-- contenedor del footer -->
+                <div class="modal-footer justify-content-start">
+                </div>
+            </div>
+        </div>
+    </div>
 <?php endfor; ?>

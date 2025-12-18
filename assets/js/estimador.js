@@ -4,7 +4,6 @@ $(document).ready(function() {
 // //////////////////////////////////// @DECLARACION DE VARIABLES
     window.MEDIDA_AGARRE_MAQUINA = 6.00;
     window.FAMILIA_PERFIL = "";
-    window.CANTIDAD_MATERIALES=0;
     window.CON_LABIO_DI = 0;
     window.CON_LABIO_DE = 0;
     window.CON_BACKUP = "0";
@@ -56,13 +55,20 @@ $(document).ready(function() {
     window.porcentajeDE_m4 = 1.00;
     window.porcentajeDE_m5 = 1.00;
 
-    let boolClienteSeleccionado = false;
-    let boolMedidaSeleccionadaDI = false;
-    let boolMedidaSeleccionadaDE = false;
-    let boolMedidaSeleccionadaH = false;
+    window.CLIENTE_SELECCIONADO = false;
+    window.TIPO_INVENTARIO = false;
+    window.DUREZA_SELECCIONADA = false;
+    
+    window.TIPO_MEDIDA_DI_SELECCIONADA = false;
+    window.TIPO_MEDIDA_DE_SELECCIONADA = false;
+    window.TIPO_MEDIDA_H_SELECCIONADA = false;
+
+    window.DI_CLIENTE_DIGITADO = false;
+    window.DE_CLIENTE_DIGITADO = false;
+    window.H_CLIENTE_DIGITADO = false;
 
     window.A_CAJA = 0.00;
-
+    window.TIPO_INVENTARIO_STRING = "simulacion";
     window.TIPO_MEDIDA_SELLO = "Metal";
 
     window.TIPO_MEDIDA_DI = "Metal";
@@ -131,12 +137,17 @@ $(document).ready(function() {
     };
 
     function resetear_materiales_completados(){
-        for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
-            $(`#btnNoListo_m${i}`).trigger("click");
-            $(`#btnAtras_m${i}`).trigger("click");
-        }
         MaterialesCompletados=0;
-        habilitarCotizacion(0);
+        for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
+            if($(`#checkboxOmitirElemento_m${i}`).is(':checked')){
+                MaterialesCompletados += 1;
+            }else{
+                MaterialesCompletados += 1;
+                $(`#btnNoListo_m${i}`).trigger("click");
+                $(`#btnAtras_m${i}`).trigger("click");
+            }
+        }
+        habilitarCotizacion(MaterialesCompletados);
     }
 
     function escaparCaracteresNumericos_cliente() {
@@ -1020,6 +1031,12 @@ $(document).ready(function() {
                 tipoMedidaDE = tipoMedidaDI;
             }
 
+            let esSimulacion = 0;
+            if(window.TIPO_INVENTARIO_STRING == "fisico"){
+                esSimulacion = 0;
+            }else{
+                esSimulacion = 1;
+            }
             $.ajax({
                 url: '../ajax/ajax_guardar_cotizacion.php',
                 type: 'POST',
@@ -1038,7 +1055,8 @@ $(document).ready(function() {
                     '&de_sello2=' + encodeURIComponent(deClienteSello2) +
                     '&a_sello_inch2=' + encodeURIComponent(alturaClienteSelloInch2) +
                     '&di_sello_inch2=' + encodeURIComponent(diClienteSelloInch2) +
-                    '&de_sello_inch2=' + encodeURIComponent(deClienteSelloInch2),
+                    '&de_sello_inch2=' + encodeURIComponent(deClienteSelloInch2) +
+                    '&simulacion=' + encodeURIComponent(esSimulacion),
                 dataType: 'json',
                 success: function (data) {
                     console.log("Respuesta AJAX material", numeroMaterial, data);
@@ -1203,7 +1221,7 @@ $(document).ready(function() {
                 img.src = imagenUrl;
             
                 img.onload = function () {
-                    $(`#sectionContainerMaterial_m${i}, #imagenMaterialTabla_m${i}`).removeClass("d-none");
+                    $(`#imagenMaterialTabla_m${i}`).removeClass("d-none");
                     $(`#imagenMaterialTabla_m${i}`).attr("src", imagenUrl);
                     $(`#seraEnviado_m${i}`).val("si");
                 };
@@ -1237,7 +1255,10 @@ $(document).ready(function() {
         width: "100%",
         minimumResultsForSearch: Infinity  // Esto desactiva completamente la búsqueda
     });
-
+    $("#selectorTipoInventario").select2({
+        width: "100%",
+        minimumResultsForSearch: Infinity  // Esto desactiva completamente la búsqueda
+    });
     $("#selectorTipoMedidaDI").select2({
         width: "100%",
         minimumResultsForSearch: Infinity  // Esto desactiva completamente la búsqueda
@@ -1334,8 +1355,8 @@ $(document).ready(function() {
 
         } 
 
-        if(boolClienteSeleccionado==false){
-            boolClienteSeleccionado=true;
+        if(window.CLIENTE_SELECCIONADO==false){
+            window.CLIENTE_SELECCIONADO=true;
         }else{
             resetear_materiales_completados();
         }
@@ -1368,9 +1389,44 @@ $(document).ready(function() {
         $("#selectorTipoMedidaH").attr("disabled", false);
 
     });
+    // EVENTO CAMBIAR TIPO DE INVENTARIO, REINICIAR TODO
+    $("#selectorTipoInventario").on("change", function(){
+        if(window.TIPO_INVENTARIO==false){
+            window.TIPO_INVENTARIO=true;
+        }else{
+            resetear_materiales_completados();
+        }
+        validarCamposDimensiones();
+        
+        window.TIPO_INVENTARIO_STRING = $(this).val();
+
+        for(let i=1; i<=window.CANTIDAD_MATERIALES; i++){
+            $(`#inputCantidad_m${i}`).trigger("input");
+            
+            if(window.TIPO_INVENTARIO_STRING == "fisico"){
+                $(`#btnBilletsSimulacion_m${i}`).addClass("d-none");
+                $(`#containerBarraSeleccionadaSimulacion_m${i}`).addClass("d-none");
+                $(`#spanSimulacion`).addClass("d-none");
+                $(`#btnBillets_m${i}`).removeClass("d-none");
+                $(`#miniTableBillets_m${i}`).removeClass("d-none");
+                $(`#containerFaltanSiNo_m${i}`).removeClass("d-none");
+            }else{
+                $(`#btnBilletsSimulacion_m${i}`).removeClass("d-none");
+                $(`#containerBarraSeleccionadaSimulacion_m${i}`).removeClass("d-none");
+                $(`#spanSimulacion`).removeClass("d-none");
+                $(`#btnBillets_m${i}`).addClass("d-none");
+                $(`#miniTableBillets_m${i}`).addClass("d-none");
+                $(`#containerFaltanSiNo_m${i}`).addClass("d-none");
+            }
+        }
+    }); 
     // EVENTO CAMBIAR DUREZA DE MATERIALES, REINICIAR TODO
     $("#selectorDurezaMateriales").on("change", function(){
-        resetear_materiales_completados();
+        if(window.DUREZA_SELECCIONADA==false){
+            window.DUREZA_SELECCIONADA=true;
+        }else{
+            resetear_materiales_completados();
+        }
         validarCamposDimensiones();
         let durezaMateriales = $(this).val();
         const blandos = ["H-ECOPUR","ECOSIL","ECORUBBER 1","ECORUBBER 2","ECORUBBER 3","ECOPUR"];
@@ -1390,50 +1446,21 @@ $(document).ready(function() {
                 );
             });
         }
-        
-        // for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
-        //     $(`#inputCantidad_m${i}`).trigger("input");
-        //     disablarBoton(`#btnBillets_m${i}`);
-        //     $(`#selectorMaterial_m${i}`).html(
-        //         `<option value="" disabled selected>Seleccione una opcion</option>`
-        //     );
-        // }
-        // if(durezaMateriales === "blandos"){
-        //     for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
-        //         blandos.forEach(element => {
-        //             $(`#selectorMaterial_m${i}`).append(
-        //                 `<option value="${element}">${element}</option>`
-        //             );
-        //         });
-        //     }
-        // }else if(durezaMateriales === "duros"){
-        //     for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
-        //         duros.forEach(element => {
-        //             $(`#selectorMaterial_m${i}`).append(
-        //                 `<option value="${element}">${element}</option>`
-        //             );
-        //         });
-        //     }
-        // }else{
-        //     for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
-        //         todosMateriales.forEach(element => {
-        //             $(`#selectorMaterial_m${i}`).append(
-        //                 `<option value="${element}">${element}</option>`
-        //             );
-        //         });
-        //     }
-        // }
-        // if(window.CON_BACKUP !== "0" && window.perfilSello){
-
-        // }
     });  
+    // AL SELECCIONAR LAS 3 COSAS MUESTRA LA SECCION DE DIMENSIONES
+    $("#selectorCliente, #selectorTipoInventario, #selectorDurezaMateriales").on("change", function(){
+        if(window.CLIENTE_SELECCIONADO===true && window.TIPO_INVENTARIO===true && window.DUREZA_SELECCIONADA===true){
+            $(`#sectionDimensionesSello`).removeClass("d-none");
+            
+        }
+    });
     // EVENTO CAMBIAR DE TIPO DE MEDIDA DEL DIAMETRO INTERIOR
     $("#selectorTipoMedidaDI").on("change", function(){
         let tipoMedidaDI = $(this).val();
         window.TIPO_MEDIDA_DI = tipoMedidaDI;
         console.log("tipo medida DI cambio a: ", window.TIPO_MEDIDA_DI);
-        if(boolMedidaSeleccionadaDI==false){
-            boolMedidaSeleccionadaDI=true;
+        if(window.TIPO_MEDIDA_DI_SELECCIONADA==false){
+            window.TIPO_MEDIDA_DI_SELECCIONADA=true;
             habilitarInput(`#diametro_interior_mm_cliente`);
             habilitarInput(`#diametro_interior_inch_cliente`);
             habilitarInput(`#diametro_interior_mm_cliente2`);
@@ -1451,8 +1478,8 @@ $(document).ready(function() {
         let tipoMedidaDE = $(this).val();
         window.TIPO_MEDIDA_DE = tipoMedidaDE;
         console.log("tipo medida DE cambio a: ", window.TIPO_MEDIDA_DE);
-        if(boolMedidaSeleccionadaDE==false){
-            boolMedidaSeleccionadaDE=true;
+        if(window.TIPO_MEDIDA_DE_SELECCIONADA==false){
+            window.TIPO_MEDIDA_DE_SELECCIONADA=true;
             if(!window.perfilSello.includes("R13")){
                 habilitarInput(`#diametro_exterior_mm_cliente`);
                 habilitarInput(`#diametro_exterior_inch_cliente`);
@@ -1469,8 +1496,8 @@ $(document).ready(function() {
         let tipoMedidaH = $(this).val();
         window.TIPO_MEDIDA_H = tipoMedidaH;
         console.log("tipo medida H cambio a: ", window.TIPO_MEDIDA_H);
-        if(boolMedidaSeleccionadaH==false){
-            boolMedidaSeleccionadaH=true;
+        if(window.TIPO_MEDIDA_H_SELECCIONADA==false){
+            window.TIPO_MEDIDA_H_SELECCIONADA=true;
             habilitarInput(`#altura_mm_cliente`);
             habilitarInput(`#altura_inch_cliente`);
             habilitarInput(`#altura_mm_cliente2`);
@@ -1483,7 +1510,22 @@ $(document).ready(function() {
             resetear_materiales_completados();
         }
     });
-
+    // AL SELECCIONAR LOS 3 TIPOS DE MEDIDA SE MUESTRAN LAS SECCIONES DE ELEMENTOS DEL SELLO
+    $("#selectorTipoMedidaDI, #selectorTipoMedidaDE, #selectorTipoMedidaH, #altura_mm_cliente, #diametro_interior_mm_cliente, #diametro_exterior_mm_cliente").on("input change", function(){
+        setTimeout(() => {
+            if(window.TIPO_MEDIDA_DI_SELECCIONADA===true 
+                && window.TIPO_MEDIDA_DE_SELECCIONADA===true 
+                && window.TIPO_MEDIDA_H_SELECCIONADA===true
+                && window.DI_CLIENTE_DIGITADO===true
+                && window.DE_CLIENTE_DIGITADO===true
+                && window.H_CLIENTE_DIGITADO===true ){
+                for(let i=1; i<=window.CANTIDAD_MATERIALES; i++){
+                    $(`#sectionContainerMaterial_m${i}`).removeClass("d-none");
+                }
+                $(`#sectionCotizar`).removeClass("d-none");
+            }
+        }, 1000);
+    });
     // -----------------------------ALTURA--------------------------------------------------------------------
     // ---------------  MM a INCH  ---------------------
     $('#altura_mm_cliente').on('input', function(){
@@ -1494,6 +1536,7 @@ $(document).ready(function() {
         }
         let alturaMmToInch = valorAlturaMm / 25.4;
         $('#altura_inch_cliente').val(alturaMmToInch.toFixed(4));
+        window.H_CLIENTE_DIGITADO=true;
     });
     // ----------  INCH a MM ------------------------------------
     $('#altura_inch_cliente').on('input', function(){
@@ -1504,6 +1547,7 @@ $(document).ready(function() {
         }
         let alturaInchToMm = valorAlturaInch * 25.4;
         $('#altura_mm_cliente').val(alturaInchToMm.toFixed(2));
+        window.H_CLIENTE_DIGITADO=true;
     });
 
     // -----------------------------ALTURA CAJA--------------------------------------------------------------------
@@ -1607,7 +1651,7 @@ $(document).ready(function() {
         }
         let DiaInMmToInch = valorDiaInMm / 25.4;
         $('#diametro_interior_inch_cliente').val(DiaInMmToInch.toFixed(4));
-        
+        window.DI_CLIENTE_DIGITADO=true;
     });
     // ----------  INCH a MM ------------------------------------
     $('#diametro_interior_inch_cliente').on('input', function(){
@@ -1618,6 +1662,7 @@ $(document).ready(function() {
         }
         let DiaInInchToMm = valorDiaInInch * 25.4;
         $('#diametro_interior_mm_cliente').val(DiaInInchToMm.toFixed(2));
+        window.DI_CLIENTE_DIGITADO=true;
     });
 
 
@@ -1631,7 +1676,7 @@ $(document).ready(function() {
         }
         let DiaExMmToInch = valorDiaExMm / 25.4;
         $('#diametro_exterior_inch_cliente').val(DiaExMmToInch.toFixed(4));
-        
+        window.DE_CLIENTE_DIGITADO=true;
     });
     // ----------  INCH a MM ------------------------------------
     $('#diametro_exterior_inch_cliente').on('input', function(){
@@ -1642,6 +1687,7 @@ $(document).ready(function() {
         }
         let DiaExInchToMm = valorDiaExInch * 25.4;
         $('#diametro_exterior_mm_cliente').val(DiaExInchToMm.toFixed(2));
+        window.DE_CLIENTE_DIGITADO=true;
     });
 
 
@@ -1788,7 +1834,16 @@ $(document).ready(function() {
         const modal = new bootstrap.Modal(document.getElementById('modalSpecialWiper'));
         modal.show();
     });
-
+    // ESCUCHAR EL CHECK DE OMITIR ELEMENTO
+    $("#checkboxOmitirElemento_m1, #checkboxOmitirElemento_m2, #checkboxOmitirElemento_m3, #checkboxOmitirElemento_m4, #checkboxOmitirElemento_m5").on("change", function(){
+        if ($(this).is(':checked')) {
+            MaterialesCompletados += 1;
+            habilitarCotizacion(MaterialesCompletados);
+        } else {
+            MaterialesCompletados -= 1;
+            habilitarCotizacion(MaterialesCompletados);
+        }
+    });
     // ESCUCHAR EL CLICK DE COMPLETAR UN MATERIAL
     $("#btnListo_m1, #btnListo_m2, #btnListo_m3, #btnListo_m4, #btnListo_m5").on("click", function(){
         MaterialesCompletados += 1;
@@ -1806,8 +1861,24 @@ $(document).ready(function() {
         $("#btnPrevisualizar").addClass("d-none");
     });
     
+    
     // ESCUCHAR CLICK EN COTIZAR PARA SUMAR LOS TOTALES
     $("#btnCotizar").on("click", function(){
+        let MaterialesOmitidos = 0;
+        for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
+            if($(`#checkboxOmitirElemento_m${i}`).is(':checked')){
+                MaterialesOmitidos += 1;
+            }
+        }
+
+        if(MaterialesCompletados <= 0){
+            sweetAlertResponse("warning", "Faltan datos","Debe completar al menos un elemento de este perfil.", "none");
+            return;
+        }
+        if(MaterialesOmitidos == MaterialesCompletados){
+            sweetAlertResponse("warning", "Faltan datos","No es posible omitir todos los elementos. Debe completar al menos uno.", "none");
+            return;
+        }
         let totalM1 = parseFloat($("#inputTotalMaterial_m1").val()) || 0;  // Convierte a número, y usa 0 si es NaN
         let totalM2 = parseFloat($("#inputTotalMaterial_m2").val()) || 0;
         let totalM3 = parseFloat($("#inputTotalMaterial_m3").val()) || 0; 
@@ -2031,6 +2102,14 @@ $(document).ready(function() {
         });
     });
 
+        // Animación “pop” al (des)chequear y hook listo para tu lógica
+    document.addEventListener('change', (e) => {
+        if (!e.target.classList.contains('btn-check-cute')) return;
+
+        // animación breve
+        e.target.classList.add('pop');
+        setTimeout(() => e.target.classList.remove('pop'), 220);
+    });
 
     // Verificar si ya existe la preferencia en localStorage
     if (!localStorage.getItem("ocultarInfoValidacion")) {

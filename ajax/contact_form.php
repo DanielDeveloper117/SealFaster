@@ -1,10 +1,9 @@
 <?php
-// contact_handler.php
+// contact_form.php
 session_start();
 require_once(__DIR__ . '/../../../secure_config/rate_limiter.php');
 require_once(__DIR__ . '/../../../secure_config/ip_blocker.php');
 
-// Función para registrar intentos de usuarios
 function logUserAttempt($postData) {
     $logDir = __DIR__ . '/../../../logs';
     $logFile = $logDir . '/contact_form_users.log';
@@ -20,12 +19,12 @@ function logUserAttempt($postData) {
     $entry = date('Y-m-d H:i:s') . ' | ' .
         'IP=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . ' | ' .
         'UA=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown') . ' | ' .
-        'POST=' . json_encode($postData) . PHP_EOL;
+        'POST=' . json_encode($postData) .
+        PHP_EOL;
 
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
 
-// Función para registrar intentos de bots
 function logBotAttempt($data) {
     $logDir = __DIR__ . '/../../../logs';
     $logFile = $logDir . '/contact_form_bots.log';
@@ -46,7 +45,6 @@ function logBotAttempt($data) {
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
 
-// Función para registrar intentos sospechosos
 function logSuspiciousFileAttempt($reason, $postData) {
     $logDir = __DIR__ . '/../../../logs';
     $logFile = $logDir . '/contact_form_suspicious.log';
@@ -63,12 +61,13 @@ function logSuspiciousFileAttempt($reason, $postData) {
         'REASON=' . $reason . ' | ' .
         'IP=' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown') . ' | ' .
         'UA=' . ($_SERVER['HTTP_USER_AGENT'] ?? 'unknown') . ' | ' .
-        'POST=' . json_encode($postData) . PHP_EOL;
+        'POST=' . json_encode($postData) .
+        PHP_EOL;
 
     file_put_contents($logFile, $entry, FILE_APPEND);
 }
 
-// Verificar límite de tasa
+// Verificar rate limiting
 if (!rate_limit_allow()) {
     logSuspiciousFileAttempt("rate_limit_exceeded", $_POST);
     logBotAttempt($_POST);
@@ -120,6 +119,7 @@ try {
 
     // Verificar captcha
     if (!isset($_POST['captcha_valid']) || $_POST['captcha_valid'] !== 'yes') {
+        logSuspiciousFileAttempt("Captcha no validado", $_POST);
         echo json_encode([
             "success" => false,
             "message" => "Captcha no validado"
@@ -129,6 +129,7 @@ try {
 
     // Verificar CSRF token
     if (empty($_POST['csrf_token']) || $_POST['csrf_token'] !== ($_SESSION['csrf_token'] ?? '')) {
+        logSuspiciousFileAttempt("Token CSRF inválido", $_POST);
         echo json_encode([
             "success" => false,
             "message" => "Token CSRF inválido"
@@ -136,7 +137,7 @@ try {
         exit;
     }
 
-    // Verificar que se recibieron datos POST
+    // Verificar que sea una petición multipart/form-data
     if (empty($_POST)) {
         throw new Exception('Datos del formulario no recibidos');
     }
@@ -156,13 +157,10 @@ try {
 
     // Honeypot: campo oculto para bots
     if (!empty($_POST['phone_number'])) {
-        // Bot detectado
+        // bot detectado
         logBotAttempt($_POST);
         http_response_code(200);
-        echo json_encode([
-            'success' => true, 
-            'message' => 'Los datos se han enviado correctamente. ¡Gracias por contactarnos! Buen intento bot'
-        ]);
+        echo json_encode(['success' => true, 'message' => 'Los datos se han enviado correctamente. ¡Gracias por contactarnos! Buen intento bot']);
         exit;
     }
 
@@ -241,13 +239,13 @@ try {
     // Versión alternativa en texto plano
     $mail->AltBody = "Nuevo mensaje de contacto:\n\nDe: $email\nAsunto: $subject\nMensaje: $message\n\nEnviado el: " . date('d/m/Y H:i:s');
 
-    $mailsend = true;
     // Enviar el correo
+    $mailsend = true;
     //if ($mail->send()) {
     if ($mailsend) {
         $response = [
             'success' => true,
-            'message' => 'Los datos se han enviado correctamente'
+            'message' => 'Los datos se han enviado correctamente. ¡Gracias por contactarnos!'
         ];
     } else {
         throw new Exception('Error al enviar el correo: ' . $mail->ErrorInfo);

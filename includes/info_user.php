@@ -13,7 +13,7 @@ $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
 $usuario_desencriptado = "";
 if ($resultado) {
     // Clave de encriptaci܇n
-    $clave_encriptacion = 'SRS2024#tides';
+    $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
     // Desencriptar el nombre
     $nombre_encriptado = $resultado['nombre'];

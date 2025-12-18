@@ -168,28 +168,43 @@ if (!isset($_SESSION['id'])) {
             <input id="isFive" type="hidden" value="0">
             <section id="sectionSelectorCliente" class="section-container">
                 <div class="mb-3 d-flex flex-column  col-12 col-md-12">
-                    <h4>Cliente</h4>
+                    <h5>Cliente *</h5>
                     <select id="selectorCliente" class="" style="z-index:999;">
                         <option value="" disabled selected>Seleccione un cliente</option>
                     </select>
                 </div> 
+                <div class="d-flex col-11 col-md-12 flex-column">
+                    <h5 class="mb-3">Tipo de inventario *</h5>
+                    <select id="selectorTipoInventario" class="" name="tipo_inventario" required>
+                        <option value="" disabled selected>Seleccione una opción</option>
+                        <option value="fisico">Stock físico (Inventario CNC)</option>
+                        <option value="simulacion">Material no sujeto a stock (simulación de costos)</option>
+                    </select>
+                    <span id="spanSimulacion" class="d-none text-truncate fst-italic">La cotización no podrá ser usada para requisiciones</span>
+                </div>
             </section>
         <?php endif; ?>
         <div id="sectionDureza" class="section-container">
-            <div class="d-flex col-12">
-                <div class="col-11 col-md-11 flex-column">
+            <div class="d-flex col-12 flex-column">
+                <div class="d-flex col-12 flex-row mb-3">
+                    <div class="d-flex col-11 col-md-11 flex-column">
+    
+                        <h5 class="mb-3">Dureza de materiales *</h5>
+                        <select id="selectorDurezaMateriales" class="" name="material" required>
+                            <option value="" disabled selected>Seleccione una opción</option>
+                            <option value="blandos">Limitantes para materiales Blandos</option>
+                            <option value="duros">Limitantes para materiales Duros</option>
+                            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                        </select>
+                    </div>
+                    <div class="align-self-end">
+                        <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:30px;"></i>
+                    </div>                                
 
-                    <h5 class="mb-3">Dureza de materiales</h5>
-                    <select id="selectorDurezaMateriales" class="" name="material" required>
-                        <option value="" disabled selected>Seleccione una opcion</option>
-                        <option value="blandos">Materiales blandos</option>
-                        <option value="duros">Materiales duros</option>
-                        <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-                    </select>
-                   
                 </div>
-                <div class="align-self-end">
-                    <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:20px;"></i>
+                <div class="d-flex col-11 col-md-12 flex-column gap-2">
+                    <span class="text-truncate fst-italic">Materiales Blandos: H-ECOPUR, ECOSIL, ECORUBBER 1/2/3, ECOPUR</span>
+                    <span class="text-truncate fst-italic">Materiales Duros: ECOTAL, ECOMID, ECOFLON 1/2/3</span>
                 </div>
             </div>
         </div>
@@ -208,7 +223,7 @@ if (!isset($_SESSION['id'])) {
         $archivoPrevisualizacion = "tabla_previsualizacion.php";
     }
     ?>
-    <section id="sectionCotizar" class="section-container">
+    <section id="sectionCotizar" class="d-none section-container">
         <div class="col-12 col-md-3">
             <button type="button" id="btnCotizar" class="btn-disabled mt-1 mb-0">Cotizar</button>
         </div> 
@@ -282,7 +297,7 @@ if (!isset($_SESSION['id'])) {
             
         </div> 
         <div class="mb-3 d-flex col-12 flex-column flex-md-row justify-content-between">
-            <div class="d-flex flex-column col-md-8">
+            <div class="d-flex flex-column col-md-7">
                 <div class="d-flex">
                     <img id="imagenMaterialTabla_m2" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                     <img id="imagenMaterialTabla_m1" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
@@ -293,7 +308,7 @@ if (!isset($_SESSION['id'])) {
                     <img id="imagenMaterialTabla_m5" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                 </div>
             </div>
-            <div class="d-flex flex-column col-md-4 ps-3">
+            <div class="d-flex flex-column col-md-5 ps-3">
                 <div class="d-flex col-12 justify-content-start align-items-baseline">
                     <h4 class="h4-iva">IVA (16%): $</h4>
                     <input type="number" id="inputIVA2" class="input-span-iva" placeholder="Pendiente" readonly tabindex="-1">
@@ -348,6 +363,7 @@ if (!isset($_SESSION['id'])) {
 </div>
 
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
+<div style="height:500px;"></div>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 
 <script>

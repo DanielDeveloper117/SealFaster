@@ -24,7 +24,7 @@ if (!isset($_SESSION['id'])) {
     <title>Inicio</title>
 
 </head>
-<body style="padding-top: 0px !important;">
+<body id="body1" style="padding-top: 0px !important;">
 
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 <div></div>
@@ -145,21 +145,26 @@ if (!isset($_SESSION['id'])) {
 <script>
     $(document).ready(function(){
         document.querySelector('.animate-img').classList.add('visible');
-        /*
-        $.ajax({
-            url: "../ajax/ajax_notificacion.php",
-            type: "POST",
-            data: { mensaje: "El usuario ha cargado welcome. <?= $usuario_desencriptado; ?>" },
-            success: function(response) {
-                console.log("Notificacion enviada: ", response);
-            },
-            error: function(error) {
-                console.error("Error al enviar la notificacion: ", error);
+        <?php
+             if($DEV_MODE === false){
+                echo '
+                $.ajax({
+                    url: "../ajax/ajax_notificacion.php",
+                    type: "POST",
+                    data: { mensaje: "El usuario ha cargado welcome: '.$usuario_desencriptado.'" },
+                    success: function(response) {
+                        console.log("Notificacion enviada: ", response);
+                    },
+                    error: function(error) {
+                        console.error("Error al enviar la notificacion: ", error);
+                    }
+                });
+                
+                ';
             }
-        });
-        */
-        // Verificar si ya existe la preferencia en localStorage
-    
+        ?>
+
+        // Verificar si ya existe la preferencia en localStorage    
         /*
         if (!localStorage.getItem("welcomeUpdate2ToastShown")) {
             Swal.fire({

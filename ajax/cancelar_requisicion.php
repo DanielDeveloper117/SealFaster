@@ -2,7 +2,8 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
-
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 session_start();
 if (!isset($_SESSION['id'])) {
     header("Location: ../auth/cerrar_sesion.php");
@@ -107,8 +108,20 @@ try {
     $mail = null;
 
     try {
-        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-        $mail = getMailer($conn);
+        //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        //$mail = getMailer($conn);
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = $USER;
+        $mail->Password = $PASS; 
+        $mail->SMTPSecure = $SECURE;
+        $mail->Port = $PORT;
+        $mail->setFrom($FROM, $DOMAIN_NAME);
+        $mail->isHTML(true);
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
 
         // Obtener id_vendedor de la requisición
         $stmt = $conn->prepare("SELECT id_vendedor FROM requisiciones WHERE id_requisicion = :id_requisicion");
@@ -130,14 +143,16 @@ try {
             throw new Exception("No se encontró correo de vendedor.");
         }
 
-        $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
+        $clave_encriptacion = $PASS_UNCRIPT ?? '';
         $contadorCorreos = 0;
 
         foreach ($correoVendedor as $fila) {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo); // activar si quieres enviar al vendedor real
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
                     $contadorCorreos++;
                 }
             }
@@ -156,7 +171,9 @@ try {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo);
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
                     $contadorCorreos++;
                 }
             }
@@ -167,7 +184,7 @@ try {
         }
 
         // Correo visible de prueba
-        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+        $mail->addAddress($DEV_EMAIL);
         $mail->Subject = 'Requisición cancelada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha cancelado la autorización de una requisición.<br>Folio: <b>$id_requisicion</b>";
         $mail->AltBody = "Se ha cancelado la autorización de una requisición. Folio: $id_requisicion";

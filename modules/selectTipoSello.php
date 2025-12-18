@@ -89,7 +89,7 @@ if (!isset($_SESSION['id'])) {
             </div>
         </div>
     </div>
-    
+<div style="height:300px;"></div>    
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 </body>
 </html>

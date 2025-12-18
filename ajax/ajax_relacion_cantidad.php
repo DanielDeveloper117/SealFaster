@@ -8,8 +8,9 @@ try{
         $q = $_POST['q'];
         
         // Preparar la consulta
-        $stmt = $conn->prepare("SELECT * FROM parametros2 WHERE limite_inferior <= :q AND :q <= limite_superior  AND  caso = 'rc'");
-        $stmt->bindParam(':q', $q);
+        $stmt = $conn->prepare("SELECT * FROM parametros2 WHERE limite_inferior <= :q1 AND :q2 <= limite_superior  AND  caso = 'rc'");
+        $stmt->bindParam(':q1', $q);
+        $stmt->bindParam(':q2', $q);
         $stmt->execute();
         
         // Obtener resultados

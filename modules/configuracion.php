@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     switch ($formulario) {
         case "changename":
             if (isset($_POST['password']) && isset($_POST['nombre'])) {
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
                 $password_ingresada = $_POST['password'];
                 $nuevo_nombre = $_POST['nombre'];
@@ -73,7 +73,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         case "changepass":
             if (isset($_POST['password1']) && isset($_POST['password2'])) {
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
                 $password_actual_ingresada = $_POST['password1'];
                 $nueva_password = $_POST['password2'];

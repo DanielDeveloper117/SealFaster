@@ -160,6 +160,7 @@ if (isset($_GET['tipo'])) {
     exit();
 }
 ?>
+<div style="height:500px;"></div>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 <script>
     $(document).ready(function(){

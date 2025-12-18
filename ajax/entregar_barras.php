@@ -2,6 +2,8 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 session_start();
 
 // Validar sesion
@@ -195,8 +197,20 @@ try {
 
     ////////////////////////////PHP MAILER -> cotizador a CNC ////////////////
     try {
-        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-        $mail = getMailer($conn);
+        //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        //$mail = getMailer($conn);
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = $USER;
+        $mail->Password = $PASS; 
+        $mail->SMTPSecure = $SECURE;
+        $mail->Port = $PORT;
+        $mail->setFrom($FROM, $DOMAIN_NAME);
+        $mail->isHTML(true);
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
 
         $sqlCorreoProduccion = "SELECT usuario FROM login WHERE lider = 2 AND rol = 'Gerente'";
         $stmt = $conn->prepare($sqlCorreoProduccion);
@@ -207,7 +221,7 @@ try {
             throw new Exception("No se encontro ningún correo de producción.");
         }
 
-        $clave_encriptacion = 'SRS2024#tides';
+        $clave_encriptacion = $PASS_UNCRIPT ?? '';
         $contadorCorreos = 0;
 
         foreach ($correosProduccion as $fila) {
@@ -215,7 +229,9 @@ try {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 $correo = trim($correo);
                 if ($correo) {
-                    //$mail->addAddress($correo);
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
                     $contadorCorreos++;
                 }
             }
@@ -225,8 +241,7 @@ try {
             throw new Exception("No se pudo agregar ningún destinatario valido para producción.");
         }
 
-        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com"); // Correo principal visible
-        //$mail->addAddress("sistemas@sellosyretenes.com");
+        $mail->addAddress($DEV_EMAIL); 
         $mail->Subject = 'Nueva requisición para maquinado. Folio: '.$id_requisicion;
         $mail->Body = "Inventarios ha liberado una nueva requisición de maquinado de sellos con las barras solicitadas.<br>
                     Se ha cambiado el estatus a <b>Producción</b>.<br>

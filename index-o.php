@@ -5,22 +5,19 @@ require_once(ROOT_PATH . 'includes/functions/control_cache.php');
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="<?= controlCache('./assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('assets/css/styles-login.css'); ?>">
+  <meta charset="UTF-8">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+  <meta http-equiv="Pragma" content="no-cache" />
+  <meta http-equiv="Expires" content="0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-    <title>Login | Sellos y Retenes</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="<?= controlCache('assets/css/styles-login.css'); ?>">
+  
+  <title>Login | Sellos y Retenes</title>
 </head>
 
 <body translate="no">
@@ -62,25 +59,23 @@ require_once(ROOT_PATH . 'includes/functions/control_cache.php');
             <h2 class="login-title">Login</h2>
         </div>
         
-        <form id="formLogin" class="d-flex flex-column">
-            <div class="input-container mt-3">
-                <label>Usuario</label>
-                <input id="inputUsuario" class="mb-2" type="text" name="usuario" required autocomplete="off">
-            </div>
+        <form id="formLogin" class="d-flex flex-column" action="auth/login-script.php" method="POST">
+          <div class="input-container mt-3">
+            <label>Usuario</label>
+            <input id="inputUsuario" class="mb-2" type="text" name="usuario" required autocomplete="off">
+          </div>
           
-            <div class="input-container input-pass mt-2">
-                <label>Password</label>
-                <input id="inputPass" class="mb-2" type="password" name="password" required>
-                <button id="btnEye" type="button" class="btn-toggle-password" tabindex="-1">
-                    <i class="bi bi-eye" id="iconEye"></i>
-                </button>
-            </div>
-
-            <input type="hidden" name="phone_number" value="">
-            
-            <div class="d-grid mt-3">
-                <button id="btnIngresar" type="submit" class="btn btn-login py-2 rounded-pill shadow-sm">Continuar</button>
-            </div>
+          <div class="input-container input-pass mt-2">
+            <label>Password</label>
+            <input id="inputPass" class="mb-2" type="password" name="password" required>
+            <button id="btnEye" type="button" class="btn-toggle-password" tabindex="-1">
+              <i class="bi bi-eye" id="iconEye"></i>
+            </button>
+          </div>
+          
+          <div class="d-grid mt-3">
+            <button id="btnIngresar" type="submit" class="btn btn-login py-2 rounded-pill shadow-sm">Continuar</button>
+          </div>
         </form>
 
         <p class="mb-0 mt-2 text-center" style="font-size: 0.75rem;">
@@ -123,52 +118,6 @@ $(document).ready(function(){
     // 3. Toggle Password
     $("#btnEye").on("click", function(){
         togglePassword();
-    });
-    
-    // 4. NUEVO: Manejo del formulario con AJAX
-    $("#formLogin").on("submit", function(e){
-        e.preventDefault(); // Prevenir envío tradicional
-        
-        const usuario = $("#inputUsuario").val().trim();
-        const password = $("#inputPass").val().trim();
-        
-        // Validación básica
-        if(!usuario || !password) {
-            sweetAlertResponse('warning', 'Advertencia', 'Por favor, complete todos los campos.');
-            return;
-        }
-        
-        // Deshabilitar botón para evitar múltiples envíos
-        const btnIngresar = $("#btnIngresar");
-        const originalText = btnIngresar.html();
-        btnIngresar.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...');
-        
-        // Enviar datos por AJAX
-        $.ajax({
-            url: 'auth/login-script.php',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                usuario: usuario,
-                password: password
-            },
-            success: function(response) {
-                if(response.status === 'success') {
-                    // Login exitoso - redirigir
-                    //sweetAlertResponse(response.status, response.title, response.message, response.redirect);
-                    window.location.href =  response.redirect;
-                } else {
-                    // Error en login
-                    sweetAlertResponse(response.status, response.title, response.message);
-                    btnIngresar.prop('disabled', false).html(originalText);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error en la solicitud:", error);
-                sweetAlertResponse('error', 'Error', 'Error de conexión con el servidor. Intente nuevamente');
-                btnIngresar.prop('disabled', false).html(originalText);
-            }
-        });
     });
 });
 

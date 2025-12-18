@@ -102,8 +102,10 @@ $(document).ready(function() {
 
     // Función para crear href con el parámetro cot modificado
     function crearHrefConCot(valorCot) {
+        const savedDefault = localStorage.getItem("filtroDefault") || 1;
         const nuevaUrl = new URL(urlInicial);
         nuevaUrl.searchParams.set('cot', valorCot);
+        nuevaUrl.searchParams.set('default', savedDefault);
         return nuevaUrl.toString();
     }
 
@@ -622,9 +624,9 @@ $(document).ready(function() {
             },
             success: function(data) {
                 if (data.success) {
-                    sweetAlertResponse("success", "Proceso exitoso", data.message, "cotizaciones.php?cot=f");
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "cotizaciones.php?cot=f&default=1");
                 } else {
-                    sweetAlertResponse("warning", "Advertencia", data.error, "cotizaciones.php");
+                    sweetAlertResponse("warning", "Advertencia", data.error, "cotizaciones.php?cot=f&default=1");
                 }
             },
             error: function () {

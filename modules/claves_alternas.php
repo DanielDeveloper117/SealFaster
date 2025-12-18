@@ -402,19 +402,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $action = $_POST['action'];
         $id = $_POST['id'] ?? null;
 
-        // Limpiar espacios
-        $clave_alterna = preg_replace('/\s+/', '', trim($_POST['clave_alterna'] ?? ''));
-        $clave_srs = preg_replace('/\s+/', '', trim($_POST['clave_srs'] ?? ''));
-
-        // Validaciones básicas
-        if (empty($clave_alterna) || empty($clave_srs)) {
-            echo '<script>$(document).ready(function(){
-                sweetAlertResponse("warning", "Campos requeridos", "Todos los campos son obligatorios.", "self");
-            });</script>';
-            exit;
-        }
-
+        
         if ($action === 'insert' || $action === 'update') {
+            // Limpiar espacios
+            $clave_alterna = preg_replace('/\s+/', '', trim($_POST['clave_alterna'] ?? ''));
+            $clave_srs = preg_replace('/\s+/', '', trim($_POST['clave_srs'] ?? ''));
+    
+            // Validaciones básicas
+            if (empty($clave_alterna) || empty($clave_srs)) {
+                echo '<script>$(document).ready(function(){
+                    sweetAlertResponse("warning", "Campos requeridos", "Todos los campos son obligatorios.", "self");
+                });</script>';
+                exit;
+            }
             // Validar que clave_alterna no sea duplicada
             $sqlCheckAlterna = "SELECT COUNT(*) FROM claves_alternas WHERE clave_alterna = :clave_alterna";
             if ($action === 'update') {
@@ -508,6 +508,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     echo '<script>$(document).ready(function(){
                         sweetAlertResponse("success", "Proceso exitoso", "'.$mensaje.'", "self");
                     });</script>';
+                    exit;
                     
                 } catch (Exception $e) {
                     // Si falla la actualización del inventario, igual se considera éxito
@@ -515,11 +516,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     echo '<script>$(document).ready(function(){
                         sweetAlertResponse("success", "Proceso exitoso", "'.$mensaje.'", "self");
                     });</script>';
+                    exit;
                 }
             } else {
                 echo '<script>$(document).ready(function(){
                     sweetAlertResponse("error", "Error", "Error al intentar procesar el registro.", "self");
                 });</script>';
+                exit;
             }
 
         } elseif ($action === 'delete') {
@@ -540,10 +543,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 echo '<script>$(document).ready(function(){
                     sweetAlertResponse("success", "Proceso exitoso", "Registro eliminado correctamente.", "self");
                 });</script>';
+                exit;
             } else {
                 echo '<script>$(document).ready(function(){
                     sweetAlertResponse("error", "Error", "Error al intentar eliminar registro.", "self");
                 });</script>';
+                exit;
             }
         }
     }

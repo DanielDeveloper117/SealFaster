@@ -2,6 +2,8 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 
 session_start();
 
@@ -174,8 +176,20 @@ try {
         // 7. Preparar y enviar correo
         $mensajeCorreo = "";
         try {
-            require_once(ROOT_PATH . 'includes/PHPMailer.php');
-            $mail = getMailer($conn);
+            //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+            //$mail = getMailer($conn);
+            $mail = new PHPMailer(true);
+            $mail->isSMTP();
+            $mail->Host = $HOST;
+            $mail->SMTPAuth = true;
+            $mail->Username = $USER;
+            $mail->Password = $PASS; 
+            $mail->SMTPSecure = $SECURE;
+            $mail->Port = $PORT;
+            $mail->setFrom($FROM, $DOMAIN_NAME);
+            $mail->isHTML(true);
+            $mail->CharSet = 'UTF-8';
+            $mail->Encoding = 'base64';
 
             // Obtener correos de inventarios
             $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
@@ -184,21 +198,23 @@ try {
             $correosInventarios = $stmtCorreos->fetchAll(PDO::FETCH_ASSOC);
 
             if ($correosInventarios && count($correosInventarios) > 0) {
-                $clave_encriptacion = $CLAVE_ENCRIPTACION ?? 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
                 $contadorCorreos = 0;
 
                 foreach ($correosInventarios as $fila) {
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
-                            //$mail->addAddress($correo);
+                            if($DEV_MODE === false){
+                                $mail->addAddress($correo);
+                            }
                             $contadorCorreos++;
                         }
                     }
                 }
                 $mail->isHTML(true);
                 // Agregar correo de prueba
-                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+                $mail->addAddress($DEV_EMAIL);
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $tipoBarra = $accion === 'remplazo' ? 'remplazo de barra' : 'barra extra';

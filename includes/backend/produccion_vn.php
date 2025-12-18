@@ -1,5 +1,7 @@
 <?php
     require_once(ROOT_PATH . 'vendor/autoload.php');
+    use PHPMailer\PHPMailer\PHPMailer;
+    use PHPMailer\PHPMailer\Exception;
 
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $action = $_POST['action'];
@@ -64,11 +66,23 @@
             }
             ////////////////////////////PHP MAILER -> cotizador a gerente VN ////////////////
             try {
-                require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                $mail = getMailer($conn);
+                //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                //$mail = getMailer($conn);
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = $HOST;
+                $mail->SMTPAuth = true;
+                $mail->Username = $USER;
+                $mail->Password = $PASS; 
+                $mail->SMTPSecure = $SECURE;
+                $mail->Port = $PORT;
+                $mail->setFrom($FROM, $DOMAIN_NAME);
+                $mail->isHTML(true);
+                $mail->CharSet = 'UTF-8';
+                $mail->Encoding = 'base64';
 
                 // Clave de encriptacionn
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
 
                 $area_desencriptada = $sucursal;
                 $areaGerenteEncriptado = openssl_encrypt($area_desencriptada, 'AES-128-ECB', $clave_encriptacion);
@@ -95,7 +109,9 @@
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
-                            //$mail->addAddress($correo);
+                            if($DEV_MODE === false){
+                                $mail->addAddress($correo);
+                            }
                             $contadorCorreos++;
                         }
                     }
@@ -104,8 +120,8 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido.");
                 }
-                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-                //$mail->addAddress("sistemas@sellosyretenes.com");
+                $mail->addAddress($DEV_EMAIL);
+                
                 $mail->Subject = 'Nueva requisición por autorizar. Folio: '.$id_requisicion;
                 $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de <b>Requisiciones</b> para autorizarla con su firma.<br>Folio de requisición: <b>".$id_requisicion."</b>";
                 // enviar correo
@@ -340,8 +356,20 @@
 
             ////////////////////////////PHP MAILER -> cotizador a Inventarios ////////////////
             try {
-                require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                $mail = getMailer($conn);
+                //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+                //$mail = getMailer($conn);
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = $HOST;
+                $mail->SMTPAuth = true;
+                $mail->Username = $USER;
+                $mail->Password = $PASS; 
+                $mail->SMTPSecure = $SECURE;
+                $mail->Port = $PORT;
+                $mail->setFrom($FROM, $DOMAIN_NAME);
+                $mail->isHTML(true);
+                $mail->CharSet = 'UTF-8';
+                $mail->Encoding = 'base64';
                 $id_requisicion = $_POST['id_requisicion'];
                 //$sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 AND rol = 'Gerente'";
                 $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6";
@@ -353,14 +381,16 @@
                     throw new Exception("No se encontro ningun correo de inventarios.");
                 }
 
-                $clave_encriptacion = 'SRS2024#tides';
+                $clave_encriptacion = $PASS_UNCRIPT ?? '';
                 $contadorCorreos = 0;
 
                 foreach ($correosInventarios as $fila) {
                     if (!empty($fila['usuario'])) {
                         $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                         if ($correo) {
-                            //$mail->addAddress($correo); // o usar BCC: $mail->addBCC($correo);
+                            if($DEV_MODE === false){
+                                $mail->addAddress($correo);
+                            }
                             $contadorCorreos++;
                         }
                     }
@@ -369,8 +399,8 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido para inventarios.");
                 }
-                $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
-                //$mail->addAddress("sistemas@sellosyretenes.com");
+                $mail->addAddress($DEV_EMAIL);
+                
                 $mail->isHTML(true);
                 $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
                 $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
@@ -397,11 +427,19 @@
     }
     include(ROOT_PATH . 'includes/backend_info_user.php');
     try {
+        // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
+        $preferencias = $_SESSION['filtros_requisiciones'] ?? [
+            'estatus' => '',
+            'fecha_inicio' => '',
+            'fecha_fin' => '',
+            'default' => 2, // 1: las de hoy, 2:las de la semana, 3: las del mes
+            'orden' => 'des'
+        ];
         // --------- LECTURA DE GET ----------
         $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : null;
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
         $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $default = isset($_GET['default']) ? (int)$_GET['default'] : 1; // Default: 1 = Solo las de hoy
+        $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias["default"]; // Default: 1 = Solo las de hoy
         $orden = isset($_GET['orden']) && $_GET['orden'] === 'asc' ? 'ASC' : 'DESC';
 
         $params = [];
@@ -517,14 +555,6 @@
         }
     }
 
-    // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
-    $preferencias = $_SESSION['filtros_requisiciones'] ?? [
-        'estatus' => '',
-        'fecha_inicio' => '',
-        'fecha_fin' => '',
-        'default' => 1, // Default: Solo las de hoy
-        'orden' => 'des'
-    ];
 
     // Sobreescribir con valores actuales de GET si existen
     if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];

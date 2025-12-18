@@ -68,6 +68,7 @@ try {
         $a_sello_inch2 = $_POST['a_sello_inch2'];
         $di_sello_inch2 = $_POST['di_sello_inch2'];
         $de_sello_inch2 = $_POST['de_sello_inch2'];
+        $simulacion = $_POST['simulacion'];
         
         // Convertimos las entradas completas en array, manteniendo el formato original
         $entries_array = array_map('trim', explode(',', $billets_string));
@@ -135,7 +136,8 @@ try {
                 a_sello, tipo_medida_h, di_sello, tipo_medida_di, de_sello, tipo_medida_de, cantidad, 
                 total_unitarios, desc_cliente, desc_cantidad, desc_mayoreo, total_descuentos, total_material, 
                 estatus_completado, vendedor, img, cliente, tipo_cliente, codigo_cliente, correo_cliente,
-                a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2,
+                a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2, 
+                simulacion, 
                 fecha_insercion, fecha_vencimiento
                 ) 
             VALUES (
@@ -146,7 +148,8 @@ try {
                 :a_sello, :tipo_medida_h, :di_sello, :tipo_medida_di, :de_sello, :tipo_medida_de, :cantidad, 
                 :total_unitarios, :desc_cliente, :desc_cantidad, :desc_mayoreo, :total_descuentos, :total_material, 
                 :estatus_completado, :vendedor, :img, :cliente, :tipo_cliente, :codigo_cliente, :correo_cliente, 
-                :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2,
+                :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2, 
+                :simulacion, 
                 :fecha_insercion, :fecha_vencimiento
         )");
 
@@ -213,6 +216,8 @@ try {
         $stmt->bindParam(':a_sello_inch2', $a_sello_inch2);
         $stmt->bindParam(':di_sello_inch2', $di_sello_inch2);
         $stmt->bindParam(':de_sello_inch2', $de_sello_inch2);
+
+        $stmt->bindParam(':simulacion', $simulacion);
 
         $stmt->bindParam(':fecha_insercion', $fecha_insercion);
         $stmt->bindParam(':fecha_vencimiento', $fecha_vencimiento);

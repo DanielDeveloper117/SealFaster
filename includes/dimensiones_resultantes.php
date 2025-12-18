@@ -1,6 +1,6 @@
 <form method="post"> 
     <!-- PRIMER FORMULARIO DE DIMENSIONES DEL CLIENTE -->
-    <section id="sectionDimensionesSello" class="section-container" style="backdrop-filter:none !important;">
+    <section id="sectionDimensionesSello" class="d-none section-container" style="backdrop-filter:none !important;">
         <h2 class="pt-2">Ingrese dimensiones del sello deseadas por el cliente</h2>
         
         <div class="d-flex col-12 flex-column flex-md-row justify-content-between align-items-md-start align-items-center">
@@ -10,9 +10,9 @@
                 <div class="d-flex flex-column">
                     <div class="d-flex col-12 flex-column justify-content-between mt-4" >
                         
-                            <!-- <label for="selectorTipoMedida" class="label-estimador">Tipo de medida indicada por el cliente</label>
+                            <!-- <label for="selectorTipoMedida" class="label-estimador">Tipo de medida * indicada por el cliente</label>
                             <select id="selectorTipoMedida" class="form-select" required disabled>
-                                <option value="" disabled selected>Seleccione el tipo de medida</option>
+                                <option value="" disabled selected>Seleccione el tipo de medida *</option>
                                 <option value="Sello">Sello</option>
                                 <option value="Metal">Metal</option>
                             </select> -->
@@ -28,7 +28,7 @@
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaDI" for="selectorTipoMedidaDI" class="label-estimador">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaDI" for="selectorTipoMedidaDI" class="label-estimador">Tipo de medida *</label>
                                         <select id="selectorTipoMedidaDI" class="" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>
@@ -55,7 +55,7 @@
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaDE" for="selectorTipoMedidaDE" class="label-estimador">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaDE" for="selectorTipoMedidaDE" class="label-estimador">Tipo de medida *</label>
                                         <select id="selectorTipoMedidaDE" class="form-select" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>
@@ -81,7 +81,7 @@
                                 </div>
                                 <div class="d-flex flex-column col-12 align-items-center">    
                                     <div class="d-flex flex-column col-12 mb-4">
-                                        <label id="lblMedidaPrimariaH" for="selectorTipoMedidaH" class="label-estimador">Tipo de medida</label>
+                                        <label id="lblMedidaPrimariaH" for="selectorTipoMedidaH" class="label-estimador">Tipo de medida *</label>
                                         <select id="selectorTipoMedidaH" class="form-select" required disabled>
                                             <option value="" disabled selected>Seleccione una opción</option>
                                             <option value="Sello">Sello</option>

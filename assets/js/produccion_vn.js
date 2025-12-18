@@ -31,8 +31,11 @@
                         let textoOpcion = `${item.id_cotizacion} - ${item.perfil_sello} - ${item.di_sello}/${item.de_sello}/${item.a_sello}`;
                         
                         // Si está vencida, agregar leyenda
-                        if (estaVencida) {
+                        if (estaVencida && item.simulacion == 0) {
                             textoOpcion += ` - <small style="color: #dc3545;">Vencida internamente</small>`;
+                        }
+                        if(item.simulacion == 1){
+                            textoOpcion += ` - <small style="color: #dc3545;">Stock de material no sujeto a inventario CNC</small>`;
                         }
 
                         $("#buscadorCotizaciones").append(
@@ -45,7 +48,7 @@
                                     data-di="${item.di_sello || item.di_sello2}"
                                     data-de="${item.de_sello}"
                                     data-a="${item.a_sello}"
-                                    ${estaVencida ? 'disabled style="color: #6c757d; font-style: italic; background-color: #f8f9fa;"' : ''}
+                                    ${estaVencida || item.simulacion ? 'disabled style="color: #6c757d; font-style: italic; background-color: #f8f9fa;"' : ''}
                             >${textoOpcion}</option>
                             `
                         );

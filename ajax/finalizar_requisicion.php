@@ -2,6 +2,8 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
 session_start();
 
 if (!isset($_SESSION['id'])) {
@@ -165,28 +167,42 @@ try {
 
     // Envio de correo
     try {
-        require_once(ROOT_PATH . 'includes/PHPMailer.php');
-        $mail = getMailer($conn);
+        //require_once(ROOT_PATH . 'includes/PHPMailer.php');
+        //$mail = getMailer($conn);
+        $mail = new PHPMailer(true);
+        $mail->isSMTP();
+        $mail->Host = $HOST;
+        $mail->SMTPAuth = true;
+        $mail->Username = $USER;
+        $mail->Password = $PASS; 
+        $mail->SMTPSecure = $SECURE;
+        $mail->Port = $PORT;
+        $mail->setFrom($FROM, $DOMAIN_NAME);
+        $mail->isHTML(true);
+        $mail->CharSet = 'UTF-8';
+        $mail->Encoding = 'base64';
 
         $sqlCorreoInventarios = "SELECT usuario FROM login WHERE lider = 6 OR (lider = 2 AND rol = 'Gerente')";
         $stmt = $conn->prepare($sqlCorreoInventarios);
         $stmt->execute();
         $correosInventarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $clave_encriptacion = 'SRS2024#tides';
+        $clave_encriptacion = $PASS_UNCRIPT ?? '';
         $contadorCorreos = 0;
 
         foreach ($correosInventarios as $fila) {
             if (!empty($fila['usuario'])) {
                 $correo = openssl_decrypt($fila['usuario'], 'AES-128-ECB', $clave_encriptacion);
                 if ($correo) {
-                    //$mail->addAddress($correo);
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
                     $contadorCorreos++;
                 }
             }
         }
 
-        $mail->addAddress("desarrollo2.sistemas@sellosyretenes.com");
+        $mail->addAddress($DEV_EMAIL);
         $mail->isHTML(true);
         $mail->Subject = 'Requisicion finalizada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha finalizado el maquinado de sellos.<br>

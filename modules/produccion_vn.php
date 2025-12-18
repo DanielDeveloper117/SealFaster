@@ -364,9 +364,9 @@ if (!isset($_SESSION['id'])) {
                                     </div>
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio" name="default" id="radioDefault1" value="1" 
-                                            <?= ($preferencias['default'] == '1' || $preferencias['default'] === '') ? 'checked' : '' ?>>
+                                            <?= ($preferencias['default'] == '1') ? 'checked' : '' ?>>
                                         <label class="form-check-label" for="radioDefault1">
-                                            Solo las de hoy (default)
+                                            Solo las de hoy
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
