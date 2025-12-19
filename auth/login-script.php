@@ -453,5 +453,5 @@ try {
     incrementFailedAttempts();
     
     // Mostrar error genérico
-    sendJsonResponse('error', 'Error del Sistema', 'Ocurrió un error inesperado. Intenta más tarde');
+    sendJsonResponse('error', 'Error del Sistema', 'Ocurrió un error inesperado. Intenta más tarde'.$e->getMessage());
 }

@@ -48,7 +48,7 @@
                                     data-di="${item.di_sello || item.di_sello2}"
                                     data-de="${item.de_sello}"
                                     data-a="${item.a_sello}"
-                                    ${estaVencida || item.simulacion ? 'disabled style="color: #6c757d; font-style: italic; background-color: #f8f9fa;"' : ''}
+                                    ${estaVencida || item.simulacion == 1 ? 'disabled style="color: #6c757d; font-style: italic; background-color: #f8f9fa;"' : ''}
                             >${textoOpcion}</option>
                             `
                         );
@@ -64,7 +64,8 @@
         });
 
         function actualizarContadorComentario() {
-            $("#contadorComentario").text(`${$("#inputComentario").val().length} / 50 caracteres`);
+            let contenido = $("#inputComentario").val();
+            $("#contadorComentario").text(`${contenido.length} / 50 caracteres`);
         }
         $("#inputComentario").on("input", function () {
             actualizarContadorComentario();

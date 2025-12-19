@@ -132,6 +132,7 @@
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente. Correo enviado a gerencia.", "self");
                 });</script>';
+                exit;
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -196,8 +197,9 @@
                 $stmt->execute();
 
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                sweetAlertResponse("success", "Proceso exitoso", "Registro actualizado correctamete.", "none");
+                sweetAlertResponse("success", "Proceso exitoso", "Registro actualizado correctamete.", "self");
                 });</script>';
+                exit;
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -217,6 +219,7 @@
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
                     sweetAlertResponse("success", "Requisición eliminada", "La requisición ha sido eliminada exitosamente.", "self");
                 });</script>';
+                exit;
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {
@@ -428,9 +431,16 @@
     include(ROOT_PATH . 'includes/backend_info_user.php');
     // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
     $default = "";
-    if($_SESSION['filtros_requisiciones']){
-        $preferencias = $_SESSION['filtros_requisiciones'];
-    }else{
+    try {
+        $preferencias = $_SESSION['filtros_requisiciones'] ?? $preferencias = [
+            'estatus' => '',
+            'fecha_inicio' => '',
+            'fecha_fin' => '',
+            'default' => 2, // 1: las de hoy, 2:las de la semana, 3: las del mes
+            'orden' => 'des'
+        ];
+    } catch (Throwable $e) {
+        
         $preferencias = [
             'estatus' => '',
             'fecha_inicio' => '',
@@ -439,6 +449,7 @@
             'orden' => 'des'
         ];
     }
+
     try {
 
         // --------- LECTURA DE GET ----------

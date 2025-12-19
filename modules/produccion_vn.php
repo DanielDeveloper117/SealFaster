@@ -23,7 +23,6 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
@@ -33,6 +32,7 @@ if (!isset($_SESSION['id'])) {
           include(ROOT_PATH . 'includes/backend_info_user.php');
           include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
     ?>
+    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
 
     <title>Requisiciones</title>
 </head>
@@ -494,8 +494,8 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <div class="d-flex justify-content-between ">
                         <div style="width:48%;">
-                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota</label>
-                            <input id="inputFactura" type="text" class="input-text" name="factura">
+                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota *</label>
+                            <input id="inputFactura" type="text" class="input-text" name="factura" required>
                         </div>
                         <div style="width:48%;">
                             <label for="inputComentario" class="lbl-general">Comentario (opcional)</label>
