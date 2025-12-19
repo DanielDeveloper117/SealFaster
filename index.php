@@ -170,6 +170,28 @@ $(document).ready(function(){
             }
         });
     });
+    var anchoVentanaInicial = window.innerWidth;
+    var anchoPantallaInicial = screen.width;
+    var zoomInicial = anchoVentanaInicial / anchoPantallaInicial * 100;
+
+    function detectarZoom() {
+        var anchoVentana = window.innerWidth;
+        var anchoPantalla = screen.width;
+        var zoom = anchoVentana / anchoPantalla * 100;
+
+        if (zoom > 100) {
+            $(".container").css("scale","0.6").css("margin-top", "-12%");
+            console.log("123");
+        } else {
+            if(zoomInicial !== zoom){
+                window.location.reload(true);  // Recargar desde el servidor (sin usar la caché)
+            }else{
+            }
+        }
+    }
+    ////////////// EVENTO ZOOM/REDIMENSION DEL NAVEGADOR
+    window.addEventListener('resize', detectarZoom);
+    detectarZoom();
 });
 
 function togglePassword() {

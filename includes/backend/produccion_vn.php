@@ -426,28 +426,33 @@
         }
     }
     include(ROOT_PATH . 'includes/backend_info_user.php');
-    try {
-        // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
-        $preferencias = $_SESSION['filtros_requisiciones'] ?? [
+    // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
+    $default = "";
+    if($_SESSION['filtros_requisiciones']){
+        $preferencias = $_SESSION['filtros_requisiciones'];
+    }else{
+        $preferencias = [
             'estatus' => '',
             'fecha_inicio' => '',
             'fecha_fin' => '',
             'default' => 2, // 1: las de hoy, 2:las de la semana, 3: las del mes
             'orden' => 'des'
         ];
+    }
+    try {
+
         // --------- LECTURA DE GET ----------
-        $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : null;
+        $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : $preferencias["estatus"];
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
         $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias["default"]; // Default: 1 = Solo las de hoy
+        $default = isset($_GET['default']) ? $_GET['default'] : $preferencias["default"]; 
         $orden = isset($_GET['orden']) && $_GET['orden'] === 'asc' ? 'ASC' : 'DESC';
-
         $params = [];
         $conditions = [];
 
         // --------- BASE QUERY POR TIPO DE USUARIO ----------
         if ($tipo_usuario == "Administrador") {
-            $sqlRequisiciones = "SELECT * FROM requisiciones WHERE 1=1";
+            $sqlRequisiciones = "SELECT * FROM requisiciones WHERE 1=1 ";
         } else if ($tipo_usuario == "Vendedor" && $rol_usuario == "Gerente") {
             $sqlRequisiciones = "SELECT * FROM requisiciones WHERE sucursal = :area";
             $params[':area'] = $areaUser;
@@ -526,10 +531,17 @@
             'default' => $default,
             'orden' => $orden
         ];
+        // Sobreescribir con valores actuales de GET si existen
+        if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];
+        if (isset($_GET['fecha_inicio'])) $preferencias['fecha_inicio'] = $_GET['fecha_inicio'];
+        if (isset($_GET['fecha_fin'])) $preferencias['fecha_fin'] = $_GET['fecha_fin'];
+        if (isset($_GET['default'])) $preferencias['default'] = $_GET['default'];
+        if (isset($_GET['orden'])) $preferencias['orden'] = $_GET['orden'];
 
     } catch (Throwable $e) {
         // Fallback robusto en caso de error
         try {
+            $default = 2;
             if ($tipo_usuario == "Administrador") {
                 $sqlFallback = "SELECT * FROM requisiciones ORDER BY id_requisicion DESC";
                 $stmtRequisiciones = $conn->prepare($sqlFallback);
@@ -553,14 +565,12 @@
             $arregloSelectRequisiciones = [];
             error_log("Error crítico en filtros de requisiciones: " . $e2->getMessage());
         }
+        // Sobreescribir con valores actuales de GET si existen
+        if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];
+        if (isset($_GET['fecha_inicio'])) $preferencias['fecha_inicio'] = $_GET['fecha_inicio'];
+        if (isset($_GET['fecha_fin'])) $preferencias['fecha_fin'] = $_GET['fecha_fin'];
+        if (isset($_GET['default'])) $preferencias['default'] = $_GET['default'];
+        if (isset($_GET['orden'])) $preferencias['orden'] = $_GET['orden'];
     }
-
-
-    // Sobreescribir con valores actuales de GET si existen
-    if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];
-    if (isset($_GET['fecha_inicio'])) $preferencias['fecha_inicio'] = $_GET['fecha_inicio'];
-    if (isset($_GET['fecha_fin'])) $preferencias['fecha_fin'] = $_GET['fecha_fin'];
-    if (isset($_GET['default'])) $preferencias['default'] = $_GET['default'];
-    if (isset($_GET['orden'])) $preferencias['orden'] = $_GET['orden'];
 
 ?>

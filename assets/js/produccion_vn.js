@@ -730,8 +730,10 @@
                 }
             });
         });
-
-
+        $("#formCrearRequisicion").on("submit", function(){
+            const btnGuardar = $("#btnGuardar");
+            btnGuardar.prop('disabled', true).css("pointer-events", "none").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...');
+        });
         // NOTIFICACION AL GUARDAR LA REQUISICION
         $("#btnGuardar").on("click", function(){
             $.ajax({
