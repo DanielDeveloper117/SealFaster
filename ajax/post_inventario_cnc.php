@@ -150,18 +150,20 @@ try {
                     $mail->CharSet = 'UTF-8';
                     $mail->Encoding = 'base64';
                     if($DEV_MODE === false){
-                        $mail->addAddress("aux.sistemas@sellosyretenes.com");
+                        $mail->addAddress($AUX_GESTOR_EMAIL);
+                    }else{
+                        $mail->addAddress($DEV_EMAIL);
                     }
-                    $mail->addAddress($DEV_EMAIL);
                     $mail->isHTML(true);
                     $mail->Subject = $asunto;
                     $mail->Body = $mensaje;
-
-                    if ($mail->send()) {
-                        $correoEnviado = true;
-                        $msjExtra = "Correo enviado a Inventarios correctamente.";
-                    } else {
-                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    if($SEND_MAIL === true){
+                        if ($mail->send()) {
+                            $correoEnviado = true;
+                            $msjExtra = "Correo enviado a Inventarios correctamente.";
+                        } else {
+                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                        }
                     }
                 } catch (Throwable $e) {
                     $msjExtra = "Error al enviar correo: " . $e->getMessage();
@@ -203,18 +205,21 @@ try {
                     $mail->CharSet = 'UTF-8';
                     $mail->Encoding = 'base64';
                     if($DEV_MODE === false){
-                        $mail->addAddress("aux.sistemas@sellosyretenes.com");
+                        $mail->addAddress($AUX_GESTOR_EMAIL);
+                    }else{
+                        $mail->addAddress($DEV_EMAIL);
                     }
-                    $mail->addAddress($DEV_EMAIL);
+                    
                     $mail->isHTML(true);
                     $mail->Subject = $asunto;
                     $mail->Body = $mensaje;
-
-                    if ($mail->send()) {
-                        $correoEnviado = true;
-                        $msjExtra = "Correo enviado a Inventarios correctamente.";
-                    } else {
-                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    if($SEND_MAIL === true){
+                        if ($mail->send()) {
+                            $correoEnviado = true;
+                            $msjExtra = "Correo enviado a Inventarios correctamente.";
+                        } else {
+                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                        }
                     }
                 } catch (Throwable $e) {
                     $msjExtra = "Error al enviar correo: " . $e->getMessage();
@@ -258,18 +263,20 @@ try {
                     $mail->CharSet = 'UTF-8';
                     $mail->Encoding = 'base64';
                     if($DEV_MODE === false){
-                        $mail->addAddress("aux.sistemas@sellosyretenes.com");
+                        $mail->addAddress($AUX_GESTOR_EMAIL);
+                    }else{
+                        $mail->addAddress($DEV_EMAIL);
                     }
-                    $mail->addAddress($DEV_EMAIL);
                     $mail->isHTML(true);
                     $mail->Subject = $asunto;
                     $mail->Body = $mensaje;
-
-                    if ($mail->send()) {
-                        $correoEnviado = true;
-                        $msjExtra = "Correo enviado a Inventarios correctamente.";
-                    } else {
-                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    if($SEND_MAIL === true){
+                        if ($mail->send()) {
+                            $correoEnviado = true;
+                            $msjExtra = "Correo enviado a Inventarios correctamente.";
+                        } else {
+                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                        }
                     }
                 } catch (Throwable $e) {
                     $msjExtra = "Error al enviar correo: " . $e->getMessage();
@@ -283,8 +290,11 @@ try {
         }
         
         $mensajeBase = $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.';
-        $mensajeCompleto = $mensajeBase . $mensajeCorreo;
-        
+        if($SEND_MAIL === true){
+            $mensajeCompleto = $mensajeBase . $mensajeCorreo;
+        }else{
+            $mensajeCompleto = $mensajeBase." Envío de correos no disponible.";
+        }
         echo json_encode([
             'success' => true,
             'message' => $mensajeCompleto,
@@ -396,8 +406,9 @@ try {
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $mail->isHTML(true);
-                    $mail->addAddress($DEV_EMAIL);
-                    
+                    if($DEV_MODE === true){
+                        $mail->addAddress($DEV_EMAIL);
+                    }
                     $asunto = "Solicitud para archivar barra";
                     
                     $cuerpo = "Inventarios ha solicitado la autorización para archivar una barra del inventario de billets.</br>";
@@ -414,11 +425,11 @@ try {
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
                     $mail->AddEmbeddedImage($file_path, 'barra_foto', $filename);
-                    
-                    if (!$mail->send()) {
-                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    if($SEND_MAIL === true){
+                        if (!$mail->send()) {
+                            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                        }
                     }
-                    
                     $mensajeCorreo = " y correo enviado para autorización";
                 } else {
                     throw new Exception("No se pudieron agregar destinatarios para el correo");
@@ -427,13 +438,22 @@ try {
         } catch (Throwable $e) {
             $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
         }
+        if($SEND_MAIL === true){
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Solicitud para archivar la barra enviada correctamente." . $mensajeCorreo,
+                'ruta_foto' => $ruta_foto_barra // Opcional: devolver la ruta si es necesario
+            ]);
 
-        // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Solicitud para archivar la barra enviada correctamente." . $mensajeCorreo,
-            'ruta_foto' => $ruta_foto_barra // Opcional: devolver la ruta si es necesario
-        ]);
+        }else{
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Solicitud para archivar la barra creada correctamente. Envío de correos no disponible.",
+                'ruta_foto' => $ruta_foto_barra // Opcional: devolver la ruta si es necesario
+            ]);
+        }
         exit;
     }
 
@@ -491,8 +511,9 @@ try {
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $mail->isHTML(true);
-                    $mail->addAddress($DEV_EMAIL);
-                    
+                    if($DEV_MODE === true){
+                        $mail->addAddress($DEV_EMAIL);
+                    }
                     $asunto = "Solicitud autorizada para archivar barra";
                     
                     $cuerpo = "Dirección comercial ha autorizado el archivado de una barra del inventario de billets.</br>";
@@ -501,12 +522,12 @@ try {
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
                     // Agregar correo de prueba
-
-                    if (!$mail->send()) {
-                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    if($SEND_MAIL === true){
+                        if (!$mail->send()) {
+                            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                        }
+                        $mensajeCorreo = " y correo enviado a inventarios";
                     }
-                    
-                    $mensajeCorreo = " y correo enviado a inventarios";
                 } else {
                     throw new Exception("No se pudieron agregar destinatarios para el correo");
                 }
@@ -514,12 +535,20 @@ try {
         } catch (Throwable $e) {
             $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
         }
-
-        // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Barra archivada correctamente." . $mensajeCorreo
-        ]);
+        if($SEND_MAIL === true){
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Barra archivada correctamente." . $mensajeCorreo
+            ]);
+        }else{
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Barra archivada correctamente. Envío de correos no disponible."
+            ]);            
+        }
+                       
         exit;
     }
 } catch (Throwable $e) {

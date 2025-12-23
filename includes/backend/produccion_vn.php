@@ -120,18 +120,24 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido.");
                 }
-                $mail->addAddress($DEV_EMAIL);
-                
+                if($DEV_MODE === true){
+                    $mail->addAddress($DEV_EMAIL);
+                }
                 $mail->Subject = 'Nueva requisición por autorizar. Folio: '.$id_requisicion;
                 $mail->Body = "$nombre_vendedor ha generado una requisición para el maquinado de sello. Vaya a la sección de <b>Requisiciones</b> para autorizarla con su firma.<br>Folio de requisición: <b>".$id_requisicion."</b>";
                 // enviar correo
-                if (!$mail->send()) {
-                    throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                if($SEND_MAIL === true){
+                    if (!$mail->send()) {
+                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    }
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente. Correo enviado a gerencia.", "self");
+                    });</script>';
+                }else{
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente. Envio de correos no disponible.", "self");
+                    });</script>';
                 }
-
-                echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("success", "Proceso exitoso", "Registro agregado correctamente. Correo enviado a gerencia.", "self");
-                });</script>';
                 exit;
 
             } catch (Throwable $e) {
@@ -402,21 +408,30 @@
                 if ($contadorCorreos === 0) {
                     throw new Exception("No se pudo agregar ningún destinatario valido para inventarios.");
                 }
-                $mail->addAddress($DEV_EMAIL);
-                
+                if($DEV_MODE === true){
+                    $mail->addAddress($DEV_EMAIL);
+                }
                 $mail->isHTML(true);
                 $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
                 $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                             Se necesita su ingreso al sistema para agregar las barras correspondientes al control de almacen.<br>
                             Folio de requisición: <b>".$id_requisicion."</b>";
-                // enviar correo
-                if (!$mail->send()) {
-                    throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
-                }
 
-                echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso.", "self");
-                });</script>';
+                if($SEND_MAIL === true){
+                    // enviar correo
+                    if (!$mail->send()) {
+                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    }
+    
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso.", "self");
+                    });</script>';
+
+                }else{
+                    echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        sweetAlertResponse("success", "Proceso exitoso", "Inventarios podrá continuar con el siguiente proceso. Envío de correos no disponible.", "self");
+                    });</script>';
+                }
 
             } catch (Throwable $e) {
                 echo '<script>document.addEventListener("DOMContentLoaded", function () {

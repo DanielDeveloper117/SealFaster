@@ -240,15 +240,17 @@ try {
         if ($contadorCorreos === 0) {
             throw new Exception("No se pudo agregar ningún destinatario valido para producción.");
         }
-
-        $mail->addAddress($DEV_EMAIL); 
+        if($DEV_MODE === true){
+            $mail->addAddress($DEV_EMAIL); 
+        }
         $mail->Subject = 'Nueva requisición para maquinado. Folio: '.$id_requisicion;
         $mail->Body = "Inventarios ha liberado una nueva requisición de maquinado de sellos con las barras solicitadas.<br>
                     Se ha cambiado el estatus a <b>Producción</b>.<br>
                     Folio de requisición: <b>".$id_requisicion."</b>";
-
-        if (!$mail->send()) {
-            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        if($SEND_MAIL === true){
+            if (!$mail->send()) {
+                throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+            }   
         }
 
     } catch (Throwable $e) {
@@ -263,10 +265,18 @@ try {
 
     // Verificar si se actualizó
     if ($stmt->rowCount() > 0) {
-        echo json_encode([
-            'success' => true,
-            'message' => "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción. ".$msjLotes
-        ]);
+        if($SEND_MAIL === true){
+            echo json_encode([
+                'success' => true,
+                'message' => "Correo enviado exitosamente a CNC. Estatus de requisición cambiado a Producción. ".$msjLotes
+            ]);
+
+        }else{
+            echo json_encode([
+                'success' => true,
+                'message' => "Estatus de requisición cambiado a Producción. Envío de correos no disponible. ".$msjLotes
+            ]);
+        }
     } else {
         echo json_encode([
             'success' => false,

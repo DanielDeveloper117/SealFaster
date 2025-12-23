@@ -24,7 +24,9 @@ $DOMAIN_NAME = EnvLoader::get('SMTP_COMPANY_NAME');
 
 // sistema
 $DEV_EMAIL = EnvLoader::get('SMTP_DEV_EMAIL');
+$AUX_GESTOR_EMAIL = EnvLoader::get('SMTP_AUX_GESTOR_EMAIL');
 $DEV_MODE = EnvLoader::get('APP_DEV_MODE', false);
+$SEND_MAIL = EnvLoader::get('APP_SEND_MAIL', false);
 $PASS_UNCRIPT = EnvLoader::get('APP_ENCRYPTION_KEY');
 $BASE_URL = EnvLoader::get('APP_BASE_URL');
 

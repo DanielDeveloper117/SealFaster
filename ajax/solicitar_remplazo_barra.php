@@ -320,20 +320,28 @@ try {
 
         $mail->isHTML(true);
         // Agregar correo visible de prueba o destinatario único
-        $mail->addAddress($DEV_EMAIL);
+        if($DEV_MODE === true){
+            $mail->addAddress($DEV_EMAIL);
+        }
         $mail->Subject = $asunto;
         $mail->Body = $cuerpo;
-
-        if (!$mail->send()) {
-            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        if($SEND_MAIL === true){
+            if (!$mail->send()) {
+                throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+            }
+            $mensajeCorreo = "Solicitud de reemplazo de barra enviada correctamente y correo enviado a dirección comercial.";
+        }else{
+            $mensajeCorreo = "Solicitud de reemplazo de barra creada correctamente. Envío de correos no disponible.";
         }
 
-        $mensajeCorreo = "Solicitud de reemplazo de barra enviada correctamente y correo enviado a dirección comercial.";
-
     } catch (Throwable $e) {
-        $mensajeCorreo = "Solicitud de reemplazo de barra procesada correctamente, pero error al enviar correo: " . 
-                        addslashes($e->getMessage()) .
-                        (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "");
+        if($SEND_MAIL === true){
+            $mensajeCorreo = "Solicitud de reemplazo de barra procesada correctamente, pero error al enviar correo: " . 
+                            addslashes($e->getMessage()) .
+                            (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "");
+        }else{
+            $mensajeCorreo = "Solicitud de reemplazo de barra procesada correctamente. Envío de correos no disponible.";
+        }
     }
 
     // Respuesta exitosa

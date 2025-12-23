@@ -26,7 +26,7 @@ try {
     if($DEV_MODE === false){
         $url = "https://".$BASE_URL."/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
     }else{
-        $url = "http://localhost/cotizador/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
+        $url = "http://".$BASE_URL."/modules/firmar.php?id_requisicion={$id}&t={$autoriza}&token={$token}&u={$id_usuario}";
     }
 
 

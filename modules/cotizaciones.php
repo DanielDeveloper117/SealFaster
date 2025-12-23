@@ -102,12 +102,27 @@ if (!isset($_SESSION['id'])) {
                         imap_append($imapStream, "{".$HOST.":993/imap/ssl}INBOX.Sent", $message);
                         imap_close($imapStream);
 
+                        // echo '<script>document.addEventListener("DOMContentLoaded", function () {
+                        // sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente al cliente.", "self");
+                        //     $.ajax({
+                        //         url: "../ajax/ajax_notificacion.php",
+                        //         type: "POST",
+                        //         data: { mensaje: "Correo enviado con correo del sistema"},
+                        //         success: function(response) {
+                        //             console.log("Notificacion enviada: ", response);
+                        //         },
+                        //         error: function(error) {
+                        //             console.error("Error al enviar la notificacion: ", error);
+                        //         }
+                        //     });
+                        // });</script>';
+                        
                         echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                        sweetAlertResponse("success", "Proceso exitoso", "Correo enviado exitosamente al cliente.", "self");
+                        sweetAlertResponse("warning", "Advertencia", "Envío de correos no disponible.", "self");
                             $.ajax({
                                 url: "../ajax/ajax_notificacion.php",
                                 type: "POST",
-                                data: { mensaje: "Correo enviado con correo del sistema"},
+                                data: { mensaje: "Intento de envío de correo con correo del sistema"},
                                 success: function(response) {
                                     console.log("Notificacion enviada: ", response);
                                 },
@@ -491,7 +506,7 @@ if (!isset($_SESSION['id'])) {
                     <a id="btnInitFusionar" class="btn-unlink" href="#">
                         <i class="bi bi-link" style="font-size:20px !important;"></i> Fusionar/agrupar cotizaciones
                     </a>
-                    <button id="btnEnviarCorreo" type="button" class="btn-thunder btn-enviar-correo" 
+                    <button id="btnEnviarCorreo" type="button" class="btn-thunder btn-enviar-correo d-none" 
                         data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
                         title="Enviar correo a cliente" style="width:auto !important;">
                         <i class="bi bi-envelope"></i> Enviar correo a cliente

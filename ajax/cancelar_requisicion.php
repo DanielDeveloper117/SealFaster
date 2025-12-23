@@ -184,29 +184,47 @@ try {
         }
 
         // Correo visible de prueba
-        $mail->addAddress($DEV_EMAIL);
+        if($DEV_MODE === true){
+            $mail->addAddress($DEV_EMAIL);
+        }
         $mail->Subject = 'Requisición cancelada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha cancelado la autorización de una requisición.<br>Folio: <b>$id_requisicion</b>";
         $mail->AltBody = "Se ha cancelado la autorización de una requisición. Folio: $id_requisicion";
-
-        if (!$mail->send()) {
-            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+        if($SEND_MAIL === true){
+            if (!$mail->send()) {
+                throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+            }
         }
 
     } catch (Throwable $e) {
         // Si falla el correo, igual devolvemos éxito pero con advertencia
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisición cancelada correctamente, pero hubo un error al enviar correo: " . addslashes($e->getMessage())
-        ]);
+        if($SEND_MAIL === true){
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisición cancelada correctamente, pero hubo un error al enviar correo: " . addslashes($e->getMessage())
+            ]);
+        }else{
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisición cancelada correctamente"
+            ]);
+        }
         exit;
     }
 
     // Respuesta exitosa general
-    echo json_encode([
-        'success' => true,
-        'message' => 'Requisición cancelada correctamente y correos enviados con éxito.'
-    ]);
+    if($SEND_MAIL === true){
+        echo json_encode([
+            'success' => true,
+            'message' => 'Requisición cancelada correctamente y correos enviados con éxito.'
+        ]);
+    }else{
+        echo json_encode([
+            'success' => true,
+            'message' => 'Requisición cancelada correctamente. Envío de correos no disponible.'
+        ]);
+    }
+    exit;
 
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'message' => 'Error de base de datos: ' . $e->getMessage()]);

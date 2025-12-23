@@ -202,29 +202,42 @@ try {
             }
         }
 
-        $mail->addAddress($DEV_EMAIL);
+        if($DEV_MODE === true){
+            $mail->addAddress($DEV_EMAIL);
+        }
         $mail->isHTML(true);
         $mail->Subject = 'Requisicion finalizada. Folio: '.$id_requisicion;
         $mail->Body = "Se ha finalizado el maquinado de sellos.<br>
                     Se requiere revisión de merma y actualizar el stock de los billets correspondientes en el retorno de barras.<br>
                     Folio de requisicion: <b>".$id_requisicion."</b>";
 
-        if ($mail->send()) {
-            $msjExtra = "Correo enviado a Inventarios correctamente.";
-        } else {
-            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+        if($SEND_MAIL === true){
+            if ($mail->send()) {
+                $msjExtra = "Correo enviado a Inventarios correctamente.";
+            } else {
+                $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+            }
         }
 
     } catch (Throwable $e) {
         $msjExtra = "Error al enviar correo: " . $e->getMessage();
     }
 
-    echo json_encode([
-        'success' => true,
-        'message' => 'Requisicion finalizada correctamente. ' . $msjExtra,
-        'cotizaciones' => $cot['cotizaciones'] ?? null,
-        'id_requisicion' => $id_requisicion
-    ]);
+    if($SEND_MAIL === true){
+        echo json_encode([
+            'success' => true,
+            'message' => 'Requisicion finalizada correctamente. ' . $msjExtra,
+            'cotizaciones' => $cot['cotizaciones'] ?? null,
+            'id_requisicion' => $id_requisicion
+        ]);
+    }else{
+        echo json_encode([
+            'success' => true,
+            'message' => 'Requisicion finalizada correctamente. Envío de correos no disponible.',
+            'cotizaciones' => $cot['cotizaciones'] ?? null,
+            'id_requisicion' => $id_requisicion
+        ]);           
+    }
 
 } catch (Throwable $e) {
     if ($conn->inTransaction()) $conn->rollBack();

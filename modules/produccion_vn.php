@@ -499,8 +499,8 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <div class="d-flex justify-content-between ">
                         <div style="width:48%;">
-                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota *</label>
-                            <input id="inputFactura" type="text" class="input-text" name="factura" required>
+                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota <?php if($tipo_usuario == "Vendedor" && $areaUser != "Ventas Nacionales"){ echo "*"; } ?></label>
+                            <input id="inputFactura" type="text" class="input-text" name="factura" <?php if($tipo_usuario == "Vendedor" && $areaUser != "Ventas Nacionales"){ echo "required"; } ?>>
                         </div>
                         <div style="width:48%;">
                             <label for="inputComentario" class="lbl-general">Comentario (opcional)</label>
@@ -515,7 +515,7 @@ if (!isset($_SESSION['id'])) {
                         <div style="width:100%;">
                             <label for="buscadorCotizaciones" class="lbl-general">Agregar cotizaciones *</label>
                             <select id="buscadorCotizaciones">
-                                <option value="" selected disabled>Seleccione una cotizacion</option>
+                                <option value="" selected disabled>Seleccione una cotización</option>
                             </select>
                         </div>
                     </div>

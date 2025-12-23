@@ -178,7 +178,9 @@ try {
                 }
                 $mail->isHTML(true);
                 // Agregar correo de prueba adicional si se desea
-                $mail->addAddress($DEV_EMAIL);
+                if($DEV_MODE === true){
+                    $mail->addAddress($DEV_EMAIL);
+                }
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $tipoBarra = $accion === 'remplazo' ? 'reemplazo de barra' : 'barra extra';
@@ -203,11 +205,11 @@ try {
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
 
-
-                    if (!$mail->send()) {
-                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    if($SEND_MAIL === true){
+                        if (!$mail->send()) {
+                            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                        }
                     }
-
                     $mensajeCorreo = " y correo de notificación enviado";
                 } else {
                     throw new Exception("No se pudieron agregar destinatarios para el correo");
@@ -220,11 +222,19 @@ try {
 
         // Preparar respuesta exitosa (incluyendo nota sobre correo)
         $tipoBarra = $accion === 'remplazo' ? 'reemplazo' : 'extra';
-        echo json_encode([
-            'success' => true,
-            'message' => "Barra $tipoBarra autorizada correctamente." . $mensajeAdicional . $mensajeCorreo,
-            'no_hay_pendientes' => !$hayPendientes
-        ]);
+        if($SEND_MAIL === true){
+            echo json_encode([
+                'success' => true,
+                'message' => "Barra $tipoBarra autorizada correctamente." . $mensajeAdicional . $mensajeCorreo,
+                'no_hay_pendientes' => !$hayPendientes
+            ]);
+        }else{
+            echo json_encode([
+                'success' => true,
+                'message' => "Barra $tipoBarra autorizada correctamente. Envío de correos no disponible." . $mensajeAdicional,
+                'no_hay_pendientes' => !$hayPendientes
+            ]);
+        }
 
     } catch (Exception $e) {
         // Revertir transacción en caso de error

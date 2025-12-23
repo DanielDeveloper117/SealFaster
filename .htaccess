@@ -3,7 +3,7 @@ Options -MultiViews
 
 # Redirige index.php a la misma carpeta sin index.php
 RewriteCond %{THE_REQUEST} /index\.php [NC]
-RewriteRule ^index\.php$ /cotizador/ [R=301,L]
+RewriteRule ^index\.php$ /sealfaster/ [R=301,L]
 
 # Servir index.php automáticamente
 DirectoryIndex index.php

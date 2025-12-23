@@ -193,7 +193,9 @@ try {
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
                     $mail->isHTML(true);
-                    $mail->addAddress($DEV_EMAIL);
+                    if($DEV_MODE === true){
+                        $mail->addAddress($DEV_EMAIL);
+                    }
                     $barraCompleta = $inventario_cnc['Clave'] . " " . $lote_pedimento . " (" . $inventario_cnc['Medida'] . ")";
                     $asunto = "Solicitud de barra extra. Folio: " . $id_requisicion;
                     
@@ -206,12 +208,12 @@ try {
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
                     // Agregar correo de prueba
-
-                    if (!$mail->send()) {
-                        throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                    if($SEND_MAIL === true){
+                        if (!$mail->send()) {
+                            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+                        }
+                        $mensajeCorreo = " y correo enviado para autorización";
                     }
-                    
-                    $mensajeCorreo = " y correo enviado para autorización";
                 } else {
                     throw new Exception("No se pudieron agregar destinatarios para el correo");
                 }
@@ -219,12 +221,19 @@ try {
         } catch (Throwable $e) {
             $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
         }
-
-        // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Solicitud de barra extra registrada correctamente" . $mensajeCorreo
-        ]);
+        if($SEND_MAIL === true){
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Solicitud de barra extra registrada correctamente" . $mensajeCorreo
+            ]);
+        }else{
+            // Respuesta exitosa
+            echo json_encode([
+                'success' => true,
+                'message' => "Solicitud de barra extra registrada correctamente. Envío de correos no disponible."
+            ]);
+        }
 
     } catch (Exception $e) {
         // Revertir transacción en caso de error

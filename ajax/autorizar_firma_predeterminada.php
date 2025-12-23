@@ -225,29 +225,45 @@ try {
         }
 
         // Agregar correo visible de prueba o destinatario unico
-        $mail->addAddress($DEV_EMAIL);
+        if($DEV_MODE === true){
+            $mail->addAddress($DEV_EMAIL);
+        }
         $mail->Subject = 'Nueva requisición pendiente. Folio: '.$id_requisicion;
         $mail->Body = "Se ha autorizado el maquinado de sello de una nueva requisición.<br>
                         Se necesita su ingreso al sistema para agregar y entregar los billets correspondientes.<br>
                         Folio de requisición: <b>" . $id_requisicion . "</b>";
-
-        if (!$mail->send()) {
-            throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
-        }
         ///////////////////////////////////////////////////////////////////////////////////////
         // Respuesta exitosa
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisición autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
-        ]);
+        if($SEND_MAIL === true){
+            if (!$mail->send()) {
+                throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);
+            }
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisición autorizada correctamente. Correo enviado exitosamente a Inventarios para continuar con el siguiente proceso."
+            ]);
+        }else{
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisición autorizada correctamente. Envío de correos no disponible."
+            ]);
+        }
 
     } catch (Throwable $e) {
-        echo json_encode([
-            'success' => true,
-            'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
-                         addslashes($e->getMessage()) .
-                         (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
-        ]);
+        if($SEND_MAIL === true){
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisicion autorizada correctamente, pero error al enviar correo: " .
+                            addslashes($e->getMessage()) .
+                            (($mail && $mail->ErrorInfo) ? " - " . $mail->ErrorInfo : "")
+            ]);
+        }else{
+            echo json_encode([
+                'success' => true,
+                'message' => "Requisición autorizada correctamente. Envío de correos no disponible."
+            ]);
+            
+        }
     }
 
 } catch (PDOException $e) {

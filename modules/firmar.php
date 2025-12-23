@@ -234,8 +234,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         writeToLog("=== FIN PROCESO AUTORIZACIÓN ===");
 
-        // ... resto del código igual ...
-
         // Confirmar transacción
         $conn->commit();
 
@@ -283,16 +281,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $mail->Body = $body;
             $mail->AltBody = strip_tags($body);
 
-            foreach ($arregloCorreos as $correo) {
-                //$mail->addAddress($correo);
-            }
-            $mail->addAddress($DEV_EMAIL); // destinatario de control
+            if($SEND_MAIL === true){
+                foreach ($arregloCorreos as $correo) {
+                    if($DEV_MODE === false){
+                        $mail->addAddress($correo);
+                    }
+                }
+                if($DEV_MODE === true){
+                    $mail->addAddress($DEV_EMAIL); // destinatario de control
+                }
+                if (!$mail->send()) {
+                    $text_alert .= " Pero hubo un error al enviar el correo: " . $mail->ErrorInfo;
+                }
 
-            if (!$mail->send()) {
-                $text_alert .= " Pero hubo un error al enviar el correo: " . $mail->ErrorInfo;
             }
         }
-
+        if($SEND_MAIL === false){
+            $text_alert = "Requisición autorizada correctamente. Envío de correos no disponible.";
+        }
         // Mostrar resultado en frontend
         echo '<script>document.addEventListener("DOMContentLoaded", function () {
             sweetAlertResponse("success", "Proceso finalizado", "'.$text_alert.'", "none");
