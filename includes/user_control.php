@@ -13,10 +13,10 @@
     $servidorEnMantenimiento = false; // Cambiar a true para activar el modo de mantenimiento
 
     //$urlValida = "https://sellosyretenes.com/sealfaster";
-    $urlValida = "http://localhost/cotizador/";
+    //$urlValida = "http://localhost/cotizador/";
     $urlActual = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http")
                 . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-
+    /*
     if (strpos($urlActual, $urlValida) === false) {
         echo "<script type='text/javascript'>
                 $(document).ready(function(){
@@ -38,7 +38,7 @@
             </script>";
         exit(); // Detener la carga de la pagina actual
     }
-
+    */
     if ($servidorEnMantenimientoAdvertencia) { 
         echo "<script type='text/javascript'>
                 $(document).ready(function(){

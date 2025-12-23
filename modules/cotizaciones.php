@@ -207,7 +207,7 @@ if (!isset($_SESSION['id'])) {
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
         $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
         $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
-        $default = isset($_GET['default']) ? (int)$_GET['default'] : 0;
+        $default = isset($_GET['default']) ? (int)$_GET['default'] : 2;
 
         $isAdmin = ($_SESSION['id'] ?? null) == 71;
         $params  = [];
@@ -1185,6 +1185,7 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
    <script>
         document.addEventListener('DOMContentLoaded', function() {
+            $("#overlay").addClass("d-none");
             // Verificar si ya existe la preferencia en localStorage
             /*
             if (!localStorage.getItem("ocultarInfoVigencias")) {

@@ -1478,7 +1478,12 @@ $(document).ready(function() {
         let tipoMedidaDE = $(this).val();
         window.TIPO_MEDIDA_DE = tipoMedidaDE;
         console.log("tipo medida DE cambio a: ", window.TIPO_MEDIDA_DE);
-        if(window.TIPO_MEDIDA_DE_SELECCIONADA==false){
+        if(window.perfilSello.includes("R13")){
+            window.TIPO_MEDIDA_DE_SELECCIONADA=true;
+            window.DE_CLIENTE_DIGITADO = true;
+            console.log("r13 detectado");
+        }
+        if(window.TIPO_MEDIDA_DE_SELECCIONADA===false){
             window.TIPO_MEDIDA_DE_SELECCIONADA=true;
             if(!window.perfilSello.includes("R13")){
                 habilitarInput(`#diametro_exterior_mm_cliente`);
@@ -1511,7 +1516,12 @@ $(document).ready(function() {
         }
     });
     // AL SELECCIONAR LOS 3 TIPOS DE MEDIDA SE MUESTRAN LAS SECCIONES DE ELEMENTOS DEL SELLO
-    $("#selectorTipoMedidaDI, #selectorTipoMedidaDE, #selectorTipoMedidaH, #altura_mm_cliente, #diametro_interior_mm_cliente, #diametro_exterior_mm_cliente").on("input change", function(){
+    $("#selectorTipoMedidaDI, #selectorTipoMedidaDE, #selectorTipoMedidaH, #altura_mm_cliente, #diametro_interior_mm_cliente, #diametro_exterior_mm_cliente, #altura_inch_cliente, #diametro_interior_inch_cliente, #diametro_exterior_inch_cliente").on("input change", function(){
+        if(window.perfilSello.includes("R13")){
+            window.DE_CLIENTE_DIGITADO = true;
+            window.TIPO_MEDIDA_DE_SELECCIONADA=true;
+            console.log("r13 detectado");
+        }
         setTimeout(() => {
             if(window.TIPO_MEDIDA_DI_SELECCIONADA===true 
                 && window.TIPO_MEDIDA_DE_SELECCIONADA===true 
@@ -1524,7 +1534,7 @@ $(document).ready(function() {
                 }
                 $(`#sectionCotizar`).removeClass("d-none");
             }
-        }, 1000);
+        }, 800);
     });
     // -----------------------------ALTURA--------------------------------------------------------------------
     // ---------------  MM a INCH  ---------------------
@@ -2111,7 +2121,74 @@ $(document).ready(function() {
         setTimeout(() => e.target.classList.remove('pop'), 220);
     });
 
+    async function mostrarNotificaciones() {
+        // Primer Modal
+        if (!localStorage.getItem("ocultarInfoFastSealMode")) {
+            const result1 = await Swal.fire({
+                title: 'Actualización Tipo de Inventario',
+                text: 'Posibilidad de seleccionar si la cotización estará sujeta al stock (de inventario cnc) o será estimación de costos sin tomar en cuenta existencia de billets (como el FastSeal).',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                toast: true,
+                width: '500px',
+                position: 'bottom-end',
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente'
+            });
+
+            // Guardamos solo si el checkbox fue marcado
+            if (result1.value) {
+                localStorage.setItem("ocultarInfoFastSealMode", "1");
+            }
+        }
+
+        // Segundo Modal (Se ejecuta después del primero, independientemente del checkbox)
+        if (!localStorage.getItem("ocultarInfoFastSealMode2")) {
+            const result2 = await Swal.fire({
+                title: 'Actualización Omitir Elemento',
+                text: 'Capacidad para omitir de la cotización elementos que conforman un perfil de mas de 1 material.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                toast: true,
+                width: '500px',
+                position: 'bottom-end',
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente'
+            });
+
+            if (result2.value) {
+                localStorage.setItem("ocultarInfoFastSealMode2", "1");
+            }
+        }
+        if (!localStorage.getItem("ocultarInfoPdfUpdated")) {
+            const result2 = await Swal.fire({
+                title: 'Actualización Guía de Usuario',
+                text: 'Se incluyeron las nuevas funcionalidades en la guía de usuario vendedor.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                toast: true,
+                width: '500px',
+                position: 'bottom-end',
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente'
+            });
+            
+            if (result2.value) {
+                localStorage.setItem("ocultarInfoPdfUpdated", "1");
+                $.post("../ajax/ajax_notificacion.php", {
+                    mensaje: "Ya lo vio"
+                }).done(function (response) {
+                    console.log("Notificación enviada:", response);
+                }).fail(function (error) {
+                    console.error("Error al enviar notificación:", error);
+                });
+            }
+        }
+    }
+
+    mostrarNotificaciones();
     // Verificar si ya existe la preferencia en localStorage
+    /*
     if (!localStorage.getItem("ocultarInfoValidacion")) {
         Swal.fire({
             title: 'Informacion importante',
@@ -2136,7 +2213,7 @@ $(document).ready(function() {
             }
         });
     }
-
+    */
     // Swal.fire({
     //     title: 'Informacion importante',
     //     text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiones. No se asegura la precison de las mismas.',

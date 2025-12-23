@@ -430,7 +430,7 @@
     }
     include(ROOT_PATH . 'includes/backend_info_user.php');
     // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
-    $default = "";
+    $default = 2;
     try {
         $preferencias = $_SESSION['filtros_requisiciones'] ?? $preferencias = [
             'estatus' => '',

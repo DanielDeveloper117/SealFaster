@@ -52,6 +52,11 @@ if (!isset($_SESSION['id'])) {
     }
 
 </style>
+<div id="overlay">
+    <div class="loading-message">
+        <span>Cargando requisiciones, por favor, espere...</span>    
+    </div>
+</div>
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
         <div class="titulo mt-1 mb-3">
@@ -811,6 +816,7 @@ function limpiarTodosFiltros() {
 
 // Mostrar filtros activos al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
+    $("#overlay").addClass("d-none");
     mostrarFiltrosActivos();
     
     // Actualizar filtros activos cuando cambien los campos

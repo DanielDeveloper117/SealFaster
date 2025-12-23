@@ -192,6 +192,31 @@ if (!isset($_SESSION['id'])) {
             });
         }
         */    
+        if (!localStorage.getItem("welcomeUpdateSecureConfig")) {
+            Swal.fire({
+                title: 'Sugerencia',
+                text: 'Para evitar conflictos con versiones anteriores del sistema, se sugiere limpiar/eliminar los datos de navegación (cache, cookies, etc.).',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '500px',
+                padding: '10px',
+                position: 'bottom-end',
+                toast: true,
+                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+                showConfirmButton: true,
+                showCloseButton: false,
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente',
+                inputAttributes: {
+                id: 'noMostrarCheckbox'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                // Guardar preferencia en localStorage
+                localStorage.setItem("welcomeUpdateSecureConfig", "1");
+                }
+            });
+        }
     });
 </script>
 </body>
