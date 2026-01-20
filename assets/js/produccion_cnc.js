@@ -77,10 +77,10 @@ $(document).ready(function(){
                         let esExtra = "";
                         let dNone = "";
                         console.log(dataEstatus);
-                        if(item.es_extra === 1){
+                        if(item.es_extra == 1){
                             esExtra = " (Barra extra)*";
                         }
-                        if(dataEstatus != "Autorizada" && item.es_extra === 0){
+                        if(dataEstatus != "Autorizada" && item.es_extra == 0){
                             dNone = "d-none";
                         }
                         $('#miniTableBarrasInventario tbody').append(`
@@ -329,7 +329,7 @@ $(document).ready(function(){
                                 <input type="hidden" tabindex="-1" name="id_estimacion" class="id_estimacion" value="${billet.id_estimacion ? billet.id_estimacion : ''}">
 
                                 <td>
-                                    ${billet.es_remplazo === 0 && billet.es_remplazo_auth === 0 && billet.es_extra === 0 && billet.es_extra_auth === 0
+                                    ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 0 && billet.es_extra_auth == 0
                                         ? `<button type="button" class="btn-thunder btn-remplazar-barra"
                                                     data-id-requisicion="${data.id_requisicion}"
                                                     data-id-control="${billet.id_control}"
@@ -341,19 +341,19 @@ $(document).ready(function(){
                                         </button>`
                                         : ``
                                     }
-                                    ${billet.es_remplazo === 1 && billet.es_remplazo_auth === 0
+                                    ${billet.es_remplazo == 1 && billet.es_remplazo_auth == 0
                                         ? `<small class="text-warning fw-semibold">Autorización pendiente</small>`
                                         : ``
                                     }
-                                    ${billet.es_remplazo === 1 && billet.es_remplazo_auth === 1 && billet.es_extra === 0 && billet.es_extra_auth === 0
+                                    ${billet.es_remplazo == 1 && billet.es_remplazo_auth == 1 && billet.es_extra == 0 && billet.es_extra_auth == 0
                                         ? `<small class="text-success fw-semibold">Remplazo autorizado</small>`
                                         : ``
                                     }
-                                    ${billet.es_remplazo === 1 && billet.es_remplazo_auth === 1 && billet.es_extra === 1 && billet.es_extra_auth === 1
+                                    ${billet.es_remplazo == 1 && billet.es_remplazo_auth == 1 && billet.es_extra == 1 && billet.es_extra_auth == 1
                                         ? `<small class="text-success fw-semibold">Remplazo autorizado</small>`
                                         : ``
                                     }
-                                    ${billet.es_remplazo === 0 && billet.es_remplazo_auth === 0 && billet.es_extra === 1 && billet.es_extra_auth === 1
+                                    ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 1 && billet.es_extra_auth == 1
                                         ? `<button type="button" class="btn-thunder btn-remplazar-barra"
                                                     data-id-requisicion="${data.id_requisicion}"
                                                     data-id-control="${billet.id_control}"
@@ -365,7 +365,7 @@ $(document).ready(function(){
                                         </button>`
                                         : ``
                                     }
-                                    ${billet.es_remplazo === 0 && billet.es_remplazo_auth === 0 && billet.es_extra === 1 && billet.es_extra_auth === 0
+                                    ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 1 && billet.es_extra_auth == 0
                                         ? `<small class="text-warning fw-semibold">Autorización pendiente</small>`
                                         : ``
                                     }
@@ -595,7 +595,7 @@ $(document).ready(function(){
                                 <td>
                                     <div>
                                         <p class="input-disabled lote_pedimento mb-0"> ${billet.lote_pedimento || ''}</p>
-                                        ${billet.pendiente_autorizar && parseInt(billet.pendiente_autorizar) === 1 ? '<small class="text-warning">Pendiente por autorizar</small>' : ''}
+                                        ${billet.pendiente_autorizar && parseInt(billet.pendiente_autorizar) == 1 ? '<small class="text-warning">Pendiente por autorizar</small>' : ''}
                                     </div>
                                 </td>
                                 <td><p class="input-disabled medida">${billet.medida || '?/?'}</p></td>
@@ -959,10 +959,10 @@ $(document).ready(function(){
                     $.each(data.data, function(index, item) {
                         let esExtra = "";
                         let esMerma = "";
-                        if(item.es_extra === 1){
+                        if(item.es_extra == 1){
                             esExtra = " (Barra extra)*";
                         }
-                        if(item.es_merma === 1){
+                        if(item.es_merma == 1){
                             esMerma = " (Barra mermada)*";
                         }
                         $('#modalRetorno tbody').append(`
@@ -1026,7 +1026,7 @@ $(document).ready(function(){
         const $tabla = $input.closest('table');
         const $inputRelacionado = $tabla.find(`input.${claseRelacionada}`);
 
-        if ($inputRelacionado.length === 0) {
+        if ($inputRelacionado.length == 0) {
             return;
         }
 
@@ -1088,7 +1088,7 @@ $(document).ready(function(){
         Promise.allSettled(promesas).then(resultados => {
             const fallos = resultados.filter(r => r.status === 'rejected');
 
-            if (fallos.length === 0) {
+            if (fallos.length == 0) {
                 Swal.fire({
                     title: 'Proceso exitoso',
                     text: 'Medidas guardadas correctamente.',
@@ -1917,7 +1917,7 @@ $(document).ready(function(){
         });
 
         // Validar que haya registros reales
-        if (datos.length === 0) {
+        if (datos.length == 0) {
             sweetAlertResponse("warning", "Sin registros", "No hay registros por enviar. Se necesita mínimo un registro.", "none");
             return;
         }
@@ -2084,7 +2084,7 @@ $(document).ready(function(){
         });
 
         // Validar que haya registros reales
-        if (datos.length === 0) {
+        if (datos.length == 0) {
             sweetAlertResponse("warning", "Sin registros", "No hay registros por enviar. Se necesita mínimo un registro con Lote Pedimento.", "none");
             return;
         }
