@@ -443,8 +443,10 @@
             
         }
     }
+
     include(ROOT_PATH . 'includes/backend_info_user.php');
     // --------- CARGAR PREFERENCIAS GUARDADAS PARA EL FORMULARIO ----------
+    $arregloSelectRequisiciones = [];
     $default = 2;
     try {
         $preferencias = $_SESSION['filtros_requisiciones'] ?? $preferencias = [
@@ -466,7 +468,13 @@
     }
 
     try {
-
+        $preferencias = $_SESSION['filtros_requisiciones'] ?? [
+            'estatus' => '',
+            'fecha_inicio' => '',
+            'fecha_fin' => '',
+            'default' => 2,
+            'orden' => 'desc'
+        ];
         // --------- LECTURA DE GET ----------
         $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : $preferencias["estatus"];
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
@@ -476,16 +484,38 @@
         $params = [];
         $conditions = [];
 
+        $sqlBase = "
+            SELECT 
+                r.*,
+                COALESCE(c.total_comentarios, 0) AS total_comentarios
+            FROM requisiciones r
+            LEFT JOIN (
+                SELECT
+                    r2.id_requisicion,
+                    COUNT(ca.id) AS total_comentarios
+                FROM requisiciones r2
+                LEFT JOIN comentarios_adjuntos ca
+                    ON FIND_IN_SET(ca.id_cotizacion, r2.cotizaciones)
+                GROUP BY r2.id_requisicion
+            ) c ON c.id_requisicion = r.id_requisicion
+            WHERE 1=1
+        ";
+
         // --------- BASE QUERY POR TIPO DE USUARIO ----------
-        if ($tipo_usuario == "Administrador") {
-            $sqlRequisiciones = "SELECT * FROM requisiciones WHERE 1=1 ";
-        } else if ($tipo_usuario == "Vendedor" && $rol_usuario == "Gerente") {
-            $sqlRequisiciones = "SELECT * FROM requisiciones WHERE sucursal = :area";
+        if ($tipo_usuario === "Administrador") {
+            $sqlRequisiciones = $sqlBase;
+
+        } elseif ($tipo_usuario === "Vendedor" && $rol_usuario === "Gerente") {
+            $sqlRequisiciones = $sqlBase . " AND (r.sucursal = :area OR r.id_vendedor = :id)";
             $params[':area'] = $areaUser;
+            $params[':id'] = $_SESSION['id'];
+
         } else {
-            $sqlRequisiciones = "SELECT * FROM requisiciones WHERE id_vendedor = :id";
+            // vendedor normal
+            $sqlRequisiciones = $sqlBase . " AND r.id_vendedor = :id";
             $params[':id'] = $_SESSION['id'];
         }
+
 
         // --------- APLICAR FILTROS ----------
 
@@ -499,7 +529,7 @@
                     $sqlRequisiciones .= " AND estatus = 'Autorizada'";
                     break;
                 case 'produccion':
-                    $sqlRequisiciones .= " AND estatus = 'Producción' OR estatus = 'En producción'";
+                    $sqlRequisiciones .= " AND estatus IN ('Producción', 'En producción')";
                     break;
                 case 'finalizada':
                     $sqlRequisiciones .= " AND estatus = 'Finalizada'";
@@ -565,32 +595,9 @@
         if (isset($_GET['orden'])) $preferencias['orden'] = $_GET['orden'];
 
     } catch (Throwable $e) {
-        // Fallback robusto en caso de error
-        try {
-            $default = 2;
-            if ($tipo_usuario == "Administrador") {
-                $sqlFallback = "SELECT * FROM requisiciones ORDER BY id_requisicion DESC";
-                $stmtRequisiciones = $conn->prepare($sqlFallback);
-            } else if ($tipo_usuario == "Vendedor" && $rol_usuario == "Gerente") {
-                $sqlFallback = "SELECT * FROM requisiciones WHERE sucursal = :area ORDER BY id_requisicion DESC";
-                $stmtRequisiciones = $conn->prepare($sqlFallback);
-                $stmtRequisiciones->bindParam(':area', $areaUser);
-            } else {
-                $sqlFallback = "SELECT * FROM requisiciones WHERE id_vendedor = :id ORDER BY id_requisicion DESC";
-                $stmtRequisiciones = $conn->prepare($sqlFallback);
-                $stmtRequisiciones->bindParam(':id', $_SESSION['id']);
-            }
-            
-            $stmtRequisiciones->execute();
-            $arregloSelectRequisiciones = $stmtRequisiciones->fetchAll(PDO::FETCH_ASSOC);
-            
-            error_log("Error en filtros de requisiciones: " . $e->getMessage());
-
-        } catch (Throwable $e2) {
-            // Si también falla el fallback
-            $arregloSelectRequisiciones = [];
-            error_log("Error crítico en filtros de requisiciones: " . $e2->getMessage());
-        }
+        // En error NO se consulta nada
+        $arregloSelectRequisiciones = [];
+        error_log("Error backend requisiciones CNC: " . $e->getMessage());
         // Sobreescribir con valores actuales de GET si existen
         if (isset($_GET['estatus'])) $preferencias['estatus'] = $_GET['estatus'];
         if (isset($_GET['fecha_inicio'])) $preferencias['fecha_inicio'] = $_GET['fecha_inicio'];

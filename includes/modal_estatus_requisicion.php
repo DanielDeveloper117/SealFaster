@@ -64,8 +64,13 @@
                         </tr>
                         <tr id="trProduccion" class="d-none">
                             <td>Producción</td>
-                            <td>El maquinado del sello está en proceso.</td>
+                            <td>Se asignó la máquina, entrega de barras pendiente.</td>
                             <td id="fechaInicioMaquinado"></td>
+                        </tr>
+                        <tr id="trMaquinado" class="d-none">
+                            <td>En maquinado</td>
+                            <td>Barras entregadas, el maquinado del sello está en proceso.</td>
+                            <td id="fechaEntregaBarras"></td>
                         </tr>
                         <tr id="trFinalizada" class="d-none">
                             <td>Finalizada</td>
@@ -101,6 +106,7 @@ function cargarEstatusRequisicion(idRequisicion) {
     $("#infoAutorizo").text('Cargando...');
     $("#fechaAutorizacion").text('Cargando...');
     $("#fechaInicioMaquinado").text('Cargando...');
+    $("#fechaEntregaBarras").text('Cargando...');
     $("#fechaFinMaquinado").text('Cargando...');
     // Realizar una solicitud AJAX para obtener los datos de estatus
     $.ajax({
@@ -111,19 +117,23 @@ function cargarEstatusRequisicion(idRequisicion) {
         success: function(response) {
             if (response.success) {
                 $("#fechaInsercion").text(response.data.fecha_insercion || 'No disponible');
-                $("#trAutorizada,#trProduccion,#trFinalizada").removeClass('d-none');
+                $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").removeClass('d-none');
                 switch(response.data.estatus) {
                     case 'Pendiente':
-                        $("#trAutorizada,#trProduccion,#trFinalizada").addClass('d-none');
+                        $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").addClass('d-none');
                         break;
                     case 'Autorizada':
-                        $("#trProduccion,#trFinalizada").addClass('d-none');
+                        $("#trProduccion,#trMaquinado,#trFinalizada").addClass('d-none');
                         break;
-                    case 'Producción' || 'En Producción':
+                    case 'Producción':
+                        $("#trMaquinado,#trFinalizada").addClass('d-none');
+                        break;
+                    case 'En producción':
                         $("#trFinalizada").addClass('d-none');
                         break;
-                    case 'Finalizada' || 'Completada':
-                        $("#trAutorizada,#trProduccion,#trFinalizada").removeClass('d-none');
+                    case 'Finalizada':
+                    case 'Completada':
+                        $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").removeClass('d-none');
                         break;
                     default:
                         // Si el estatus no coincide con ninguno, ocultar todas las filas excepto Pendiente
@@ -136,9 +146,8 @@ function cargarEstatusRequisicion(idRequisicion) {
            
                 $("#infoAutorizo").text(response.data.autorizo ? 'Autorizado por ' + response.data.autorizo : 'No disponible');
                 $("#fechaAutorizacion").text(response.data.fecha_autorizacion || 'No disponible');
-            
-                $("#fechaInicioMaquinado").text(response.data.fecha_entrega_barras || 'No disponible');
-        
+                $("#fechaInicioMaquinado").text(response.data.inicio_maquinado || 'No disponible');
+                $("#fechaEntregaBarras").text(response.data.fecha_entrega_barras || 'No disponible');
                 $("#fechaFinMaquinado").text(response.data.fin_maquinado || 'No disponible');
                 
             } else {
@@ -146,6 +155,7 @@ function cargarEstatusRequisicion(idRequisicion) {
                 $("#infoAutorizo").text('No disponible');
                 $("#fechaAutorizacion").text('No disponible');
                 $("#fechaInicioMaquinado").text('No disponible');
+                $("#fechaEntregaBarras").text('No disponible');
                 console.error('Error al obtener estatus:', response.message);
             }
         },

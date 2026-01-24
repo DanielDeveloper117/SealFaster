@@ -139,13 +139,22 @@ if (!isset($_SESSION['id'])) {
                                 }
 
                                 $estatusString = "";
-                                echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
-                                        data-origen="requi"
-                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                        data-es-mia="' . $esMia . '"
-                                        title="Comentarios y archivos adjuntos para esta requisición">
-                                        <i class="bi bi-chat-left-text"></i>
-                                    </button>';
+                                echo '<div class="comentarios-wrapper">';
+                                    echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
+                                                data-origen="requi"
+                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                data-es-mia="' . $esMia . '"
+                                                title="Comentarios y archivos adjuntos para esta requisición">
+                                                <i class="bi bi-chat-left-text"></i>
+                                            </button>';
+
+                                    if ((int)$row['total_comentarios'] > 0) {
+                                        echo '  <span class="badge-comentarios">'
+                                                . (int)$row['total_comentarios'] .
+                                            '</span>';
+                                    }
+
+                                echo '</div>';
                                 switch ($row['estatus']) {
                                     case "Pendiente":
                                         $estatusString = "Pendiente";
@@ -208,7 +217,7 @@ if (!isset($_SESSION['id'])) {
                                         break;
 
                                     case "En producción":
-                                        $estatusString = "Maquinado";
+                                        $estatusString = "En maquinado";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
                                             // echo '<button type="button" class="btn-disabled2" 
                                             //         title="No se puede cancelar una requisición en producción">

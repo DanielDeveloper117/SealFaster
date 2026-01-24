@@ -37,7 +37,7 @@ try {
         exit();
     }
 
-    if ($requisicion['estatus'] !== 'Finalizada') {
+    if ($requisicion['estatus'] !== 'Finalizada' && $requisicion['estatus'] !== 'Completada') {
         echo json_encode(['success' => false, 'error' => 'La requisición debe estar en estado "Finalizada" para poder revisarla']);
         exit();
     }

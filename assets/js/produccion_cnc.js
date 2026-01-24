@@ -11,227 +11,6 @@ $(document).ready(function(){
     function formatearDecimal(valor) {
         return parseFloat(valor).toFixed(2);
     }
-
-    // ???????????????????????? YA NO SIRVE ????????????????????????????????
-    // ?????????????????????????????Función que realiza la validación de campos de agregar barra
-    function obtenerDatosValidados() {
-        const inputIdRequisicion = $("#inputIdRequisicion").val().trim();
-        const inputCantidadBarras = $("#inputCantidadBarras").val().trim();
-        const inputMaterial = $("#inputMaterial").val().trim();
-        const inputClave = $("#inputClave").val().trim();
-        const inputLotePedimento = $("#inputLotePedimento").val().trim();
-        const inputMedida = $("#inputMedida").val();
-        const esExtra = $("#inputExtra").val();
-        const inputEntrada = $("#inputEntrada").val().trim();
-
-        if (!inputIdRequisicion || !inputCantidadBarras || !inputClave || !inputLotePedimento || !inputEntrada) {
-            sweetAlertResponse("warning", "Advertencia", "Debe llenar todos los campos.", "none");
-            return null;
-        }
-
-        // Validar cantidad de barras
-        if (!esEnteroValido(inputCantidadBarras)) {
-            sweetAlertResponse("warning", "Advertencia", "Cantidad de barras debe ser un entero válido.", "none");
-            return null;
-        }
-
-        const camposDecimales = [
-            { nombre: "Entrada", valor: inputEntrada }
-        ];
-
-        for (const campo of camposDecimales) {
-            if (!esDecimalValido(campo.valor)) {
-                sweetAlertResponse("warning", "Advertencia", `El campo "${campo.nombre}" debe ser un número decimal válido (hasta 2 decimales).`, "none");
-                return null;
-            }
-        }
-
-        return {
-            id_requisicion: inputIdRequisicion,
-            cantidad_barras: parseInt(inputCantidadBarras),
-            material: inputMaterial,
-            clave: inputClave,
-            lote_pedimento: inputLotePedimento,
-            medida: inputMedida,
-            es_extra: esExtra,
-            mm_entrega: formatearDecimal(inputEntrada)
-        };
-    }
-    // ????????????????????????????Traer las claves agregadas de la requisicion solo para verlas, algnas se pueden eliminar
-    function ajaxTablaControlAlmacenInventario(eststus){
-        const inputIdRequisicion = $("#inputIdRequisicion").val();
-        //$dataEstatus = $(this).data('estatus');
-        const dataEstatus = eststus;
-        $.ajax({
-            url: '../ajax/ver_control_almacen.php', 
-            type: 'get',
-            data: { 
-                id_requisicion: inputIdRequisicion
-            },
-            dataType: 'json',
-            success: function(data) {
-                $('#miniTableBarrasInventario tbody').empty(); // evita duplicados y posibles desbordes
-                // Verifica que la respuesta tenga datos
-                if (data.length > 0) {
-                    $.each(data, function(index, item) {
-                        let esExtra = "";
-                        let dNone = "";
-                        console.log(dataEstatus);
-                        if(item.es_extra == 1){
-                            esExtra = " (Barra extra)*";
-                        }
-                        if(dataEstatus != "Autorizada" && item.es_extra == 0){
-                            dNone = "d-none";
-                        }
-                        $('#miniTableBarrasInventario tbody').append(`
-                            <tr>
-                                <td>
-                                    <button data-id_control="${item.id_control}"  data-es_extra="${item.es_extra}" 
-                                        type="button" class="btn btn-danger btn-sm btnEliminarFila ${dNone}">
-                                        X
-                                    </button>
-                                </td>
-                                <td>${item.material}</td>
-                                <td>${item.lote_pedimento}</td>
-                                <td>${item.clave}<span style="color:#ffc107;">${esExtra}</span></td>
-                                <td>${item.medida}</td>
-                                <td>${item.mm_entrega}</td>
-                            </tr>
-                        `);
-                    });
-                } else {
-                     $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="6">No hay barras agregadas aún</td></tr>');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error al realizar la petición AJAX:', error);
-                $(`#miniTableBarrasInventario tbody`).append('<tr><td colspan="5">Error en ajax</td></tr>');
-                sweetAlertResponse("error", "Error", "Error al consultar barras: " + error, "none");
-            }
-    
-        });
-    }
-    let intervaloQR = null;
-    // ????????????????????????Verificar la autorización mediante QR periódicamente
-    function verificarAutorizacionQR(idRequisicion, autoriza) {
-        cancelarVerificacionQR(); // siempre cancelamos anterior antes de empezar nuevo
-        intervaloQR = setInterval(() => {
-            $.ajax({
-                url: '../ajax/ajax_verificar_autorizacion.php',
-                method: 'GET',
-                data: {
-                    id_requisicion: idRequisicion,
-                    autoriza: autoriza
-                },
-                success: function (respuesta) {
-                    if (respuesta === 'true') {
-                        cancelarVerificacionQR();
-                        sweetAlertResponse("success", "Firma confirmada", `La requisición ha sido firmada correctamente.`, "self");
-                    }
-                },
-                error: function () {
-                    console.error("Error al consultar el estatus de requisicion.");
-                }
-            });
-            console.log("Se ha enviado la solicitud para verificar firma con QR.");
-        }, 4000);
-    }    
-    // ????????????????????????Cancelar la verificación periódica del QR
-    function cancelarVerificacionQR() {
-        if (intervaloQR) {
-            clearInterval(intervaloQR);
-            intervaloQR = null;
-            console.log("Verificación QR cancelada.");
-        }
-    }   
-    // ???????????????????????VALIDAR EN EL FRONTEND LA CLAVE EN EL FORMULARIO
-    function verificarClave() {
-        let claveValue = $("#inputClave").val();
-
-        if (claveValue !== "") {
-            console.log("El usuario ingreso un valor en el inputClave.");
-            $.ajax({
-                url: '../ajax/ajax_parametros.php',
-                type: 'POST',
-                data: { clave: claveValue },
-                dataType: 'json',
-                success: function(data) {
-                    if (data.length > 0) {
-                        window.CLAVE_VALIDA = true;
-                        $("#pInvalida, #pInvalida2").addClass("d-none");
-                        $("#pValida").removeClass("d-none");
-                        $("#pValida").text(`Clave valida.`);
-                    } else {
-                        window.CLAVE_VALIDA = false;
-                        $("#pInvalida, #pInvalida2").removeClass("d-none");
-                        $("#pValida").addClass("d-none");
-                    }
-                    verificarBtnAgregarBarra();
-                },
-                error: function() {
-                    console.error('Error al realizar la peticion AJAX');
-                    $('#pInvalida2').text('Error en ajax validar clave.');
-                }
-            });
-        } else {
-            console.log("El usuario dejo el inputClave vacio.");
-        }
-    }
-    // ???????????????????????VALIDAR EN EL FRONTEND EL LOTE PEDIMENTO EN EL FORMULARIO
-    function verificarBilletControlAlmacen() {
-        let billetValue = $("#inputLotePedimento").val();
-
-        if (billetValue !== "") {
-            console.log("El usuario ingreso un valor en el inputLotePedimento.");
-            $.ajax({
-                url: '../ajax/info_lote_pedimento.php',
-                type: 'POST',
-                data: { billet: billetValue },
-                dataType: 'json',
-                success: function(data) {
-                    if (data.success) { 
-                        window.LP_VALIDO = true;
-                        $("#pLotePedimento").removeClass("d-none");
-                        $("#pLotePedimento").removeClass("p-invalida");
-                        $("#pLotePedimento").addClass("p-valida");
-                        $('#pLotePedimento').text(`${data.billetResult.material} - ${data.billetResult.Clave} (${data.billetResult.Medida})`);
-                        $("#inputClave").val(data.billetResult.Clave);
-                        $("#inputMaterial").val(data.billetResult.material);
-                        $("#inputMedida").val(data.billetResult.Medida);
-                    } else {
-                        window.LP_VALIDO = false;
-                        $("#pLotePedimento").removeClass("d-none");
-                        $("#pLotePedimento").removeClass("p-valida");
-                        $("#pLotePedimento").addClass("p-invalida");
-                        $('#pLotePedimento').text('Lote pedimento no encontrado.');
-                        $("#inputClave").val("");
-                        $("#inputMaterial").val("");
-                        $("#inputMedida").val("");
-                    }
-                    verificarBtnAgregarBarra();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error al realizar la petición AJAX:', error);
-                    console.error('Respuesta del servidor:', xhr.responseText); // Muestra el error enviado por PHP
-                    $("#pLotePedimento").removeClass("d-none");
-                    $('#pLotePedimento').text('Error en ajax validar lote pedimento.');
-                }
-            });
-        } else {
-            console.log("El usuario dejo el inputClavePost vacio.");
-        }
-    }
-    // ???????????????????Habilitar/deshabilitar el boton de agregar barra si la clave y el LP son validados
-    function verificarBtnAgregarBarra(){
-        //if(window.CLAVE_VALIDA == true && window.LP_VALIDO == true){
-        if(window.LP_VALIDO == true){
-            $("#btnAgregarBarra").removeClass("btn-disabled").addClass("btn-general");
-        }else{
-            $("#btnAgregarBarra").removeClass("btn-general").addClass("btn-disabled");
-        }
-    }
-    // ??????????????????????? FIN YA NO SIRVE ???????????????????????
-
     // Cuando CNC desea editar las medidas cuando por ejemplo eran medidas muestra
     function ajaxTraerCotizaciones(idRequisicion){
         $.ajax({
@@ -288,9 +67,9 @@ $(document).ready(function(){
     // Traer las barras de la requisicion para entregar
     function cargarTablaEntregarBarras(idRequisicion, estatusRequisicion){
         // Mostrar u ocultar el botón de entregar según el estatus de la requisición.
-        // Si el estatus no es exactamente "Autorizada" ocultamos el botón.
+        // Si el estatus no es exactamente "Producción" ocultamos el botón.
         try {
-            if (typeof estatusRequisicion === 'undefined' || estatusRequisicion !== 'Autorizada') {
+            if (typeof estatusRequisicion === 'undefined' || estatusRequisicion !== 'Producción') {
                 $('#btnEntregarBarras').addClass('d-none');
             } else {
                 $('#btnEntregarBarras').removeClass('d-none');
@@ -321,7 +100,14 @@ $(document).ready(function(){
                         if (!isFinite(mmTeoricosVal) || isNaN(mmTeoricosVal)) mmTeoricosVal = 0;
                         let mmTeoricos = parseFloat(mmTeoricosVal).toFixed(2);
                         console.log(rawPz, "*","(",rawAltura,"+",desbasteMaterial,") = ",mmTeoricos);
-                        
+
+                        // <button type="button" class="btn-eliminar btn-eliminar-barra"
+                        //             data-id-requisicion="${data.id_requisicion}"
+                        //             data-id-control="${billet.id_control}"
+                        //             title="Eliminar barra de este folio">
+                        //     <i class="bi bi-trash"></i>
+                        // </button>
+
                         $('#tableEntregarBarras tbody').append(`
                             <tr class="data-row" data-lote="${billet.lote_pedimento}">
                                 <input type="hidden" tabindex="-1" name="id_control" class="id_control" value="${billet.id_control ? billet.id_control : ''}">
@@ -330,15 +116,18 @@ $(document).ready(function(){
 
                                 <td>
                                     ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 0 && billet.es_extra_auth == 0
-                                        ? `<button type="button" class="btn-thunder btn-remplazar-barra"
-                                                    data-id-requisicion="${data.id_requisicion}"
-                                                    data-id-control="${billet.id_control}"
-                                                    data-clave="${billet.clave}"
-                                                    data-lp="${billet.lote_pedimento}"
-                                                    data-medida="${billet.medida}"
-                                                    title="Remplazar barra por otra">
-                                            <i class="bi bi-repeat"></i>
-                                        </button>`
+                                        ? `<div class="d-flex gap-2 container-actions">
+                                            <button type="button" class="btn-thunder btn-remplazar-barra"
+                                                        data-id-requisicion="${data.id_requisicion}"
+                                                        data-id-control="${billet.id_control}"
+                                                        data-clave="${billet.clave}"
+                                                        data-lp="${billet.lote_pedimento}"
+                                                        data-medida="${billet.medida}"
+                                                        title="Remplazar barra por otra">
+                                                <i class="bi bi-repeat"></i>
+                                            </button>
+
+                                        </div>`
                                         : ``
                                     }
                                     ${billet.es_remplazo == 1 && billet.es_remplazo_auth == 0
@@ -518,10 +307,10 @@ $(document).ready(function(){
                     });
                     console.log(data.fuente);
 
-                    // Si la requisición NO está autorizada, convertir TODOS los inputs de la tabla a solo lectura
+                    // Si la requisición NO es Producción, convertir TODOS los inputs de la tabla a solo lectura
                     // y quitar el atributo required para que no bloqueen validaciones posteriores.
                     try {
-                        if (typeof estatusRequisicion !== 'undefined' && estatusRequisicion !== 'Autorizada') {
+                        if (typeof estatusRequisicion !== 'undefined' && estatusRequisicion !== 'Producción') {
                             const $allInputs = $('#tableEntregarBarras tbody').find('input, textarea, select');
                             $allInputs.each(function () {
                                 const $el = $(this);
@@ -612,15 +401,15 @@ $(document).ready(function(){
                                 <td><input type="number" class="input-text pz_maquinadas" name="pz_maquinadas" value="${billet.pz_maquinadas || ''}" step="1" min="0" required></td>
                                 <td>
                                     <input type="number" 
-                                        ${billet.altura_pz ? 'tabindex="-1"' : ''}
-                                        class="${billet.altura_pz ? 'input-disabled' : 'input-text'} altura_pz" 
+                                        ${billet.altura_pz ? '' : ''}
+                                        class="${billet.altura_pz ? 'input-text' : 'input-text'} altura_pz" 
                                         name="altura_pz" 
                                         value="${billet.altura_pz || alturaPz}" 
                                         step="0.01" 
-                                        min="0" 
+                                        min="0.01" 
                                         ${billet.altura_pz ? '' : 'required'}>
                                 </td>                            
-                                <td><input type="number" class="input-text mm_usados" name="mm_usados" value="${billet.mm_usados || ''}" step="0.01" min="0" required></td>
+                                <td><input type="number" class="input-text mm_usados" name="mm_usados" value="${billet.mm_usados || ''}" step="0.01" min="0.01" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled long_t_sellos" name="total_sellos" value="${billet.total_sellos || longTSellos}" step="0.01" min="0" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled merma_corte" name="merma_corte" value="${billet.merma_corte || ''}" step="0.01" min="0" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled scrap_pz" name="scrap_pz" value="${billet.scrap_pz || ''}" step="1" min="0"></td>
@@ -639,6 +428,7 @@ $(document).ready(function(){
                                                     <option value="Filo de herramienta gastada" ${billet.causa_merma === 'Filo de herramienta gastada' ? 'selected' : ''}>Filo de herramienta gastada</option>
                                                     <option value="Daño en la materia prima" ${billet.causa_merma === 'Daño en la materia prima' ? 'selected' : ''}>Daño en la materia prima</option>
                                                     <option value="Sellos especiales" ${billet.causa_merma === 'Sellos especiales' ? 'selected' : ''}>Sellos especiales</option>
+                                                    <option value="Vibración de la barra" ${billet.causa_merma === 'Vibración de la barra' ? 'selected' : ''}>Vibración de la barra</option>
                                                 </select>
                                                 <small class="text-muted">Causa principal</small>
                                             </div>
@@ -693,9 +483,12 @@ $(document).ready(function(){
         console.log(`Agregando listeners para fila ID: ${idControl}, Lote: ${lote}`);
         
         // Eventos para pz_maquinadas y mm_usados
-        row.find('.pz_maquinadas, .mm_usados').on('input', function() {
+        row.find('.pz_maquinadas, .altura_pz, .mm_usados').on('input', function() {
             calcularFila(row, lote);
         });
+        setTimeout(() => {
+            row.find('.mm_usados').trigger("input");
+        }, 500);
     }
     // Función principal de cálculos para una fila
     function calcularFila(row, lote) {
@@ -764,7 +557,8 @@ $(document).ready(function(){
         
         // 10. Si mm_merma_real > mm_teoricos mostrar input de justificacion_merma
         const justificarRow = row.next('.row-justificar');
-        if (mmMermaReal > 0 && mmUsados > mmTeoricos) {
+        if (mmMermaReal > 0 || scrapPz > 0) {
+        //if (mmMermaReal > 0 && mmUsados > mmTeoricos) {
             justificarRow.removeClass('d-none');
             justificarRow.find('.text-merma-real').text(`Debe justificar por que hay una merma de ${mmMermaReal.toFixed(2)}mm. Lote pedimento: ${lote}`);
         } else {
@@ -790,6 +584,7 @@ $(document).ready(function(){
         console.log('es_merma:', esMerma);
         console.log('mm_teoricos:', mmTeoricos.toFixed(2));
         
+        //row.find('.mm_usados').val(mmUsadosCalculado.toFixed(2));
         row.find('.long_t_sellos').val(longTSellos.toFixed(2));
         row.find('.merma_corte').val(mermaCorte.toFixed(2));
         row.find('.scrap_pz').val(scrapPz);
@@ -959,20 +754,32 @@ $(document).ready(function(){
                     $.each(data.data, function(index, item) {
                         let esExtra = "";
                         let esMerma = "";
+                        let esReemplazo = "";
                         if(item.es_extra == 1){
                             esExtra = " (Barra extra)*";
                         }
                         if(item.es_merma == 1){
                             esMerma = " (Barra mermada)*";
                         }
+                        if(item.es_remplazo == 1){
+                            esReemplazo = " (Reemplazo de la barra: "+item.lote_pedimento+")*";
+                        }
                         $('#modalRetorno tbody').append(`
                             <tr>
                                 <input type="hidden" tabindex="-1" name="id_requisicion" value="${idRequisicion || ''}">
                                 <input type="hidden" tabindex="-1" name="id_control" value="${item.id_control || ''}">
-                                
+                                <input type="hidden" tabindex="-1" name="es_remplazo" value="${item.es_remplazo || ''}">
                                 <td><input type="text" tabindex="-1" class="input-disabled material" value="${item.material || ''}"></td>
                                 <td><input type="text" tabindex="-1" class="input-disabled clave" value="${item.clave || ''}"></td>
-                                <td><input type="text" tabindex="-1" class="input-disabled lote_pedimento d-flex flex-column" value="${item.lote_pedimento || ''}"><span style="color:#ffc107;">${esExtra}</span><span style="color:#B71C1C;">${esMerma}</span></td>
+                                <td><input type="text" tabindex="-1" class="input-disabled lote_pedimento d-flex flex-column" value="${
+                                    item.es_remplazo == 1 ?
+                                    item.lp_remplazo :
+                                    item.lote_pedimento
+                                }">
+                                    <span style="color:#ffc107;">${esExtra}</span>
+                                    <span style="color:#B71C1C;">${esMerma}</span>
+                                    <span style="color:#ffc107;">${esReemplazo}</span>
+                                </td>
                                 <td><input type="text" tabindex="-1" class="input-disabled medida" value="${item.medida || ''}"></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled mm_entrega" name="mm_entrega" value="${item.mm_entrega || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled mm_usados" name="mm_usados" value="${item.mm_total_usados || ''}" step="0.01" min="0"></td>
@@ -1117,146 +924,6 @@ $(document).ready(function(){
         });
 
     });
-
-
-
-    // ???????????????????????? YA NO SIRVE ????????????????????????????????
-    // ???????????????????????????CLICK AGREGAR CLAVE A CONTROL ALMACEN
-    $('#productionTable').on('click', '.btn-control-almacen', function() {
-        $dataIdRequisicion = $(this).data('id_requisicion');
-        $dataExtra = $(this).data('es_extra');
-        $("#pLotePedimento").addClass("d-none");
-
-        if ($dataExtra == "1") {
-            $("#inputExtra").prop("checked", true).prop("disabled", true);
-            $("#inputExtra").css("cursor", "not-allowed");
-            $("#lblInputExtra").text("Barra extra (Esta barra es extra obligatoriamente)");
-        } else {
-            $("#inputExtra").prop("checked", false).prop("disabled", false);
-            $("#inputExtra").css("cursor", "pointer");
-            $("#lblInputExtra").text("Barra extra");
-        }
-        $('#inputIdRequisicion').val($dataIdRequisicion);
-    });  
-    // ??????????????????VALIDAR QUE LA CLAVE EXISTA
-    $("#inputClave").on("input change", function(){
-        verificarClave();
-        verificarBtnAgregarBarra();
-    });
-    // ?????????????????VALIDAR QUE el lote pedimento exista
-    $("#inputLotePedimento").on("input change", function(){
-        verificarBilletControlAlmacen();
-        verificarBtnAgregarBarra();
-    });  
-    // ???????????????????????????CLICK SUBMIT A AGREGAR BARRA
-    $("#btnAgregarBarra").on('click', function () {
-        const datos = obtenerDatosValidados();
-
-        if (!datos) {
-            return; // Salir si hay errores de validación
-        }
-
-        // Enviar por AJAX si todo es válido
-        $.ajax({
-            url: '../ajax/agregar_control_almacen_inv.php',
-            type: 'POST',
-            data: datos,
-            dataType: 'json',
-            success: function(data) {
-                if (data.success) {
-                    sweetAlertResponse("success", "Proceso exitoso", data.message, "none");
-                } else {
-                    sweetAlertResponse("warning", "Advertencia", data.message, "none");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error al realizar la petición AJAX:', error);
-                $('#miniTableBarrasInventario tbody').append('<tr><td colspan="4">Error en ajax</td></tr>');
-                sweetAlertResponse("error", "Error", "Error al agregar registro. " + error, "none");
-            }
-        });
-    });
-    // ??????????????????CLICK AGREGAR CONTROL ALMACEN DESDE LA TABLA
-    $("#productionTable .btn-control-almacen").on("click", function(){
-        $dataExtra = $(this).data('es_extra');
-        $dataEstatus = $(this).data('estatus');
-        $("#pLotePedimento").addClass("d-none");
-        console.log($dataExtra);
-        console.log($dataEstatus);
-        $("#btnTablaControlAlmacenInventario").data('estatus-requi', $dataEstatus);
-
-        if($dataExtra == "1"){
-            $("#inputExtra").prop("checked", true).prop("disabled", true);
-            $("#inputExtra").val("1");
-        }else{
-            $("#inputExtra").prop("checked", false).prop("disabled", false);
-            $("#inputExtra").val("0");
-        }
-    });
-    // ??????????????????CLICK CERRAR MODAL AGREGAR
-    $("#modalControlAlmacenInventario .btn-close").on("click", function(){
-        $("#formControlAlmacenInventario")[0].reset();
-        $("#pInvalida").addClass("d-none");
-        $("#pInvalida2").addClass("d-none");
-        $("#pInvalida3").addClass("d-none");
-        $("#pValida").addClass("d-none");
-        window.CLAVE_VALIDA = false;
-        window.LP_VALIDO = false;
-        verificarBtnAgregarBarra();
-    });
-    // ????????????????CLICK VER TABLA DE BARRAS DESDE EL MODAL
-    $("#btnTablaControlAlmacenInventario").on("click", function(){
-        $('#modalTableControlAlmacenInventario').modal('show');
-        // AJAX para llenar la tabla de barras
-        let eststusRequi = $("#btnTablaControlAlmacenInventario").data("estatus-requi");
-        ajaxTablaControlAlmacenInventario(eststusRequi);
-    });
-    // ???????????????Delegamos el evento por si las filas se agregan dinámicamente
-    $(document).on('click', '.btnEliminarFila', function () {
-        const id_control = $(this).data('id_control');
-
-        if (!id_control) {
-            sweetAlertResponse("warning", "Advertencia", "ID de barra inválido.", "none");
-            return;
-        }
-
-        $.ajax({
-            url: '../ajax/eliminar_barra_ca.php',
-            type: 'POST',
-            data: { id_control },
-            dataType: 'json',
-            success: function (response) {
-                if (response.success) {
-                    sweetAlertResponse("success", "Eliminado", response.message, "none");
-                    let eststusRequi = $("#btnTablaControlAlmacenInventario").data("estatus-requi");
-                    ajaxTablaControlAlmacenInventario(eststusRequi);// Recargar la tabla
-                } else {
-                    sweetAlertResponse("warning", "Atención", response.message || "No se pudo eliminar.", "none");
-                }
-            },
-            error: function (xhr, status, error) {
-                console.error('Error al eliminar la barra:', error);
-                sweetAlertResponse("error", "Error", "Error en la solicitud: " + error, "none");
-            }
-        });
-    });
-    // ???????????????CLICK CERRAR MODAL TABLA
-    $("#modalTableControAlmacen .btn-close").on("click", function(){
-        $('#miniTableBarrasInventario tbody').empty();
-    });
-    // ???????????????QUITAR LOS MODALES SI QUITA EL DE GUARDAR OPERADOR
-    $('#modalGuardarOperador').on('hidden.bs.modal', function () {
-       $('#modalCncFirma').modal('hide');
-    });
-    $('#btn-closeOperador').on('click', function () {
-       $('#modalCncFirma').modal('hide');
-    });
-    $('#modalCncFirma').on('hidden.bs.modal', function () {
-        cancelarVerificacionQR();
-    });
-    // ??????????????????????? FIN YA NO SIRVE ???????????????????????
-
-
     // VER LA TABLA DE BARRAS DE CONTROL DE ALMACEN PARA ENTREGAR
     $(document).on('click', '.btn-entregar-barras', function(){
         const idRequisicionEntrega = $(this).data('id_requisicion');
@@ -1419,7 +1086,7 @@ $(document).ready(function(){
             }
         });
     });
-        // DAR SALIDA A LOS BILLETS QUE AGREGO INVENTARIOS
+    // DAR SALIDA A LOS BILLETS QUE AGREGO INVENTARIOS
     $("#btnEntregarBarras").on('click', function(){
         $('#modalDarSalida').modal('show');
         // (se establece cuando se abre la tabla de entrega). Si no existe, usar
@@ -1457,6 +1124,10 @@ $(document).ready(function(){
                     const nombre = $inp.attr('name') || $inp.attr('class') || 'campo';
                     errores.push(`Lote ${lote}: ${nombre} vacío`);
                 }
+                if (val == 0) {
+                    const nombre = $inp.attr('name') || $inp.attr('class') || 'campo';
+                    errores.push(`Lote ${lote}: ${nombre} no debe ser 0`);
+                }                
             });
         });
 
@@ -1538,13 +1209,7 @@ $(document).ready(function(){
     // BOTON DE ABRIR EL MODAL DE INICIAR MAQUINADO CNC, TRAER MAQUINAS
     $("#productionTable").on('click', ".btn-iniciar-maquinado", function () {
         let idRequisicion = $(this).data('id-requisicion');
-        //let autoriza = $(this).data('autoriza');
-        //let qrSrc = `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`;
-        // Mostrar imagen QR en el contenedor del modal
-        //$("#ContainerQR").html(`<img src="${qrSrc}" width="250" height="250">`);
-        //$("#ContainerQR").css("filter", "blur(3px)");
-        // Iniciar la verificación periódica
-        //verificarAutorizacionQR(idRequisicion, autoriza);
+
         $.ajax({
             url: '../ajax/maquinas.php',
             type: 'GET',
@@ -1578,17 +1243,11 @@ $(document).ready(function(){
         let inputOperadorCNC = $("#inputOperadorCNC").val();
         let inputIdRequisicionOperador = $("#inputIdRequisicionOperador").val();
 
-        let maquinaOperador;
         if(!inputMaquina){
             sweetAlertResponse("warning", "Faltan datos", "Seleccione una máquina CNC", "none");
             return;
         }
-        // if(inputOperadorCNC){
-        //     maquinaOperador = inputMaquina + ' - ' + inputOperadorCNC;
-        // }else{
-        //     maquinaOperador = inputMaquina;
-        // }
-        //maquinaOperador = inputMaquina;
+
         $(this).addClass("d-none");
         $.ajax({
             url: '../ajax/guardar_operadorcnc.php',
@@ -1603,7 +1262,7 @@ $(document).ready(function(){
                 if (data.success) {
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
                     $('#modalGuardarOperador').modal('hide');
-                    $("#ContainerQR").css("filter", "blur(0px)");
+                    //$("#ContainerQR").css("filter", "blur(0px)");
                 } else {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
                 }

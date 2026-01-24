@@ -25,53 +25,73 @@ try {
         exit();
     }
 
-    // Validar parametros
-    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
+    if (empty($_POST['registros'])) {
         echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
         exit();
     }
 
-    // Obtener observaciones si existen
     $observaciones_inv = $_POST['observaciones_inv'] ?? '';
-
-    // Decodificar JSON
     $data = json_decode($_POST['registros'], true);
 
-    // Tomar id_requisicion de la primera fila
+    if (!is_array($data) || count($data) === 0) {
+        throw new Exception('Formato de datos invalido');
+    }
+
     $id_requisicion = $data[0]['id_requisicion'] ?? null;
     if (!$id_requisicion) {
         throw new Exception("No se pudo determinar id_requisicion");
     }
 
-    if (!is_array($data) || count($data) === 0) {
-        echo json_encode(['success' => false, 'error' => 'Formato de datos invalido']);
-        exit();
-    }
-
-    // Iniciar transaccion
     $conn->beginTransaction();
 
-    // Preparar statements
-    $sqlUpdateControl = "UPDATE control_almacen 
-                         SET mm_retorno = :mm_retorno 
-                         WHERE id_control = :id_control";
-    $stmtControl = $conn->prepare($sqlUpdateControl);
+    /* =========================
+       PREPARED STATEMENTS
+    ========================= */
 
-    $sqlUpdateInventario = "UPDATE inventario_cnc 
-                            SET stock = :stock, pre_stock = :pre_stock,
-                                updated_at = NOW() 
-                            WHERE lote_pedimento = :lote_pedimento";
-    $stmtInventario = $conn->prepare($sqlUpdateInventario);
+    $stmtControl = $conn->prepare("
+        UPDATE control_almacen
+        SET mm_retorno = :mm_retorno
+        WHERE id_control = :id_control
+    ");
+
+    // inventario con stock
+    $stmtInvStock = $conn->prepare("
+        UPDATE inventario_cnc
+        SET stock = :stock,
+            pre_stock = :pre_stock,
+            estatus = 'Disponible para cotizar',
+            updated_at = NOW()
+        WHERE lote_pedimento = :lote
+    ");
+
+    // inventario solo estatus
+    $stmtInvStatus = $conn->prepare("
+        UPDATE inventario_cnc
+        SET estatus = 'Disponible para cotizar',
+            updated_at = NOW()
+        WHERE lote_pedimento = :lote
+    ");
+
+    // Obtener datos de control
+    $stmtGetControl = $conn->prepare("
+        SELECT lote_pedimento, lp_remplazo, es_remplazo
+        FROM control_almacen
+        WHERE id_control = :id_control
+        FOR UPDATE
+    ");
+
+    /* =========================
+       PROCESO PRINCIPAL
+    ========================= */
 
     foreach ($data as $fila) {
-        // Validaciones por registro
-        if (!isset($fila['id_control']) || !isset($fila['mm_retorno']) || !isset($fila['lote_pedimento'])) {
+
+        if (!isset($fila['id_control'], $fila['mm_retorno'])) {
             throw new Exception("Faltan campos obligatorios en un registro");
         }
 
         $id_control = (int)$fila['id_control'];
-        $mm_retorno = isset($fila['mm_retorno']) ? (float)$fila['mm_retorno'] : 0.00;
-        $lote_pedimento = trim($fila['lote_pedimento']);
+        $mm_retorno = (float)$fila['mm_retorno'];
 
         // Actualizar control_almacen
         $stmtControl->execute([
@@ -79,85 +99,109 @@ try {
             ':id_control' => $id_control
         ]);
 
-        // Actualizar inventario_cnc
-        $stmtInventario->execute([
-            ':stock' => $mm_retorno,
-            ':pre_stock' => $mm_retorno,
-            ':lote_pedimento' => $lote_pedimento
-        ]);
+        // Obtener info real del control
+        $stmtGetControl->execute([':id_control' => $id_control]);
+        $control = $stmtGetControl->fetch(PDO::FETCH_ASSOC);
+
+        if (!$control) {
+            throw new Exception("No existe control_almacen {$id_control}");
+        }
+
+        if ((int)$control['es_remplazo'] == 1) {
+
+            if (empty($control['lp_remplazo'])) {
+                throw new Exception("Reemplazo sin lp_remplazo en control {$id_control}");
+            }
+
+            // Barra de reemplazo → stock
+            $stmtInvStock->execute([
+                ':stock'     => $mm_retorno,
+                ':pre_stock' => $mm_retorno,
+                ':lote'      => $control['lp_remplazo']
+            ]);
+
+            // Barra original → solo estatus
+            $stmtInvStatus->execute([
+                ':lote' => $control['lote_pedimento']
+            ]);
+
+        } else {
+            // No reemplazo → barra original consume stock
+            $stmtInvStock->execute([
+                ':stock'     => $mm_retorno,
+                ':pre_stock' => $mm_retorno,
+                ':lote'      => $control['lote_pedimento']
+            ]);
+        }
     }
 
-    // Actualizar requisicion con observaciones
-    $sqlRequisicion = "UPDATE requisiciones 
-                       SET estatus = 'Completada', 
-                           fin_maquinado = NOW(),
-                           observaciones_inv = :observaciones_inv 
-                       WHERE id_requisicion = :id_requisicion";
-    $stmtRequisicion = $conn->prepare($sqlRequisicion);
-    $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmtRequisicion->bindParam(':observaciones_inv', $observaciones_inv);
-    $stmtRequisicion->execute();
+    /* =========================
+       REQUISICION
+    ========================= */
 
-    if ($stmtRequisicion->rowCount() === 0) {
+    $stmtReq = $conn->prepare("
+        UPDATE requisiciones
+        SET estatus = 'Completada',
+            fin_maquinado = NOW(),
+            observaciones_inv = :observaciones
+        WHERE id_requisicion = :id
+    ");
+
+    $stmtReq->execute([
+        ':observaciones' => $observaciones_inv,
+        ':id' => $id_requisicion
+    ]);
+
+    if ($stmtReq->rowCount() == 0) {
         throw new Exception("No se pudo actualizar requisicion {$id_requisicion}");
     }
 
-    $sqlLotesPedimento = "SELECT * FROM control_almacen WHERE id_requisicion = :id_requisicion";
-    $stmtLP = $conn->prepare($sqlLotesPedimento);
-    $stmtLP->bindParam(':id_requisicion', $id_requisicion);
-    $stmtLP->execute();
+    /* =========================
+       MENSAJES DE LOTES (CASI IGUAL)
+    ========================= */
+
+    $stmtLP = $conn->prepare("
+        SELECT lote_pedimento, lp_remplazo, es_remplazo
+        FROM control_almacen
+        WHERE id_requisicion = :id
+    ");
+    $stmtLP->execute([':id' => $id_requisicion]);
     $arrayLP = $stmtLP->fetchAll();
 
     $missingLotes = [];
     $alreadyEnabled = [];
-    $updatedLotes = 0;
 
     foreach ($arrayLP as $LP) {
-        $lote = trim($LP['lote_pedimento']);
 
-        // 1. Verificar existencia y estado actual
-        $sqlCheck = "SELECT estatus FROM inventario_cnc WHERE lote_pedimento = :lote_pedimento LIMIT 1";
-        $stmtCheck = $conn->prepare($sqlCheck);
-        $stmtCheck->bindParam(':lote_pedimento', $lote);
-        $stmtCheck->execute();
+        $lote = ((int)$LP['es_remplazo'] == 1)
+              ? trim($LP['lp_remplazo'])
+              : trim($LP['lote_pedimento']);
 
+        $stmtCheck = $conn->prepare("
+            SELECT estatus FROM inventario_cnc
+            WHERE lote_pedimento = :lote LIMIT 1
+        ");
+        $stmtCheck->execute([':lote' => $lote]);
         $registro = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
         if (!$registro) {
-            // No existe el lote
             $missingLotes[] = $lote;
             continue;
         }
 
-        if ($registro['estatus'] === 'Disponible para cotizar') {
-            // Ya estaba Disponible para cotizar
+        if ($registro['estatus'] == 'Disponible para cotizar') {
             $alreadyEnabled[] = $lote;
-            continue;
-        }
-
-        // 2. Actualizar solo si estaba deshabilitado
-        $sqlEstatusLP = "UPDATE inventario_cnc 
-                         SET estatus = 'Disponible para cotizar'
-                         WHERE lote_pedimento = :lote_pedimento";
-        $stmtEstatusLP = $conn->prepare($sqlEstatusLP);
-        $stmtEstatusLP->bindParam(':lote_pedimento', $lote);
-        $stmtEstatusLP->execute();
-
-        if ($stmtEstatusLP->rowCount() > 0) {
-            $updatedLotes++;
         }
     }
 
-    // Construir mensajes detallados
-    $msjLotes = "";
-    if (count($missingLotes) > 0) {
-        $msjLotes .= "No se encontraron las siguientes barras: " . implode(', ', $missingLotes) . ". ";
+    $msjLotes = '';
+    if ($missingLotes) {
+        $msjLotes .= 'No se encontraron las siguientes barras: ' . implode(', ', $missingLotes) . '. ';
     }
-    if (count($alreadyEnabled) > 0) {
-        $msjLotes .= "Las siguientes barras ya estaban habilitadas: " . implode(', ', $alreadyEnabled) . ". ";
+    if ($alreadyEnabled) {
+        $msjLotes .= 'Las siguientes barras ya estaban habilitadas: ' . implode(', ', $alreadyEnabled) . '. ';
     }
 
-    // Confirmar transaccion
     $conn->commit();
 
     echo json_encode([
@@ -166,11 +210,16 @@ try {
     ]);
 
 } catch (Throwable $e) {
+
     if ($conn->inTransaction()) {
         $conn->rollBack();
     }
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+
+    echo json_encode([
+        'success' => false,
+        'error'   => $e->getMessage()
+    ]);
+
 } finally {
     $conn = null;
 }
-?>

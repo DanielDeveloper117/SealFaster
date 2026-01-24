@@ -70,10 +70,11 @@ try {
         
         // Guardar ruta relativa para la base de datos
         $ruta_adjunto = "files/adjuntos_cotizaciones/" . $id_cotizacion . "/" . $nombre_archivo;
-    } else {
-        echo json_encode(['success' => false, 'error' => 'Archivo adjunto requerido']);
-        exit;
-    }
+    } 
+    // else {
+    //     echo json_encode(['success' => false, 'error' => 'Archivo adjunto requerido']);
+    //     exit;
+    // }
     
     // Insertar en base de datos
     $sql = "INSERT INTO comentarios_adjuntos (id_cotizacion, comentario, ruta_adjunto, fecha_creacion) 
@@ -87,7 +88,7 @@ try {
     if ($stmt->execute()) {
         echo json_encode([
             'success' => true,
-            'message' => 'Comentario y archivo agregados correctamente',
+            'message' => 'Comentario agregado correctamente',
             'id_registro' => $conn->lastInsertId()
         ]);
     } else {

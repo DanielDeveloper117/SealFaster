@@ -219,31 +219,37 @@ if (!isset($_SESSION['id'])) {
             });
         }
         */
-        if (!localStorage.getItem("welcomeUpdateNoEmail")) {
-            Swal.fire({
-                title: 'Aviso',
-                text: 'El envío de correos del sistema no estará disponible hasta nuevo aviso. No será posible notificar mediante correos automáticos.',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                width: '500px',
-                padding: '10px',
-                position: 'bottom-end',
-                toast: true,
-                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
-                showConfirmButton: true,
-                showCloseButton: false,
-                input: 'checkbox',
-                inputPlaceholder: 'No mostrar nuevamente',
-                inputAttributes: {
-                id: 'noMostrarCheckbox'
-                }
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                // Guardar preferencia en localStorage
-                localStorage.setItem("welcomeUpdateNoEmail", "1");
-                }
-            });
-        }
+        <?php
+             if($SEND_MAIL === false){
+                echo "
+                    if (!localStorage.getItem('welcomeUpdateNoEmail')) {
+                        Swal.fire({
+                            title: 'Aviso',
+                            text: 'El envío de correos del sistema no estará disponible hasta nuevo aviso. No será posible notificar mediante correos automáticos.',
+                            icon: 'info',
+                            confirmButtonText: 'Entendido',
+                            width: '500px',
+                            padding: '10px',
+                            position: 'bottom-end',
+                            toast: true,
+                            //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+                            showConfirmButton: true,
+                            showCloseButton: false,
+                            input: 'checkbox',
+                            inputPlaceholder: 'No mostrar nuevamente',
+                            inputAttributes: {
+                            id: 'noMostrarCheckbox'
+                            }
+                        }).then((result) => {
+                            if (result.isConfirmed && result.value) {
+                            // Guardar preferencia en localStorage
+                            localStorage.setItem('welcomeUpdateNoEmail', '1');
+                            }
+                        });
+                    }
+                ";
+            }
+        ?>
     });
 </script>
 </body>

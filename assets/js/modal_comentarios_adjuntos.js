@@ -338,10 +338,10 @@ function agregarComentarioAdjunto() {
         return;
     }
     
-    if (!archivo) {
-        alert('El archivo adjunto es requerido');
-        return;
-    }
+    // if (!archivo) {
+    //     alert('El archivo adjunto es requerido');
+    //     return;
+    // }
     
         // VALIDACIÓN DE LONGITUD MÁXIMA (98 caracteres)
     if (comentario.length > 98) {

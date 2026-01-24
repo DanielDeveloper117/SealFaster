@@ -12,8 +12,8 @@ $(document).ready(function() {
     window.conEscalon = "0";
     window.esWisperEspecial = "0";
 
-    window.DI_TOLERANCIA_DEFAULT = 3.00;
-    window.DE_TOLERANCIA_DEFAULT = 1.00;
+    window.DI_TOLERANCIA_DEFAULT = 4.00;
+    window.DE_TOLERANCIA_DEFAULT = 4.00;
 
     window.multiploResorte = 1.00;
     window.billetsSeleccionados = [];
@@ -965,13 +965,13 @@ $(document).ready(function() {
             }
             console.log("suma", H2MasH3);
         }
-        if (parseFloat(DI_R) == 0.00){
-            window.DI_TOLERANCIA_DEFAULT = 0.00;
-            window.DE_TOLERANCIA_DEFAULT = 0.00;
-        }else{
-            window.DI_TOLERANCIA_DEFAULT = 3.00;
-            window.DE_TOLERANCIA_DEFAULT = 1.00;
-        }
+        // if (parseFloat(DI_R) == 0.00){
+        //     window.DI_TOLERANCIA_DEFAULT = 0.00;
+        //     window.DE_TOLERANCIA_DEFAULT = 0.00;
+        // }else{
+        //     window.DI_TOLERANCIA_DEFAULT = 4.00;
+        //     window.DE_TOLERANCIA_DEFAULT = 4.00;
+        // }
         // ************************************************************************
         // ******** si las dimensiones son validas
         $(`#containerErrorDimensiones_m${window.esWisper} span`).text('');
@@ -2186,7 +2186,7 @@ $(document).ready(function() {
         }
     }
 
-    mostrarNotificaciones();
+    //mostrarNotificaciones();
     // Verificar si ya existe la preferencia en localStorage
     /*
     if (!localStorage.getItem("ocultarInfoValidacion")) {

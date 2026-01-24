@@ -80,6 +80,8 @@ if (!isset($_SESSION['id'])) {
                         <!-- <th>Id</th> -->
                         <th>Folio</th>
                         <th>Estatus</th>
+                        <th>Máquina CNC</th>
+                        <th>Comentario</th>
                         <th>Vendedor</th>
                         <th>Cliente</th>
                         <!-- <th>Cotizaciones</th> -->
@@ -87,7 +89,6 @@ if (!isset($_SESSION['id'])) {
                         <th>Num. pedido</th>
                         <th>Paqueteria</th>
                         <th>Factura/remision/nota</th>
-                        <th>Comentario</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -107,24 +108,51 @@ if (!isset($_SESSION['id'])) {
 
                                 <?php
                                 $estatusString = "";
-                                echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
-                                        data-origen="requi"
-                                        data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                        data-es-mia="0"
-                                        title="Comentarios y archivos adjuntos para esta requisición">
-                                        <i class="bi bi-chat-left-text"></i>
-                                    </button>';
+                                echo '<div class="comentarios-wrapper">';
+                                    echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
+                                                data-origen="requi"
+                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                data-es-mia="0"
+                                                title="Comentarios y archivos adjuntos para esta requisición">
+                                                <i class="bi bi-chat-left-text"></i>
+                                            </button>';
+
+                                    if ((int)$row['total_comentarios'] > 0) {
+                                        echo '  <span class="badge-comentarios">'
+                                                . (int)$row['total_comentarios'] .
+                                            '</span>';
+                                    }
+
+                                echo '</div>';
+
                                 switch ($row['estatus']) {
                                     case "Autorizada":
                                         $estatusString = "Autorizada";
 
                                         // CNC Gerente puede editar medidas
+                                        //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
                                         if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
                                             echo '<button type="button" class="btn-thunder btn-editar-medidas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalEditarMedidas"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Editar medidas de las cotizaciones">
                                                     <i class="bi bi-pencil-square"></i>
+                                                </button>';
+                                                echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-autoriza="cnc"
+                                                    title="Cambiar estatus a maquinado CNC iniciado">
+                                                    <i class="bi bi-file-play"></i>
+                                                </button>';
+                                        } 
+                                        if($tipo_usuario === "CNC" && $rol_usuario !== "Gerente"){
+                                                echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-autoriza="cnc"
+                                                    title="Cambiar estatus a maquinado CNC iniciado">
+                                                    <i class="bi bi-file-play"></i>
                                                 </button>';
                                         }
 
@@ -149,24 +177,30 @@ if (!isset($_SESSION['id'])) {
 
                                     case "Producción":
                                         $estatusString = "Producción";
+                                        if ($tipo_usuario === "Inventarios") {
+                                            $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
+                                            $claseBoton = "btn-thunder";
+                                            $iconButton = "bi-database-add";
+                                            $titleButton = "";
+                                           if(!empty($row['fecha_entrega_barras'])){
+                                                $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
+                                                $claseBoton = "btn-thunder";
+                                                $iconButton = "bi-database-add";
+                                                $titleButton = "Agregar/remplazar barras de control de almacen";
+                                           }else{
+                                                $mostrarBtnEntregarBarras="Producción";
+                                                $claseBoton = "btn-amber";
+                                                $iconButton = "bi-database";
+                                                $titleButton = "Pendiente de entregar barras";
+                                           }
 
-                                        if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                            echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
-                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    data-autoriza="cnc"
-                                                    title="Cambiar estatus a maquinado CNC iniciado">
-                                                    <i class="bi bi-file-play"></i>
-                                                </button>';
-                                        } elseif ($tipo_usuario === "Inventarios") {
-                                           
-                                            echo '<button class="btn-thunder btn-entregar-barras" 
+                                            echo '<button class="'.$claseBoton.' btn-entregar-barras" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
-                                                    data-es_extra = "1"
-                                                    data-estatus = "Producción"  
+                                                    data-es_extra = "0"
+                                                    data-estatus = "'.$mostrarBtnEntregarBarras.'"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Agregar/remplazar barras de control de almacen">
-                                                    <i class="bi bi-database-add"></i>
+                                                    title="'.$titleButton.'">
+                                                    <i class="bi '.$iconButton.'"></i>
                                                 </button>';
                                             //  echo '<button class="btn-thunder btn-control-almacen" 
                                             //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
@@ -176,16 +210,26 @@ if (!isset($_SESSION['id'])) {
                                             //         title="Agregar/remplazar barras de control de almacen">
                                             //         <i class="bi bi-database-add"></i>
                                             //     </button>';    
-                                        }elseif ($tipo_usuario === "CNC" && $rol_usuario != "Gerente") {
+                                        }elseif ($tipo_usuario === "CNC") {
                                             // aqui no span, solo controlado por estatusString
+                                            if(empty($row['maquina']) && !empty($row['fecha_entrega_barras'])){
+
+                                                echo '<button type="button" class="btn-blue btn-iniciar-maquinado" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalGuardarOperador"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-autoriza="cnc"
+                                                    title="Cambiar estatus a maquinado CNC iniciado">
+                                                    <i class="bi bi-file-play"></i>
+                                                </button>';
+                                            }
                                         }
                                         break;
 
                                     case "En producción":
-                                        $estatusString = "Maquinado";
+                                        $estatusString = "En maquinado";
 
                                         //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                        if ($tipo_usuario === "CNC") {
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == $row['maquina']) {
                                             echo '<button type="button" class="btn-terracota btn-finalizar" 
                                                     data-bs-toggle="modal" data-bs-target="#modalFinalizar"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
@@ -221,16 +265,16 @@ if (!isset($_SESSION['id'])) {
                                             echo '<button class="btn-general btn-bar-entry btn-claves-retorno" 
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Retornar barras al inventario">
+                                                    title="Retornar barras al inventario con nuevo stock">
                                                     <i class="bi bi-database-fill-down"></i>
                                                 </button>';
                                         }else if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
                                                 $colorBtn = "btn-general";
-                                                $iconStatus = '<i class="bi bi-card-list me-1"></i><i class="bi bi-clock"></i>';
+                                                $iconStatus = '<i class="bi bi-flag me-1"></i><i class="bi bi-clock"></i>';
                                             }else{
                                                 $colorBtn = "btn-auth";
-                                                $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
+                                                $iconStatus = '<i class="bi bi-flag"></i><i class="bi bi-check2-all"></i>';
                                             }
                                             echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
@@ -247,10 +291,10 @@ if (!isset($_SESSION['id'])) {
                                         if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
                                                 $colorBtn = "btn-general";
-                                                $iconStatus = '<i class="bi bi-card-list me-1"></i><i class="bi bi-clock"></i>';
+                                                $iconStatus = '<i class="bi bi-flag me-1"></i><i class="bi bi-clock"></i>';
                                             }else{
                                                 $colorBtn = "btn-auth";
-                                                $iconStatus = '<i class="bi bi-card-list"></i><i class="bi bi-check2-all"></i>';
+                                                $iconStatus = '<i class="bi bi-flag"></i><i class="bi bi-check2-all"></i>';
                                             }
                                             echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
@@ -282,6 +326,8 @@ if (!isset($_SESSION['id'])) {
                                 </button>
                             </div>
                         </td>
+                        <td><?= htmlspecialchars($row['maquina']." - ".$row['operador_cnc']??""); ?></td>
+                        <td><?= htmlspecialchars($row['comentario']??""); ?></td>
                         <td><?= htmlspecialchars($row['nombre_vendedor']??""); ?></td>
                         <td><?= htmlspecialchars($row['cliente']??""); ?></td>
                         <!-- <td>
@@ -300,7 +346,6 @@ if (!isset($_SESSION['id'])) {
                         <td><?= htmlspecialchars($row['num_pedido']??""); ?></td>
                         <td><?= htmlspecialchars($row['paqueteria']??""); ?></td>
                         <td><?= htmlspecialchars($row['factura']??""); ?></td>
-                        <td><?= htmlspecialchars($row['comentario']??""); ?></td>
                     </tr>
                 <?php
                     }
@@ -342,9 +387,10 @@ if (!isset($_SESSION['id'])) {
                                 </label>
                                 <select class="form-select" id="estatus" name="estatus">
                                     <option value="">Todos los estatus</option>
-                                    <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?>>Autorizada</option>
-                                    <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>En producción</option>
-                                    <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada</option>
+                                    <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?> class="<?= ($tipo_usuario === 'Inventarios') ? 'd-none' : '' ?>">Autorizada (asignación de máquina pendiente)</option>
+                                    <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>Producción (en procesos de maquinado)</option>
+                                    <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada (maquinado finalizado)</option>
+                                    <option value="completada" <?= ($preferencias['estatus'] == 'completada') ? 'selected' : '' ?>>Completada (barras retornadas)</option>
                                 </select>
                             </div>
                         </div>
@@ -461,29 +507,13 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
-<!-- ??????????????????????????MODAL CNC DEBE FIRMAR /////////////////////// -->
-<div class="modal fade" id="modalCncFirma" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">Siga las instrucciónes para firmar</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil, luego en la ventana dibuja tu firma y toca el boton Continuar. Caducará en 5 minutos.</p>
-                <div id="ContainerQR" class="d-flex justify-content-center">
 
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 <!-- //////////////////////////MODAL GUARDAR OPERADOR CNC /////////////////////// -->
 <div class="modal fade" id="modalGuardarOperador" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 50% !important;margin-top:10%;">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">Primero debe agregar la máquina que realizará el maquinado</span>
+                <span class="title-form">Asignación de máquina</span>
                 <button type="button" id="btn-closeOperador" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -493,11 +523,6 @@ if (!isset($_SESSION['id'])) {
                         <label for="inputMaquina" class="lbl-general">Máquina CNC*</label>
                         <select id="inputMaquina" class="selector" required >
                             <option value="" selected disabled>Seleccione máquina</option>
-                            <option value="Máquina 1">Máquina 1</option>
-                            <option value="Máquina 2">Máquina 2</option>
-                            <option value="Máquina 3">Máquina 3</option>
-                            <option value="Máquina 4">Máquina 4</option>
-                            <option value="Máquina 5">Máquina 5</option>
                         </select>
                     </div>
                     
@@ -510,104 +535,6 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-footer justify-content-end">
                 <button id="btnGuardarOperador" type="button" class="btn-general" tabindex="-1">Guardar</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ????????????????????????MODAL AGREGAR CONTROL ALMACEN INVENTARIO/////////////////////// -->
-<div class="modal fade" id="modalControlAlmacenInventario" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="d-flex justify-content-between" style="width:90%;">
-                    <h5 id="titleModal" class="modal-title" id="modalLabel">CONTROL DE ALMACEN</h5>
-                    <button id="btnTablaControlAlmacenInventario" type="button" class="btn btn-primary" data-estatus-requi="">
-                    Ver barras
-                    </button>
-                </div>
-                <button id="btnCloseModal" type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formControlAlmacenInventario" action="" method="POST">                        
-                    <input id="inputIdRequisicion" type="hidden" name="id_requisicion">
-                    <input id="inputClave" type="hidden"  name="clave" placeholder="Ingrese una clave valida" required>
-                    <input id="inputCantidadBarras" type="hidden" value="1" min="0" step="1" name="cantida_barras" required>
-                    <input id="inputMaterial" type="hidden" name="material" required>
-                    <input id="inputMedida" type="hidden" name="medida" required>
-                    <div class="d-flex justify-content-between">
-                        <div class="" style="width:63%;">
-                            <label for="inputLotePedimento" class="lbl-general">LOTE PEDIMENTO</label>
-                            <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
-                        </div>  
-                        <div class="" style="width:35%;">
-                            <label for="inputEntrada" class="lbl-general">MM ENTREGA</label>
-                            <input id="inputEntrada" type="number" class="input-text"  min="0" step="0.01" name="mm_entrega" required>
-                        </div>
-                    </div>  
-                    <div class="d-flex justify-content-between">
-                        <div class="" style="width:100%;">
-                            <p id="pLotePedimento" class="d-none"></p>
-                        </div>
-                    </div>                  
-                    <!-- <div class="d-flex justify-content-between">
-                        <div class="" style="width:35%;">
-                            <label for="inputCantidadBarras" class="lbl-general">CANTIDAD DE BARRAS</label>
-                        </div>
-                        <div class="" style="width:63%;">
-                            <label for="inputClave" class="lbl-general">CLAVE</label>
-                        </div>
-                    </div> -->
-                    <div class="d-flex flex-column justify-content-between mb-3">
-                        <div class="d-flex flex-column justify-content-between ">
-                            <p id="pInvalida2" class="d-none p-invalida2" style="margin-bottom:0px;">La clave debe ser valida para optimizar el control de almacen.</p>
-                            <p id="pInvalida" class="d-none p-invalida" style="margin-bottom:0px;">Clave no valida.</p>
-                            <p id="pValida" class="d-none p-valida" style="margin-bottom:0px;"></p>
-                        </div>
-                        <!-- <a href="../files/CNC_CLAVES.xlsx" download="CNC_CLAVES.xlsx" class="btn btn-success">
-                            Descargar Excel de claves validas
-                            <i class ="bi bi-download"></i>
-                        </a> -->
-                    </div>
-  
-                    <div class="d-flex justify-content-between mb-3">
-                        <div style="width:35%;">
-                            <label id="lblInputExtra" for="inputExtra" class="lbl-general">Barra extra</label>
-                            <input 
-                                type="checkbox" 
-                                id="inputExtra"
-                                name="barra_extra" 
-                                
-                                onclick="this.value = this.checked ? 1 : 0"
-                                style="transform: scale(1.5); margin-left: 10px;"
-                            >
-                        </div>
-                    <!-- <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:48%;">
-                            <label for="inputTotalSellos" class="lbl-general">LONG. TOTAL DE SELLOS</label>
-                            <input id="inputTotalSellos" type="number" class="input-text"  min="0" step="0.01" name="total_sellos" required>
-                        </div>
-                        <div class="" style="width:48%;">
-                            <label for="inputMermaCorte" class="lbl-general">MERMA POR CORTE</label>
-                            <input id="inputMermaCorte" type="number" class="input-text"  min="0" step="0.01" name="merma_corte" required>
-                        </div>                        
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:48%;">
-                            <label for="inputScrapPz" class="lbl-general">SCRAP PZ</label>
-                            <input id="inputScrapPz" type="number" class="input-text"  min="0" step="0.01" name="scrap_pz" required>
-                        </div>
-                        <div class="" style="width:48%;">
-                            <label for="inputScrapMm" class="lbl-general">SCRAP MM</label>
-                            <input id="inputScrapMm" type="number" class="input-text"  min="0" step="0.01" name="scrap_mm" required>
-                            <p id="pInvalida3" class="d-none p-invalida">Ese Lote pedimento ya existe.</p>
-                        </div>                        
-                    </div> -->
-                    </div> 
-                    <div class="d-flex justify-content-between mb-3">
-                        <button id="btnAgregarBarra" type="button" class="btn-disabled" tabindex="-1">Agregar</button>
-                    </div> 
-                </form>
             </div>
         </div>
     </div>

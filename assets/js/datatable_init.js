@@ -2,8 +2,8 @@ $(document).ready(function(){
     window.NOMBRE_TABLA = $('table').attr("id");
     if(window.NOMBRE_TABLA == "inventarioTable"){
         $(`#${NOMBRE_TABLA}`).DataTable({
-            ordering: true, //botones de ordenacion de las columnas
-            "orderable": true,
+            "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
+            "order": [],
             "searching": true, // función de búsqueda activada
             search: {
                 return: false
@@ -59,8 +59,8 @@ $(document).ready(function(){
         });
     }else{
         $(`#${NOMBRE_TABLA}`).DataTable({
-            ordering: true, //botones de ordenacion de las columnas
-            "orderable": true,
+            "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
+            "order": [],
             "searching": true, // función de búsqueda activada
             search: {
                 return: false

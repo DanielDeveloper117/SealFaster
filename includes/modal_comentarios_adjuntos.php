@@ -102,6 +102,28 @@
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
+.comentarios-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.badge-comentarios {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    background-color: #0d6efd; /* azul bootstrap */
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    line-height: 18px;
+    text-align: center;
+    border-radius: 50%;
+    padding: 0 4px;
+    pointer-events: none;
+}
+
 </style>
 <!-- Modal para comentarios y adjuntos -->
 <div class="modal fade" id="modalComentariosAdjuntos" tabindex="-1" aria-labelledby="modalComentariosAdjuntosLabel" aria-hidden="true">
@@ -122,6 +144,7 @@
                     <small class="fst-italic text-secondary">No hay comentarios adjuntos</small>
                 </div>
                 <!-- Formulario para agregar nuevo (inicialmente oculto) -->
+                <?php if($tipo_usuario != "CNC" && $tipo_usuario != "Inventarios"): ?>
                 <div id="formularioNuevo" class="d-none">
                     <div class="card border-secondary-subtle border-2 mb-3">
                         <div class="card-body">
@@ -145,7 +168,7 @@
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Archivo adjunto *</label>
+                                    <label class="form-label fw-bold">Archivo adjunto</label>
                                     <div id="areaAdjunto">
                                         <button type="button" class="input-file-simple w-100" id="btnSeleccionarArchivo">
                                             <i class="bi bi-paperclip"></i> Añadir adjunto
@@ -179,6 +202,7 @@
                         <div class="text-muted">Agregar</div>
                     </div>
                 </div>
+                <?php endif;?>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-general" data-bs-dismiss="modal">Ok</button>

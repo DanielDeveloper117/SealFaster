@@ -545,13 +545,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                        window.DI_TOLERANCIA_DEFAULT = 1.00;
-                        window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    }else{
-                        window.DI_TOLERANCIA_DEFAULT = 3.00;
-                        window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    }
+                    // if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
+                    //     window.DI_TOLERANCIA_DEFAULT = 1.00;
+                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
+                    // }else{
+                    //     window.DI_TOLERANCIA_DEFAULT = 3.00;
+                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
+                    // }
                     console.log(`Desperdicio default DI = `, window.DI_TOLERANCIA_DEFAULT);
                     console.log(`Desperdicio default DE = `, window.DE_TOLERANCIA_DEFAULT);    
 
@@ -1461,13 +1461,13 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                        window.DI_TOLERANCIA_DEFAULT = 1.00;
-                        window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    }else{
-                        window.DI_TOLERANCIA_DEFAULT = 3.00;
-                        window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    }
+                    // if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
+                    //     window.DI_TOLERANCIA_DEFAULT = 1.00;
+                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
+                    // }else{
+                    //     window.DI_TOLERANCIA_DEFAULT = 3.00;
+                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
+                    // }
                     console.log(`Desperdicio default DI = `, window.DI_TOLERANCIA_DEFAULT);
                     console.log(`Desperdicio default DE = `, window.DE_TOLERANCIA_DEFAULT);                        
 

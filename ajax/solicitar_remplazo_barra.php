@@ -178,6 +178,22 @@ try {
                 $conn->rollBack(); 
                 throw new Exception("Error al actualizar la autorización de la barra");
             }
+            // Liberar barra original en inventario CNC
+            $stmtUpdateInventarioOriginal = $conn->prepare("
+                UPDATE inventario_cnc
+                SET estatus = 'Disponible para cotizar'
+                WHERE lote_pedimento = :lote_original
+            ");
+
+            $stmtUpdateInventarioOriginal->bindParam(
+                ':lote_original',
+                $registro['lote_pedimento']
+            );
+
+            if (!$stmtUpdateInventarioOriginal->execute()) {
+                $conn->rollBack();
+                throw new Exception("Error al liberar la barra original en inventario CNC");
+            }
 
             // 3. Consultar todos los registros de la requisición para verificar pendientes
             $stmtPendientes = $conn->prepare("

@@ -1,0 +1,36 @@
+bien, ahora mire el backend de la logica de agregar la maquina al folio, 
+se debe validar que si el usuario en sesion es maquinista solo pueda ser 
+maquina el rol del usuario actual, pero soportar tambien que peda ser 
+cualquier maquina cuando el usuario sea el gerente, dado que los gerentes 
+pueden seleccionar/asignar cualquier maquina, sin embargo un maquinista 
+no puede asignar a otros. 
+Tambien agregar la validacion de que si la requisicion ya estaba en estatus 
+"Producción" entonces hay que actualizar el estatus a "En producción" pero 
+solo si la columna "fecha_entrega_barras" contiene algo, osease si no es null, 
+dado que puede pasar que ya este en produccion.
+Despues, verificar que esta requisicion no tenga maquina asignada, dado que 
+si alguien se la autoasigna al mismo tiempo va a haber problemas. Para ese 
+caso, responder con un mensaje coherente de que no se puede porque la 
+requisicion ya tiene una maquina asignada, mostrar la maquina, nombre del 
+operador y fecha de inicio del maquinado, eso le dara al usuario la informacion 
+necesaria para que sepa que paso.
+
+Ahora necesitamos incluir en la tabla del frontend un indicador de cuantos 
+comentarios tiene cada requisicion. Existe una tabla llamada comentarios_adjuntos 
+la cual cuenta con un campo llamado id_cotizacion, tal compo es la id_cotizacion de 
+la tabla cotizacion_materiales, es decir su relacion. Entonces, tenemos la tabla 
+requisiciones, la cual cuenta con un campo llamado cotizaciones, ahi, se 
+encuentran las id_cotizaciones separadas por comas. Lo que hay que hacer es 
+encontrar cuantos comentarios tiene cada requisicion y mostrar ese numero 
+en un icono dentro del boton para indicarle al usuario si la requisicion 
+cuenta con comentarios, algo parecido al icono de notificacion, un circulo 
+azul con el numero de comentarios dentro. Lo que se me ocurre es hacer una 
+consulta directa, antes de renderizar el boton y tan solo con la id_requisicion
+consultar las tablas mencionadas anteriormente:
+echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+    data-origen="requi"
+    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+    data-es-mia="0"
+    title="Comentarios y archivos adjuntos para esta requisición">
+    <i class="bi bi-chat-left-text"></i>
+</button>';

@@ -184,7 +184,7 @@ try {
 
     //  Actualizar requisicion
     $sql = "UPDATE requisiciones 
-            SET estatus = 'Producción', fecha_entrega_barras = NOW()
+            SET estatus = 'En producción', fecha_entrega_barras = NOW()
             WHERE id_requisicion = :id_requisicion";
     $stmt = $conn->prepare($sql);
     $stmt->bindValue(':id_requisicion', $id_requisicion, PDO::PARAM_INT);

@@ -62,89 +62,96 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $conn->beginTransaction();
         try {
             $lotes = array_chunk($datos, 500, true);
-            foreach ($lotes as $lote) {
+            
+            foreach ($lotes as $lote_index => $lote) {
                 $claves = array_keys($lote);
                 $placeholders = implode(',', array_fill(0, count($claves), '?'));
-
-                // Paso 1: Obtener las claves que ya existen en BD
+                
+                // Paso 1: Identificar claves existentes
                 $stmt_exist = $conn->prepare("SELECT clave FROM parametros WHERE clave IN ($placeholders)");
                 $stmt_exist->execute($claves);
                 $claves_existentes = $stmt_exist->fetchAll(PDO::FETCH_COLUMN);
                 $claves_existentes = array_map('trim', $claves_existentes);
-
-                // Paso 2: Actualizar registros existentes con CASE
+                
                 if (count($claves_existentes) > 0) {
-                    $sql = "UPDATE parametros SET 
-                            precio = CASE ";
-                    $sql2 = "max_usable = CASE ";
-                    $sql3 = "interior = CASE ";
-                    $sql4 = "exterior = CASE ";
-                    $sql5 = "proveedor = CASE ";
-                    $sql6 = "material = CASE ";
-                    $sql7 = "tipo = CASE ";
-                    $where = [];
-
-                    foreach ($claves_existentes as $i => $clave) {
-                        $k = ":clave$i";
-                        $sql .= "WHEN clave = $k THEN :precio$i ";
-                        $sql2 .= "WHEN clave = $k THEN :max$i ";
-                        $sql3 .= "WHEN clave = $k THEN :int$i ";
-                        $sql4 .= "WHEN clave = $k THEN :ext$i ";
-                        $sql5 .= "WHEN clave = $k THEN :prov$i ";
-                        $sql6 .= "WHEN clave = $k THEN :mat$i ";
-                        $sql7 .= "WHEN clave = $k THEN :tipo$i ";
-                        $where[] = $k;
+                    // OPTIMIZACIÓN: Usar marcadores de posición anónimos (?) en lugar de nombres
+                    $sql_parts = [];
+                    $params = [];
+                    
+                    // Construir CASE para cada campo
+                    $fields = [
+                        'precio' => 'precio',
+                        'max_usable' => 'max_usable', 
+                        'interior' => 'interior',
+                        'exterior' => 'exterior',
+                        'proveedor' => 'proveedor',
+                        'material' => 'material',
+                        'tipo' => 'tipo'
+                    ];
+                    
+                    $case_sql = "";
+                    foreach ($fields as $field_name => $db_field) {
+                        $case_sql .= "$db_field = CASE clave ";
+                        foreach ($claves_existentes as $clave) {
+                            $case_sql .= "WHEN ? THEN ? ";
+                            $params[] = $clave;
+                            $params[] = $datos[$clave][$field_name];
+                        }
+                        $case_sql .= "END, ";
                     }
-
-                    $sql .= "END, ";
-                    $sql2 .= "END, ";
-                    $sql3 .= "END, ";
-                    $sql4 .= "END, ";
-                    $sql5 .= "END, ";
-                    $sql6 .= "END, ";
-                    $sql7 .= "END ";
-                    $final_sql = $sql . $sql2 . $sql3 . $sql4 . $sql5 . $sql6 . $sql7;
-                    $final_sql .= "WHERE clave IN (" . implode(",", $where) . ")";
-
-                    $stmt_update = $conn->prepare($final_sql);
-                    foreach ($claves_existentes as $i => $clave) {
-                        $valores = $datos[$clave];
-                        $stmt_update->bindValue(":clave$i", $clave);
-                        $stmt_update->bindValue(":precio$i", $valores['precio']);
-                        $stmt_update->bindValue(":max$i", $valores['max_usable']);
-                        $stmt_update->bindValue(":int$i", $valores['interior']);
-                        $stmt_update->bindValue(":ext$i", $valores['exterior']);
-                        $stmt_update->bindValue(":prov$i", $valores['proveedor']);
-                        $stmt_update->bindValue(":mat$i", $valores['material']);
-                        $stmt_update->bindValue(":tipo$i", $valores['tipo']);
+                    
+                    // Quitar la última coma y espacio
+                    $case_sql = rtrim($case_sql, ", ");
+                    
+                    // Construir SQL completo
+                    $sql = "UPDATE parametros SET $case_sql WHERE clave IN (" . 
+                        implode(',', array_fill(0, count($claves_existentes), '?')) . ")";
+                    
+                    // Agregar claves para WHERE IN
+                    foreach ($claves_existentes as $clave) {
+                        $params[] = $clave;
                     }
-                    $stmt_update->execute();
+                    
+                    $stmt_update = $conn->prepare($sql);
+                    $stmt_update->execute($params);
                 }
-
-                // Paso 3: Insertar claves nuevas
+                
+                // Paso 2: Insertar nuevos registros
                 $claves_nuevas = array_diff(array_keys($lote), $claves_existentes);
+                
                 if (count($claves_nuevas) > 0) {
-                    $stmt_insert = $conn->prepare("
-                        INSERT INTO parametros 
-                        (clave, precio, max_usable, interior, exterior, proveedor, material, tipo)
-                        VALUES (:clave, :precio, :max_usable, :interior, :exterior, :proveedor, :material, :tipo)
-                    ");
+                    // OPTIMIZACIÓN: Inserción masiva con múltiples VALUES
+                    $values = [];
+                    $insert_params = [];
+                    $param_index = 0;
+                    
                     foreach ($claves_nuevas as $clave) {
                         $valores = $datos[$clave];
-                        $stmt_insert->execute([
-                            ':clave' => $clave,
-                            ':precio' => $valores['precio'],
-                            ':max_usable' => $valores['max_usable'],
-                            ':interior' => $valores['interior'],
-                            ':exterior' => $valores['exterior'],
-                            ':proveedor' => $valores['proveedor'],
-                            ':material' => $valores['material'],
-                            ':tipo' => $valores['tipo'],
-                        ]);
+                        $values[] = "(:clave$param_index, :precio$param_index, :max_usable$param_index, 
+                                    :interior$param_index, :exterior$param_index, :proveedor$param_index, 
+                                    :material$param_index, :tipo$param_index)";
+                        
+                        $insert_params[":clave$param_index"] = $clave;
+                        $insert_params[":precio$param_index"] = $valores['precio'];
+                        $insert_params[":max_usable$param_index"] = $valores['max_usable'];
+                        $insert_params[":interior$param_index"] = $valores['interior'];
+                        $insert_params[":exterior$param_index"] = $valores['exterior'];
+                        $insert_params[":proveedor$param_index"] = $valores['proveedor'];
+                        $insert_params[":material$param_index"] = $valores['material'];
+                        $insert_params[":tipo$param_index"] = $valores['tipo'];
+                        
+                        $param_index++;
                     }
+                    
+                    $sql_insert = "INSERT INTO parametros 
+                                (clave, precio, max_usable, interior, exterior, proveedor, material, tipo) 
+                                VALUES " . implode(', ', $values);
+                    
+                    $stmt_insert = $conn->prepare($sql_insert);
+                    $stmt_insert->execute($insert_params);
                 }
             }
-
+            
             $conn->commit();
             echo "<script>
                 $(document).ready(function(){
