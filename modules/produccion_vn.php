@@ -31,8 +31,10 @@ if (!isset($_SESSION['id'])) {
     <?php 
           include(ROOT_PATH . 'includes/backend_info_user.php');
           include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
-    ?>
+          ?>
+
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
 
     <title>Requisiciones</title>
 </head>
@@ -101,7 +103,7 @@ if (!isset($_SESSION['id'])) {
                 <?php
                     foreach ($arregloSelectRequisiciones as $row) {
                 ?>
-                    <tr>
+                    <tr data-id-requisicion="<?= htmlspecialchars($row['id_requisicion'] ?? ''); ?>" data-estatus="<?= htmlspecialchars($row['estatus'] ?? ''); ?>">
                         <td class="td-first-actions">
                             <div class="d-flex gap-2 container-actions">
                                 <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
@@ -589,7 +591,7 @@ if (!isset($_SESSION['id'])) {
                                 <div class="d-flex flex-column justify-content-center">
                                     <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
                                     <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-auth" 
+                                    <button type="button" class="btnFirmaPredeterminada btn-auth d-none" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
                             ';
@@ -637,7 +639,7 @@ if (!isset($_SESSION['id'])) {
                                 <div class="d-flex flex-column justify-content-center">
                                     <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
                                     <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-auth" 
+                                    <button type="button" class="btnFirmaPredeterminada btn-auth d-none" 
                                     data-id-requisicion="" data-autoriza="">Aceptar</button>
                                 </div>                            
                             ';

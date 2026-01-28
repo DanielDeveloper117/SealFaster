@@ -265,6 +265,9 @@
             let idRequisicion = $(this).data('id-requisicion');
             let autoriza = $(this).data('autoriza');
 
+            // Ocultar el botón de firma mientras se genera el QR
+            $(".btnFirmaPredeterminada").addClass("d-none");
+
             // Llamar al script PHP que devuelve JSON con el QR
             $.ajax({
                 url: `../includes/functions/generar_qr.php?id_requisicion=${encodeURIComponent(idRequisicion)}&t=${encodeURIComponent(autoriza)}`,
@@ -283,8 +286,11 @@
                             </a>`;
                         $("#qrLinkContainer, #qrLinkContainer2").html(linkTag);
 
-                        $(".btnFirmaPredeterminada").data("id-requisicion", idRequisicion);
-                        $(".btnFirmaPredeterminada").data("autoriza", autoriza);
+                        // Mostrar el botón de firma solo después de que el QR y el link estén disponibles
+                        $(".btnFirmaPredeterminada")
+                            .removeClass("d-none")
+                            .data("id-requisicion", idRequisicion)
+                            .data("autoriza", autoriza);
 
                         // Iniciar verificación periódica
                         verificarAutorizacionQR(idRequisicion, autoriza);
@@ -749,4 +755,5 @@
                 }
             });
         });
+
     });

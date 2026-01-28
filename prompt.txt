@@ -34,3 +34,33 @@ echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos"
     title="Comentarios y archivos adjuntos para esta requisición">
     <i class="bi bi-chat-left-text"></i>
 </button>';
+
+Vemos que el "btn-entregar-barras" cuando es tipo de usuario Inventarios muestra 
+un modal con una tabla de barras para entregar, lo que se desea es implementar el 
+dinamismo del boton btnEntregarBarras, lo que pasa es que se le agregue un boton de 
+Guardar progreso como el que esta en el modal modalFinalizar. El boton btnEntregarBarras 
+solo debera aparecer solo si hay algo en la columna "maquina" ($row['maquina']), es 
+decir, si ya hay maquina asignada, entonces si hacer aparecer el boton btnEntregarBarras, 
+mientras que el nuevo boton de "btnGuardarProgresoEntregaBarras" estara siempre presente. 
+Al guardar progreso, se deberian guardar los datos editables de la tabla tableEntregarBarras, 
+tales son pz_teoricas y mm_entrega. Se envian esos datos y se actualizaran mediante un 
+nuevo script similar a guardar_progreso_maquinado.php, el cual no cambia estatus, 
+solo guarda el progreso.
+
+Ahora necesitamos desarrollar un archivo backend del tipo middleware, el cual cada 
+aproximadamente 30 segundos consulte cambios en los estatus de las requisiciones, el 
+middleware debe estar presente en produccion_cnc y produccion_vn. Sera un bloque 
+de codigo javascript, el cual cada 30 seg, ejecutara un script middleware que compare 
+si se ha efectuado un cambio en el campo estatus de cada requisicion, o tambien si 
+existe una nueva requisicion. Tal script (dentro de la carpeta ajax) va a responder con 
+"se ha detectado un cambio en el estatus de una requisicion" o "se ha detectado una 
+nueva requisicion" y en el frontend mostrar una alerta tipo toaster como el que se muestra 
+en localStorage.getItem("ocultarInfoVigencias"), pero este toaster no tendra boton 
+"volver a mostrar", en cambio, debera tener un boton "recargar tabla" para darle 
+la opcion al usuario de actualizar/refrescar la pagina para asi recargar la ultima version 
+de los datos. Habria que ingeniarselas para que las comparaciones de los datos no sean 
+inexactas, es decir, la comparacion debe ser actualizada y dinamica de manera en que no 
+tomemos en cuenta comparaciones viejas, sino mas bien mostrar toaster solo si hay nuevo 
+cambio en las tablas. Ademas, si es posible usar alguna libreria o plugin para alertar al 
+usuario con un tipo de alerta del navegador, si la hay. El objetivo es que el usuario 
+este enterado de los nuevos cambios de estatus en la tabla y si es que hay nuevos registros.

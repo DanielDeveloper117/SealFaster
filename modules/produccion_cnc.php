@@ -28,6 +28,7 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_cnc.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>"> -->
@@ -95,7 +96,7 @@ if (!isset($_SESSION['id'])) {
                 <?php
                     foreach ($arregloSelectRequisiciones as $row) {
                 ?>
-                    <tr>
+                    <tr data-id-requisicion="<?= htmlspecialchars($row['id_requisicion'] ?? ''); ?>" data-estatus="<?= htmlspecialchars($row['estatus'] ?? ''); ?>">
                         <td class="td-first-actions">
                             <div class="d-flex gap-2 container-actions">
                                 <!-- PDF -->
@@ -158,20 +159,31 @@ if (!isset($_SESSION['id'])) {
 
                                         // Inventarios puede agregar clave al almacen
                                         if ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-thunder btn-entregar-barras" 
+                                            $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
+                                            $claseBoton = "btn-thunder";
+                                            $iconButton = "bi-database-add";
+                                            $titleButton = "";
+                                           if(!empty($row['fecha_entrega_barras'])){
+                                                $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
+                                                $claseBoton = "btn-thunder";
+                                                $iconButton = "bi-database-add";
+                                                $titleButton = "Agregar/remplazar barras de control de almacen";
+                                           }else{
+                                                $mostrarBtnEntregarBarras="Producción";
+                                                $claseBoton = "btn-amber";
+                                                $iconButton = "bi-database";
+                                                $titleButton = "Pendiente de entregar barras";
+                                           }
+
+                                            echo '<button class="'.$claseBoton.' btn-entregar-barras" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
                                                     data-es_extra = "0"
-                                                    data-estatus = "Autorizada"  
+                                                    data-estatus = "'.$mostrarBtnEntregarBarras.'"  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Agregar/remplazar barras de control de almacen">
-                                                    <i class="bi bi-database-add"></i>
+                                                    data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
+                                                    title="'.$titleButton.'">
+                                                    <i class="bi '.$iconButton.'"></i>
                                                 </button>';
-                                            // echo '<button class="btn-auth btn-salida-barras" 
-                                            //         data-bs-toggle="modal" data-bs-target="#modalDarSalida"
-                                            //         data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            //         title="Dar salida a barras de esta requisición">
-                                            //         <i class="bi bi-database-fill-check"></i>
-                                            //     </button>';
                                         }
                                         break;
 
@@ -194,14 +206,15 @@ if (!isset($_SESSION['id'])) {
                                                 $titleButton = "Pendiente de entregar barras";
                                            }
 
-                                            echo '<button class="'.$claseBoton.' btn-entregar-barras" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
-                                                    data-es_extra = "0"
-                                                    data-estatus = "'.$mostrarBtnEntregarBarras.'"  
-                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="'.$titleButton.'">
-                                                    <i class="bi '.$iconButton.'"></i>
-                                                </button>';
+                                        echo '<button class="'.$claseBoton.' btn-entregar-barras" 
+                                                data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
+                                                data-es_extra = "0"
+                                                data-estatus = "'.$mostrarBtnEntregarBarras.'"  
+                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
+                                                title="'.$titleButton.'">
+                                                <i class="bi '.$iconButton.'"></i>
+                                            </button>';
                                             //  echo '<button class="btn-thunder btn-control-almacen" 
                                             //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
                                             //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
@@ -242,6 +255,7 @@ if (!isset($_SESSION['id'])) {
                                                     data-es_extra = "1"
                                                     data-estatus = "En producción""  
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
                                                     title="Agregar/remplazar barras de control de almacen">
                                                     <i class="bi bi-database-add"></i>
                                                 </button>';
@@ -284,7 +298,6 @@ if (!isset($_SESSION['id'])) {
                                                     '.$iconStatus.'
                                                 </button>';
                                         }
-
                                         break;
                                     case "Completada":
                                         $estatusString = "Completada";
@@ -387,7 +400,7 @@ if (!isset($_SESSION['id'])) {
                                 </label>
                                 <select class="form-select" id="estatus" name="estatus">
                                     <option value="">Todos los estatus</option>
-                                    <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?> class="<?= ($tipo_usuario === 'Inventarios') ? 'd-none' : '' ?>">Autorizada (asignación de máquina pendiente)</option>
+                                    <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?>>Autorizada (asignación de máquina pendiente)</option>
                                     <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>Producción (en procesos de maquinado)</option>
                                     <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada (maquinado finalizado)</option>
                                     <option value="completada" <?= ($preferencias['estatus'] == 'completada') ? 'selected' : '' ?>>Completada (barras retornadas)</option>
@@ -585,7 +598,10 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-footer">
                 <div class="d-flex col-12 justify-content-center gap-3">
-                    <button id="btnEntregarBarras" type="button" class="btn-general btn-success col-3">
+                    <button id="btnGuardarProgresoEntregaBarras" type="button" class="btn-general">
+                        <i class="bi bi-floppy"></i> Guardar progreso
+                    </button>
+                    <button id="btnEntregarBarras" type="button" class="btn-general">
                         <i class="bi bi-database-fill-check"></i> Entregar barras
                     </button>
                 </div>

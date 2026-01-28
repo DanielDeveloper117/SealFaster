@@ -231,7 +231,12 @@ if (!isset($_SESSION['id'])) {
         if ($cot === 'u') {
             // ÚNICAS: fila más reciente por id_cotizacion
             $sqlCotizaciones = "
-                SELECT cm.*
+                SELECT cm.*,
+                       (
+                           SELECT COUNT(ca.id)
+                           FROM comentarios_adjuntos ca
+                           WHERE ca.id_cotizacion = cm.id_cotizacion
+                       ) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
                     SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
@@ -306,7 +311,12 @@ if (!isset($_SESSION['id'])) {
         } else {
             // FUSIONADAS: fila más reciente por id_fusion (ignorar tipo_medida)
             $sqlCotizaciones = "
-                SELECT cm.*
+                SELECT cm.*,
+                       (
+                           SELECT COUNT(ca.id)
+                           FROM comentarios_adjuntos ca
+                           WHERE ca.id_cotizacion = cm.id_cotizacion
+                       ) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
                     SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
@@ -471,6 +481,29 @@ if (!isset($_SESSION['id'])) {
         .fila-vencida .btn-thunder:hover {
             opacity: 1;
         }
+
+        /* Estilo para comentarios wrapper */
+        .comentarios-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .badge-comentarios {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background-color: #0d6efd; /* azul bootstrap */
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            min-width: 18px;
+            height: 18px;
+            line-height: 18px;
+            text-align: center;
+            border-radius: 50%;
+            padding: 0 4px;
+            pointer-events: none;
+        }
     </style>
 <div id="overlay">
     <div class="loading-message">
@@ -596,14 +629,22 @@ if (!isset($_SESSION['id'])) {
                                             $esMia = "1";
                                         }
                                         if($esta_vencida == false){
+                                            $totalComentarios = $row['total_comentarios'] ?? 0;
 
-                                            echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
-                                                    data-origen="coti"
-                                                    data-es-mia="' . $esMia . '"
-                                                    data-id_cotizacion="' . htmlspecialchars($row['id_cotizacion']) . '"
-                                                    title="Comentarios y archivos adjuntos para esta cotización">
-                                                    <i class="bi bi-chat-left-text"></i>
-                                                </button>';
+                                            echo '<div class="comentarios-wrapper">
+                                                <button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                                        data-origen="coti"
+                                                        data-es-mia="' . $esMia . '"
+                                                        data-id_cotizacion="' . htmlspecialchars($row['id_cotizacion']) . '"
+                                                        title="Comentarios y archivos adjuntos para esta cotización">
+                                                        <i class="bi bi-chat-left-text"></i>
+                                                    </button>';
+                                            
+                                            if ($totalComentarios > 0) {
+                                                echo '<span class="badge-comentarios">' . $totalComentarios . '</span>';
+                                            }
+                                            
+                                            echo '</div>';
                                         }
 
                                     ?>

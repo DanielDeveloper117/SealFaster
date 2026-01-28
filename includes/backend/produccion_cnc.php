@@ -26,17 +26,14 @@ try {
     $condicionBase = "
         SELECT 
             r.*,
-            COALESCE(c.total_comentarios, 0) AS total_comentarios
+            (
+                SELECT COUNT(ca.id)
+                FROM comentarios_adjuntos ca
+                WHERE CONCAT(',', REPLACE(r.cotizaciones, ', ', ','), ',') 
+                      LIKE CONCAT('%,', ca.id_cotizacion, ',%')
+            ) AS total_comentarios
         FROM requisiciones r
-        LEFT JOIN (
-            SELECT
-                r2.id_requisicion,
-                COUNT(ca.id) AS total_comentarios
-            FROM requisiciones r2
-            LEFT JOIN comentarios_adjuntos ca
-                ON FIND_IN_SET(ca.id_cotizacion, r2.cotizaciones)
-            GROUP BY r2.id_requisicion
-        ) c ON c.id_requisicion = r.id_requisicion WHERE estatus != 'Pendiente'
+        WHERE estatus != 'Pendiente'
     ";
 
     // --------- VISIBILIDAD POR ROL ----------
@@ -60,7 +57,7 @@ try {
 
     } elseif ($tipo_usuario === "Inventarios") {
         // Inventarios ve todo excepto Autorizada
-        $sqlRequisiciones = "$condicionBase AND estatus != 'Autorizada'";
+        $sqlRequisiciones = "$condicionBase ";
 
     } else {
         $sqlRequisiciones = "$condicionBase";

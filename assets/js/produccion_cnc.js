@@ -65,18 +65,36 @@ $(document).ready(function(){
         });
     }
     // Traer las barras de la requisicion para entregar
-    function cargarTablaEntregarBarras(idRequisicion, estatusRequisicion){
-        // Mostrar u ocultar el botón de entregar según el estatus de la requisición.
-        // Si el estatus no es exactamente "Producción" ocultamos el botón.
+    function cargarTablaEntregarBarras(idRequisicion, estatusRequisicion, maquinaAsignada){
+        // Mostrar u ocultar los botones según el estatus y máquina asignada:
+        // - Autorizada: NO mostrar ningún botón de acción
+        // - Producción + máquina asignada: mostrar guardar progreso Y entregar barras
+        // - Producción sin máquina: mostrar guardar progreso, NO mostrar entregar barras
+        // - Otro: no mostrar ningun botón
         try {
-            if (typeof estatusRequisicion === 'undefined' || estatusRequisicion !== 'Producción') {
+            const tieneMaquina = maquinaAsignada && maquinaAsignada.trim() !== '';
+            
+            if (estatusRequisicion === 'Autorizada') {
+                // Para Autorizada, no mostrar botones de acción
+                $('#btnGuardarProgresoEntregaBarras').addClass('d-none');
                 $('#btnEntregarBarras').addClass('d-none');
+            } else if (estatusRequisicion === 'Producción') {
+                // Para Producción, mostrar guardar progreso siempre
+                $('#btnGuardarProgresoEntregaBarras').removeClass('d-none');
+                // Entregar barras solo si tiene máquina asignada
+                if (tieneMaquina) {
+                    $('#btnEntregarBarras').removeClass('d-none');
+                } else {
+                    $('#btnEntregarBarras').addClass('d-none');
+                }
             } else {
-                $('#btnEntregarBarras').removeClass('d-none');
+                // Para otros estatus, no mostrar ningún botón
+                $('#btnGuardarProgresoEntregaBarras').addClass('d-none');
+                $('#btnEntregarBarras').addClass('d-none');
             }
         } catch (e) {
             // Silently ignore DOM errors (button might not be present yet)
-            console.warn('Error toggling #btnEntregarBarras visibility:', e);
+            console.warn('Error toggling button visibility:', e);
         }
         $.ajax({
             url: '../ajax/barras_para_entregar.php',
@@ -323,8 +341,6 @@ $(document).ready(function(){
                                 // Cambiar clases visuales para indicar que son no-editables
                                 $el.removeClass('input-text').addClass('input-disabled');
                             });
-                            // Asegurarnos de ocultar el botón de entregar (ya lo hace más arriba), pero reforzarlo aquí
-                            $('#btnEntregarBarras').addClass('d-none');
                         }
                     } catch (e) {
                         console.warn('Error aplicando modo solo lectura en tablaEntregarBarras:', e);
@@ -928,12 +944,16 @@ $(document).ready(function(){
     $(document).on('click', '.btn-entregar-barras', function(){
         const idRequisicionEntrega = $(this).data('id_requisicion');
         const estatusRequisicionEntrega = $(this).data('estatus');
+        const maquinaAsignada = $(this).data('maquina');
         
         $('#modalTableControlAlmacenEntrega .title-form form input').val(idRequisicionEntrega);
         $('#modalTableControlAlmacenEntrega .title-form form button').text(idRequisicionEntrega);
         // Guardar el estatus en el modal para poder reutilizarlo al recargar la tabla
         $('#modalTableControlAlmacenEntrega').data('estatus-requi', estatusRequisicionEntrega);
-        cargarTablaEntregarBarras(idRequisicionEntrega, estatusRequisicionEntrega);
+        // Guardar la máquina asignada en el modal
+        $('#modalTableControlAlmacenEntrega').data('maquina-asignada', maquinaAsignada);
+        
+        cargarTablaEntregarBarras(idRequisicionEntrega, estatusRequisicionEntrega, maquinaAsignada);
     });
     // CLICK VER TABLA DE BARRAS DESDE EL MODAL
     $(document).on('click', '.btn-remplazar-barra', function(){
@@ -1064,8 +1084,9 @@ $(document).ready(function(){
                     try {
                         var idReq = id_requisicion || $('#modalTableControlAlmacenEntrega .title-form form input[name="id_requisicion"]').val();
                         var estReq = $('#modalTableControlAlmacenEntrega').data('estatus-requi') || '';
+                        var maqReq = $('#modalTableControlAlmacenEntrega').data('maquina-asignada') || '';
                         if (typeof cargarTablaEntregarBarras === 'function' && idReq) {
-                            cargarTablaEntregarBarras(idReq, estReq);
+                            cargarTablaEntregarBarras(idReq, estReq, maqReq);
                         }
                     } catch (e) { console.warn(e); }
 
@@ -1102,6 +1123,63 @@ $(document).ready(function(){
         }
 
         $("#inputRequisicionDarSalida").val(idRequisicionSalida);
+    });
+    // GUARDAR PROGRESO DE ENTREGA DE BARRAS (pz_teoricas y mm_entrega)
+    $("#btnGuardarProgresoEntregaBarras").on('click', function(){
+        let $btn = $(this);
+        let idRequisicion = $('#modalTableControlAlmacenEntrega .title-form form input').val();
+        
+        // Recopilar datos de la tabla
+        const registros = [];
+        $('#tableEntregarBarras tbody tr.data-row').each(function(){
+            const $row = $(this);
+            const idControl = $row.find('.id_control').val();
+            const pzTeoricas = $row.find('.pz_teoricas').val();
+            const mmEntrega = $row.find('.mm_entrega').val();
+            
+            if (idControl) {
+                registros.push({
+                    id_control: idControl,
+                    pz_teoricas: pzTeoricas || 0,
+                    mm_entrega: mmEntrega || 0
+                });
+            }
+        });
+        
+        if (registros.length === 0) {
+            sweetAlertResponse("warning", "Sin datos", "No hay registros para guardar el progreso.", "none");
+            return;
+        }
+        
+        // Deshabilitar botón mientras se procesa
+        $btn.prop('disabled', true).html('<i class="bi bi-hourglass-split"></i> Guardando...');
+        
+        // Enviar al servidor
+        $.ajax({
+            url: '../ajax/guardar_progreso_entrega_barras.php',
+            type: 'POST',
+            data: {
+                registros: JSON.stringify(registros)
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Éxito", data.message || "Progreso guardado correctamente", "none");
+                    // Recargar la tabla
+                    cargarTablaEntregarBarras(idRequisicion, $('#modalTableControlAlmacenEntrega').data('estatus-requi'), $('#modalTableControlAlmacenEntrega').data('maquina-asignada'));
+                } else {
+                    sweetAlertResponse("error", "Error", data.error || "Error al guardar el progreso", "none");
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al guardar progreso:', error);
+                sweetAlertResponse("error", "Error", "Error al guardar el progreso: " + error, "none");
+            },
+            complete: function() {
+                // Rehabilitar botón
+                $btn.prop('disabled', false).html('<i class="bi bi-floppy"></i> Guardar progreso');
+            }
+        });
     });
     // ACCION DE ENTREGAR LAS BARRAS A CNC PARA QUE COMIENCE EL MAQUINADO
     $("#btnConfirmarDarSalidaBillets").on('click', function () {
@@ -1772,6 +1850,5 @@ $(document).ready(function(){
             }
         });
     });
- 
 
 });
