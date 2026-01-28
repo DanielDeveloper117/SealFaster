@@ -66,6 +66,7 @@ try {
     $sql = "
         SELECT 
             id_requisicion,
+            folio,
             estatus
         FROM requisiciones
         WHERE id_requisicion IN ($placeholders)
@@ -78,8 +79,10 @@ try {
 
     // Construir estado actual indexado por ID
     $estatusBackend = [];
+    $folios = [];
     foreach ($requisicionesActuales as $req) {
         $estatusBackend[$req['id_requisicion']] = $req['estatus'];
+        $folios[$req['id_requisicion']] = $req['folio'];
     }
 
     // Comparar: frontend vs backend
@@ -95,8 +98,10 @@ try {
             $estatus_bd = $estatusBackend[$id_req];
             if ($estatus_bd !== $estatus_frontend) {
                 // Se detectó cambio de estatus
+                $folio = isset($folios[$id_req]) ? $folios[$id_req] : $id_req;
                 $cambios['tipo_cambio'] = 'cambio_estatus';
-                $cambios['mensaje'] = 'Se detectó cambio de estatus en una requisición. ¿Desea actualizar la tabla?';
+                $cambios['mensaje'] = "Se detectó un cambio en la requisición: {$folio} - Nuevo estatus: {$estatus_bd}. ¿Desea actualizar la tabla?";
+                $cambios['mensaje_noti_navegador'] = "Requisición {$folio} cambió su estatus a: {$estatus_bd}";
                 break;
             }
         }

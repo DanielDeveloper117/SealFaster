@@ -14,7 +14,7 @@
  * 
  * Requiere:
  * - HTML: <table id="productionTable"> con <tr data-id-requisicion="X" data-estatus="Y">
- * - Backend: ajax/detectar_cambios_requisiciones_unificado.php
+ * - Backend: ajax/detectar_cambios_requisiciones.php
  */
 
 (function() {
@@ -119,7 +119,7 @@
 
             // Enviar IDs y estatus actual al backend para comparación
             $.ajax({
-                url: '../ajax/detectar_cambios_requisiciones_unificado.php',
+                url: '../ajax/detectar_cambios_requisiciones.php',
                 type: 'POST',
                 data: {
                     'estadoActual': JSON.stringify(estadoRequisicionesInicial)
@@ -153,7 +153,7 @@
         mostrarToastCambios(respuesta.mensaje);
         
         // Mostrar notificación del navegador
-        mostrarNotificacionNavegador(respuesta.mensaje);
+        mostrarNotificacionNavegador(respuesta.mensaje_noti_navegador);
     }
 
     /**
@@ -170,7 +170,7 @@
             try {
                 // Obtener la URL base correctamente (funciona desde cualquier ruta)
                 const urlBase = window.location.origin;
-                const iconUrl = urlBase + '/sealfaster/assets/img/general/Logopng-01.png';
+                const iconUrl = urlBase + '/sealfaster/assets/img/general/logo-copia.png';
                 
                 new Notification('Cambio de Estatus', {
                     body: mensaje,
@@ -298,7 +298,7 @@
                     }
                 }, 300);
             }
-        }, 15000);
+        }, 8000);
     }
 
     // ========== EXPOSER EN WINDOW ==========

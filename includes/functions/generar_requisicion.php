@@ -58,13 +58,58 @@ class PDF extends FPDF {
         $this->Cell(0, 15, "www.sellosyretenes.com", 0, 0, 'R');
     }
 
+    // Obtiene el valor de PageBreakTrigger (es protegida, necesitamos un getter)
+    function GetPageBreakTrigger() {
+        return $this->PageBreakTrigger;
+    }
+
     // Función para verificar si hay espacio suficiente para las firmas
     function CheckPageBreak($heightNeeded) {
-        if($this->GetY() + $heightNeeded > $this->PageBreakTrigger) {
+        if($this->GetY() + $heightNeeded > $this->GetPageBreakTrigger()) {
             $this->AddPage('P');
             return true;
         }
         return false;
+    }
+
+    // Obtiene el espacio disponible en la página actual hasta el footer
+    function GetAvailableHeight() {
+        $pageHeight = $this->h; // altura de la página
+        $marginBottom = $this->bMargin; // margen inferior
+        $footerSpace = 20; // espacio reservado para footer (aproximado)
+        return $pageHeight - $this->GetY() - $marginBottom - $footerSpace;
+    }
+
+    // Divide el contenido de las claves en múltiples páginas si es necesario
+    function RenderBilletesConPaginacion($billetesTexto, $x, $y, $ancho, $alto, $lineHeight) {
+        $lineas = explode("\n", $billetesTexto);
+        $lineasActuales = [];
+        $paginasContenido = [];
+        
+        foreach ($lineas as $linea) {
+            $lineasActuales[] = $linea;
+            $alturaRequerida = count($lineasActuales) * $lineHeight;
+            
+            if ($alturaRequerida > ($this->GetPageBreakTrigger() - $this->GetY() - 20)) {
+                // Guardar contenido de la página actual
+                $paginasContenido[] = [
+                    'lineas' => array_slice($lineasActuales, 0, -1),
+                    'esUltima' => false
+                ];
+                $lineasActuales = [$linea];
+                $this->AddPage('P');
+            }
+        }
+        
+        // Guardar última página
+        if (!empty($lineasActuales)) {
+            $paginasContenido[] = [
+                'lineas' => $lineasActuales,
+                'esUltima' => true
+            ];
+        }
+        
+        return $paginasContenido;
     }
 
 }
@@ -270,6 +315,22 @@ if (isset($_GET['id_requisicion'])) {
         // =============================================
         if (count($cotizacionData) > 1) {
             
+            // Verificar espacio para la fila general
+            if ($pdf->GetY() + $rowHeightMedidas + 5 > $pdf->GetPageBreakTrigger()) {
+                $pdf->AddPage('P');
+                // Redibuja los encabezados de la tabla
+                $pdf->SetTextColor(0, 0, 0);
+                $pdf->SetFillColor(220, 220, 220);
+                $pdf->SetFont('Arial', 'B', 9);
+                $pdf->Cell(10, 6, 'Cant.', 1, 0, 'C', true);
+                $pdf->Cell(15, 6, 'Perfil', 1, 0, 'C', true);
+                $pdf->Cell(23, 6, 'Material', 1, 0, 'C', true);
+                $pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
+                $pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
+                $pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
+                $pdf->Cell(43, 6, 'Lote Pedimento/Clave', 1, 1, 'C', true);
+            }
+            
             // === RENGLÓN GENERAL (PRIMER RENGLÓN) ===
             // REGLA: Altura determinada por altura de alturas (no lleva claves)
             $xStartGeneral = $pdf->GetX();
@@ -344,39 +405,118 @@ if (isset($_GET['id_requisicion'])) {
                 // REGLA: Para renglones individuales, altura determinada por altura de claves
                 $rowHeightIndividual = $rowHeightClaves;
                 
-                // === DIBUJAR RENGLÓN INDIVIDUAL ===
-                $xStart = $pdf->GetX();
-                $yStart = $pdf->GetY();
+                // Verificar espacio disponible y agregar página si es necesario
+                $espacioDisponible = $pdf->GetPageBreakTrigger() - $pdf->GetY() - 20;
                 
-                // Celda 1: Cantidad (dato real)
-                $pdf->Cell(10, $rowHeightIndividual, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-                
-                // Celda 2: Perfil (dato real)
-                $pdf->Cell(15, $rowHeightIndividual, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-                
-                // Celda 3: Material (dato real)
-                $pdf->Cell(23, $rowHeightIndividual, utf8_decode($cot['material']), 1, 0, 'C');
-                
-                // Celda 4: Diámetro Interior (vacío)
-                $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
-                
-                // Celda 5: Diámetro Exterior (vacío)
-                $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
-                
-                // Celda 6: Alturas (vacío)
-                $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
-                
-                // Celda 7: Claves (MultiCell - datos reales)
-                $x = $pdf->GetX();
-                $y = $pdf->GetY();
-                $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
-                
-                // Asegurar que el cursor quede en la posición correcta para el siguiente renglón
-                $currentY = $pdf->GetY();
-                $expectedY = $yStart + $rowHeightIndividual;
-                
-                if ($currentY != $expectedY) {
-                    $pdf->SetXY($xStart, $expectedY);
+                if ($rowHeightIndividual > $espacioDisponible) {
+                    // El contenido es demasiado grande, necesita múltiples páginas
+                    // Dividir el contenido en bloques que quepan en una página
+                    
+                    $bloquesActuales = [];
+                    $heightAcumulada = 0;
+                    $primerBloqueEnPagina = true;
+                    
+                    foreach ($bloques as $bloqueIndex => $bloque) {
+                        $bloquesActuales[] = $bloque;
+                        $alturaBloque = (substr_count($bloque, "\n") + 1) * $lineHeight;
+                        $heightAcumulada += $alturaBloque;
+                        
+                        // Agregar altura de separador si no es el último bloque
+                        if ($bloqueIndex < count($bloques) - 1) {
+                            $heightAcumulada += 4; // altura del separador
+                        }
+                        
+                        // Verificar si el siguiente bloque causaría un desbordamiento
+                        $proximoIndex = $bloqueIndex + 1;
+                        $alturaProxima = ($proximoIndex < count($bloques)) ? 
+                            (substr_count($bloques[$proximoIndex], "\n") + 1) * $lineHeight + 4 : 0;
+                        
+                        if ($pdf->GetY() + $heightAcumulada + $alturaProxima > $pdf->GetPageBreakTrigger() - 20 || 
+                            $bloqueIndex == count($bloques) - 1) {
+                            
+                            // Render fila actual
+                            $xStart = $pdf->GetX();
+                            $yStart = $pdf->GetY();
+                            
+                            if ($primerBloqueEnPagina) {
+                                // Primera fila en la página: mostrar cantidad, perfil, material
+                                $pdf->Cell(10, $heightAcumulada, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+                                $pdf->Cell(15, $heightAcumulada, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                                $pdf->Cell(23, $heightAcumulada, utf8_decode($cot['material']), 1, 0, 'C');
+                                // Diámetro Interior (vacío)
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                                // Diámetro Exterior (vacío)
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                                // Alturas (vacío)
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                                $primerBloqueEnPagina = false;
+                            } else {
+                                // Continuación: mostrar celdas vacías para mantener alineación
+                                $pdf->Cell(10, $heightAcumulada, "", 1, 0, 'C');
+                                $pdf->Cell(15, $heightAcumulada, "", 1, 0, 'C');
+                                $pdf->Cell(23, $heightAcumulada, "", 1, 0, 'C');
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                                $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                            }
+                            
+                            // Claves (MultiCell)
+                            $x = $pdf->GetX();
+                            $y = $pdf->GetY();
+                            $textoBloque = utf8_decode(implode("\n_________________________\n", $bloquesActuales));
+                            $pdf->MultiCell(43, $lineHeight, $textoBloque, 1, 'L');
+                            
+                            // Asegurar posición correcta
+                            $pdf->SetXY($xStart, $yStart + $heightAcumulada);
+                            
+                            // Reiniciar para siguiente bloque
+                            $bloquesActuales = [];
+                            $heightAcumulada = 0;
+                            
+                            // Agregar nueva página si hay más bloques
+                            if ($bloqueIndex < count($bloques) - 1) {
+                                $pdf->AddPage('P');
+                                // Reposicionar Y para evitar solapamiento con header
+                                $pdf->SetY(43);
+                            }
+                        }
+                    }
+                } else {
+                    // El contenido cabe en una sola fila
+                    // === DIBUJAR RENGLÓN INDIVIDUAL ===
+                    $xStart = $pdf->GetX();
+                    $yStart = $pdf->GetY();
+                    
+                    // Celda 1: Cantidad (dato real)
+                    $pdf->Cell(10, $rowHeightIndividual, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+                    
+                    // Celda 2: Perfil (dato real)
+                    $pdf->Cell(15, $rowHeightIndividual, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                    
+                    // Celda 3: Material (dato real)
+                    $pdf->Cell(23, $rowHeightIndividual, utf8_decode($cot['material']), 1, 0, 'C');
+                    
+                    // Celda 4: Diámetro Interior (vacío)
+                    $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
+                    
+                    // Celda 5: Diámetro Exterior (vacío)
+                    $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
+                    
+                    // Celda 6: Alturas (vacío)
+                    $pdf->Cell(33, $rowHeightIndividual, "", 1, 0, 'C');
+                    
+                    // Celda 7: Claves (MultiCell - datos reales)
+                    $x = $pdf->GetX();
+                    $y = $pdf->GetY();
+                    $pdf->MultiCell(43, $lineHeight, $textoFinal, 1, 'L');
+                    
+                    // Asegurar que el cursor quede en la posición correcta para el siguiente renglón
+                    $currentY = $pdf->GetY();
+                    $expectedY = $yStart + $rowHeightIndividual;
+                    
+                    if ($currentY != $expectedY) {
+                        $pdf->SetXY($xStart, $expectedY);
+                    }
                 }
             }
             
@@ -413,6 +553,7 @@ if (isset($_GET['id_requisicion'])) {
                 }
                 
                 $bloques[] = trim($clave . "\n" . $lote . ($resto ? "\n" . $resto : ''));
+                
             }
             
             $textoFinal = utf8_decode(implode("\n_________________________\n", $bloques));
@@ -428,95 +569,248 @@ if (isset($_GET['id_requisicion'])) {
             // REGLA: Para único registro, altura determinada por el MÁXIMO entre alturas y claves
             $finalRowHeight = max($rowHeightMedidas, $rowHeightClaves);
             
-            // === DIBUJAR ÚNICO RENGLÓN COMPLETO ===
-            $xStart = $pdf->GetX();
-            $yStart = $pdf->GetY();
+            // Verificar espacio disponible
+            $espacioDisponible = $pdf->GetPageBreakTrigger() - $pdf->GetY() - 20;
             
-            // Celda 1: Cantidad (dato real)
-            $pdf->Cell(10, $finalRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-            
-            // Celda 2: Perfil (dato real)
-            $pdf->Cell(15, $finalRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
-            
-            // Celda 3: Material (dato real)
-            $pdf->Cell(23, $finalRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
-            
-            // === CELDAS MULTILÍNEA CON ALTURA FORZADA ===
-            
-            // Celda 4: Diámetro Interior (MultiCell - datos reales)
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            
-            // Dibujar borde manualmente para controlar altura exacta
-            $pdf->Rect($x, $y, 33, $finalRowHeight);
-            
-            // Calcular posición Y para centrar verticalmente el texto
-            $textHeightDI = count($arrayDI) * $lineHeight;
-            $startYDI = $y + (($finalRowHeight - $textHeightDI) / 2);
-            $pdf->SetXY($x, $startYDI);
-            
-            foreach ($arrayDI as $line) {
-                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
-                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+            if ($finalRowHeight > $espacioDisponible) {
+                // El contenido es demasiado grande para una sola fila
+                // Dividir los billets en múltiples filas/páginas
+                
+                $bloquesActuales = [];
+                $heightAcumulada = 0;
+                $primerBloque = true;
+                
+                foreach ($bloques as $bloqueIndex => $bloque) {
+                    $bloquesActuales[] = $bloque;
+                    $alturaBloque = (substr_count($bloque, "\n") + 1) * $lineHeight;
+                    $heightAcumulada += $alturaBloque;
+                    
+                    // Agregar altura de separador si no es el último bloque
+                    if ($bloqueIndex < count($bloques) - 1) {
+                        $heightAcumulada += 4; // altura del separador
+                    }
+                    
+                    // Verificar si el siguiente bloque causaría un desbordamiento
+                    $proximoIndex = $bloqueIndex + 1;
+                    $alturaProxima = ($proximoIndex < count($bloques)) ? 
+                        (substr_count($bloques[$proximoIndex], "\n") + 1) * $lineHeight + 4 : 0;
+                    
+                    if ($pdf->GetY() + $heightAcumulada + $alturaProxima > $pdf->GetPageBreakTrigger() - 20 || 
+                        $bloqueIndex == count($bloques) - 1) {
+                        
+                        // Render la fila con los bloques acumulados
+                        $xStart = $pdf->GetX();
+                        $yStart = $pdf->GetY();
+                        
+                        // Celda 1: Cantidad (solo en el primer bloque)
+                        if ($primerBloque) {
+                            $pdf->Cell(10, $heightAcumulada, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+                        } else {
+                            // En continuaciones, celda vacía
+                            $pdf->Cell(10, $heightAcumulada, "", 1, 0, 'C');
+                        }
+                        
+                        // Celda 2: Perfil (solo en el primer bloque)
+                        if ($primerBloque) {
+                            $pdf->Cell(15, $heightAcumulada, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                        } else {
+                            $pdf->Cell(15, $heightAcumulada, "", 1, 0, 'C');
+                        }
+                        
+                        // Celda 3: Material (solo en el primer bloque)
+                        if ($primerBloque) {
+                            $pdf->Cell(23, $heightAcumulada, utf8_decode($cot['material']), 1, 0, 'C');
+                        } else {
+                            $pdf->Cell(23, $heightAcumulada, "", 1, 0, 'C');
+                        }
+                        
+                        // Celdas de dimensiones (solo en el primer bloque)
+                        if ($primerBloque) {
+                            // Diámetro Interior
+                            $x = $pdf->GetX();
+                            $y = $pdf->GetY();
+                            $pdf->Rect($x, $y, 33, $heightAcumulada);
+                            $textHeightDI = count($arrayDI) * $lineHeight;
+                            $startYDI = $y + (($heightAcumulada - $textHeightDI) / 2);
+                            $pdf->SetXY($x, $startYDI);
+                            foreach ($arrayDI as $line) {
+                                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
+                                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                            }
+                            $pdf->SetXY($x + 33, $y);
+                            
+                            // Diámetro Exterior
+                            $x = $pdf->GetX();
+                            $y = $pdf->GetY();
+                            $pdf->Rect($x, $y, 33, $heightAcumulada);
+                            $textHeightDE = count($arrayDE) * $lineHeight;
+                            $startYDE = $y + (($heightAcumulada - $textHeightDE) / 2);
+                            $pdf->SetXY($x, $startYDE);
+                            foreach ($arrayDE as $line) {
+                                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
+                                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                            }
+                            $pdf->SetXY($x + 33, $y);
+                            
+                            // Alturas
+                            $x = $pdf->GetX();
+                            $y = $pdf->GetY();
+                            $pdf->Rect($x, $y, 33, $heightAcumulada);
+                            $textHeightAlturas = count($alturas) * $lineHeight;
+                            $startYAlturas = $y + (($heightAcumulada - $textHeightAlturas) / 2);
+                            $pdf->SetXY($x, $startYAlturas);
+                            foreach ($alturas as $line) {
+                                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'L');
+                                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                            }
+                            $pdf->SetXY($x + 33, $y);
+                        } else {
+                            // Continuación: celdas vacías de dimensiones
+                            $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                            $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                            $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
+                        }
+                        
+                        // Claves (MultiCell)
+                        $x = $pdf->GetX();
+                        $y = $pdf->GetY();
+                        $pdf->Rect($x, $y, 43, $heightAcumulada);
+
+                        $textoBloques = utf8_decode(implode("\n_________________________\n", $bloquesActuales));
+
+                        // IMPORTANTE: Para continuaciones ($primerBloque == false), ALINEAR AL TOP
+                        // Solo centrar verticalmente en el PRIMER bloque
+                        if ($primerBloque) {
+                            // Calcular altura del texto
+                            $textHeightClaves = 0;
+                            foreach ($bloquesActuales as $bloque) {
+                                $textHeightClaves += (substr_count($bloque, "\n") + 1) * $lineHeight;
+                            }
+                            // Agregar altura de separadores
+                            $textHeightClaves += (count($bloquesActuales) - 1) * $lineHeight;
+                            
+                            // Centrar solo en el primer bloque
+                            if ($textHeightClaves < $heightAcumulada) {
+                                $startYClaves = $y + (($heightAcumulada - $textHeightClaves) / 2);
+                            } else {
+                                $startYClaves = $y;
+                            }
+                        } else {
+                            // Para continuaciones: ALINEAR AL TOP siempre
+                            $startYClaves = $y;
+                        }
+
+                        $pdf->SetXY($x, $startYClaves);
+                        $pdf->MultiCell(43, $lineHeight, $textoBloques, 0, 'L');
+                        
+                        // Mover a la siguiente línea
+                        $pdf->SetXY($xStart, $yStart + $heightAcumulada);
+                        
+                        // Preparar para siguiente bloque
+                        $bloquesActuales = [];
+                        $heightAcumulada = 0;
+                        $primerBloque = false;
+                        
+                        // Agregar nueva página si hay más bloques
+                        if ($bloqueIndex < count($bloques) - 1) {
+                            $pdf->AddPage('P');
+                            // Reposicionar Y para evitar solapamiento con header
+                            $pdf->SetY(43);
+                        }
+                    }
+                }
+            } else {
+                // El contenido cabe en una sola fila (comportamiento original)
+                // === DIBUJAR ÚNICO RENGLÓN COMPLETO ===
+                $xStart = $pdf->GetX();
+                $yStart = $pdf->GetY();
+                
+                // Celda 1: Cantidad (dato real)
+                $pdf->Cell(10, $finalRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
+                
+                // Celda 2: Perfil (dato real)
+                $pdf->Cell(15, $finalRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                
+                // Celda 3: Material (dato real)
+                $pdf->Cell(23, $finalRowHeight, utf8_decode($cot['material']), 1, 0, 'C');
+                
+                // === CELDAS MULTILÍNEA CON ALTURA FORZADA ===
+                
+                // Celda 4: Diámetro Interior (MultiCell - datos reales)
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                
+                // Dibujar borde manualmente para controlar altura exacta
+                $pdf->Rect($x, $y, 33, $finalRowHeight);
+                
+                // Calcular posición Y para centrar verticalmente el texto
+                $textHeightDI = count($arrayDI) * $lineHeight;
+                $startYDI = $y + (($finalRowHeight - $textHeightDI) / 2);
+                $pdf->SetXY($x, $startYDI);
+                
+                foreach ($arrayDI as $line) {
+                    $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
+                    $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                }
+                $pdf->SetXY($x + 33, $y);
+                
+                // Celda 5: Diámetro Exterior (MultiCell - datos reales)
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                
+                // Dibujar borde manualmente
+                $pdf->Rect($x, $y, 33, $finalRowHeight);
+                
+                // Centrar verticalmente el texto
+                $textHeightDE = count($arrayDE) * $lineHeight;
+                $startYDE = $y + (($finalRowHeight - $textHeightDE) / 2);
+                $pdf->SetXY($x, $startYDE);
+                
+                foreach ($arrayDE as $line) {
+                    $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
+                    $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                }
+                $pdf->SetXY($x + 33, $y);
+                
+                // Celda 6: Alturas (MultiCell - datos reales)
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                
+                // Dibujar borde manualmente
+                $pdf->Rect($x, $y, 33, $finalRowHeight);
+                
+                // Centrar verticalmente el texto
+                $textHeightAlturas = count($alturas) * $lineHeight;
+                $startYAlturas = $y + (($finalRowHeight - $textHeightAlturas) / 2);
+                $pdf->SetXY($x, $startYAlturas);
+                
+                foreach ($alturas as $line) {
+                    $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'L');
+                    $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
+                }
+                $pdf->SetXY($x + 33, $y);
+                
+                // Celda 7: Claves (MultiCell - datos reales)
+                $x = $pdf->GetX();
+                $y = $pdf->GetY();
+                
+                // Dibujar borde manualmente
+                $pdf->Rect($x, $y, 43, $finalRowHeight);
+                
+                // Centrar verticalmente el texto (o alinear al top si es muy grande)
+                $textHeightClaves = $numLinesClaves * $lineHeight;
+                $startYClaves = $y;
+                if ($textHeightClaves < $finalRowHeight) {
+                    $startYClaves = $y + (($finalRowHeight - $textHeightClaves) / 2);
+                }
+                $pdf->SetXY($x, $startYClaves);
+                
+                // Usar MultiCell normal para las claves (ya que puede ser multilínea)
+                $pdf->MultiCell(43, $lineHeight, $textoFinal, 0, 'L');
+                
+                // Mover a la siguiente línea con la altura correcta
+                $pdf->SetXY($xStart, $yStart + $finalRowHeight);
             }
-            $pdf->SetXY($x + 33, $y);
-            
-            // Celda 5: Diámetro Exterior (MultiCell - datos reales)
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            
-            // Dibujar borde manualmente
-            $pdf->Rect($x, $y, 33, $finalRowHeight);
-            
-            // Centrar verticalmente el texto
-            $textHeightDE = count($arrayDE) * $lineHeight;
-            $startYDE = $y + (($finalRowHeight - $textHeightDE) / 2);
-            $pdf->SetXY($x, $startYDE);
-            
-            foreach ($arrayDE as $line) {
-                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'C');
-                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
-            }
-            $pdf->SetXY($x + 33, $y);
-            
-            // Celda 6: Alturas (MultiCell - datos reales)
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            
-            // Dibujar borde manualmente
-            $pdf->Rect($x, $y, 33, $finalRowHeight);
-            
-            // Centrar verticalmente el texto
-            $textHeightAlturas = count($alturas) * $lineHeight;
-            $startYAlturas = $y + (($finalRowHeight - $textHeightAlturas) / 2);
-            $pdf->SetXY($x, $startYAlturas);
-            
-            foreach ($alturas as $line) {
-                $pdf->Cell(33, $lineHeight, utf8_decode($line), 0, 0, 'L');
-                $pdf->SetXY($x, $pdf->GetY() + $lineHeight);
-            }
-            $pdf->SetXY($x + 33, $y);
-            
-            // Celda 7: Claves (MultiCell - datos reales)
-            $x = $pdf->GetX();
-            $y = $pdf->GetY();
-            
-            // Dibujar borde manualmente
-            $pdf->Rect($x, $y, 43, $finalRowHeight);
-            
-            // Centrar verticalmente el texto (o alinear al top si es muy grande)
-            $textHeightClaves = $numLinesClaves * $lineHeight;
-            $startYClaves = $y;
-            if ($textHeightClaves < $finalRowHeight) {
-                $startYClaves = $y + (($finalRowHeight - $textHeightClaves) / 2);
-            }
-            $pdf->SetXY($x, $startYClaves);
-            
-            // Usar MultiCell normal para las claves (ya que puede ser multilínea)
-            $pdf->MultiCell(43, $lineHeight, $textoFinal, 0, 'L');
-            
-            // Mover a la siguiente línea con la altura correcta
-            $pdf->SetXY($xStart, $yStart + $finalRowHeight);
         }
     
         // === COMENTARIOS Y NOTAS (COMÚN PARA AMBOS CASOS) ===
