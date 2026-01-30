@@ -14,7 +14,7 @@ try {
     ];
 
     // --------- LECTURA DE GET ----------
-    $estatus = isset($_GET['estatus']) && $_GET['estatus'] !== '' ? trim($_GET['estatus']) : null;
+    $estatus = isset($_GET['estatus']) ? trim($_GET['estatus']) : $preferencias["estatus"];
     $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
     $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
     $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias['default'];

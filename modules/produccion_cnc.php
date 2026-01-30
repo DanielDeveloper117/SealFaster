@@ -977,7 +977,7 @@ function limpiarTodosFiltros() {
     document.getElementById('estatus').value = '';
     document.getElementById('fecha_inicio').value = '';
     document.getElementById('fecha_fin').value = '';
-    document.querySelector('input[name="default"][value="1"]').checked = true;
+    document.querySelector('input[name="default"][value="2"]').checked = true;
     document.getElementById('orden').value = 'des';
     
     // Actualizar vista de filtros activos
