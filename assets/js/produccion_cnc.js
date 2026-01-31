@@ -583,7 +583,8 @@ $(document).ready(function(){
         }
         
         // 11. Si mm_usados = mm_entrega, es_merma = 1
-        const esMerma = (mmUsados === mmEntrega) ? 1 : 0;
+        //const esMerma = (mmUsados === mmEntrega) ? 1 : 0;
+        const esMerma = 0;
         console.log(`es_merma = ${esMerma}`);
         
         if(scrapPz<0){

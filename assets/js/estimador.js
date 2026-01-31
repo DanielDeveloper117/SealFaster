@@ -2,7 +2,7 @@ $(document).ready(function() {
     $(`label`).css('pointer-events', 'none');
     //alert("GET: " + window.perfilSello);
 // //////////////////////////////////// @DECLARACION DE VARIABLES
-    window.MEDIDA_AGARRE_MAQUINA = 6.00;
+    window.MEDIDA_AGARRE_MAQUINA = 0.00;
     window.FAMILIA_PERFIL = "";
     window.CON_LABIO_DI = 0;
     window.CON_LABIO_DE = 0;
@@ -756,7 +756,7 @@ $(document).ready(function() {
             },
             {
                 perfiles: [
-                    'ST08', 'ST09', 'ST10', 'ST11', 'ST12', 'ST13', 'F01', 'F02'
+                    'ST08', 'ST09', 'ST10', 'ST11', 'ST12', 'ST13', 'F01', 'F02', 'R14'
                 ],
                 limitantes: limitantesHerramientas10
             }

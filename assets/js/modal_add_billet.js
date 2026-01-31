@@ -101,7 +101,7 @@ $(document).ready(function(){
                     else if (data.sin_relacion) {
                         window.CLAVE_VALIDA = false;
                         $("#pWarning").removeClass("d-none");
-                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no tiene relación con clave SRS. Se enviara correo para relacionar la clave`);
+                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no tiene relación con clave SRS. Favor de comunicarse con el área de sistemas.`);
                         $("#pValida, #pAlterna").addClass("d-none");
                         
                         // Resetear campos
@@ -117,7 +117,7 @@ $(document).ready(function(){
                     else if (data.no_encontrada) {
                         window.CLAVE_VALIDA = false;
                         $("#pWarning").removeClass("d-none");
-                        $("#pWarning").text(`No se encontró clave SRS, no se encontró clave alterna. Se enviará correo para validar.`);
+                        $("#pWarning").text(`No se encontró clave SRS, no se encontró clave alterna. Favor de comunicarse con el área de sistemas.`);
                         $("#pValida, #pAlterna").addClass("d-none");
                         
                         // Resetear campos
@@ -133,7 +133,7 @@ $(document).ready(function(){
                     else if (data.no_en_parametros) {
                         window.CLAVE_VALIDA = false;
                         $("#pWarning").removeClass("d-none");
-                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no existe Clave SRS. Se enviará correo.`);
+                        $("#pWarning").text(`Clave alterna encontrada (${data.clave_alterna}) pero no existe Clave SRS. Favor de comunicarse con el área de sistemas.`);
                         $("#pValida, #pAlterna").addClass("d-none");
                         
                         // Resetear campos

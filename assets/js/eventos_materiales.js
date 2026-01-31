@@ -525,7 +525,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     alturaSeleccionada = parseFloat(alturaSeleccionada);
                     let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
                     let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
-                    // 15 es el minimo usable, menos de 15 no es usable
+                    // sumatoria de altura total 
                     let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
                     let dInteriorNecesario = 0.00;
                     let dExteriorNecesario = 0.00;
