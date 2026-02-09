@@ -23,7 +23,7 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
 
 <?php
     require_once(ROOT_PATH . 'vendor/autoload.php');
@@ -213,30 +213,26 @@ if (!isset($_SESSION['id'])) {
     }
 
     try {
-        // --------- LECTURA DE GET ----------
+        // --------- LECTURA DE GET / GET INPUTS ----------
         $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
 
-        $familia     = isset($_GET['familia']) && $_GET['familia'] !== '' ? trim($_GET['familia']) : null;
-        $tipo_medida = isset($_GET['tipo_medida']) && $_GET['tipo_medida'] !== '' ? trim($_GET['tipo_medida']) : null;
+        $familia      = isset($_GET['familia']) && $_GET['familia'] !== '' ? trim($_GET['familia']) : null;
+        $tipo_medida  = isset($_GET['tipo_medida']) && $_GET['tipo_medida'] !== '' ? trim($_GET['tipo_medida']) : null;
         $tipo_cliente = isset($_GET['tipo_cliente']) && $_GET['tipo_cliente'] !== '' ? trim($_GET['tipo_cliente']) : null;
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
-        $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
-        $archivadas = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
-        $default = isset($_GET['default']) ? (int)$_GET['default'] : 2;
+        $fecha_fin    = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
+        $archivadas   = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
+        $default      = isset($_GET['default']) ? (int)$_GET['default'] : 2;
 
-        $isAdmin = ($_SESSION['id'] ?? null) == 71;
+        $isAdmin = (($_SESSION['id'] ?? null) == 71);
         $params  = [];
 
-        // --------- ARMADO SQL ----------
+        // --------- ARMADO SQL / SQL CONSTRUCTION ----------
         if ($cot === 'u') {
             // ÚNICAS: fila más reciente por id_cotizacion
             $sqlCotizaciones = "
                 SELECT cm.*,
-                       (
-                           SELECT COUNT(ca.id)
-                           FROM comentarios_adjuntos ca
-                           WHERE ca.id_cotizacion = cm.id_cotizacion
-                       ) AS total_comentarios
+                    (SELECT COUNT(ca.id) FROM comentarios_adjuntos ca WHERE ca.id_cotizacion = cm.id_cotizacion) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
                     SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
@@ -252,11 +248,11 @@ if (!isset($_SESSION['id'])) {
                 $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
                 $params[':familia_perfil'] = $familia;
             }
-            if ($tipo_medida) { // solo aplica en únicas
+            if ($tipo_medida) {
                 $sqlCotizaciones .= " AND tipo_medida = :tipo_medida";
                 $params[':tipo_medida'] = $tipo_medida;
             }
-            if ($tipo_cliente) { // solo aplica en únicas
+            if ($tipo_cliente) {
                 $sqlCotizaciones .= " AND tipo_cliente = :tipo_cliente";
                 $params[':tipo_cliente'] = $tipo_cliente;
             }
@@ -272,23 +268,15 @@ if (!isset($_SESSION['id'])) {
             } elseif ($fecha_fin) {
                 $sqlCotizaciones .= " AND fecha <= :fecha_fin";
                 $params[':fecha_fin'] = $fecha_fin;
-            } elseif ($default > 0) { 
-                // Solo se ejecuta si NO hay fecha especifica
+            } elseif ($default > 0) {
                 switch ($default) {
-                    case 1: // hoy
-                        $sqlCotizaciones .= " AND fecha = CURDATE()";
-                        break;
-                    case 2: // esta semana
-                        $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
-                        break;
-                    case 3: // este mes
-                        $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) 
-                                            AND MONTH(fecha) = MONTH(CURDATE())";
-                        break;
+                    case 1: $sqlCotizaciones .= " AND fecha = CURDATE()"; break;
+                    case 2: $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)"; break;
+                    case 3: $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) AND MONTH(fecha) = MONTH(CURDATE())"; break;
                 }
             }
 
-            // Archivadas (por defecto solo activas)
+            // Archivadas
             if ($archivadas === '0' || $archivadas === '1') {
                 $sqlCotizaciones .= " AND archivada = :archivada";
                 $params[':archivada'] = (int)$archivadas;
@@ -300,23 +288,16 @@ if (!isset($_SESSION['id'])) {
 
             $sqlCotizaciones .= "
                     GROUP BY id_cotizacion
-                ) t
-                ON cm.id_cotizacion = t.id_cotizacion
-                AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                /* GROUP BY para evitar duplicados si hay mismo timestamp */
+                ) t ON cm.id_cotizacion = t.id_cotizacion AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
                 GROUP BY cm.id_cotizacion
-                ORDER BY t.ultima ASC
+                ORDER BY t.ultima DESC
             ";
 
         } else {
-            // FUSIONADAS: fila más reciente por id_fusion (ignorar tipo_medida)
+            // FUSIONADAS: fila más reciente por id_fusion
             $sqlCotizaciones = "
                 SELECT cm.*,
-                       (
-                           SELECT COUNT(ca.id)
-                           FROM comentarios_adjuntos ca
-                           WHERE ca.id_cotizacion = cm.id_cotizacion
-                       ) AS total_comentarios
+                    (SELECT COUNT(ca.id) FROM comentarios_adjuntos ca WHERE ca.id_cotizacion = cm.id_cotizacion) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
                     SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
@@ -332,7 +313,8 @@ if (!isset($_SESSION['id'])) {
                 $sqlCotizaciones .= " AND familia_perfil = :familia_perfil";
                 $params[':familia_perfil'] = $familia;
             }
-            // Filtros de Fechas
+
+            // Filtros de Fechas (Reutilizados)
             if ($fecha_inicio && $fecha_fin) {
                 $sqlCotizaciones .= " AND fecha BETWEEN :fecha_inicio AND :fecha_fin";
                 $params[':fecha_inicio'] = $fecha_inicio;
@@ -343,23 +325,14 @@ if (!isset($_SESSION['id'])) {
             } elseif ($fecha_fin) {
                 $sqlCotizaciones .= " AND fecha <= :fecha_fin";
                 $params[':fecha_fin'] = $fecha_fin;
-            } elseif ($default > 0) { 
-                // Solo se ejecuta si NO hay fecha especifica
+            } elseif ($default > 0) {
                 switch ($default) {
-                    case 1: // hoy
-                        $sqlCotizaciones .= " AND fecha = CURDATE()";
-                        break;
-                    case 2: // esta semana
-                        $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)";
-                        break;
-                    case 3: // este mes
-                        $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) 
-                                            AND MONTH(fecha) = MONTH(CURDATE())";
-                        break;
+                    case 1: $sqlCotizaciones .= " AND fecha = CURDATE()"; break;
+                    case 2: $sqlCotizaciones .= " AND YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1)"; break;
+                    case 3: $sqlCotizaciones .= " AND YEAR(fecha) = YEAR(CURDATE()) AND MONTH(fecha) = MONTH(CURDATE())"; break;
                 }
             }
 
-            // Archivadas (por defecto solo activas)
             if ($archivadas === '0' || $archivadas === '1') {
                 $sqlCotizaciones .= " AND archivada = :archivada";
                 $params[':archivada'] = (int)$archivadas;
@@ -371,15 +344,13 @@ if (!isset($_SESSION['id'])) {
 
             $sqlCotizaciones .= "
                     GROUP BY id_fusion
-                ) t
-                ON cm.id_fusion = t.id_fusion
-                AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
+                ) t ON cm.id_fusion = t.id_fusion AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
                 GROUP BY cm.id_fusion
                 ORDER BY t.ultima DESC
             ";
         }
 
-        // --------- EJECUCIÓN ----------
+        // --------- EJECUCIÓN / EXECUTION ----------
         $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
         foreach ($params as $k => $v) {
             $type = is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR;
@@ -389,62 +360,14 @@ if (!isset($_SESSION['id'])) {
         $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
 
     } catch (Throwable $e) {
-        // Fallback robusto: misma lógica de "más reciente" y orden,
-        // pero sin filtros opcionales (solo usuario/archivada por UX).
-        $isAdmin = ($_SESSION['id'] ?? null) == 71;
-        try {
-            if ($cot === 'f') {
-                $sqlFallback = "
-                    SELECT cm.*
-                    FROM cotizacion_materiales cm
-                    INNER JOIN (
-                        SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                        FROM cotizacion_materiales
-                        WHERE id_fusion IS NOT NULL
-                        ".(!$isAdmin ? " AND id_usuario = :id_usuario " : "")."
-                        AND archivada = 0
-                        GROUP BY id_fusion
-                    ) t
-                    ON cm.id_fusion = t.id_fusion
-                    AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                    GROUP BY cm.id_fusion
-                    ORDER BY t.ultima DESC
-                ";
-            } else {
-                $sqlFallback = "
-                    SELECT cm.*
-                    FROM cotizacion_materiales cm
-                    INNER JOIN (
-                        SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                        FROM cotizacion_materiales
-                        WHERE id_fusion IS NULL
-                        ".(!$isAdmin ? " AND id_usuario = :id_usuario " : "")."
-                        AND archivada = 0
-                        GROUP BY id_cotizacion
-                    ) t
-                    ON cm.id_cotizacion = t.id_cotizacion
-                    AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                    GROUP BY cm.id_cotizacion
-                    ORDER BY t.ultima DESC
-                ";
-            }
-
-            $stmtCotizaciones = $conn->prepare($sqlFallback);
-            if (!$isAdmin) {
-                $stmtCotizaciones->bindValue(':id_usuario', (int)$_SESSION['id'], PDO::PARAM_INT);
-            }
-            $stmtCotizaciones->execute();
-            $arregloSelectCotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
-
-            // Opcional: notificación visual mínima
-            echo "<script>console.warn('Se cargó vista con consulta de respaldo.');</script>";
-
-        } catch (Throwable $e2) {
-            // Si también falla el fallback, deja el arreglo vacío para no romper la vista
-            $arregloSelectCotizaciones = [];
-            echo "<script>alert('Ocurrió un error al cargar datos.');</script>";
-            // También puedes loguear $e y $e2 en tu sistema de logs
-        }
+        // No fallback, just error handling
+        $arregloSelectCotizaciones = [];
+        
+        // Log error for the developer (Opcional pero recomendado)
+        error_log("Error in " . __FILE__ . ": " . $e->getMessage());
+        
+        // Feedback for the user
+        echo "<script>alert('Ocurrió un error al cargar los datos. Por favor, intente de nuevo.');</script>";
     }
 ?>
 
@@ -1004,33 +927,33 @@ if (!isset($_SESSION['id'])) {
                                 <label class="form-check-label" >
                                     <i class="bi bi-table"></i> <strong>Default al cargar la tabla</strong>
                                 </label>
-                                <?php $default = $_GET['default'] ?? '0'; // valor por defecto ?>
+                                <?php $default = $_GET['default'] ?? '2'; // valor por defecto ?>
                                 <div class="form-check">
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="0" 
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault0" value="0" 
                                             <?= ($default == '0') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioDefault">
+                                        <label class="form-check-label" for="radioDefault0">
                                             Todas
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="1" 
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault1" value="1" 
                                             <?= ($default == '1') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioDefault">
+                                        <label class="form-check-label" for="radioDefault1">
                                             Solo las de hoy
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="2" 
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault2" value="2" 
                                             <?= ($default == '2') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioDefault">
+                                        <label class="form-check-label" for="radioDefault2">
                                             Solo de esta semana
                                         </label>
                                     </div>
                                     <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="default" id="radioDefault" value="3" 
+                                        <input class="form-check-input" type="radio" name="default" id="radioDefault3" value="3" 
                                             <?= ($default == '3') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioDefault">
+                                        <label class="form-check-label" for="radioDefault3">
                                             Solo de este mes
                                         </label>
                                     </div>

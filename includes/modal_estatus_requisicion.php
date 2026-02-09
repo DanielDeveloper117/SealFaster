@@ -1,114 +1,118 @@
-<?php?>
 <style>
-.status-chain {
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    flex-wrap: nowrap;
-    gap: 1rem;
-    font-size: 2.5rem;
-    color: #ccc;
-}
+    /* Estilos de la cadena de estatus */
+    .status-chain {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        flex-wrap: nowrap;
+        gap: 1rem;
+        font-size: 2.5rem;
+        color: #ccc;
+    }
 
-.status-chain .icon {
-    color: #ccc;
-    transition: color 0.3s ease;
-}
+    .status-chain .icon {
+        color: #ccc;
+        transition: color 0.3s ease;
+    }
 
-.status-chain .icon.active {
-    color: #55AD9B;
-}
+    .status-chain .icon.active {
+        color: #55AD9B;
+    }
 
-.status-chain .label {
-    position: absolute;
-    top: 60px;
-    font-size: 13px;
-    font-weight: 500;
-    color: #000;
-    white-space: nowrap;
-}
+    .status-chain .label {
+        position: absolute;
+        top: 60px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #000;
+        white-space: nowrap;
+    }
 
-
+    /* Estilo para filas que aparecen con suavidad */
+    .fila-estatus {
+        transition: all 0.3s ease;
+    }
 </style>
-<!-- /////////////////////////////MODAL DETALLES DEL ESTATUS DE REQUISICION //////////////////////////////// -->
+
 <div class="modal fade" id="modalEstatusInfo" tabindex="-1" aria-labelledby="modalEstatusLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content shadow-lg">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalEstatusLabel">Historial de estatus</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body">
-        <!-- contenedor oculto de visibilidad y tabla informativa -->
-        <div id="contenedorDetalles" class="overflow-hidden" style="">
-            <!-- tabla informativa -->
-            <div class="table-responsive mb-4">
-                <table class="table table-bordered align-middle tabla-billets">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Estatus</th>
-                            <th>Detalles</th>
-                            <th>Fecha</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr id="trPendiente" class="">
-                            <td>Pendiente</td>
-                            <td>Ingreso de requisición al sistema.</td>
-                            <td id="fechaInsercion"></td>
-                        </tr>
-                        <tr id="trAutorizada" class="d-none">
-                            <td>Autorizada</td>
-                            <td id="infoAutorizo"></td>
-                            <td id="fechaAutorizacion"></td>
-                        </tr>
-                        <tr id="trProduccion" class="d-none">
-                            <td>Producción</td>
-                            <td>Se asignó la máquina, entrega de barras pendiente.</td>
-                            <td id="fechaInicioMaquinado"></td>
-                        </tr>
-                        <tr id="trMaquinado" class="d-none">
-                            <td>En maquinado</td>
-                            <td>Barras entregadas, el maquinado del sello está en proceso.</td>
-                            <td id="fechaEntregaBarras"></td>
-                        </tr>
-                        <tr id="trFinalizada" class="d-none">
-                            <td>Finalizada</td>
-                            <td>El proceso de maquinado ha concluido con éxito.</td>
-                            <td id="fechaFinMaquinado"></td>
-                        </tr>
-                    </tbody>
-                </table>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content shadow-lg">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEstatusLabel">Historial de estatus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <div id="contenedorDetalles" class="overflow-hidden">
+                    <div class="table-responsive mb-4">
+                        <table class="table table-bordered align-middle tabla-billets">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Estatus</th>
+                                    <th>Detalles</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyEstatus">
+                                <tr id="trPendiente" class="fila-estatus">
+                                    <td><span class="span-status-yellow">Pendiente</span></td>
+                                    <td>Ingreso de requisición al sistema.</td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trAutorizada" class="fila-estatus d-none">
+                                    <td><span class="span-status">Autorizada</span></td>
+                                    <td class="dato-extra"></td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trProduccion" class="fila-estatus d-none">
+                                    <td><span class="span-status">Producción</span></td>
+                                    <td>Se asignó la máquina, entrega de barras pendiente.</td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trMaquinado" class="fila-estatus d-none">
+                                    <td><span class="span-status">En maquinado</span></td>
+                                    <td>Barras entregadas, el maquinado del sello está en proceso.</td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trFinalizada" class="fila-estatus d-none">
+                                    <td><span class="span-status">Finalizada</span></td>
+                                    <td>El proceso de maquinado ha concluido con éxito.</td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trCompletada" class="fila-estatus d-none">
+                                    <td><span class="span-status">Completada</span></td>
+                                    <td>El nuevo stock de las barras ha sido actualizado.</td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                                <tr id="trDetenida" class="fila-estatus d-none">
+                                    <td><span class="span-status-red">Detenida</span></td>
+                                    <td>La producción se ha detenido/cancelado. <br><strong>Justificación:</strong> <span class="dato-extra"></span></td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
-      </div>
-      <div class="modal-footer">
-      </div>
     </div>
-  </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // 1. Al hacer click en el botón principal del modal de estatus
+    // Escuchar click en botones de estatus
     $(document).on('click', '.btn-estatus', function() {
-        // Obtener datos del botón clickeado
-        const $boton = $(this);
-        // Obtener ID de requisición
-        let idRequisicionActual = $boton.data('id-requisicion');
-        // Mostrar el modal
+        const idRequisicionActual = $(this).data('id-requisicion');
         $('#modalEstatusInfo').modal('show');
-        // Cargar la información de los estatus
         cargarEstatusRequisicion(idRequisicionActual);
     });
-});  
+});
+
 function cargarEstatusRequisicion(idRequisicion) {
-    $("#fechaInsercion").text('Cargando...');
-    $("#infoAutorizo").text('Cargando...');
-    $("#fechaAutorizacion").text('Cargando...');
-    $("#fechaInicioMaquinado").text('Cargando...');
-    $("#fechaEntregaBarras").text('Cargando...');
-    $("#fechaFinMaquinado").text('Cargando...');
-    // Realizar una solicitud AJAX para obtener los datos de estatus
+    // Reset visual: ocultamos todo excepto la primera fila y ponemos carga
+    $(".fila-estatus").not("#trPendiente").addClass('d-none');
+    $(".dato-fecha").text('Cargando...');
+    $(".dato-extra").text('');
+
     $.ajax({
         url: '../ajax/get_requisicion.php',
         method: 'GET',
@@ -116,51 +120,50 @@ function cargarEstatusRequisicion(idRequisicion) {
         dataType: 'json',
         success: function(response) {
             if (response.success) {
-                $("#fechaInsercion").text(response.data.fecha_insercion || 'No disponible');
-                $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").removeClass('d-none');
-                switch(response.data.estatus) {
-                    case 'Pendiente':
-                        $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").addClass('d-none');
-                        break;
-                    case 'Autorizada':
-                        $("#trProduccion,#trMaquinado,#trFinalizada").addClass('d-none');
-                        break;
-                    case 'Producción':
-                        $("#trMaquinado,#trFinalizada").addClass('d-none');
-                        break;
-                    case 'En producción':
-                        $("#trFinalizada").addClass('d-none');
-                        break;
-                    case 'Finalizada':
-                    case 'Completada':
-                        $("#trAutorizada,#trProduccion,#trMaquinado,#trFinalizada").removeClass('d-none');
-                        break;
-                    default:
-                        // Si el estatus no coincide con ninguno, ocultar todas las filas excepto Pendiente
-                        $("#trPendiente").removeClass('d-none');
-                        $("#trAutorizada").addClass('d-none');
-                        $("#trProduccion").addClass('d-none');
-                        $("#trFinalizada").addClass('d-none');
-                    break;
-                }
-           
-                $("#infoAutorizo").text(response.data.autorizo ? 'Autorizado por ' + response.data.autorizo : 'No disponible');
-                $("#fechaAutorizacion").text(response.data.fecha_autorizacion || 'No disponible');
-                $("#fechaInicioMaquinado").text(response.data.inicio_maquinado || 'No disponible');
-                $("#fechaEntregaBarras").text(response.data.fecha_entrega_barras || 'No disponible');
-                $("#fechaFinMaquinado").text(response.data.fin_maquinado || 'No disponible');
-                
+                const d = response.data;
+
+                /**
+                 * MAPEO DE DATOS (Data Mapping)
+                 * Definimos un array de objetos con la lógica de cada fila.
+                 * Si la 'fecha' existe, la fila se mostrará automáticamente.
+                 */
+                const esquemaEstatus = [
+                    { id: "#trPendiente",  fecha: d.fecha_insercion },
+                    { id: "#trAutorizada", fecha: d.fecha_autorizacion, extra: d.autorizo ? 'Autorizado por ' + d.autorizo : 'Información de autorizador no disponible' },
+                    { id: "#trProduccion", fecha: d.inicio_maquinado },
+                    { id: "#trMaquinado",  fecha: d.fecha_entrega_barras },
+                    { id: "#trFinalizada", fecha: d.fin_maquinado },
+                    { id: "#trCompletada", fecha: d.fin_maquinado },
+                    { id: "#trDetenida",   fecha: d.fecha_detencion,    extra: d.justificacion_detencion }
+                ];
+
+                // Iteramos el esquema para aplicar los cambios al DOM
+                esquemaEstatus.forEach(item => {
+                    const $fila = $(item.id);
+                    
+                    // Condición simplificada: si hay fecha válida, mostrar
+                    if (item.fecha && item.fecha !== '0000-00-00 00:00:00') {
+                        $fila.removeClass('d-none');
+                        $fila.find(".dato-fecha").text(item.fecha);
+                        
+                        // Si hay información extra (autorizador o justificación)
+                        if (item.extra) {
+                            $fila.find(".dato-extra").text(item.extra);
+                        }
+                    } else {
+                        // Si no hay fecha y no es el pendiente, asegurar que esté oculto
+                        if(item.id !== "#trPendiente") $fila.addClass('d-none');
+                        else $fila.find(".dato-fecha").text('No disponible');
+                    }
+                });
+
             } else {
-                $("#fechaInsercion").text('No disponible');
-                $("#infoAutorizo").text('No disponible');
-                $("#fechaAutorizacion").text('No disponible');
-                $("#fechaInicioMaquinado").text('No disponible');
-                $("#fechaEntregaBarras").text('No disponible');
-                console.error('Error al obtener estatus:', response.message);
+                alert("Error al obtener los datos: " + response.message);
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error en la solicitud AJAX:', error);
+            console.error('Error AJAX:', error);
+            $(".dato-fecha").text('Error al cargar');
         }
     });
 }

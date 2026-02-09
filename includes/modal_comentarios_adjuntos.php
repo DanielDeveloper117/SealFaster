@@ -92,13 +92,13 @@
 }
 
 /* Estilo cuando está cerca del límite */
-#inputComentario.warning {
+#inputComentarioAdjunto.warning {
     border-color: #ffc107;
     box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
 }
 
 /* Estilo cuando excede el límite */
-#inputComentario.danger {
+#inputComentarioAdjunto.danger {
     border-color: #dc3545;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
@@ -160,15 +160,15 @@
                                     <div class="form-text">Selecciona a qué cotización de la requisición pertenece este comentario</div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="inputComentario" class="form-label fw-bold">Comentario *</label>
-                                    <textarea class="form-control" id="inputComentario" name="comentario" rows="2" 
+                                    <label for="inputComentarioAdjunto" class="form-label fw-bold">Comentario *</label>
+                                    <textarea class="form-control" id="inputComentarioAdjunto" name="comentario" rows="2" 
                                             maxlength="98" required></textarea>
                                     <div class="form-text text-end">
                                         <span id="contadorCaracteres">0/98</span> caracteres
                                     </div>
                                 </div>
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Archivo adjunto</label>
+                                    <label for="inputAdjunto" class="form-label fw-bold">Archivo adjunto</label>
                                     <div id="areaAdjunto">
                                         <button type="button" class="input-file-simple w-100" id="btnSeleccionarArchivo">
                                             <i class="bi bi-paperclip"></i> Añadir adjunto

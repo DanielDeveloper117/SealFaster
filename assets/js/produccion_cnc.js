@@ -356,7 +356,7 @@ $(document).ready(function(){
         });
     }    
     // Traer los lotes pedimento de la requisicion para que CNC llene los campos para finalizar la requisicion
-    function ajaxTraerClavesControlAlmacen(idRequisicion){
+    function ajaxTraerClavesControlAlmacen(idRequisicion, estatusRequisicion){
         $.ajax({
             url: '../ajax/barras_para_finalizar.php',
             type: 'get',
@@ -366,7 +366,11 @@ $(document).ready(function(){
             dataType: 'json',
             success: function(data) {
                 $('#modalFinalizar tbody').empty();
-
+                if (estatusRequisicion === 'Detenida') {
+                    $('#finalizarRequisicion').addClass('d-none');
+                }else{
+                    $('#finalizarRequisicion').removeClass('d-none');
+                }
                 if (data.success && data.billets.length > 0) {
                     $.each(data.billets, function(index, billet) {
                         // Calcular desbaste según material
@@ -378,6 +382,19 @@ $(document).ready(function(){
                         let alturaPz = billet.altura_pz ? (parseFloat(billet.altura_pz) || 0) : 0;
                         let mmTeoricos = (pzTeoricas * (alturaPz + desbasteMaterial)).toFixed(2);
                         let longTSellos = (pzTeoricas * alturaPz).toFixed(2);
+
+                        // LÓGICA DE BLOQUEO POR FECHA O ESTATUS
+                        const tieneFechaRetorno = (data.fecha_retorno_barras !== null && data.fecha_retorno_barras !== "");
+                        const esSoloLectura = tieneFechaRetorno;
+
+                        // Manejo del botón Guardar/Finalizar
+                        if (esSoloLectura) {
+                            $('#saveChangesFinalizar,#smallText').addClass('d-none');
+                            $('#smallText').removeClass('d-none');
+                        } else {
+                            $('#saveChangesFinalizar,#smallText').removeClass('d-none');
+                            $('#smallText').addClass('d-none');
+                        }
 
                         $('#modalFinalizar tbody').append(`
                             <tr class="data-row" data-id-control="${billet.id_control}" data-lote="${billet.lote_pedimento}" data-desbaste="${desbasteMaterial}">
@@ -414,18 +431,22 @@ $(document).ready(function(){
                                     }
                                 </td>
                                 
-                                <td><input type="number" class="input-text pz_maquinadas" name="pz_maquinadas" value="${billet.pz_maquinadas || ''}" step="1" min="0" required></td>
+                                <td>
+                                    ${billet.pz_maquinadas == "0" || billet.pz_maquinadas === 0 ? 
+                                        `<input type="number" class="${esSoloLectura ? 'input-disabled' : 'input-text'} pz_maquinadas" name="pz_maquinadas" value="${0}" step="1" min="0" required></td>` :
+                                        `<input type="number" class="${esSoloLectura ? 'input-disabled' : 'input-text'} pz_maquinadas" name="pz_maquinadas" value="${billet.pz_maquinadas || ''}" step="1" min="0" required></td>`
+                                    }
                                 <td>
                                     <input type="number" 
                                         ${billet.altura_pz ? '' : ''}
-                                        class="${billet.altura_pz ? 'input-text' : 'input-text'} altura_pz" 
+                                        class="${billet.altura_pz && !esSoloLectura ? 'input-text' : 'input-disabled'} altura_pz"
                                         name="altura_pz" 
                                         value="${billet.altura_pz || alturaPz}" 
                                         step="0.01" 
                                         min="0.01" 
                                         ${billet.altura_pz ? '' : 'required'}>
                                 </td>                            
-                                <td><input type="number" class="input-text mm_usados" name="mm_usados" value="${billet.mm_usados || ''}" step="0.01" min="0.01" required></td>
+                                <td><input type="number" class="${esSoloLectura ? 'input-disabled' : 'input-text'} mm_usados" name="mm_usados" value="${billet.mm_usados || ''}" step="0.01" min="0.01" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled long_t_sellos" name="total_sellos" value="${billet.total_sellos || longTSellos}" step="0.01" min="0" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled merma_corte" name="merma_corte" value="${billet.merma_corte || ''}" step="0.01" min="0" required></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled scrap_pz" name="scrap_pz" value="${billet.scrap_pz || ''}" step="1" min="0"></td>
@@ -781,6 +802,19 @@ $(document).ready(function(){
                         if(item.es_remplazo == 1){
                             esReemplazo = " (Reemplazo de la barra: "+item.lote_pedimento+")*";
                         }
+                        const esSoloLectura = (data.fecha_retorno_barras !== null && data.fecha_retorno_barras !== "");
+                        if (esSoloLectura) {
+                            $("#retornoFinalizado").hide(); // Quitar botón
+                            $("#observacionesInventario").prop('readonly', true); // Observaciones solo lectura
+                            $("#observacionesInventario").val(data.observaciones_inv);
+                        } else {
+                            $("#retornoFinalizado").show();
+                            $("#observacionesInventario").prop('readonly', false);
+                        }
+                        // Clase dinámica para inputs
+                        // Si ya existe fecha de retorno, TODO es input-disabled
+                        let claseInput = esSoloLectura ? "input-disabled" : "input-text mm_retorno";
+                        let readonlyAttr = esSoloLectura ? "readonly tabindex='-1'" : "";
                         $('#modalRetorno tbody').append(`
                             <tr>
                                 <input type="hidden" tabindex="-1" name="id_requisicion" value="${idRequisicion || ''}">
@@ -798,9 +832,9 @@ $(document).ready(function(){
                                     <span style="color:#ffc107;">${esReemplazo}</span>
                                 </td>
                                 <td><input type="text" tabindex="-1" class="input-disabled medida" value="${item.medida || ''}"></td>
-                                <td><input type="number" tabindex="-1" class="input-disabled mm_entrega" name="mm_entrega" value="${item.mm_entrega || ''}" step="0.01" min="0"></td>
+                                <td><input type="number" readonly tabindex='-1' class="input-disabled mm_entrega" value="${item.mm_entrega ?? ''}"></td>                                
                                 <td><input type="number" tabindex="-1" class="input-disabled mm_usados" name="mm_usados" value="${item.mm_total_usados || ''}" step="0.01" min="0"></td>
-                                <td><input type="number" tabindex="-1" class="input-text mm_retorno" name="mm_retorno" value="" step="0.01" min="0"></td>
+                                <td><input type="number" ${readonlyAttr} class="${claseInput}" name="mm_retorno" value="${item.mm_retorno ?? ''}" step="0.01"></td>                                
                                 <td><input type="number" tabindex="-1" class="input-disabled long_t_sellos" name="total_sellos" value="${item.total_sellos || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled merma_corte" name="merma_corte" value="${item.scrap_mm || ''}" step="0.01" min="0"></td>
                                 <td><input type="number" tabindex="-1" class="input-disabled scrap_pz" name="scrap_pz" value="${item.scrap_pz || ''}" step="1" min="0"></td>
@@ -1355,8 +1389,9 @@ $(document).ready(function(){
     //CLICK FINALIZAR TAL REQUISICION DESDE LA TABLA
     $("#productionTable").on('click', ".btn-finalizar", function(){
         $dataIdRequisicion=$(this).data('id-requisicion');
+        const estatusRequisicionF = $(this).data('estatus');
         $("#modalFinalizar h5 span").text($dataIdRequisicion);
-        ajaxTraerClavesControlAlmacen($dataIdRequisicion);
+        ajaxTraerClavesControlAlmacen($dataIdRequisicion, estatusRequisicionF);
     });
     // GUARDAR PROGRESO DE MAQUINADO
     $("#saveChangesFinalizar").on('click', function () {
@@ -1786,7 +1821,7 @@ $(document).ready(function(){
         let valido = true;
 
         // Validar solo inputs que el usuario puede editar (excluimos .input-disabled)
-        $('#modalRetorno tbody input:not(.input-disabled)').each(function () {
+        $('#modalRetorno tbody input:not(.input-disabled):not([type="hidden"])').each(function () {
             let valor = $(this).val().trim();
             if (valor === "" || valor === null) {
                 valido = false;
@@ -1851,5 +1886,52 @@ $(document).ready(function(){
             }
         });
     });
+    // CLICK A DETENER REQUISICION
+    $('#productionTable').on('click', '.btn-detener', function() {
+        $dataIdRequisicion = $(this).data('id-requisicion');
+        
+        $("#inputRequisicionDetener").val($dataIdRequisicion);
+    });  
+    // CLICK SUBMIT A DETENER LA PRODUCCION DE LA REQUISICION
+    $("#btnConfirmarDetener").on('click', function () {
+        let inputRazonDetener = $("#inputRazonDetener").val();
+        let justificacionDetener = $("#justificacionDetener").val();
+        let inputRequisicionDetener = $("#inputRequisicionDetener").val();
 
+        if(!inputRazonDetener){
+            sweetAlertResponse("warning", "Faltan datos", "Seleccione una razón del selector", "none");
+            return;
+        }
+        if(!justificacionDetener || justificacionDetener.length < 10){
+            sweetAlertResponse("warning", "Faltan datos", "Ingrese una justificación de mínimo 10 caracteres", "none");
+            return;
+        }
+        if(!inputRequisicionDetener){
+            sweetAlertResponse("warning", "Faltan datos", "Falta el id de requisición. Contactar a sistemas.", "none");
+            return;
+        }
+        $(this).addClass("d-none");
+        $.ajax({
+            url: '../ajax/detener_produccion.php',
+            type: 'POST',
+            data: { 
+                razon:inputRazonDetener,
+                justificacion:justificacionDetener,
+                id_requisicion: inputRequisicionDetener
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                    
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "self");
+            }
+        });
+    });
 });

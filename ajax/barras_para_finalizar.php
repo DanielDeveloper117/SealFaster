@@ -15,6 +15,11 @@ try {
 
     $id_requisicion = $_GET['id_requisicion'];
 
+    // 0. Obtener la fecha de retorno de la tabla requisiciones para bloqueo de edición
+    $stmtFecha = $conn->prepare("SELECT fecha_retorno_barras FROM requisiciones WHERE id_requisicion = :id LIMIT 1");
+    $stmtFecha->execute([':id' => $id_requisicion]);
+    $fechaRetorno = $stmtFecha->fetchColumn();
+
     // 1. Obtener todas las barras del control_almacen para esta requisición
     $stmtControlAlmacen = $conn->prepare("
         SELECT *
@@ -103,6 +108,7 @@ try {
         'id_requisicion' => $id_requisicion,
         'total_barras' => count($barrasCompletas),
         'billets' => $barrasCompletas,
+        'fecha_retorno_barras' => $fechaRetorno,
         'fuente' => 'control_almacen'
     ];
 

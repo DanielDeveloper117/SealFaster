@@ -63,14 +63,6 @@
             }
         });
 
-        function actualizarContadorComentario() {
-            let contenido = $("#inputComentario").val();
-            $("#contadorComentario").text(`${contenido.length} / 50 caracteres`);
-        }
-        $("#inputComentario").on("input", function () {
-            actualizarContadorComentario();
-        });
-
         // cuando el usuario selecciona una cotizacion del selector chosen
         let cotizacionesSeleccionadas = [];
 
@@ -232,7 +224,6 @@
                 // <td>${tipoMedida}</td>
             });
 
-            actualizarContadorComentario();
         });
 
         let intervaloQR = null;

@@ -80,6 +80,9 @@ try {
             case 'completada':
                 $sqlRequisiciones .= " AND estatus = 'Completada'";
                 break;
+            case 'detenida':
+                $sqlRequisiciones .= " AND estatus = 'Detenida'";
+                break;
         }
     }
 

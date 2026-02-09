@@ -12,7 +12,7 @@ try{
                         WHERE id_usuario = :id  
                         AND archivada = 0 
                         GROUP BY id_cotizacion 
-                        ORDER BY fecha DESC, hora DESC";
+                        ORDER BY fecha DESC, hora DESC LIMIT 50";
     
     $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
     $stmtCotizaciones->bindParam(':id', $id_usuario);

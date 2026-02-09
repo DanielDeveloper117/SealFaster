@@ -530,6 +530,9 @@
                 case 'finalizada':
                     $sqlRequisiciones .= " AND estatus = 'Finalizada'";
                     break;
+                case 'detenida':
+                    $sqlRequisiciones .= " AND estatus = 'Detenida'";
+                    break;
                 default:
                     $estatus = "";
                     break;

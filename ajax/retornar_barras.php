@@ -136,21 +136,45 @@ try {
     }
 
     /* =========================
-       REQUISICION
+       REQUISICION (Lógica de Estatus)
     ========================= */
 
-    $stmtReq = $conn->prepare("
-        UPDATE requisiciones
-        SET estatus = 'Completada',
-            fin_maquinado = NOW(),
-            observaciones_inv = :observaciones
-        WHERE id_requisicion = :id
-    ");
+    // 1. Primero consultamos el estatus actual
+    $stmtCheckStatus = $conn->prepare("SELECT estatus FROM requisiciones WHERE id_requisicion = :id");
+    $stmtCheckStatus->execute([':id' => $id_requisicion]);
+    $currentStatus = $stmtCheckStatus->fetchColumn();
 
-    $stmtReq->execute([
-        ':observaciones' => $observaciones_inv,
-        ':id' => $id_requisicion
-    ]);
+    if ($currentStatus === 'Detenida') {
+        // Si está detenida, solo actualizamos observaciones, mantenemos estatus y no ponemos fin_maquinado
+        $stmtReq = $conn->prepare("
+            UPDATE requisiciones 
+            SET observaciones_inv = :observaciones, 
+            fecha_retorno_barras = NOW() 
+            WHERE id_requisicion = :id
+        ");
+        $paramsReq = [
+            ':observaciones' => $observaciones_inv,
+            ':id' => $id_requisicion
+        ];
+    } else {
+        // Si no está detenida, procedemos con el flujo normal (Completada + NOW)
+        $stmtReq = $conn->prepare("
+            UPDATE requisiciones 
+            SET estatus = 'Completada',
+            observaciones_inv = :observaciones, 
+            fecha_retorno_barras = NOW() 
+            WHERE id_requisicion = :id
+        ");
+        $paramsReq = [
+            ':observaciones' => $observaciones_inv,
+            ':id' => $id_requisicion
+        ];
+    }
+
+    $stmtReq->execute($paramsReq);
+
+    // Nota: Eliminamos el rowCount() == 0 check si es posible que no haya cambios en observaciones,
+    // o simplemente verificamos que el query no falló.
 
     if ($stmtReq->rowCount() == 0) {
         throw new Exception("No se pudo actualizar requisicion {$id_requisicion}");

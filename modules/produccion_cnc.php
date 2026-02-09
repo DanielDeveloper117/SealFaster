@@ -29,9 +29,7 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_cnc.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>"> -->
 
     <?php 
         include(ROOT_PATH . 'includes/backend_info_user.php');
@@ -55,6 +53,11 @@ if (!isset($_SESSION['id'])) {
         font-size: 15px;
     }
 </style>
+<div id="overlay">
+    <div class="loading-message">
+        <span>Cargando requisiciones, por favor, espere...</span>    
+    </div>
+</div>
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
         <div class="titulo mt-1 mb-3">
@@ -109,6 +112,7 @@ if (!isset($_SESSION['id'])) {
 
                                 <?php
                                 $estatusString = "";
+                                $estatusClass = "span-status";
                                 echo '<div class="comentarios-wrapper">';
                                     echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
                                                 data-origen="requi"
@@ -206,23 +210,16 @@ if (!isset($_SESSION['id'])) {
                                                 $titleButton = "Pendiente de entregar barras";
                                            }
 
-                                        echo '<button class="'.$claseBoton.' btn-entregar-barras" 
-                                                data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
-                                                data-es_extra = "0"
-                                                data-estatus = "'.$mostrarBtnEntregarBarras.'"  
-                                                data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
-                                                title="'.$titleButton.'">
-                                                <i class="bi '.$iconButton.'"></i>
-                                            </button>';
-                                            //  echo '<button class="btn-thunder btn-control-almacen" 
-                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            //         data-es_extra = "1"
-                                            //         data-estatus = "Producción"                                                   
-                                            //         title="Agregar/remplazar barras de control de almacen">
-                                            //         <i class="bi bi-database-add"></i>
-                                            //     </button>';    
+                                            echo '<button class="'.$claseBoton.' btn-entregar-barras" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
+                                                    data-es_extra = "0"
+                                                    data-estatus = "'.$mostrarBtnEntregarBarras.'"  
+                                                    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
+                                                    title="'.$titleButton.'">
+                                                    <i class="bi '.$iconButton.'"></i>
+                                                </button>';
+   
                                         }elseif ($tipo_usuario === "CNC") {
                                             // aqui no span, solo controlado por estatusString
                                             if(empty($row['maquina']) && !empty($row['fecha_entrega_barras'])){
@@ -235,6 +232,14 @@ if (!isset($_SESSION['id'])) {
                                                     <i class="bi bi-file-play"></i>
                                                 </button>';
                                             }
+                                            if ($rol_usuario == "Gerente") {
+                                                echo '<button type="button" class="btn-cancel btn-detener" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalDetener"
+                                                        data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Detener/cancelar el maquinado de sellos">
+                                                        <i class="bi bi-sign-stop"></i>
+                                                    </button>';
+                                            }
                                         }
                                         break;
 
@@ -242,31 +247,35 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "En maquinado";
 
                                         //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                        if ($tipo_usuario === "CNC" && $rol_usuario == $row['maquina']) {
-                                            echo '<button type="button" class="btn-terracota btn-finalizar" 
-                                                    data-bs-toggle="modal" data-bs-target="#modalFinalizar"
-                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Finalizar maquinado">
-                                                    <i class="bi bi-flag"></i>
-                                                </button>';
+                                        if ($tipo_usuario === "CNC") {
+                                            if ($rol_usuario == $row['maquina']) {
+                                                echo '<button type="button" class="btn-terracota btn-finalizar" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalFinalizar"
+                                                        data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Finalizar maquinado">
+                                                        <i class="bi bi-flag"></i>
+                                                    </button>';
+                                            }
+                           
+                                            if ($rol_usuario == "Gerente") {
+                                                echo '<button type="button" class="btn-cancel btn-detener" 
+                                                        data-bs-toggle="modal" data-bs-target="#modalDetener"
+                                                        data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                        title="Detener/cancelar el maquinado de sellos">
+                                                        <i class="bi bi-sign-stop"></i>
+                                                    </button>';
+                                            }
                                         } elseif ($tipo_usuario === "Inventarios") {
                                             echo '<button class="btn-thunder btn-entregar-barras" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTableControlAlmacenEntrega"
                                                     data-es_extra = "1"
-                                                    data-estatus = "En producción""  
+                                                    data-estatus = "En producción" 
                                                     data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-maquina="' . htmlspecialchars($row['maquina'] ?? '') . '"
                                                     title="Agregar/remplazar barras de control de almacen">
                                                     <i class="bi bi-database-add"></i>
                                                 </button>';
-                                            // echo '<button class="btn-thunder btn-control-almacen" 
-                                            //         data-bs-toggle="modal" data-bs-target="#modalControlAlmacenInventario"
-                                            //         data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            //         data-es_extra = "1"
-                                            //         data-estatus = "En producción"                                                   
-                                            //         title="Agregar clave extra al control de almacen">
-                                            //         <i class="bi bi-database-add"></i>
-                                            //     </button>';
+ 
                                         }else {
                                             // solo mensaje via estatusString
                                         }
@@ -318,6 +327,29 @@ if (!isset($_SESSION['id'])) {
                                                 </button>';
                                         }
                                         break;
+                                    case "Detenida":
+                                        $estatusString = "Detenida";
+                                        $estatusClass = "span-status-red";
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == $row['maquina']) {
+                                            echo '<button type="button" class="btn-terracota btn-finalizar" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalFinalizar"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    data-estatus = "Detenida"
+                                                    title="Registrar avances de maquinado">
+                                                    <i class="bi bi-list-check"></i>
+                                                </button>';
+                                                if(!empty($row['fecha_retorno_barras'])){
+
+                                                }else{}
+                                        } elseif ($tipo_usuario === "Inventarios") {
+                                            echo '<button class="btn-general btn-bar-entry btn-claves-retorno" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalRetorno"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Retornar barras al inventario con nuevo stock">
+                                                    <i class="bi bi-database-fill-down"></i>
+                                                </button>';
+                                        }
+                                        break;
 
                                     default:
                                         // no mostrar nada
@@ -331,7 +363,7 @@ if (!isset($_SESSION['id'])) {
                         <td><?= htmlspecialchars($row['folio']??""); ?></td>
                         <td>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="span-status"><?= htmlspecialchars($estatusString ?? '') ?></span>
+                                <span class="<?= htmlspecialchars($estatusClass ?? '') ?>"><?= htmlspecialchars($estatusString ?? '') ?></span>
                                 <button class="btn btn-sm btn-outline-success btn-estatus" 
                                         data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']??""); ?>" 
                                         title="Ver historial de estatus">
@@ -404,6 +436,7 @@ if (!isset($_SESSION['id'])) {
                                     <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>Producción (en procesos de maquinado)</option>
                                     <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada (maquinado finalizado)</option>
                                     <option value="completada" <?= ($preferencias['estatus'] == 'completada') ? 'selected' : '' ?>>Completada (barras retornadas)</option>
+                                    <option value="detenida" <?= ($preferencias['estatus'] == 'detenida') ? 'selected' : '' ?>>Detenida (producción cancelada)</option>
                                 </select>
                             </div>
                         </div>
@@ -793,8 +826,8 @@ if (!isset($_SESSION['id'])) {
                         <button id="saveChangesFinalizar" type="button" class="btn-general">
                             <i class="bi bi-floppy"></i> Guardar progreso
                         </button>
-                        <!-- <small class="text-muted d-block mt-1">Se guarda automáticamente cada 30 seg</small> -->
                     </div>
+                    <small id="smallText" class="text-muted d-none mt-1">Las barras ya fueron retornadas, no es posible editar resultados de maquinado</small>
 
                     <button id="finalizarRequisicion" type="button" class="btn-general btn-success">
                         <i class="bi bi-check-circle"></i> Finalizar maquinado
@@ -916,7 +949,40 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
-
+<!-- ////////////////////////// DETENER LA PRODUCCION DE LA REQUISICION /////////////////////// -->
+<div class="modal fade" id="modalDetener" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">¿Desea continuar?</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Esta acción cambiará el estatus de la requisición a producción detenida, no sera posible finalizar el maquinado pero si registrar avances y retornar barras.</p>
+                <!-- Sección de justificar la cancelacion del maquinado -->
+                <div class="my-3">
+                    <hr>
+                    <div class="">
+                        <label for="inputRazonDetener" class="lbl-general">Razón *</label>
+                        <select id="inputRazonDetener" class="selector" required >
+                            <option value="" selected disabled>Seleccione una opción</option>
+                            <option value="cliente_cancelo">Cliente canceló maquinado</option>
+                            <option value="error_vendedor">Error humano de vendedor</option>
+                            <option value="otro">Otro</option>
+                        </select>
+                    </div>
+                    <h6>Justificación *</h6>
+                    <textarea id="justificacionDetener" class="form-control" rows="3" placeholder="Ingrese justificación de cancelacion..." required></textarea>
+                </div>
+                <div>
+                    <input id="inputRequisicionDetener" type="hidden" name="id_requisicion" >
+                    <button id="btnConfirmarDetener" type="button" class="btn-general">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
 <?php include("../includes/modal_estatus_requisicion.php"); ?>
 <script>
 // JavaScript para mostrar filtros activos
@@ -986,6 +1052,10 @@ function limpiarTodosFiltros() {
 
 // Mostrar filtros activos al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
+    // 1. Manejo del Overlay (jQuery)
+    if (typeof $ !== 'undefined') {
+        $("#overlay").addClass("d-none");
+    }
     mostrarFiltrosActivos();
     
     // Actualizar filtros activos cuando cambien los campos

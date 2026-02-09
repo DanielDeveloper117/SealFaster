@@ -530,6 +530,24 @@
     color: var(--span-status);
     font-weight: bold;
 }
+.span-status-yellow{
+    width: 100%;
+    text-align: center;
+    /* padding: 12px; */
+    border: none;
+    border-radius: 5px;
+    color: #ffc107;
+    font-weight: bold;
+}
+.span-status-red{
+    width: 100%;
+    text-align: center;
+    /* padding: 12px; */
+    border: none;
+    border-radius: 5px;
+    color: #ff1100;
+    font-weight: bold;
+}
 .horizontal-divider{
     width:100%;
     height: 2px;

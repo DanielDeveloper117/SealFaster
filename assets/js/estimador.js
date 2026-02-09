@@ -14,7 +14,10 @@ $(document).ready(function() {
 
     window.DI_TOLERANCIA_DEFAULT = 4.00;
     window.DE_TOLERANCIA_DEFAULT = 4.00;
-
+    if(window.perfilSello.includes("R13")){
+        window.DI_TOLERANCIA_DEFAULT = 2.00;
+        window.DE_TOLERANCIA_DEFAULT = 2.00; 
+    }
     window.multiploResorte = 1.00;
     window.billetsSeleccionados = [];
 
@@ -48,13 +51,21 @@ $(document).ready(function() {
     window.porcentajeDI_m3 = 1.00;
     window.porcentajeDI_m4 = 1.00;
     window.porcentajeDI_m5 = 1.00;
-
+    
     window.porcentajeDE_m1 = 1.00;
     window.porcentajeDE_m2 = 1.00;
     window.porcentajeDE_m3 = 1.00;
     window.porcentajeDE_m4 = 1.00;
     window.porcentajeDE_m5 = 1.00;
-
+    
+    if(window.perfilSello.includes("K08-DS") || window.perfilSello.includes("K08-ES")){
+        window.porcentajeDI_m1 = 0.50;
+        window.porcentajeDE_m2 = 0.50;
+    }
+    if(window.perfilSello.includes("S09-DS") || window.perfilSello.includes("S09-ES")){
+        window.porcentajeDI_m1 = 0.50;
+        window.porcentajeDE_m2 = 0.50;
+    }
     window.CLIENTE_SELECCIONADO = false;
     window.TIPO_INVENTARIO = false;
     window.DUREZA_SELECCIONADA = false;

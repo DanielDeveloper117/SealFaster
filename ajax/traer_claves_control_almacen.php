@@ -18,6 +18,15 @@ try {
         throw new Exception("No se encontró requisición con id: $id_requisicion.");
     }
     try {
+        // 1. Obtener la fecha de retorno de la tabla requisiciones
+        $sqlReq = "SELECT observaciones_inv, fecha_retorno_barras FROM requisiciones WHERE id_requisicion = :id LIMIT 1";
+        $stmtReq = $conn->prepare($sqlReq);
+        $stmtReq->execute([':id' => $id_requisicion]);
+        $resReq = $stmtReq->fetch(PDO::FETCH_ASSOC);
+        $fechaRetorno = $resReq['fecha_retorno_barras'] ?? null;
+        $observaciones_inv = $resReq['observaciones_inv'] ?? null;
+
+        // 2. Tu consulta de claves existente
         $sqlClaves = "SELECT * FROM control_almacen 
                     WHERE id_requisicion = :id_requisicion 
                     AND clave IS NOT NULL 
@@ -31,22 +40,12 @@ try {
             throw new Exception("No se encontró requisición con id: $id_requisicion.");
         }
 
-        // Validar si al menos un registro tiene clave
-        $tieneClave = false;
-        foreach ($allClaves as $claveRow) {
-            if (!empty($claveRow['clave'])) {
-                $tieneClave = true;
-                break;
-            }
-        }
-
-        if (!$tieneClave) {
-            throw new Exception("La requisición $id_requisicion no tiene claves asociadas.");
-        }
-
+        // Enviamos la fecha de retorno en la raíz de la respuesta JSON
         echo json_encode([
             'success' => true,
-            'data' => $allClaves
+            'data' => $allClaves,
+            'fecha_retorno_barras' => $fechaRetorno,
+            'observaciones_inv' => $observaciones_inv
         ]);
 
     } catch (PDOException $e) {

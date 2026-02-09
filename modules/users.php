@@ -492,6 +492,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="Sucursal Queretaro">Sucursal Queretaro</option>
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>
                                 <option value="Sucursal Toluca">Sucursal Toluca</option>
+                                <option value="Sucursal Veracruz">Sucursal Veracruz</option>
                                 <option value="Ingenieria">Ingenieria</option>`);
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
                                 <option value="Gerente">Gerente</option>
@@ -524,6 +525,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if(inputArea == "Ingenieria"){
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
                                 <option value="Ingenieria">Ingenieria</option>`);
+            }else{
+                //$("#inputTipo").trigger("change");
             }
         });
         // FIN SELECTORES DE USUARIO

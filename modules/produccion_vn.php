@@ -24,17 +24,15 @@ if (!isset($_SESSION['id'])) {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>"> -->
-    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/modal-status.css'); ?>"> -->
+    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
 
     <?php 
           include(ROOT_PATH . 'includes/backend_info_user.php');
           include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
           ?>
 
-    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
 
     <title>Requisiciones</title>
 </head>
@@ -52,7 +50,6 @@ if (!isset($_SESSION['id'])) {
     .chosen-container-single .chosen-results li {
         font-size: 15px;
     }
-
 </style>
 <div id="overlay">
     <div class="loading-message">
@@ -107,7 +104,7 @@ if (!isset($_SESSION['id'])) {
                         <td class="td-first-actions">
                             <div class="d-flex gap-2 container-actions">
                                 <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                                    <input type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
+                                    <input id="hiddenIdRequisicionPDF" type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
                                     <button type="submit" class="btn-pdf"
                                         title="Generar PDF de esta requisición">
                                         <i class="bi bi-filetype-pdf"></i>
@@ -116,7 +113,8 @@ if (!isset($_SESSION['id'])) {
 
                                 <?php
                                 $esMia = "0";
-
+                                $estatusString = "";
+                                $estatusClass = "span-status";
                                 if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
                                     $esMia = "1";
                                     echo '<button class="btn-thunder edit-btn"
@@ -140,7 +138,7 @@ if (!isset($_SESSION['id'])) {
                                     //     </button>';                                    
                                 }
 
-                                $estatusString = "";
+                                
                                 echo '<div class="comentarios-wrapper">';
                                     echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
                                                 data-origen="requi"
@@ -160,6 +158,7 @@ if (!isset($_SESSION['id'])) {
                                 switch ($row['estatus']) {
                                     case "Pendiente":
                                         $estatusString = "Pendiente";
+                                        $estatusClass = "span-status-yellow";
                                         if ($tipo_usuario === "Vendedor" && $rol_usuario === "Gerente") {
                                             echo '<button type="button" class="btn-auth btn-gerente-autoriza" 
                                                     data-bs-toggle="modal" data-bs-target="#modalGerenteAutoriza"
@@ -252,6 +251,19 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Completada";
 
                                         break;
+                                    case "Detenida":
+                                        $estatusString = "Detenida";
+                                        $estatusClass = "span-status-red";
+                                        if ($tipo_usuario === "CNC" && $rol_usuario == $row['maquina']) {
+                                            echo '<button type="button" class="btn-terracota btn-finalizar" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalFinalizar"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="Finalizar maquinado">
+                                                    <i class="bi bi-flag"></i>
+                                                </button>';
+                                        } elseif ($tipo_usuario === "Inventarios") {
+                                        }
+                                        break;
                                     default:
                                         // Nada que mostrar
                                         break;
@@ -263,7 +275,7 @@ if (!isset($_SESSION['id'])) {
                         <td><?= htmlspecialchars($row['folio']??""); ?></td>
                         <td>
                             <div class="d-flex align-items-center gap-1">
-                                <span class="span-status"><?= htmlspecialchars($estatusString ?? '') ?></span>
+                                <span class="<?= htmlspecialchars($estatusClass ?? '') ?>"><?= htmlspecialchars($estatusString ?? '') ?></span>
                                 <button class="btn btn-sm btn-outline-success btn-estatus" 
                                         data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']??""); ?>" 
                                         title="Ver historial de estatus">
@@ -335,6 +347,7 @@ if (!isset($_SESSION['id'])) {
                                     <option value="autorizada" <?= ($preferencias['estatus'] == 'autorizada') ? 'selected' : '' ?>>Autorizada</option>
                                     <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>En producción</option>
                                     <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada</option>
+                                    <option value="detenida" <?= ($preferencias['estatus'] == 'detenida') ? 'selected' : '' ?>>Detenida (producción cancelada)</option>
                                 </select>
                             </div>
                         </div>
@@ -374,7 +387,8 @@ if (!isset($_SESSION['id'])) {
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio" name="default" id="radioDefault0" value="0" 
                                             <?= ($preferencias['default'] == '0') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioDefault0">
+                                        <label class="form-check-label" for="
+                                        ">
                                             Todas
                                         </label>
                                     </div>
@@ -445,16 +459,12 @@ if (!isset($_SESSION['id'])) {
                     <input type="hidden" id="inputAction" name="action">
                     <input type="hidden" id="inputIdRequisicion" name="id_requisicion" >
                     <input type="hidden" id="inputId" value="<?= $_SESSION['id'] ?>" name="id_vendedor" >
-                    <input type="hidden" value="Pendiente" name="estatus">
+                    <input type="hidden" id="estatusPendiente" value="Pendiente" name="estatus">
                     <input id="inputCotizaciones" type="hidden" name="cotizaciones">
                     <input id="inputFecha" type="hidden" name="fechahora" required readonly tabindex="-1">
                     <input id="inputVendedor" type="hidden" name="nombre_vendedor" value="<?= $nombreUser ?>" readonly tabindex="-1">
 
                     <div class="d-flex justify-content-between ">
-                        <!-- <div style="width:48%;">
-                            <label for="inputVendedor" class="lbl-general">Vendedor *</label>
-                            <input id="inputVendedor" type="text" class="input-disabled" name="nombre_vendedor" value="<?= $nombreUser ?>" required readonly tabindex="-1">
-                        </div> -->
                         <div style="width:48%;">
                             <label for="inputSucursal" class="lbl-general">Sucursal *</label>
                             <select id="inputSucursal" class="selector" name="sucursal" required >
@@ -472,17 +482,7 @@ if (!isset($_SESSION['id'])) {
                             <input id="inputCliente" type="text" class="input-text" name="cliente" required>
                         </div>
                     </div>
-                    <!-- <div class="d-flex justify-content-between ">
-                        <div style="width:48%;">
-                            <label for="inputFecha" class="lbl-general">Fecha y hora *</label>
-                            <input id="inputFecha" type="text" class="input-disabled" name="fechahora" required readonly tabindex="-1">
-                        </div> 
-                    </div> -->
                     <div class="d-flex justify-content-between ">
-                        <!-- <div style="width:48%;">
-                            <label for="inputFolio" class="lbl-general">Folio *</label>
-                            <input id="inputFolio" type="text" class="input-text" name="folio" required>
-                        </div> -->
                         <div style="width:48%;">
                             <label for="inputPedido" class="lbl-general">Num. Pedido *</label>
                             <input id="inputPedido" type="text" class="input-text" name="num_pedido" required>
@@ -519,9 +519,14 @@ if (!isset($_SESSION['id'])) {
                             <small id="contadorComentario" style="display:block; text-align:right; font-size:12px; color:#555;">0 / 50 caracteres</small>
                         </div>
                     </div>
-                    <!-- <div class="d-flex justify-content-center mb-3">
-
-                    </div> -->
+                    <div class="d-flex justify-content-center mb-3">
+                        <div style="width:100%;">
+                            <div id="alertaAdjunto" class="mt-2 p-2" style="display:none; background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 5px; font-size: 16px; color: #856404;">
+                                <i class="bi bi-exclamation-triangle-fill"></i> 
+                                <strong>¿Vas a adjuntar algo?</strong> Parece que mencionas adjuntar algun archivo, recuerda subirlo después de crear la requisición haciendo clic en el icono <i class="bi bi-chat-left-text"></i>.
+                            </div>
+                        </div>
+                    </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div style="width:100%;">
                             <label for="buscadorCotizaciones" class="lbl-general">Agregar cotizaciones *</label>
@@ -676,7 +681,7 @@ if (!isset($_SESSION['id'])) {
             <div class="modal-header">
                 <span class="title-form d-flex gap-2 align-items-center"><span>Barras pendientes por autorizar. Folio de requisición: </span>                    
                     <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                        <input type="hidden" name="id_requisicion">
+                        <input id="hiddenIdRequisicionBarrasPendientes" type="hidden" name="id_requisicion">
                         <button type="submit" class="btn btn-link p-0 border-0 text-decoration-underline fs-5"></button>
                     </form>
                 </span>
@@ -760,85 +765,133 @@ if (!isset($_SESSION['id'])) {
 </div>
 <?php include("../includes/modal_estatus_requisicion.php"); ?>
 <script>
-// JavaScript para mostrar filtros activos
-function mostrarFiltrosActivos() {
-    const filtros = [];
-    const container = document.getElementById('filtrosActivosContainer');
-    const list = document.getElementById('filtrosActivosList');
-    
-    // Estatus
-    const estatusSelect = document.getElementById('estatus');
-    if (estatusSelect.value) {
-        const text = estatusSelect.options[estatusSelect.selectedIndex].text;
-        filtros.push(`<span class="filtro-tag">Estatus: ${text}</span>`);
-    }
-    
-    // Fechas
-    const fechaInicio = document.getElementById('fecha_inicio').value;
-    const fechaFin = document.getElementById('fecha_fin').value;
-    if (fechaInicio && fechaFin) {
-        filtros.push(`<span class="filtro-tag">Fecha: ${fechaInicio} a ${fechaFin}</span>`);
-    } else if (fechaInicio) {
-        filtros.push(`<span class="filtro-tag">Desde: ${fechaInicio}</span>`);
-    } else if (fechaFin) {
-        filtros.push(`<span class="filtro-tag">Hasta: ${fechaFin}</span>`);
-    }
-    
-    // Default
-    const defaultRadios = document.querySelectorAll('input[name="default"]:checked');
-    if (defaultRadios.length > 0 && defaultRadios[0].value !== '1') {
-        const labels = {
-            '0': 'Todas',
-            '2': 'Esta semana',
-            '3': 'Este mes'
-        };
-        if (labels[defaultRadios[0].value]) {
-            filtros.push(`<span class="filtro-tag">${labels[defaultRadios[0].value]}</span>`);
+    // JavaScript para mostrar filtros activos
+    function mostrarFiltrosActivos() {
+        const filtros = [];
+        const container = document.getElementById('filtrosActivosContainer');
+        const list = document.getElementById('filtrosActivosList');
+        
+        // Estatus
+        const estatusSelect = document.getElementById('estatus');
+        if (estatusSelect.value) {
+            const text = estatusSelect.options[estatusSelect.selectedIndex].text;
+            filtros.push(`<span class="filtro-tag">Estatus: ${text}</span>`);
+        }
+        
+        // Fechas
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        const fechaFin = document.getElementById('fecha_fin').value;
+        if (fechaInicio && fechaFin) {
+            filtros.push(`<span class="filtro-tag">Fecha: ${fechaInicio} a ${fechaFin}</span>`);
+        } else if (fechaInicio) {
+            filtros.push(`<span class="filtro-tag">Desde: ${fechaInicio}</span>`);
+        } else if (fechaFin) {
+            filtros.push(`<span class="filtro-tag">Hasta: ${fechaFin}</span>`);
+        }
+        
+        // Default
+        const defaultRadios = document.querySelectorAll('input[name="default"]:checked');
+        if (defaultRadios.length > 0 && defaultRadios[0].value !== '1') {
+            const labels = {
+                '0': 'Todas',
+                '2': 'Esta semana',
+                '3': 'Este mes'
+            };
+            if (labels[defaultRadios[0].value]) {
+                filtros.push(`<span class="filtro-tag">${labels[defaultRadios[0].value]}</span>`);
+            }
+        }
+        
+        // Orden
+        const ordenSelect = document.getElementById('orden');
+        if (ordenSelect.value === 'asc') {
+            filtros.push(`<span class="filtro-tag">Orden: Ascendente</span>`);
+        }
+        
+        // Mostrar u ocultar contenedor
+        if (filtros.length > 0) {
+            list.innerHTML = filtros.join('');
+            container.style.display = 'block';
+        } else {
+            container.style.display = 'none';
         }
     }
-    
-    // Orden
-    const ordenSelect = document.getElementById('orden');
-    if (ordenSelect.value === 'asc') {
-        filtros.push(`<span class="filtro-tag">Orden: Ascendente</span>`);
-    }
-    
-    // Mostrar u ocultar contenedor
-    if (filtros.length > 0) {
-        list.innerHTML = filtros.join('');
-        container.style.display = 'block';
-    } else {
-        container.style.display = 'none';
-    }
-}
 
-// Función para limpiar filtros
-function limpiarTodosFiltros() {
-    document.getElementById('formFiltros').reset();
-    document.getElementById('estatus').value = '';
-    document.getElementById('fecha_inicio').value = '';
-    document.getElementById('fecha_fin').value = '';
-    document.querySelector('input[name="default"][value="2"]').checked = true;
-    document.getElementById('orden').value = 'des';
-    
-    // Actualizar vista de filtros activos
-    mostrarFiltrosActivos();
-}
+    // Función para limpiar filtros
+    function limpiarTodosFiltros() {
+        document.getElementById('formFiltros').reset();
+        document.getElementById('estatus').value = '';
+        document.getElementById('fecha_inicio').value = '';
+        document.getElementById('fecha_fin').value = '';
+        document.querySelector('input[name="default"][value="2"]').checked = true;
+        document.getElementById('orden').value = 'des';
+        
+        // Actualizar vista de filtros activos
+        mostrarFiltrosActivos();
+    }
 
-// Mostrar filtros activos al cargar la página
-document.addEventListener('DOMContentLoaded', function() {
-    $("#overlay").addClass("d-none");
-    mostrarFiltrosActivos();
-    
-    // Actualizar filtros activos cuando cambien los campos
-    document.getElementById('estatus').addEventListener('change', mostrarFiltrosActivos);
-    document.getElementById('fecha_inicio').addEventListener('change', mostrarFiltrosActivos);
-    document.getElementById('fecha_fin').addEventListener('change', mostrarFiltrosActivos);
-    document.querySelectorAll('input[name="default"]').forEach(radio => {
-        radio.addEventListener('change', mostrarFiltrosActivos);
+    // Mostrar filtros activos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Manejo del Overlay (jQuery)
+        if (typeof $ !== 'undefined') {
+            $("#overlay").addClass("d-none");
+        }
+        
+        // 2. Lógica de Filtros (Solo si existen en el DOM)
+        const estatusElem = document.getElementById('estatus');
+        if (estatusElem) {
+            mostrarFiltrosActivos();
+            // Agregar listeners solo si los elementos existen
+            estatusElem.addEventListener('change', mostrarFiltrosActivos);
+            document.getElementById('fecha_inicio')?.addEventListener('change', mostrarFiltrosActivos);
+            document.getElementById('fecha_fin')?.addEventListener('change', mostrarFiltrosActivos);
+            document.querySelectorAll('input[name="default"]').forEach(radio => {
+                radio.addEventListener('change', mostrarFiltrosActivos);
+            });
+            document.getElementById('orden')?.addEventListener('change', mostrarFiltrosActivos);
+        }
+
+        // 3. Lógica del Contador y Alerta (Aseguramos que existan)
+        const inputComentario = document.getElementById('inputComentario');
+        const contador = document.getElementById('contadorComentario');
+        const alertaAdjunto = document.getElementById('alertaAdjunto');
+
+        if (inputComentario && contador) {
+            const keywords = [/adjunto/i, /imagen/i, /dibujo/i, /plano/i, /foto/i, /archivo/i];
+
+            inputComentario.addEventListener('input', function() {
+                const valor = this.value;
+                contador.textContent = `${valor.length} / 50 caracteres`;
+
+                const tieneKeyword = keywords.some(regex => regex.test(valor));
+                if (alertaAdjunto) {
+                    alertaAdjunto.style.display = tieneKeyword ? 'block' : 'none';
+                }
+            });
+        }
+
+        // 4. SweetAlert (Solo si no se ha aceptado antes)
+        if (localStorage.getItem("recomendacionComentarios") != "3") {
+            Swal.fire({
+                title: 'Recomendación para maquinado óptimo',
+                html: 'Recuerda que si tienes comentarios o archivos/imágenes útiles para los operadores CNC, <strong>NO OLVIDES AGREGARLOS</strong> (disponible si el folio aún esta pendiente de autorizar). ' +
+                    'Haz clic en el botón "<i class="bi bi-chat-left-text" style="color: #55AD9B; font-weight: bold;"></i>" en las acciones del folio.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '600px',
+                position: 'bottom-end',
+                toast: true,
+                showConfirmButton: true,
+                //input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente',
+                inputAttributes: { id: 'recomendacionComentarios' }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    localStorage.setItem("recomendacionComentarios", "1");
+                }
+            });
+        }
     });
-    document.getElementById('orden').addEventListener('change', mostrarFiltrosActivos);
-});
 </script>
 </body>
 </html>

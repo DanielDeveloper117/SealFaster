@@ -64,3 +64,6 @@ tomemos en cuenta comparaciones viejas, sino mas bien mostrar toaster solo si ha
 cambio en las tablas. Ademas, si es posible usar alguna libreria o plugin para alertar al 
 usuario con un tipo de alerta del navegador, si la hay. El objetivo es que el usuario 
 este enterado de los nuevos cambios de estatus en la tabla y si es que hay nuevos registros.
+
+*Desarrollar un modal que aparezca cuando le des click a #modalDetener, tal modal sera muy 
+parecido al modal #modalDarSalida, en cuanto aspecto,

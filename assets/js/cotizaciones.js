@@ -73,7 +73,7 @@ $(document).ready(function() {
 
         if (!fechaInicioInput && !fechaFinInput) {
             // Solo mostrar default si no hay fechas específicas
-            const defaultVal = urlParams.get('default') || '0';
+            const defaultVal = urlParams.get('default') || '2';
             if (defaultVal === '1') filtrosActivos.push('Solo de hoy');
             if (defaultVal === '2') filtrosActivos.push('Esta semana');
             if (defaultVal === '3') filtrosActivos.push('Este mes');
@@ -160,9 +160,8 @@ $(document).ready(function() {
             containerUnicas.classList.add('d-none');
             // DATATABLE PARA COTIZACIONES FUSIONADAS
             $(`#cotizacionesTableFusionadas`).DataTable({
-                ordering: true,
-                order: [[9, 'desc']],
-                "orderable": true,
+                "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
+                "order": [],
                 "searching": true, // función de búsqueda activada
                 search: {
                     return: false
