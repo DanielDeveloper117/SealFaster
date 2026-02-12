@@ -116,9 +116,8 @@ $(document).ready(function() {
             containerFusionadas.classList.add('d-none');
             // DATATABLE PARA COTIZACIONES FUSIONADAS
             $(`#cotizacionesTable`).DataTable({
-                ordering: true,
-                order: [[8, 'desc']],
-                "orderable": true,
+                "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
+                "order": [],
                 "searching": true, // función de búsqueda activada
                 search: {
                     return: false
@@ -152,6 +151,10 @@ $(document).ready(function() {
                     var api = this.api();
                     setTimeout(function () {
                         api.columns.adjust().draw();
+                        if (typeof $ !== 'undefined') {
+                            console.log($);
+                            $("#overlay").addClass("d-none");
+                        }
                     }, 400);
                 }
             });
@@ -195,6 +198,10 @@ $(document).ready(function() {
                     var api = this.api();
                     setTimeout(function () {
                         api.columns.adjust().draw();
+                        if (typeof $ !== 'undefined') {
+                            console.log($);
+                            $("#overlay").addClass("d-none");
+                        }
                     }, 400);
                 }
             });

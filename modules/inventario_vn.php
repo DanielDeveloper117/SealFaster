@@ -44,13 +44,12 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Inventario CNC</title>
 </head>
 
-<body class="scroll-disablado">
+<body>
 <style>
     .buttons-excel{
         display: none !important;
@@ -184,13 +183,26 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Clave']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['Medida']); ?></td>
-                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>"><?php 
-                        if($row['stock']==0){
-                            echo("No disponible, sin stock");
-                        }elseif($row['estatus']=="Eliminado"){
-                            echo("Archivado <i class='bi bi-question-circle btn-ver-justificacion' data-jus='".$row["justificacion_archivado"]."'></i>");
-                        }else{echo($row['estatus']);
-                        } ?></td>
+                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>">
+                            <div class="d-flex align-items-center gap-1">
+                                <?php 
+                                    if($row['stock']==0){
+                                        echo("No disponible, sin stock");
+                                    }elseif($row['estatus']=="Eliminado"){
+                                        echo("Archivado");
+                                    }else{
+                                        echo($row['estatus']);
+                                    } 
+                                ?>
+                                <?php if ($row['estatus']=="En uso" || $row['estatus']=="Maquinado en curso"): ?>
+                                    <button class="btn btn-md btn-outline-success btn-localizacion" 
+                                            data-lote="<?= htmlspecialchars($row['lote_pedimento']??""); ?>" 
+                                            title="Localizar barra">
+                                        <i class="bi bi-search fw-bold "></i>
+                                    </button>
+                                <?php endif ?>
+                            </div>
+                        </td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['proveedor']); ?></td>
                         <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['material']); ?></td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['max_usable']); ?></td> -->
@@ -231,11 +243,10 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     </div>
 </section>
 
+<?php include(ROOT_PATH . 'includes/modal_localizar_barra.php'); ?>
+
 <script>
     $(document).ready(function(){
-        $("#overlay").addClass("d-none");
-        $("body").removeClass("scroll-disablado");
-
         $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
         $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
 

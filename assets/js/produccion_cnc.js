@@ -807,9 +807,11 @@ $(document).ready(function(){
                             $("#retornoFinalizado").hide(); // Quitar botón
                             $("#observacionesInventario").prop('readonly', true); // Observaciones solo lectura
                             $("#observacionesInventario").val(data.observaciones_inv);
+                            $("#spanTitleModalRetorno").text("Resultados de las barras");
                         } else {
                             $("#retornoFinalizado").show();
                             $("#observacionesInventario").prop('readonly', false);
+                            $("#spanTitleModalRetorno").text("Indique el nuevo stock en el campo MM de Retorno");
                         }
                         // Clase dinámica para inputs
                         // Si ya existe fecha de retorno, TODO es input-disabled

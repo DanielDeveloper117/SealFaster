@@ -33,7 +33,7 @@ try {
                       LIKE CONCAT('%,', ca.id_cotizacion, ',%')
             ) AS total_comentarios
         FROM requisiciones r
-        WHERE estatus != 'Pendiente'
+        WHERE estatus != 'Pendiente' AND estatus != 'Archivada' 
     ";
 
     // --------- VISIBILIDAD POR ROL ----------

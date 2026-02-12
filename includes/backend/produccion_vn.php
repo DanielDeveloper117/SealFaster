@@ -213,26 +213,6 @@
                 });</script>';
                 exit;
             }
-        }elseif ($action === 'delete') {
-            try {
-                $id_requisicion = $_POST['id_requisicion'];
-
-                $sqlDelete = "DELETE FROM requisiciones WHERE id_requisicion = :id_requisicion";
-                $stmtDelete = $conn->prepare($sqlDelete);
-                $stmtDelete->bindParam(':id_requisicion', $id_requisicion);
-                $stmtDelete->execute();
-
-                echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("success", "Requisición eliminada", "La requisición ha sido eliminada exitosamente.", "self");
-                });</script>';
-                exit;
-
-            } catch (Throwable $e) {
-                echo '<script>document.addEventListener("DOMContentLoaded", function () {
-                    sweetAlertResponse("error", "Error", "Ocurrió un error al eliminar la requisición' . addslashes($e->getMessage()) . '", "self");
-                });</script>';
-                exit;
-            }
         }elseif($action=="autorizada"){
             try{
                 $id_requisicion = $_POST['id_requisicion'];
@@ -533,11 +513,16 @@
                 case 'detenida':
                     $sqlRequisiciones .= " AND estatus = 'Detenida'";
                     break;
+                case 'archivada':
+                    $sqlRequisiciones .= " AND estatus = 'Archivada'";
+                    break;
                 default:
-                    $estatus = "";
+                    $estatus .= " AND estatus != 'Archivada'";
                     break;
 
             }
+        }else{
+            $sqlRequisiciones .= " AND estatus != 'Archivada'";
         }
 
         // Filtros de Fechas

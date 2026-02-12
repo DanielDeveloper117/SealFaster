@@ -22,7 +22,6 @@ if (!isset($_SESSION['id'])) {
     <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
 
 <?php
@@ -231,13 +230,17 @@ if (!isset($_SESSION['id'])) {
         if ($cot === 'u') {
             // ÚNICAS: fila más reciente por id_cotizacion
             $sqlCotizaciones = "
-                SELECT cm.*,
-                    (SELECT COUNT(ca.id) FROM comentarios_adjuntos ca WHERE ca.id_cotizacion = cm.id_cotizacion) AS total_comentarios
+                SELECT 
+                    cm.id_estimacion, cm.id_cotizacion, cm.familia_perfil, cm.perfil_sello, 
+                    cm.di_sello, cm.de_sello, cm.a_sello, cm.tipo_medida_di, 
+                    cm.tipo_medida_de, cm.tipo_medida_h, cm.tipo_cliente, cm.fecha, 
+                    cm.hora, cm.fecha_vencimiento, cm.archivada, cm.id_usuario,
+                    COUNT(ca.id) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
-                    SELECT id_cotizacion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                    FROM cotizacion_materiales
-                    WHERE id_fusion IS NULL
+                SELECT id_cotizacion, MAX(id_estimacion) as max_id
+                FROM cotizacion_materiales
+                WHERE id_fusion IS NULL
             ";
 
             if (!$isAdmin) {
@@ -287,22 +290,22 @@ if (!isset($_SESSION['id'])) {
             }
 
             $sqlCotizaciones .= "
-                    GROUP BY id_cotizacion
-                ) t ON cm.id_cotizacion = t.id_cotizacion AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                GROUP BY cm.id_cotizacion
-                ORDER BY t.ultima DESC
+                GROUP BY id_cotizacion
+                    ) t ON cm.id_estimacion = t.max_id
+                LEFT JOIN comentarios_adjuntos ca ON cm.id_cotizacion = ca.id_cotizacion
+                GROUP BY cm.id_estimacion
+                ORDER BY cm.id_estimacion DESC
             ";
 
         } else {
             // FUSIONADAS: fila más reciente por id_fusion
             $sqlCotizaciones = "
-                SELECT cm.*,
-                    (SELECT COUNT(ca.id) FROM comentarios_adjuntos ca WHERE ca.id_cotizacion = cm.id_cotizacion) AS total_comentarios
+                SELECT cm.*, COUNT(ca.id) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
-                    SELECT id_fusion, MAX(CONCAT(fecha, ' ', hora)) AS ultima
-                    FROM cotizacion_materiales
-                    WHERE id_fusion IS NOT NULL
+                SELECT id_fusion, MAX(id_estimacion) as max_id
+                FROM cotizacion_materiales
+                WHERE id_fusion IS NOT NULL
             ";
 
             if (!$isAdmin) {
@@ -343,10 +346,11 @@ if (!isset($_SESSION['id'])) {
             }
 
             $sqlCotizaciones .= "
-                    GROUP BY id_fusion
-                ) t ON cm.id_fusion = t.id_fusion AND CONCAT(cm.fecha, ' ', cm.hora) = t.ultima
-                GROUP BY cm.id_fusion
-                ORDER BY t.ultima DESC
+                GROUP BY id_fusion
+                    ) t ON cm.id_estimacion = t.max_id
+                LEFT JOIN comentarios_adjuntos ca ON cm.id_cotizacion = ca.id_cotizacion
+                GROUP BY cm.id_estimacion
+                ORDER BY cm.id_estimacion DESC
             ";
         }
 
@@ -367,7 +371,8 @@ if (!isset($_SESSION['id'])) {
         error_log("Error in " . __FILE__ . ": " . $e->getMessage());
         
         // Feedback for the user
-        echo "<script>alert('Ocurrió un error al cargar los datos. Por favor, intente de nuevo.');</script>";
+       // echo "<script>alert('Ocurrió un error al cargar los datos. Por favor, intente de nuevo.');</script>";
+        echo $e->getMessage();
     }
 ?>
 
@@ -555,7 +560,7 @@ if (!isset($_SESSION['id'])) {
                                             $totalComentarios = $row['total_comentarios'] ?? 0;
 
                                             echo '<div class="comentarios-wrapper">
-                                                <button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+                                                    <button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
                                                         data-origen="coti"
                                                         data-es-mia="' . $esMia . '"
                                                         data-id_cotizacion="' . htmlspecialchars($row['id_cotizacion']) . '"
@@ -1164,7 +1169,7 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
    <script>
         document.addEventListener('DOMContentLoaded', function() {
-            $("#overlay").addClass("d-none");
+            //$("#overlay").addClass("d-none");
             // Verificar si ya existe la preferencia en localStorage
             /*
             if (!localStorage.getItem("ocultarInfoVigencias")) {

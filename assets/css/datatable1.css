@@ -548,6 +548,15 @@
     color: #ff1100;
     font-weight: bold;
 }
+.span-status-gray{
+    width: 100%;
+    text-align: center;
+    /* padding: 12px; */
+    border: none;
+    border-radius: 5px;
+    color: #607d8b;
+    font-weight: bold;
+}
 .horizontal-divider{
     width:100%;
     height: 2px;

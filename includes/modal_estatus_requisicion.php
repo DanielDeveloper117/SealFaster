@@ -88,6 +88,11 @@
                                     <td>La producción se ha detenido/cancelado. <br><strong>Justificación:</strong> <span class="dato-extra"></span></td>
                                     <td class="dato-fecha"></td>
                                 </tr>
+                                <tr id="trArchivada" class="fila-estatus d-none">
+                                    <td><span class="span-status-gray">Archivada</span></td>
+                                    <td>Folio archivado. <br><strong>Justificación:</strong> <span class="dato-extra"></span></td>
+                                    <td class="dato-fecha"></td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -133,8 +138,9 @@ function cargarEstatusRequisicion(idRequisicion) {
                     { id: "#trProduccion", fecha: d.inicio_maquinado },
                     { id: "#trMaquinado",  fecha: d.fecha_entrega_barras },
                     { id: "#trFinalizada", fecha: d.fin_maquinado },
-                    { id: "#trCompletada", fecha: d.fin_maquinado },
-                    { id: "#trDetenida",   fecha: d.fecha_detencion,    extra: d.justificacion_detencion }
+                    { id: "#trCompletada", fecha: d.fecha_retorno_barras },
+                    { id: "#trDetenida",   fecha: d.fecha_detencion, extra: d.justificacion_detencion },
+                    { id: "#trArchivada",   fecha: d.fecha_archivada, extra: d.justificacion_archivada }
                 ];
 
                 // Iteramos el esquema para aplicar los cambios al DOM

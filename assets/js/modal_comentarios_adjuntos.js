@@ -98,7 +98,7 @@ $(document).ready(function() {
     });
 
     // Versión mejorada del contador con cambios visuales en el textarea
-    $('#inputComentario').on('input', function() {
+    $('#inputComentarioAdjunto').on('input', function() {
         const $this = $(this);
         const longitud = $this.val().length;
         const maximo = 98;
@@ -255,7 +255,7 @@ function mostrarFormularioNuevo() {
     
     $('#formularioNuevo').removeClass('d-none');
     $('#botonAgregarInicial').addClass('d-none');
-    $('#inputComentario').focus();
+    $('#inputComentarioAdjunto').focus();
 
     // Resetear contador
     $('#contadorCaracteres').text('0/98').removeClass('text-warning text-danger');
@@ -330,7 +330,7 @@ function agregarComentarioAdjunto() {
     }
     
     // Validaciones básicas
-    const comentario = $('#inputComentario').val().trim();
+    const comentario = $('#inputComentarioAdjunto').val().trim();
     const archivo = $('#inputAdjunto')[0].files[0];
     
     if (!comentario) {
@@ -346,7 +346,7 @@ function agregarComentarioAdjunto() {
         // VALIDACIÓN DE LONGITUD MÁXIMA (98 caracteres)
     if (comentario.length > 98) {
         alert('El comentario no puede exceder los 98 caracteres. Actual: ' + comentario.length + ' caracteres');
-        $('#inputComentario').focus();
+        $('#inputComentarioAdjunto').focus();
         return;
     }
     $.ajax({

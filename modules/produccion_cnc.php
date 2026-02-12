@@ -113,6 +113,9 @@ if (!isset($_SESSION['id'])) {
                                 <?php
                                 $estatusString = "";
                                 $estatusClass = "span-status";
+                                $titleButton="";
+                                $iconButton="";
+                                $classBtnColor = "";
                                 echo '<div class="comentarios-wrapper">';
                                     echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
                                                 data-origen="requi"
@@ -166,7 +169,6 @@ if (!isset($_SESSION['id'])) {
                                             $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
                                             $claseBoton = "btn-thunder";
                                             $iconButton = "bi-database-add";
-                                            $titleButton = "";
                                            if(!empty($row['fecha_entrega_barras'])){
                                                 $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
                                                 $claseBoton = "btn-thunder";
@@ -197,7 +199,7 @@ if (!isset($_SESSION['id'])) {
                                             $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
                                             $claseBoton = "btn-thunder";
                                             $iconButton = "bi-database-add";
-                                            $titleButton = "";
+                                            
                                            if(!empty($row['fecha_entrega_barras'])){
                                                 $mostrarBtnEntregarBarras="NOMOSTRARBOTON";
                                                 $claseBoton = "btn-thunder";
@@ -293,13 +295,13 @@ if (!isset($_SESSION['id'])) {
                                                 </button>';
                                         }else if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
-                                                $colorBtn = "btn-general";
+                                                $classBtnColor = "btn-general";
                                                 $iconStatus = '<i class="bi bi-flag me-1"></i><i class="bi bi-clock"></i>';
                                             }else{
-                                                $colorBtn = "btn-auth";
+                                                $classBtnColor = "btn-auth";
                                                 $iconStatus = '<i class="bi bi-flag"></i><i class="bi bi-check2-all"></i>';
                                             }
-                                            echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
+                                            echo '<button type="button" class="'.$classBtnColor.' btn-tabla-maquinado-mermas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-rol = "'.$rol_usuario.'"
@@ -312,18 +314,32 @@ if (!isset($_SESSION['id'])) {
                                         $estatusString = "Completada";
                                         if ($tipo_usuario === "CNC") {
                                             if($row["fecha_revision_maquinado"] == Null){
-                                                $colorBtn = "btn-general";
+                                                $classBtnColor = "btn-general";
                                                 $iconStatus = '<i class="bi bi-flag me-1"></i><i class="bi bi-clock"></i>';
                                             }else{
-                                                $colorBtn = "btn-auth";
+                                                $classBtnColor = "btn-auth";
                                                 $iconStatus = '<i class="bi bi-flag"></i><i class="bi bi-check2-all"></i>';
                                             }
-                                            echo '<button type="button" class="'.$colorBtn.' btn-tabla-maquinado-mermas" 
+                                            echo '<button type="button" class="'.$classBtnColor.' btn-tabla-maquinado-mermas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalTablaMaquinadoMermas"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     data-rol = "'.$rol_usuario.'"
                                                     title="Ver registros de maquinado y merma">
                                                     '.$iconStatus.'
+                                                </button>';
+                                        }else{
+                                            $classBtnColor = "btn-general";
+                                            $iconStatus = '<i class="bi bi-flag me-1"></i>';
+                                            
+                                            $classBtnColor = "btn-general";
+                                            $titleButton = "Ver resultados de barras";
+                                            $iconButton = "database";
+                                            
+                                            echo '<button class="'.$classBtnColor.' btn-claves-retorno" 
+                                                    data-bs-toggle="modal" data-bs-target="#modalRetorno"
+                                                    data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                                    title="'.$titleButton.'">
+                                                    <i class="bi bi-'.$iconButton.'"></i>
                                                 </button>';
                                         }
                                         break;
@@ -340,13 +356,24 @@ if (!isset($_SESSION['id'])) {
                                                 </button>';
                                                 if(!empty($row['fecha_retorno_barras'])){
 
-                                                }else{}
+                                                }else{
+
+                                                }
                                         } elseif ($tipo_usuario === "Inventarios") {
-                                            echo '<button class="btn-general btn-bar-entry btn-claves-retorno" 
+                                            if(empty($row['fecha_retorno_barras'])){
+                                                $classBtnColor = "btn-bar-entry";
+                                                $titleButton = "Retornar barras al inventario con nuevo stock";
+                                                $iconButton = "database-fill-down";
+                                            }else{
+                                                $classBtnColor = "btn-archive";
+                                                $titleButton = "Ver resultados de barras";
+                                                $iconButton = "database";
+                                            }
+                                            echo '<button class="'.$classBtnColor.' btn-claves-retorno" 
                                                     data-bs-toggle="modal" data-bs-target="#modalRetorno"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                                    title="Retornar barras al inventario con nuevo stock">
-                                                    <i class="bi bi-database-fill-down"></i>
+                                                    title="'.$titleButton.'">
+                                                    <i class="bi bi-'.$iconButton.'"></i>
                                                 </button>';
                                         }
                                         break;
@@ -903,7 +930,7 @@ if (!isset($_SESSION['id'])) {
     <div class="modal-dialog" style="max-width: 85% !important;">
         <div class="modal-content">
             <div class="modal-header">
-                <span class="title-form">Indique el nuevo stock en el campo MM de Retorno</span>
+                <span id="spanTitleModalRetorno" class="title-form"></span>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1053,9 +1080,9 @@ function limpiarTodosFiltros() {
 // Mostrar filtros activos al cargar la página
 document.addEventListener('DOMContentLoaded', function() {
     // 1. Manejo del Overlay (jQuery)
-    if (typeof $ !== 'undefined') {
-        $("#overlay").addClass("d-none");
-    }
+    // if (typeof $ !== 'undefined') {
+    //     $("#overlay").addClass("d-none");
+    // }
     mostrarFiltrosActivos();
     
     // Actualizar filtros activos cuando cambien los campos

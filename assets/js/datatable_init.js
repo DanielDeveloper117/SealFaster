@@ -53,6 +53,10 @@ $(document).ready(function(){
                 var api = this.api();
                 setTimeout(function () {
                     api.columns.adjust().draw();
+                    if (typeof $ !== 'undefined') {
+                        console.log($);
+                        $("#overlay").addClass("d-none");
+                    }
                 }, 400);
           
             }
@@ -94,6 +98,10 @@ $(document).ready(function(){
                 var api = this.api();
                 setTimeout(function () {
                     api.columns.adjust().draw();
+                    if (typeof $ !== 'undefined') {
+                        console.log($);
+                        $("#overlay").addClass("d-none");
+                    }
                 }, 400);
             }
         });

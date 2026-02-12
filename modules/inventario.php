@@ -50,7 +50,7 @@ if (!isset($_SESSION['id'])) {
     <title>Inventario CNC</title>
 
 </head>
-<body class="scroll-disablado">
+<body>
 <style>
     .buttons-excel{
         display: none !important;
@@ -334,13 +334,26 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <td class="td-clave" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['Clave']); ?></td>
                         <td class="td-lote" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['lote_pedimento']); ?></td>
                         <td class="td-medida" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['Medida']); ?></td>
-                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>"><?php 
-                        if($row['stock']==0){
-                            echo("No disponible, sin stock");
-                        }elseif($row['estatus']=="Eliminado"){
-                            echo("Archivado");
-                        }else{echo($row['estatus']);
-                        } ?></td>
+                        <td class="td-estatus fw-bold" style="<?php echo $usableStyle; ?>">
+                            <div class="d-flex align-items-center gap-1">
+                                <?php 
+                                    if($row['stock']==0){
+                                        echo("No disponible, sin stock");
+                                    }elseif($row['estatus']=="Eliminado"){
+                                        echo("Archivado");
+                                    }else{
+                                        echo($row['estatus']);
+                                    } 
+                                ?>
+                                <?php if ($row['estatus']=="En uso" || $row['estatus']=="Maquinado en curso"): ?>
+                                    <button class="btn btn-md btn-outline-success btn-localizacion" 
+                                            data-lote="<?= htmlspecialchars($row['lote_pedimento']??""); ?>" 
+                                            title="Localizar barra">
+                                        <i class="bi bi-search fw-bold "></i>
+                                    </button>
+                                <?php endif ?>
+                            </div>
+                        </td>
                         <td class="td-material" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['material']); ?></td>
                         <td class="td-proveedor" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['proveedor']); ?></td>
                         <td class="td-max_usable" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['max_usable']); ?></td>
@@ -470,12 +483,10 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 </div>
 <!-- ////////////////////////////////////////////////////////////////////////////////////////// -->
 <?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
+<?php include(ROOT_PATH . 'includes/modal_localizar_barra.php'); ?>
 
 <script>
     $(document).ready(function(){
-        $("#overlay").addClass("d-none");
-        $("body").removeClass("scroll-disablado");
-
         $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
         $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
 

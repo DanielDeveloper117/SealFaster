@@ -67,3 +67,61 @@ este enterado de los nuevos cambios de estatus en la tabla y si es que hay nuevo
 
 *Desarrollar un modal que aparezca cuando le des click a #modalDetener, tal modal sera muy 
 parecido al modal #modalDarSalida, en cuanto aspecto,
+
+-- Índice para encontrar la última versión al instante
+CREATE INDEX idx_performance_optim on cotizacion_materiales (id_fusion, id_cotizacion, id_estimacion);
+-- Índice para acelerar los filtros de fecha y usuario
+CREATE INDEX idx_filtros_rapidos on cotizacion_materiales (fecha, id_usuario, archivada);
+-- Índice para el conteo de comentarios
+CREATE INDEX idx_comentarios_count on comentarios_adjuntos (id_cotizacion);
+
+*Ahora vamos a desarrollar un modal que responda al boton "btn-localizacion", que sea 
+ reusable con su javascript/jquery y backend asincrono, tal modal 
+se pueda incluir en otros archivos, el cual mostrara la localizacion de la barra cuando esta 
+usandose en alguna requisicion, como podra darse cuenta, cada requisicion tiene cotizaciones y 
+las cotizaciones son las que nos dicen que barras/billets de material tiene usandose mediante 
+la columna "billets" (separados por comas) en la tabla "cotizacion_materiales". Manualmente 
+hay dos formas de consultar, una mas compleja que la segunda: 
+1. Forma 1. Al inicio se consulta en la base de datos con "select id_cotizacion, billets, 
+estatus_completado from 
+cotizacion_materiales  where billets like "%PSM056080-2%" and estatus_
+completado = "Autorizada";" para saber que cotizaciones tienen la barra. Tras la consulta 
+devuelve una serie de registros y de entre esos registros buscamos cada una para saber que 
+requisicion tiene esa cotizacion, entonces suponiendo que el resultado de la consulta 
+anterior es dos registros; id_cotizacion="56150725" y id_cotizacion="51791256", despues 
+se usa la consulta "select id_requisicion,cotizaciones,estatus from requisiciones 
+where (cotizaciones 
+like "%56150725%" or cotizaciones like "%51791256%") and estatus != "Pendiente";" y el 
+resultado es en que requisicion/folioe se encuentra la barra de material. Cuando se encuentra
+deberia mostrarse en un modal en que folio se encuentra y si es el caso de que se encuentre
+en x folios, tambien mostrarlo en el modal.
+2. Forma 2. Se consulta directamente la tabla de barras en produccion mediante 
+"select id_requisicion, lote_pedimento from control_almacen where lote_pedimento 
+like "%PSM056080-2%";", 
+pero el inconveniente aqui es que se encuentra solo si el folio esta en un estatus superior 
+a Pendiente o Autorizada, dado que al ser una tabla de produccion, el estatus del folio aun 
+no llega a algun estatus de produccion, asi que podria no haber registros. En el caso 
+de que la consulta anterior retorne resultados, ya se tiene el id_requisicion directamente 
+y al encontrarlo simplemente buscamos mediante "select * from requisiciones 
+where id_requisicion = "1423" and estatus != "Pendiente";".
+*Finalmente el modal debe mostrar la informacion basica de la requisicion para que el 
+usuario de inventarios pueda solicitar la cancelacion o la detencion del folio, le explico;
+-se muestra la informacion basica de la requisicon.
+-si el estatus es "Autorizada", mostrar en el modal algo como "este folio se encuentra 
+en estatus de autorizada, para liberar la barra pida a [requisiciones.autorizo] que cancele 
+el folio"
+-si el estatus es != "Autorizada" y != "Pendiente"!= "Detenida", mostrar en el modal algo como 
+"este folio se encuentra en estatus [requisiciones.estatus], para liberar la barra 
+pida a gerencia de CNC que detenga la produccion y luego retorne el nuevo stock de la barra para 
+liberarla".
+-si el estatus es cualquier otro ("Pendiente" o "Detenida", etc), entonces mostrar la opcion de 
+que el mismo usuario cambie el estatus de la barra de material a 
+inventario_cnc.estatus = "Disponible para cotizar" where inventario_cnc.lote_pedimento = lote_pedimento.
+*en el modal pues mostrar datos basicos del folio: id_requisicion, estatus, fecha_insercion, 
+nombre_vendedor, comentario. Si aplica mostrar autorizo (nombre de quien autorizó) y 
+fecha_autorizacion. Si aplica mostrar maquina, operador_cnc, inicio_maquinado y fecha_entrega_barras.
+*Si la barra no se encontro en ninguna requisicion, mostrar algo como "la barra no se encontró en 
+ningun folio. desea liberarla?", solamente mostrar la opcion de liberar la barra. 
+*si alguno de los campos de la requisicion esta vacio, solo mostrar "No disponible", por ejemplo 
+cuando aun no aplica alguna fecha.
+*NO CREAR ARCHIVOS DE REPORTE DE CAMBIOS.

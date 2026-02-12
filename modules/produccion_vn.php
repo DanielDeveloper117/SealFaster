@@ -53,7 +53,7 @@ if (!isset($_SESSION['id'])) {
 </style>
 <div id="overlay">
     <div class="loading-message">
-        <span>Cargando requisiciones, por favor, espere...</span>    
+        <span>Cargando datos, por favor, espere...</span>    
     </div>
 </div>
 <section class="section-table flex-column mt-2 mb-5 d-flex col-12 justify-content-center align-items-center">
@@ -117,20 +117,23 @@ if (!isset($_SESSION['id'])) {
                                 $estatusClass = "span-status";
                                 if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
                                     $esMia = "1";
-                                    echo '<button class="btn-thunder edit-btn"
+                                    // Definimos el icono y el titulo antes para limpiar el echo
+
+                                    echo '
+                                        <button class="btn-thunder edit-btn"
                                             data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
-                                            data-folio="' . htmlspecialchars($row['folio']) . '"
-                                            data-nombre_vendedor="' . htmlspecialchars($row['nombre_vendedor']) . '"
-                                            data-sucursal="' . htmlspecialchars($row['sucursal']) . '"
-                                            data-cliente="' . htmlspecialchars($row['cliente']) . '"
-                                            data-num_pedido="' . htmlspecialchars($row['num_pedido']) . '"
-                                            data-factura="' . htmlspecialchars($row['factura']) . '"
-                                            data-paqueteria="' . htmlspecialchars($row['paqueteria']) . '"
-                                            data-comentario="' . htmlspecialchars($row['comentario']) . '"
-                                            data-cotizaciones="' . htmlspecialchars($row['cotizaciones']) . '"
                                             title="Editar requisición">
                                             <i class="bi bi-pencil-square"></i>
-                                        </button>';
+                                        </button>
+
+                                        <button type="button" class="btn-archive btn-archivar-requisicion" 
+                                            data-bs-toggle="modal" data-bs-target="#modalArchivar"
+                                            data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+                                            title="Archivar/desactivar este folio">
+                                            <i class="bi bi-archive"></i>
+                                        </button>
+                                    ';
+                                        
                                 }else{
                                     // echo '<button class="btn-disabled2"
                                     //         title="No se puede editar esta requisición">
@@ -264,6 +267,11 @@ if (!isset($_SESSION['id'])) {
                                         } elseif ($tipo_usuario === "Inventarios") {
                                         }
                                         break;
+                                    case "Archivada":
+                                        $estatusString = "Archivada";
+                                        $estatusClass = "span-status-gray";
+
+                                        break;
                                     default:
                                         // Nada que mostrar
                                         break;
@@ -348,6 +356,7 @@ if (!isset($_SESSION['id'])) {
                                     <option value="produccion" <?= ($preferencias['estatus'] == 'produccion') ? 'selected' : '' ?>>En producción</option>
                                     <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada</option>
                                     <option value="detenida" <?= ($preferencias['estatus'] == 'detenida') ? 'selected' : '' ?>>Detenida (producción cancelada)</option>
+                                    <option value="archivada" <?= ($preferencias['estatus'] == 'archivada') ? 'selected' : '' ?>>Archivada</option>
                                 </select>
                             </div>
                         </div>
@@ -475,6 +484,7 @@ if (!isset($_SESSION['id'])) {
                                 <option value="Sucursal Queretaro">Sucursal Queretaro</option>
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>
                                 <option value="Sucursal Toluca">Sucursal Toluca</option>
+                                <option value="Sucursal Veracruz">Sucursal Veracruz</option>
                             </select>
                         </div>
                         <div style="width:48%;">
@@ -515,7 +525,7 @@ if (!isset($_SESSION['id'])) {
                         </div>
                         <div style="width:48%;">
                             <label for="inputComentario" class="lbl-general">Comentario (opcional)</label>
-                            <input id="inputComentario" type="text" maxlength="50" class="input-text" name="comentario">
+                            <input id="inputComentario" type="text" maxlength="50" class="input-text" name="comentario" placeholder="Solo comentarios generales...">
                             <small id="contadorComentario" style="display:block; text-align:right; font-size:12px; color:#555;">0 / 50 caracteres</small>
                         </div>
                     </div>
@@ -763,6 +773,30 @@ if (!isset($_SESSION['id'])) {
         </div>
     </div>
 </div>
+<!-- ////////////////////////// ARCHIVAR LA REQUISICION, ES IRREVERSIBLE /////////////////////// -->
+<div class="modal fade" id="modalArchivar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">¿Desea continuar?</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Esta acción cambiará el estatus de la requisición a "Archivada", esta acción es irreversible y el folio solo se mostrará filtrando por requisiciones archivadas.</p>
+                <div class="my-3">
+                    <hr>
+                    <h6>Justificación *</h6>
+                    <textarea id="justificacionArchivar" class="form-control" rows="3" placeholder="Ingrese justificación para archivar..." required></textarea>
+                </div>
+                <div>
+                    <input id="inputRequisicionArchivar" type="hidden" name="id_requisicion" >
+                    <button id="btnConfirmarArchivar" type="button" class="btn-general">Continuar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
 <?php include("../includes/modal_estatus_requisicion.php"); ?>
 <script>
     // JavaScript para mostrar filtros activos
@@ -833,9 +867,9 @@ if (!isset($_SESSION['id'])) {
     // Mostrar filtros activos al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
         // 1. Manejo del Overlay (jQuery)
-        if (typeof $ !== 'undefined') {
-            $("#overlay").addClass("d-none");
-        }
+        // if (typeof $ !== 'undefined') {
+        //     $("#overlay").addClass("d-none");
+        // }
         
         // 2. Lógica de Filtros (Solo si existen en el DOM)
         const estatusElem = document.getElementById('estatus');
@@ -864,14 +898,19 @@ if (!isset($_SESSION['id'])) {
                 contador.textContent = `${valor.length} / 50 caracteres`;
 
                 const tieneKeyword = keywords.some(regex => regex.test(valor));
-                if (alertaAdjunto) {
-                    alertaAdjunto.style.display = tieneKeyword ? 'block' : 'none';
+                if (tieneKeyword) {
+                    //alertaAdjunto.style.display = tieneKeyword ? 'block' : 'none';
+                    alertaAdjunto.style.display = 'block';
+                    setTimeout(() => {
+                        $("#inputComentario").val("");
+                        $("#inputComentario").attr("placeholder","Archivos adjuntos van por cotización individual..");
+                    }, 500);
                 }
             });
         }
 
         // 4. SweetAlert (Solo si no se ha aceptado antes)
-        if (localStorage.getItem("recomendacionComentarios") != "3") {
+        if (localStorage.getItem("recomendacionComentarios") != "1") {
             Swal.fire({
                 title: 'Recomendación para maquinado óptimo',
                 html: 'Recuerda que si tienes comentarios o archivos/imágenes útiles para los operadores CNC, <strong>NO OLVIDES AGREGARLOS</strong> (disponible si el folio aún esta pendiente de autorizar). ' +
@@ -882,7 +921,7 @@ if (!isset($_SESSION['id'])) {
                 position: 'bottom-end',
                 toast: true,
                 showConfirmButton: true,
-                //input: 'checkbox',
+                input: 'checkbox',
                 inputPlaceholder: 'No mostrar nuevamente',
                 inputAttributes: { id: 'recomendacionComentarios' }
             }).then((result) => {
