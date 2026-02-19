@@ -18,6 +18,10 @@ $(document).ready(function() {
         window.DI_TOLERANCIA_DEFAULT = 2.00;
         window.DE_TOLERANCIA_DEFAULT = 2.00; 
     }
+    if(window.perfilSello.includes("R12-F")){
+        window.DI_TOLERANCIA_DEFAULT = 1.00;
+        window.DE_TOLERANCIA_DEFAULT = 1.00; 
+    }
     window.multiploResorte = 1.00;
     window.billetsSeleccionados = [];
 
@@ -63,6 +67,10 @@ $(document).ready(function() {
         window.porcentajeDE_m2 = 0.50;
     }
     if(window.perfilSello.includes("S09-DS") || window.perfilSello.includes("S09-ES")){
+        window.porcentajeDI_m1 = 0.50;
+        window.porcentajeDE_m2 = 0.50;
+    }
+    if(window.perfilSello.includes("R10-F")){
         window.porcentajeDI_m1 = 0.50;
         window.porcentajeDE_m2 = 0.50;
     }

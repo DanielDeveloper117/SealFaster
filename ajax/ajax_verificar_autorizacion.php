@@ -1,7 +1,7 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
-header('Content-Type: text/html; charset=UTF-8');
+header('Content-Type: application/json; charset=UTF-8');
 
 if (!isset($_GET['id_requisicion'], $_GET['autoriza'])) {
     echo 'false';
@@ -26,17 +26,19 @@ try {
     $stmt->execute();
     $estatus = $stmt->fetchColumn();
 
+    $autorizado = false;
+
     if (($autoriza === 'gerente' || $autoriza === 'admin') && $estatus === 'Autorizada') {
-        echo 'true';
+        $autorizado = true;
     } elseif ($autoriza === 'admin' && $estatus === 'Producción') {
-        echo 'true';
+        $autorizado = true;
     } elseif ($autoriza === 'cnc' && $estatus === 'En producción') {
-        echo 'true';
-    } else {
-        echo 'false';
+        $autorizado = true;
     }
 
+    // Retorna un objeto JSON real
+    echo json_encode(['autorizado' => $autorizado]);
+
 } catch (Throwable $e) {
-    error_log("[QR VERIFICACIÓN ERROR] " . date('Y-m-d H:i:s') . " - " . $e->getMessage());
-    echo 'false';
+    echo json_encode(['autorizado' => false, 'error' => $e->getMessage()]);
 }

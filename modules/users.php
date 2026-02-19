@@ -487,6 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }if(inputTipo == "3"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
+                                <option value="Ventas Industriales">Ventas Industriales</option>
                                 <option value="Sucursal Industrias">Sucursal Industrias</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
                                 <option value="Sucursal Queretaro">Sucursal Queretaro</option>

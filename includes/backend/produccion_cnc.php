@@ -7,6 +7,7 @@ $arregloSelectRequisiciones = [];
 try {
     $preferencias = $_SESSION['filtros_requisiciones_cnc'] ?? [
         'estatus' => '',
+        'sucursal' => '',
         'fecha_inicio' => '',
         'fecha_fin' => '',
         'default' => 2,
@@ -15,6 +16,7 @@ try {
 
     // --------- LECTURA DE GET ----------
     $estatus = isset($_GET['estatus']) ? trim($_GET['estatus']) : $preferencias["estatus"];
+    $sucursal = isset($_GET['sucursal']) ? trim($_GET['sucursal']) : $preferencias["sucursal"];
     $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
     $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
     $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias['default'];
@@ -86,6 +88,10 @@ try {
         }
     }
 
+    if ($sucursal) {
+        $sqlRequisiciones .= " AND sucursal = :sucursal";
+        $params[':sucursal'] = $sucursal;
+    }
 
     // --------- FILTROS DE FECHA ----------
     if ($fecha_inicio && $fecha_fin) {
@@ -129,6 +135,7 @@ try {
     // --------- GUARDAR PREFERENCIAS ----------
     $_SESSION['filtros_requisiciones_cnc'] = [
         'estatus' => $estatus,
+        'sucursal' => $sucursal,
         'fecha_inicio' => $fecha_inicio,
         'fecha_fin' => $fecha_fin,
         'default' => $default,
@@ -144,6 +151,7 @@ try {
 // --------- PREFERENCIAS PARA UI ----------
 $preferencias = $_SESSION['filtros_requisiciones_cnc'] ?? [
     'estatus' => '',
+    'sucursal' => '',
     'fecha_inicio' => '',
     'fecha_fin' => '',
     'default' => 2,

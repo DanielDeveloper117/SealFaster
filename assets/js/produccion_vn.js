@@ -273,7 +273,7 @@ $(document).ready(function(){
                     autoriza: autoriza
                 },
                 success: function (respuesta) {
-                    if (respuesta === 'true') {
+                    if (respuesta.autorizado === true || respuesta.autorizado == 'true') {
                         cancelarVerificacionQR();
                         sweetAlertResponse("success", "Autorización confirmada", `La requisición ha sido autorizada correctamente.`, "self");
                     }

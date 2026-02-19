@@ -85,6 +85,7 @@ if (!isset($_SESSION['id'])) {
                         <th>Folio</th>
                         <th>Estatus</th>
                         <th>Máquina CNC</th>
+                        <th>Sucursal</th>
                         <th>Comentario</th>
                         <th>Vendedor</th>
                         <th>Cliente</th>
@@ -399,6 +400,7 @@ if (!isset($_SESSION['id'])) {
                             </div>
                         </td>
                         <td><?= htmlspecialchars($row['maquina']." - ".$row['operador_cnc']??""); ?></td>
+                        <td><?= htmlspecialchars($row['sucursal']??""); ?></td>
                         <td><?= htmlspecialchars($row['comentario']??""); ?></td>
                         <td><?= htmlspecialchars($row['nombre_vendedor']??""); ?></td>
                         <td><?= htmlspecialchars($row['cliente']??""); ?></td>
@@ -450,7 +452,7 @@ if (!isset($_SESSION['id'])) {
                 <form id="formFiltros" action="" method="GET">
                     <!-- Sección: Filtros por categoría -->
                     <div class="form-section mb-3">
-                        <h5>Filtros por estatus</h5>
+                        <h5>Filtros por estatus y sucursal</h5>
                         
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -464,6 +466,23 @@ if (!isset($_SESSION['id'])) {
                                     <option value="finalizada" <?= ($preferencias['estatus'] == 'finalizada') ? 'selected' : '' ?>>Finalizada (maquinado finalizado)</option>
                                     <option value="completada" <?= ($preferencias['estatus'] == 'completada') ? 'selected' : '' ?>>Completada (barras retornadas)</option>
                                     <option value="detenida" <?= ($preferencias['estatus'] == 'detenida') ? 'selected' : '' ?>>Detenida (producción cancelada)</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="filtroSucursal" class="lbl-general">
+                                    <i class="bi bi-houses"></i> Origen/Sucursal
+                                </label>
+                                <select id="filtroSucursal" class="selector" name="sucursal" >
+                                    <option value="">Todos los origenes</option>
+                                    <option value="Ventas Nacionales" <?= ($preferencias['sucursal'] == 'Ventas Nacionales') ? 'selected' : '' ?>>Ventas Nacionales</option>
+                                    <option value="Ventas Industriales" <?= ($preferencias['sucursal'] == 'Ventas Industriales') ? 'selected' : '' ?>>Ventas Industriales</option>
+                                    <option value="Sucursal Industrias" <?= ($preferencias['sucursal'] == 'Sucursal Industrias') ? 'selected' : '' ?>>Sucursal Industrias</option>
+                                    <option value="Sucursal Monterrey" <?= ($preferencias['sucursal'] == 'Sucursal Monterrey') ? 'selected' : '' ?>>Sucursal Monterrey</option>
+                                    <option value="Sucursal Queretaro" <?= ($preferencias['sucursal'] == 'Sucursal Queretaro') ? 'selected' : '' ?>>Sucursal Queretaro</option>
+                                    <option value="Sucursal Saltillo" <?= ($preferencias['sucursal'] == 'Sucursal Saltillo') ? 'selected' : '' ?>>Sucursal Saltillo</option>
+                                    <option value="Sucursal Toluca" <?= ($preferencias['sucursal'] == 'Sucursal Toluca') ? 'selected' : '' ?>>Sucursal Toluca</option>
+                                    <option value="Sucursal Veracruz" <?= ($preferencias['sucursal'] == 'Sucursal Veracruz') ? 'selected' : '' ?>>Sucursal Veracruz</option>
                                 </select>
                             </div>
                         </div>
@@ -1024,7 +1043,14 @@ function mostrarFiltrosActivos() {
         const text = estatusSelect.options[estatusSelect.selectedIndex].text;
         filtros.push(`<span class="filtro-tag">Estatus: ${text}</span>`);
     }
-    
+
+    // Sucursal
+    const filtroSucursal = document.getElementById('filtroSucursal');
+    if (filtroSucursal.value) {
+        const text = filtroSucursal.options[filtroSucursal.selectedIndex].text;
+        filtros.push(`<span class="filtro-tag">Origen/Sucursal: ${text}</span>`);
+    }
+
     // Fechas
     const fechaInicio = document.getElementById('fecha_inicio').value;
     const fechaFin = document.getElementById('fecha_fin').value;
@@ -1068,6 +1094,7 @@ function mostrarFiltrosActivos() {
 function limpiarTodosFiltros() {
     document.getElementById('formFiltros').reset();
     document.getElementById('estatus').value = '';
+    document.getElementById('filtroSucursal').value = '';
     document.getElementById('fecha_inicio').value = '';
     document.getElementById('fecha_fin').value = '';
     document.querySelector('input[name="default"][value="2"]').checked = true;
@@ -1087,6 +1114,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Actualizar filtros activos cuando cambien los campos
     document.getElementById('estatus').addEventListener('change', mostrarFiltrosActivos);
+    document.getElementById('filtroSucursal').addEventListener('change', mostrarFiltrosActivos);
     document.getElementById('fecha_inicio').addEventListener('change', mostrarFiltrosActivos);
     document.getElementById('fecha_fin').addEventListener('change', mostrarFiltrosActivos);
     document.querySelectorAll('input[name="default"]').forEach(radio => {
