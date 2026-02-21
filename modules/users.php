@@ -475,7 +475,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }if(inputTipo == "2"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Sellos Maquinados">Sellos Maquinados</option>
-                                <option value="Ingenieria">Ingenieria</option>`);
+                                `);
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
                                 <option value="Gerente">Gerente</option>
                                 <option value="Auxiliar">No gerente</option>
@@ -487,6 +487,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }if(inputTipo == "3"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
+                                <option value="Ventas Internacionales">Ventas Internacionales</option>
                                 <option value="Ventas Industriales">Ventas Industriales</option>
                                 <option value="Sucursal Industrias">Sucursal Industrias</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
@@ -494,7 +495,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>
                                 <option value="Sucursal Toluca">Sucursal Toluca</option>
                                 <option value="Sucursal Veracruz">Sucursal Veracruz</option>
-                                <option value="Ingenieria">Ingenieria</option>`);
+                                <option value="Taller">Taller</option>
+                                `);
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
                                 <option value="Gerente">Gerente</option>
                                 <option value="Auxiliar">No gerente</option>`);
@@ -521,15 +523,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         
         });
-        $("#inputArea").on("change", function(){
-            let inputArea = $("#inputArea").val();
-            if(inputArea == "Ingenieria"){
-                $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
-                                <option value="Ingenieria">Ingenieria</option>`);
-            }else{
-                //$("#inputTipo").trigger("change");
-            }
-        });
+        // $("#inputArea").on("change", function(){
+        //     let inputArea = $("#inputArea").val();
+        //     if(inputArea == "Ingenieria"){
+        //         $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
+        //                         <option value="Ingenieria">Ingenieria</option>`);
+        //     }else{
+        //         //$("#inputTipo").trigger("change");
+        //     }
+        // });
         // FIN SELECTORES DE USUARIO
 
         // --- 1. Toggle Password Visibility (Ver/Ocultar Contraseña) ---

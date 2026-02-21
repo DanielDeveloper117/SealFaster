@@ -475,10 +475,11 @@ if (!isset($_SESSION['id'])) {
 
                     <div class="d-flex justify-content-between ">
                         <div style="width:48%;">
-                            <label for="inputSucursal" class="lbl-general">Sucursal *</label>
+                            <label for="inputSucursal" class="lbl-general">Sucursal/origen *</label>
                             <select id="inputSucursal" class="selector" name="sucursal" required >
                                 <option value="" selected disabled>Seleccionar</option>
                                 <option value="Ventas Nacionales">Ventas Nacionales</option>
+                                <option value="Ventas Internacionales">Ventas Internacionales</option>
                                 <option value="Ventas Industriales">Ventas Industriales</option>
                                 <option value="Sucursal Industrias">Sucursal Industrias</option>
                                 <option value="Sucursal Monterrey">Sucursal Monterrey</option>
@@ -486,6 +487,7 @@ if (!isset($_SESSION['id'])) {
                                 <option value="Sucursal Saltillo">Sucursal Saltillo</option>
                                 <option value="Sucursal Toluca">Sucursal Toluca</option>
                                 <option value="Sucursal Veracruz">Sucursal Veracruz</option>
+                                <option value="Taller">Taller</option>
                             </select>
                         </div>
                         <div style="width:48%;">

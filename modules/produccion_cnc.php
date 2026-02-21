@@ -476,6 +476,7 @@ if (!isset($_SESSION['id'])) {
                                 <select id="filtroSucursal" class="selector" name="sucursal" >
                                     <option value="">Todos los origenes</option>
                                     <option value="Ventas Nacionales" <?= ($preferencias['sucursal'] == 'Ventas Nacionales') ? 'selected' : '' ?>>Ventas Nacionales</option>
+                                    <option value="Ventas Internacionales" <?= ($preferencias['sucursal'] == 'Ventas Internacionales') ? 'selected' : '' ?>>Ventas Internacionales</option>
                                     <option value="Ventas Industriales" <?= ($preferencias['sucursal'] == 'Ventas Industriales') ? 'selected' : '' ?>>Ventas Industriales</option>
                                     <option value="Sucursal Industrias" <?= ($preferencias['sucursal'] == 'Sucursal Industrias') ? 'selected' : '' ?>>Sucursal Industrias</option>
                                     <option value="Sucursal Monterrey" <?= ($preferencias['sucursal'] == 'Sucursal Monterrey') ? 'selected' : '' ?>>Sucursal Monterrey</option>
@@ -483,6 +484,7 @@ if (!isset($_SESSION['id'])) {
                                     <option value="Sucursal Saltillo" <?= ($preferencias['sucursal'] == 'Sucursal Saltillo') ? 'selected' : '' ?>>Sucursal Saltillo</option>
                                     <option value="Sucursal Toluca" <?= ($preferencias['sucursal'] == 'Sucursal Toluca') ? 'selected' : '' ?>>Sucursal Toluca</option>
                                     <option value="Sucursal Veracruz" <?= ($preferencias['sucursal'] == 'Sucursal Veracruz') ? 'selected' : '' ?>>Sucursal Veracruz</option>
+                                    <option value="Taller" <?= ($preferencias['sucursal'] == 'Taller') ? 'selected' : '' ?>>Taller</option>
                                 </select>
                             </div>
                         </div>
