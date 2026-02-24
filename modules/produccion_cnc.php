@@ -1123,6 +1123,32 @@ document.addEventListener('DOMContentLoaded', function() {
         radio.addEventListener('change', mostrarFiltrosActivos);
     });
     document.getElementById('orden').addEventListener('change', mostrarFiltrosActivos);
+
+    if (!localStorage.getItem('issueMerma0Fixed')) {
+        Swal.fire({
+            title: 'Aviso',
+            text: 'Bug "Justificar merma de 0.00 mm" resuelto. Si continua el error, borre la cache de su navegador. Si el problema persiste contacte a sistemas.',
+            icon: 'info',
+            confirmButtonText: 'Entendido',
+            width: '500px',
+            padding: '10px',
+            position: 'bottom-end',
+            toast: true,
+            //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+            showConfirmButton: true,
+            showCloseButton: false,
+            input: 'checkbox',
+            inputPlaceholder: 'No mostrar nuevamente',
+            inputAttributes: {
+            id: 'noMostrarCheckbox'
+        }
+        }).then((result) => {
+            if (result.isConfirmed && result.value) {
+            // Guardar preferencia en localStorage
+            localStorage.setItem('issueMerma0Fixed', '1');
+            }
+        });
+    }
 });
 </script>
 </body>

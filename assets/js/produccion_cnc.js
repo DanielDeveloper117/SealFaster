@@ -529,109 +529,95 @@ $(document).ready(function(){
     }
     // Función principal de cálculos para una fila
     function calcularFila(row, lote) {
-        console.log('=== INICIANDO CÁLCULO DE FILA ===');
+        console.log('=== INICIANDO CÁLCULO DE FILA (Format Optimized) ===');
         
-        // Obtener valores con logs
-        const pzMaquinadas = parseFloat(row.find('.pz_maquinadas').val()) || 0;
-        const mmUsados = parseFloat(row.find('.mm_usados').val()) || 0;
-        const alturaPz = parseFloat(row.find('.altura_pz').val()) || 0;
-        const pzTeoricas = parseFloat(row.find('.pz_teoricas').val()) || 0;
-        const desbasteMaterial = parseFloat(row.data('desbaste')) || 2.50;
-        const mmEntrega = parseFloat(row.find('.mm_entrega').text()) || 0;
+        // Función auxiliar para redondear a 2 decimales reales
+        const round2 = (num) => Math.round((num + Number.EPSILON) * 100) / 100;
+        // Función auxiliar para forzar enteros
+        const toInt = (num) => parseInt(num) || 0;
+
+        // 1. Obtención y Saneamiento de Entradas
+        const pzMaquinadas   = toInt(row.find('.pz_maquinadas').val());
+        const pzTeoricas     = toInt(row.find('.pz_teoricas').val());
+        const mmUsados       = round2(parseFloat(row.find('.mm_usados').val()) || 0);
+        const alturaPz       = round2(parseFloat(row.find('.altura_pz').val()) || 0);
+        const desbasteMat    = round2(parseFloat(row.data('desbaste')) || 2.50);
+        const mmEntrega      = round2(parseFloat(row.find('.mm_entrega').text()) || 0);
         
-        // 1. mm_usados = pz_maquinadas * (altura_pz + desbaste_material)
-        const mmUsadosCalculado = pzMaquinadas * (alturaPz + desbasteMaterial);
-        console.log(`${pzMaquinadas} * (${alturaPz} + ${desbasteMaterial}) = ${mmUsadosCalculado}`);
+        // 2. Cálculos de Producción
+        // mm_usados_calc = pz * (alt + desbaste)
+        const mmUsadosCalculado = round2(pzMaquinadas * (alturaPz + desbasteMat));
         
-        // 2. mm_teoricos = pz_teoricas * (altura_pz + desbaste_material)
-        const mmTeoricos = pzTeoricas * (alturaPz + desbasteMaterial);
-        console.log(`${pzTeoricas} * (${alturaPz} + ${desbasteMaterial}) = ${mmTeoricos}`);
+        // mm_teoricos = pz_teoricas * (alt + desbaste)
+        const mmTeoricos = round2(pzTeoricas * (alturaPz + desbasteMat));
         
-        // 3. long_t_sellos = pz_teoricas * altura_pz
-        const longTSellos = pzTeoricas * alturaPz;
-        console.log(`${pzTeoricas} * ${alturaPz} = ${longTSellos}`);
+        // long_t_sellos = pz_teoricas * alt
+        const longTSellos = round2(pzTeoricas * alturaPz);
         
-        // 4. merma_corte = pz_maquinadas * desbaste_material
-        const mermaCorte = pzMaquinadas * desbasteMaterial;
-        console.log(`${pzMaquinadas} * ${desbasteMaterial} = ${mermaCorte}`);
+        // merma_corte = pz_maquinadas * desbaste
+        const mermaCorte = round2(pzMaquinadas * desbasteMat);
         
-        // 5. scrap_pz = pz_maquinadas - pz_teoricas
+        // 3. Cálculos de Scrap y Merma
         let scrapPz = pzMaquinadas - pzTeoricas;
-        console.log(`${pzMaquinadas} - ${pzTeoricas} = ${scrapPz}`);
+        if (scrapPz < 0) scrapPz = 0; // Evitar scrap negativo
         
-        // 6. scrap_mm = scrap_pz * altura_pz
-        let scrapMm = scrapPz * alturaPz;
-        console.log(`${scrapPz} * ${alturaPz} = ${scrapMm}`);
+        let scrapMm = round2(scrapPz * alturaPz);
         
-        // Calcular los total usados
-        const mmTotalUsados = (alturaPz * pzMaquinadas) + mermaCorte; 
+        const mmTotalUsados = round2((alturaPz * pzMaquinadas) + mermaCorte); 
+        
+        // Cálculo de Merma Real con corrección de precisión
         let mmMermaReal = 0.00;
-        
-        // 8. mm_merma_real = mm_usados - mm_teoricos
-        if(mmUsados > mmTotalUsados){
-            mmMermaReal = mmUsados - mmTeoricos;
-        }else{
-            mmMermaReal = mmTotalUsados - mmTeoricos;
-        }
-
-        console.log(`${mmUsados} - ${mmTeoricos} = ${mmMermaReal}`);
-
-        // 9. Validar mm_usados no puede ser menor a mmMinimos (altura_pz*pz_maquinadas)
-        const mmMinimos = alturaPz * pzMaquinadas;
-        if (mmUsados < mmMinimos && mmUsados > 0) {
-            row.find('.mm_usados').addClass('error');
+        if (mmUsados > mmTotalUsados) {
+            mmMermaReal = round2(mmUsados - mmTeoricos);
         } else {
-            console.log('OK: mm_usados es válido');
-            row.find('.mm_usados').removeClass('error');
+            mmMermaReal = round2(mmTotalUsados - mmTeoricos);
         }
 
-        // 12. Validar mm_usados no puede ser menor a mm_entrega
-        if (mmUsados > mmEntrega && mmEntrega > 0) {
-            row.find('.mm_usados').addClass('error');
-        } else {
-            row.find('.mm_usados').removeClass('error');
-        }
-        
-        // 10. Si mm_merma_real > mm_teoricos mostrar input de justificacion_merma
+        // 4. Lógica de Interfaz (UI)
         const justificarRow = row.next('.row-justificar');
+        
+        // Ahora la comparación es exacta contra 0
         if (mmMermaReal > 0 || scrapPz > 0) {
-        //if (mmMermaReal > 0 && mmUsados > mmTeoricos) {
             justificarRow.removeClass('d-none');
-            justificarRow.find('.text-merma-real').text(`Debe justificar por que hay una merma de ${mmMermaReal.toFixed(2)}mm. Lote pedimento: ${lote}`);
+            justificarRow.find('.text-merma-real').text(
+                `Debe justificar por que hay una merma de ${mmMermaReal.toFixed(2)}mm. Lote pedimento: ${lote}`
+            );
         } else {
             justificarRow.addClass('d-none');
             justificarRow.find('.justificacion_merma').val('');
         }
-        
-        // 11. Si mm_usados = mm_entrega, es_merma = 1
-        //const esMerma = (mmUsados === mmEntrega) ? 1 : 0;
-        const esMerma = 0;
-        console.log(`es_merma = ${esMerma}`);
-        
-        if(scrapPz<0){
-            scrapPz=0.00;
-            scrapMm=0.00;
-        }
-        // Actualizar campos en la fila
-        console.log('ACTUALIZANDO CAMPOS:');
-        console.log('long_t_sellos:', longTSellos.toFixed(2));
-        console.log('merma_corte:', mermaCorte.toFixed(2));
-        console.log('scrap_pz:', scrapPz);
-        console.log('scrap_mm:', scrapMm.toFixed(2));
-        console.log('mm_merma_real:', mmMermaReal.toFixed(2));
-        console.log('es_merma:', esMerma);
-        console.log('mm_teoricos:', mmTeoricos.toFixed(2));
-        
-        //row.find('.mm_usados').val(mmUsadosCalculado.toFixed(2));
+
+        // 5. Actualización de Campos con Formato Estricto
         row.find('.long_t_sellos').val(longTSellos.toFixed(2));
         row.find('.merma_corte').val(mermaCorte.toFixed(2));
-        row.find('.scrap_pz').val(scrapPz);
+        row.find('.scrap_pz').val(toInt(scrapPz)); // Entero
         row.find('.scrap_mm').val(scrapMm.toFixed(2));
         row.find('.mm_merma_real').val(mmMermaReal.toFixed(2));
-        row.find('.es_merma').val(esMerma);
         row.find('.mm_total_usados').val(mmTotalUsados.toFixed(2));
         row.find('.mm_teoricos').val(mmTeoricos.toFixed(2));
         
+        // Debug final para validar tipos
+        // --- BLOQUE DE DEBUG PARA CONSOLA ---
+        console.group(`%c DEBUG BARRA: ${lote} `, 'background: #222; color: #bada55; font-weight: bold;');
+
+        console.table({
+            "Piezas (Int)": { Maquinadas: pzMaquinadas, Teoricas: pzTeoricas, Scrap: scrapPz }
+        });
+        console.table({
+            "Medidas (mm)": { Altura: alturaPz, Desbaste: desbasteMat, Entrega: mmEntrega }
+        });
+        console.log(`%c > Cálculos de Merma:`, 'color: #007bff; font-weight: bold;');
+        console.log(`  [Total Usados]: ${mmTotalUsados.toFixed(2)}mm`);
+        console.log(`  [Teóricos]:     ${mmTeoricos.toFixed(2)}mm`);
+        console.log(`  [Merma Real]:   %c${mmMermaReal.toFixed(2)}mm`, mmMermaReal > 0 ? 'color: red;' : 'color: green;');
+
+        console.log(`%c > Estado de Interfaz:`, 'color: #007bff; font-weight: bold;');
+        console.log(`  [Justificar]:   ${(mmMermaReal > 0 || scrapPz > 0) ? 'SÍ (Visible)' : 'NO (Oculto)'}`);
+        console.log(`  [Scrap MM]:     ${scrapMm.toFixed(2)}mm`);
+
+        console.groupEnd();
+    // --- FIN DEL BLOQUE DE DEBUG ---
+        console.log(`Final mmMermaReal: ${mmMermaReal} (Type: ${typeof mmMermaReal})`);
         console.log('=== FINALIZADO CÁLCULO DE FILA ===\n');
     }
     // Función para cargar los resultados del maquinado
@@ -1936,4 +1922,5 @@ $(document).ready(function(){
             }
         });
     });
+    
 });
