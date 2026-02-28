@@ -105,7 +105,7 @@
                             <button id="btnOtrasAlturas" type="button" class="btn-disabled d-none" data-bs-toggle="modal" data-bs-target="#modalOtrasAlturas">Otras alturas</button>
                         </div>
                     </div>
-                    <div id="containerErrorDimensiones_cliente" class="text-faltan mt-3">
+                    <div id="containerErrorDimensiones_cliente" class="text-faltan mt-3 py-2 px-3 px-md-5 border border-dark-subtitle bg-white bg-opacity-10 font-monospace rounded-2">
                         <span></span>
                     </div>   
 

@@ -12,8 +12,8 @@ $(document).ready(function() {
     window.conEscalon = "0";
     window.esWisperEspecial = "0";
 
-    window.DI_TOLERANCIA_DEFAULT = 4.00;
-    window.DE_TOLERANCIA_DEFAULT = 4.00;
+    window.DI_TOLERANCIA_DEFAULT = 3.00;
+    window.DE_TOLERANCIA_DEFAULT = 3.00;
     if(window.perfilSello.includes("R13")){
         window.DI_TOLERANCIA_DEFAULT = 2.00;
         window.DE_TOLERANCIA_DEFAULT = 2.00; 
@@ -32,6 +32,8 @@ $(document).ready(function() {
         window[`billetsSeleccionados_m${i}`] = [];
         window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
         window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
+        $(`#toleranciaBarraDI_m${i}`).text(window.DI_TOLERANCIA_DEFAULT);
+        $(`#toleranciaBarraDE_m${i}`).text(window.DE_TOLERANCIA_DEFAULT);
     }
 
     window.P_LABIO_DI = 0.000;
@@ -74,6 +76,10 @@ $(document).ready(function() {
         window.porcentajeDE_m2 = 0.50;
     }
     if(window.perfilSello.includes("R10-F")){
+        window.porcentajeDI_m1 = 0.50;
+        window.porcentajeDE_m2 = 0.50;
+    }
+    if(window.perfilSello.includes("R09-FS") || window.perfilSello.includes("R10-FS")){
         window.porcentajeDI_m1 = 0.50;
         window.porcentajeDE_m2 = 0.50;
     }
@@ -262,8 +268,8 @@ $(document).ready(function() {
             //     autoDI = ClienteDI;
             // }
             console.log("Medida labio DI = ", window.MEDIDA_LABIO_DI);
-            $(`#diametro_interior_mm_m${i}`).val(autoDI.toFixed(2)).trigger("input");
-            console.log(`Auto calculo DI M${i} = `, autoDI);
+            //$(`#diametro_interior_mm_m${i}`).val(autoDI.toFixed(2)).trigger("input");
+            //console.log(`Auto calculo DI M${i} = `, autoDI);
         
             // AUTO CALCULO DE - DIAMETRO EXTERIOR 
             let porcentajeDE = window["porcentajeDE_m" + i];
@@ -346,14 +352,20 @@ $(document).ready(function() {
             }
 
             console.log("Medida labio DE = ", window.MEDIDA_LABIO_DE);  
-            $(`#diametro_exterior_mm_m${i}`).val(autoDE.toFixed(2)).trigger("input");
-            console.log(`Auto calculo DE ${i} = `, autoDE);
-        
+            //$(`#diametro_exterior_mm_m${i}`).val(autoDE.toFixed(2)).trigger("input");
+            //console.log(`Auto calculo DE ${i} = `, autoDE);
+
             // CALCULO ALTURA
             let autoAltura = ClienteA * window["porcentajeA_m" + i];
-        
             $(`#altura_mm_m${i}`).val(autoAltura.toFixed(2)).trigger("input");
             console.log(`Auto calculo H m${i} = `, autoAltura);
+            
+            autoDI = ClienteDI;
+             $(`#diametro_interior_mm_m${i}`).val(autoDI.toFixed(2)).trigger("input");
+            console.log(`Auto calculo DI M${i} = `, autoDI);
+            autoDE = ClienteDE;
+             $(`#diametro_exterior_mm_m${i}`).val(autoDE.toFixed(2)).trigger("input");
+             console.log(`Auto calculo DE M${i} = `, autoDE);
         }
         // CALCULO ALTURA CAJA
         let alturaMaterialWisper = parseFloat($(`#altura_mm_m${window.esWiper}`).val()) || 0.00; 
@@ -1179,8 +1191,8 @@ $(document).ready(function() {
 
             $(".familia-perfil").val(window.FAMILIA_PERFIL);
 
-            console.log("Desperdicio DI: ", window.DI_TOLERANCIA_DEFAULT);
-            console.log("Desperdicio DE: ", window.DE_TOLERANCIA_DEFAULT);
+            console.log("Tolerancia DI: ", window.DI_TOLERANCIA_DEFAULT);
+            console.log("Tolerancia DE: ", window.DE_TOLERANCIA_DEFAULT);
 
             if(window.CON_LABIO_DI !== "0"){
                 console.log("Si tiene labio en el DI en el material: ", window.CON_LABIO_DI);

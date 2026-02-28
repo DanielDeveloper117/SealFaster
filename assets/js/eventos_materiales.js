@@ -63,12 +63,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     setMilimetrosNecesarios();
                     // Cambiar colores
                     $(`#containerFaltanSiNo_m${i}`).removeClass(`text-no-faltan`).addClass(`text-faltan`);
-                    console.log({
-                        CANTIDAD_PIEZAS_TEMPORAL_m: window[`CANTIDAD_PIEZAS_TEMPORAL_m${i}`],
-                        SELLOS_RESTANTES_m: window[`SELLOS_RESTANTES_m${i}`],
-                        MILIMETROS_RESTANTES_m: window[`MILIMETROS_RESTANTES_m${i}`],
-                        BILLETS_SELECCIONADOS_OCUPA_m: window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`]
-                    });
+                    // console.log({
+                    //     CANTIDAD_PIEZAS_TEMPORAL_m: window[`CANTIDAD_PIEZAS_TEMPORAL_m${i}`],
+                    //     SELLOS_RESTANTES_m: window[`SELLOS_RESTANTES_m${i}`],
+                    //     MILIMETROS_RESTANTES_m: window[`MILIMETROS_RESTANTES_m${i}`],
+                    //     BILLETS_SELECCIONADOS_OCUPA_m: window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`]
+                    // });
                 };                
                 // calcular total de milimetros y sellos necesarios inicialmente y mostrarlos en el span
                 const setMilimetrosNecesarios = function() {
@@ -240,53 +240,60 @@ document.addEventListener("DOMContentLoaded", function () {
                             window[`DESBASTE_DUREZA_m${i}`] = 2.50;
                             console.log(`Material no encontrado, desbaste por defecto = `, window[`DESBASTE_DUREZA_m${i}`]);
                     }
+                    $(`#toleranciaHpzMaterial_m${i}`).text(window[`DESBASTE_DUREZA_m${i}`]);
                 };
                 // VALIDAR LAS DIMENSIONES
                 const validarCampos = function() {
-                    let valores = [
-                        $(`#altura_mm_m${i}`).val(),
-                        $(`#altura_inch_m${i}`).val(),
-                        $(`#diametro_interior_mm_m${i}`).val(),
-                        $(`#diametro_interior_inch_m${i}`).val(),
-                        $(`#diametro_exterior_mm_m${i}`).val(),
-                        $(`#diametro_exterior_inch_m${i}`).val(),
-                        
+                    // 1. Extraemos solo los valores necesarios (MM como Fuente de Verdad)
+                    const altura = parseFloat($(`#altura_mm_m${i}`).val());
+                    const di = parseFloat($(`#diametro_interior_mm_m${i}`).val());
+                    const de = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
+                    
+                    // Lista de valores para checar si hay campos vacíos o inválidos
+                    const todosLosValores = [
+                        altura, di, de
                     ];
-                
-                    if (parseFloat(valores[0]) == 0 || parseFloat(valores[0]) < 0 || parseFloat(valores[4]) == 0 || parseFloat(valores[4]) < 0) {
-                        // console.log(`La altura y el DE no puede ser 0.`);
-                        $(`#containerErrorDimensiones_m${i} span`).text('La altura y el DE no puede ser 0');
-                        disablarBoton(`#btnBillets_m${i}`);
-                        disablarBoton(`#btnBilletsSimulacion_m${i}`);
-                        disablarBoton(`#btnSiguiente_m${i}`);
-                        disablarBoton(`#btnLimpiarSeleccion_m${i}`);
+
+                    console.log(parseFloat(altura));
+                    console.log(parseFloat(di));
+                    console.log(parseFloat(de));
+                    const errorSpan = $(`#containerErrorDimensiones_m${i} span`);
+                    const botones = [
+                        `#btnBillets_m${i}`, 
+                        `#btnBilletsSimulacion_m${i}`, 
+                        `#btnSiguiente_m${i}`, 
+                        `#btnLimpiarSeleccion_m${i}`
+                    ];
+
+                    // Función interna para bloquear todo (Dry Principle)
+                    const bloquearAcciones = (mensaje) => {
+                        errorSpan.text(mensaje);
+                        botones.forEach(btn => disablarBoton(btn));
                         window[`DIMENSIONES_VALIDAS_m${i}`] = false;
                         return false;
-                    }       
-                    if (parseFloat(valores[2]) >= parseFloat(valores[4]) || parseFloat(valores[3]) >= parseFloat(valores[5])) {
-                        // console.log(`El DI no puede ser mayor o igual al DE.`);
-                        $(`#containerErrorDimensiones_m${i} span`).text('El DI no puede ser mayor o igual al DE');
-                        disablarBoton(`#btnBillets_m${i}`);
-                        disablarBoton(`#btnBilletsSimulacion_m${i}`);
-                        disablarBoton(`#btnSiguiente_m${i}`);
-                        disablarBoton(`#btnLimpiarSeleccion_m${i}`);
-                        window[`DIMENSIONES_VALIDAS_m${i}`] = false;
-                        return false; 
+                    };
+
+                    // 2. VALIDACIÓN: Campos incompletos o inválidos
+                    const hayInvalidos = todosLosValores.some(v => v === null || v === "" || isNaN(v) || v === ".");
+                    if (hayInvalidos) {
+                        return bloquearAcciones('Ingrese las dimensiones solicitadas correctamente');
                     }
 
-                    // Verificar si alguno de los valores es inválido
-                    let hayValoresInvalidos = valores.some(function(valor) {
-                        return valor === null || valor === "" || isNaN(valor) || valor === ".";
-                    });
-
-                    if (hayValoresInvalidos) {
-                        // console.log(`Uno de los campos tiene un valor no válido.`);
-                        $(`#containerErrorDimensiones_m${i} span`).text('Ingrese las dimensiones correctamente');
-                        window[`DIMENSIONES_VALIDAS_m${i}`] = false;
-                        return false; 
+                    // 3. VALIDACIÓN: Altura > 0
+                    if (altura <= 0) {
+                        return bloquearAcciones('La altura no puede ser menor o igual a 0');
                     }
-                
+                    // 4. VALIDACIÓN: DE > 0
+                    if (de <= 0) {
+                        return bloquearAcciones('El DE no puede ser menor o igual a 0');
+                    }
+                    // 5. VALIDACIÓN: DI vs DE (Lógica de Negocio)
+                    if (di >= de) {
+                        return bloquearAcciones('El DI no puede ser mayor o igual al DE');
+                    }
 
+                    // 5. ÉXITO: Si llega aquí, todo es válido
+                    errorSpan.text(''); // Limpiamos mensajes de error
                     window[`DIMENSIONES_VALIDAS_m${i}`] = true;
                     return true; 
                 };
@@ -431,9 +438,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 // llamar a validar que las dimensiones sean correctas
                 $(`#altura_mm_m${i}, #altura_inch_m${i}, #diametro_interior_mm_m${i}, #diametro_interior_inch_m${i}, #diametro_exterior_mm_m${i}, #diametro_exterior_inch_m${i}, #inputAlturaCaja_m${i}, #inputAlturaCajaInch_m${i}, #inputAlturaEscalon_m${i}, #inputAlturaEscalonInch_m${i}`).on('input', function() {
                     // Antes de proceder con cualquier acción, validar todos los campos
-                    if (!validarCampos()) {
-                        return; 
-                    }
+                    setTimeout(() => {
+                        if (!validarCampos()) {
+                            return; 
+                        }
+                    }, 0);
                     // Si todas las validaciones pasan, proceder con la habilitación y la solicitud AJAX
                     // console.log(`Todos los campos tienen valores válidos.`);
                     $(`#containerErrorDimensiones_m${i} span`).text('');
@@ -511,7 +520,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
 
                     if(window.perfilSello.includes("R16") && tipoDurezaMateriales == "duros"){
-                        sweetAlertResponse("warning", "Falta información","No es posible maquinar este sello con materiales duros", "none");
+                        sweetAlertResponse("warning", "Advertencia","No es posible maquinar este sello con materiales duros", "none");
                         return;
                     }
                     mostrarBtnBillets(elMaterial, elProveedor, laCantidad, window[`DIMENSIONES_VALIDAS_m${i}`]);
@@ -552,8 +561,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     //     window.DI_TOLERANCIA_DEFAULT = 3.00;
                     //     window.DE_TOLERANCIA_DEFAULT = 1.00;
                     // }
-                    console.log(`Desperdicio default DI = `, window.DI_TOLERANCIA_DEFAULT);
-                    console.log(`Desperdicio default DE = `, window.DE_TOLERANCIA_DEFAULT);    
+                    console.log(`Tolerancia aplicada DI = `, window.DI_TOLERANCIA_DEFAULT);
+                    console.log(`Tolerancia aplicada DE = `, window.DE_TOLERANCIA_DEFAULT);    
 
                     dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_TOLERANCIA_DEFAULT))).toFixed(2);
                     
@@ -1443,11 +1452,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 $(`#btnBilletsSimulacion_m${i}`).on(`click`, function() {
                     let materialSeleccionado = $(`#selectorMaterial_m${i}`).val();
                     let proveedorSeleccionado = $(`#selectorProveedor_m${i}`).val();
-                    let alturaSeleccionada = parseFloat($(`#altura_mm_m${i}`).val());
                     let cantidadDigitada = $(`#inputCantidad_m${i}`).val();
-                    alturaSeleccionada = parseFloat(alturaSeleccionada);
+                    let alturaSeleccionada = parseFloat($(`#altura_mm_m${i}`).val());
                     let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
                     let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
+                    let dInteriorNecesario = 0.00;
+                    let dExteriorNecesario = 0.00;
                     if(!materialSeleccionado || materialSeleccionado === "" || materialSeleccionado==null){
                         $(`#selectorMaterial_m${i}`).val("");
                         $(`#btnCerrarModalBilletsSimulacion_m${i}`).trigger("click");
@@ -1461,21 +1471,23 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    // if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                    //     window.DI_TOLERANCIA_DEFAULT = 1.00;
-                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    // }else{
-                    //     window.DI_TOLERANCIA_DEFAULT = 3.00;
-                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    // }
-                    console.log(`Desperdicio default DI = `, window.DI_TOLERANCIA_DEFAULT);
-                    console.log(`Desperdicio default DE = `, window.DE_TOLERANCIA_DEFAULT);                        
+                    console.log(`Tolerancia aplicada DI = `, window.DI_TOLERANCIA_DEFAULT);
+                    console.log(`Tolerancia aplicada DE = `, window.DE_TOLERANCIA_DEFAULT);                        
 
+                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_TOLERANCIA_DEFAULT))).toFixed(2);
+                    
+                    if(dInteriorNecesario >= dInteriorSeleccionado){
+                        dInteriorNecesario = 0.00;
+                    }
+
+                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_TOLERANCIA_DEFAULT))).toFixed(2);
 
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
                     $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);
                     $(`#spanDeCliente_m${i}`).text(dExteriorSeleccionado);
-                    
+                    console.log(`DI necesario calculado = `, dInteriorNecesario);
+                    console.log(`DE necesario calculado = `, dExteriorNecesario);
+
                     $(`#spanPorcentAprov_m${i}`).text(`0.00`);
 
                     window.unirBilletsSeleccionados();
@@ -1491,8 +1503,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             data: { 
                                 material: materialSeleccionado,
                                 proveedor: proveedorSeleccionado,
-                                diametro_interior_mm: dInteriorSeleccionado,
-                                diametro_exterior_mm: dExteriorSeleccionado,
+                                diametro_interior_mm: dInteriorNecesario,
+                                diametro_exterior_mm: dExteriorNecesario,
                                 u: "a"
                             },
                             dataType: 'json',

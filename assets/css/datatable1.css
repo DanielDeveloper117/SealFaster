@@ -924,9 +924,9 @@ tr.no-usable{
             }
         }
 
-        .dt-scroll-body{
+        /* .dt-scroll-body{
             height: 300px !important;
-        }
+        } */
 
         .table thead th {
             background: var(--accent-bg);

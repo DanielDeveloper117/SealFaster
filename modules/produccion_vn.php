@@ -305,7 +305,7 @@ if (!isset($_SESSION['id'])) {
                             ?>
                         </td>
 
-                        <td><?= htmlspecialchars($row['fechahora']??""); ?></td>
+                        <td><?= htmlspecialchars($row['fecha_insercion']??""); ?></td>
                         <td><?= htmlspecialchars($row['num_pedido']??""); ?></td>
                         <td><?= htmlspecialchars($row['paqueteria']??""); ?></td>
                         <td><?= htmlspecialchars($row['factura']??""); ?></td>
@@ -470,7 +470,6 @@ if (!isset($_SESSION['id'])) {
                     <input type="hidden" id="inputId" value="<?= $_SESSION['id'] ?>" name="id_vendedor" >
                     <input type="hidden" id="estatusPendiente" value="Pendiente" name="estatus">
                     <input id="inputCotizaciones" type="hidden" name="cotizaciones">
-                    <input id="inputFecha" type="hidden" name="fechahora" required readonly tabindex="-1">
                     <input id="inputVendedor" type="hidden" name="nombre_vendedor" value="<?= $nombreUser ?>" readonly tabindex="-1">
 
                     <div class="d-flex justify-content-between ">

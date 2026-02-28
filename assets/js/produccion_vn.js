@@ -154,7 +154,6 @@ $(document).ready(function(){
 
     // CAMBIAR A add AL CLICK AGREGAR REGISTRO
     $("#btnAgregar").on("click", function(){
-        establecerFechaHoraLegible('inputFecha');
         $('#modalAgregarEditar').modal('show');
         $('#inputAction').val('insert');
         $("#titleModalAddEdit").text("Crear nueva requisicion");

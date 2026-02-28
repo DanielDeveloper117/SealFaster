@@ -1,13 +1,6 @@
 <?php
+    require_once(ROOT_PATH . 'includes/backend_info_user.php');
     $selfFile = basename($_SERVER['PHP_SELF']);
-
-    $id_usuario = $_SESSION['id'];
-    $sql = "SELECT lider FROM login WHERE id = :id_usuario";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id_usuario', $id_usuario);
-    $stmt->execute();
-    $resultado = $stmt->fetch(PDO::FETCH_ASSOC);
-
     $servidorEnMantenimientoAdvertencia = false; // Cambiar a true para activar la advertencia de mantenimiento
     $horaProgramada = "1:00 PM";
     $servidorEnMantenimiento = false; // Cambiar a true para activar el modo de mantenimiento
@@ -90,8 +83,8 @@
         "configuracion.php"
     ];
     $accesoRestringido = False;
-    if ($resultado !== false && isset($resultado['lider'])) {
-        $tipoUsuario = $resultado['lider'];
+    if (!empty($rol_usuario) && !empty($lider_usuario)) {
+        $tipoUsuario = $lider_usuario;
         if ($tipoUsuario == 1) {
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
@@ -114,11 +107,23 @@
                 $accesoRestringido = False;
             }
         }else if($tipoUsuario == 2){
-            $arrayPermitidos = array_merge($arrayPermitidos, [
-                "filtros_inventario_cnc.php",
-                "inventario_vn.php",
-                "produccion_cnc.php"
-            ]);
+            if($rol_usuario == "Gerente"){
+                $arrayPermitidos = array_merge($arrayPermitidos, [
+                    "filtros_inventario_cnc.php",
+                    "inventario_vn.php",
+                    "selectTipoSello.php",
+                    "tipo.php",
+                    "estimador.php",
+                    "cotizaciones.php",
+                    "produccion_cnc.php"
+                ]);
+            }else{
+                $arrayPermitidos = array_merge($arrayPermitidos, [
+                    "filtros_inventario_cnc.php",
+                    "inventario_vn.php",
+                    "produccion_cnc.php"
+                ]);
+            }
             if (!in_array($selfFile, $arrayPermitidos)) {
                 $accesoRestringido = True;
             } else {

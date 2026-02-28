@@ -279,7 +279,7 @@ $(document).ready(function() {
     mostrarTablaPorCot(cotActual);
     mostrarFiltrosActivos();
     
-    $("#overlay").addClass("d-none");
+    //$("#overlay").addClass("d-none");
 
     // Verificar si ya existe la preferencia en localStorage
     // if (!localStorage.getItem("FiltrosActualizados")) {
@@ -364,17 +364,6 @@ $(document).ready(function() {
             $('#filtro_fecha_inicio').focus();
             return false;
         }
-        // $.ajax({
-        //     url: "../ajax/ajax_notificacion.php",
-        //     type: "POST",
-        //     data: { mensaje: "Filtros aplicados" },
-        //     success: function(response) {
-        //         console.log("Notificacion enviada: ", response);
-        //     },
-        //     error: function(error) {
-        //         console.error("Error al enviar la notificacion: ", error);
-        //     }
-        // });
     });
     // Limpiar formulario de filtros
     $('#btnLimpiarFormulario').on('click', function() {
@@ -411,18 +400,6 @@ $(document).ready(function() {
             alert("Selecciona una opción de formato.");
             return;
         }
-        // $.ajax({
-        //     url: "../ajax/ajax_notificacion.php",
-        //     type: "POST",
-        //     data: { mensaje: "Generar cotizacion "+ valorSeleccionado},
-        //     success: function(response) {
-        //         console.log("Notificacion enviada: ", response);
-        //     },
-        //     error: function(error) {
-        //         console.error("Error al enviar la notificacion: ", error);
-        //     }
-        // });
-
         this.submit();
     });
     // CLICK para seleccionar versión del formato de cotización de las fusionadas
@@ -674,6 +651,75 @@ $(document).ready(function() {
             $("#inputCuerpoCorreo").removeClass("d-none");
             $("#pCuerpo").addClass("d-none");
         }
+    });
+    // BOTON DE ABRIR EL MODAL DE ASIGNAR UNA COTIZACION, TRAER VENDEDORES
+    $("#cotizacionesTable").on('click', ".btn-asignar-cotizacion", function () {
+        let idCotizacionAsignar = $(this).data('id-cotizacion');
+
+        $.ajax({
+            url: '../ajax/vendedores.php',
+            type: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                if (data) {
+                   
+                    $('#inputIdVendedor').html(`<option value="" selected disabled>Seleccione un vendedor</option>`);
+                    data.vendedores.forEach(element => {
+                        $(`#inputIdVendedor`).append(
+                            `<option value="${element.id}">${element.nombre}</option>`
+                        );
+                    });
+                    
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "self");
+            }
+        });
+
+        $('#modalAsignarCotizacion').modal('show');
+        $("#inputIdCotizacionAsignar").val(idCotizacionAsignar);
+    });
+    // CLICK SUBMIT A ASIGNARSELA AL VENDEDOR
+    $("#btnAsignarCotizacion").on('click', function () {
+        let inputIdCotizacionAsignar = $("#inputIdCotizacionAsignar").val();
+        let inputIdVendedor = $("#inputIdVendedor").val();
+
+        if(!inputIdCotizacionAsignar){
+            sweetAlertResponse("warning", "Faltan datos", "Falta la id de cotización", "none");
+            return;
+        }
+        if(!inputIdVendedor){
+            sweetAlertResponse("warning", "Faltan datos", "Falta id de vendedor", "none");
+            return;
+        }
+
+        $(this).addClass("d-none");
+        $.ajax({
+            url: '../ajax/asignar_cotizacion.php',
+            type: 'POST',
+            data: { 
+                id_cotizacion: inputIdCotizacionAsignar,
+                id_vendedor: inputIdVendedor
+            },
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    $('#modalAsignarCotizacion').modal('hide');
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                } else {
+                    $('#modalAsignarCotizacion').modal('hide');
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al actualizar registro. " + error, "self");
+            }
+        });
     });
 
     var anchoVentanaInicial = window.innerWidth;

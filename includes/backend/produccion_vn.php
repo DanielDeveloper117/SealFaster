@@ -17,7 +17,6 @@
                 $nombre_vendedor = $_POST['nombre_vendedor'];
                 $sucursal = $_POST['sucursal'];
                 $cliente = $_POST['cliente'];
-                $fechahora = $_POST['fechahora'];
                 //$folio = $_POST['folio'];
                 $num_pedido = $_POST['num_pedido'];
                 $factura = $_POST['factura'];
@@ -33,8 +32,8 @@
 
                 }
 
-                $sql = "INSERT INTO requisiciones (id_vendedor, estatus, cotizaciones, nombre_vendedor, sucursal, cliente, fechahora, num_pedido, factura, paqueteria, comentario) 
-                                        VALUES (:id_vendedor, :estatus, :cotizaciones, :nombre_vendedor, :sucursal, :cliente, :fechahora, :num_pedido, :factura , :paqueteria , :comentario)";
+                $sql = "INSERT INTO requisiciones (id_vendedor, estatus, cotizaciones, nombre_vendedor, sucursal, cliente, num_pedido, factura, paqueteria, comentario) 
+                                        VALUES (:id_vendedor, :estatus, :cotizaciones, :nombre_vendedor, :sucursal, :cliente, :num_pedido, :factura , :paqueteria , :comentario)";
                 $stmt = $conn->prepare($sql);
                 $stmt->bindParam(':id_vendedor', $id_vendedor);
                 $stmt->bindParam(':estatus', $estatus);
@@ -42,7 +41,6 @@
                 $stmt->bindParam(':nombre_vendedor', $nombre_vendedor);
                 $stmt->bindParam(':sucursal', $sucursal);
                 $stmt->bindParam(':cliente', $cliente);
-                $stmt->bindParam(':fechahora', $fechahora);
                 //$stmt->bindParam(':folio', $folio);
                 $stmt->bindParam(':num_pedido', $num_pedido);
                 $stmt->bindParam(':factura', $factura);
@@ -157,7 +155,6 @@
                 $nombre_vendedor = $_POST['nombre_vendedor'];
                 $sucursal = $_POST['sucursal'];
                 $cliente = $_POST['cliente'];
-                $fechahora = $_POST['fechahora'];
                 // $folio = $_POST['folio'];
                 $num_pedido = $_POST['num_pedido'];
                 $factura = $_POST['factura'];
@@ -178,8 +175,6 @@
                             nombre_vendedor = :nombre_vendedor,
                             sucursal = :sucursal,
                             cliente = :cliente,
-                            fechahora = :fechahora,
-                            
                             num_pedido = :num_pedido,
                             factura = :factura,
                             paqueteria = :paqueteria,
@@ -194,7 +189,6 @@
                 $stmt->bindParam(':nombre_vendedor', $nombre_vendedor);
                 $stmt->bindParam(':sucursal', $sucursal);
                 $stmt->bindParam(':cliente', $cliente);
-                $stmt->bindParam(':fechahora', $fechahora);
                 //$stmt->bindParam(':folio', $folio);
                 $stmt->bindParam(':num_pedido', $num_pedido);
                 $stmt->bindParam(':factura', $factura);

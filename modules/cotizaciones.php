@@ -576,6 +576,13 @@ if (!isset($_SESSION['id'])) {
                                         }
 
                                     ?>
+                                    <?php if ($tipoUsuario == 1 || $tipoUsuario == 2 ): ?>
+                                        <button type="button" class="btn-blue btn-asignar-cotizacion" 
+                                            data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            title="Asignarle esta cotización a un vendedor">
+                                            <i class="bi bi-send"></i>
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                                 
                             </td>
@@ -1164,6 +1171,33 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
+ <!-- //////////////////////////MODAL ASIGNAR COTIZACION A UN VENDEDOR /////////////////////// -->
+<div class="modal fade" id="modalAsignarCotizacion" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog" style="max-width: 50% !important;margin-top:10%;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="title-form">Asignación de cotización</span>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="d-flex justify-content-between ">
+                    <input type="hidden" id="inputIdCotizacionAsignar">
+                    <div class="" style="width:100%;">
+                        <label for="inputIdVendedor" class="lbl-general">Vendedor*</label>
+                        <select id="inputIdVendedor" class="selector" required >
+                            <option value="" selected disabled>Seleccione vendedor</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-end">
+                <button id="btnAsignarCotizacion" type="button" class="btn-general" tabindex="-1">Enviar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- //////////////////////////////////////////////////////////////////////// -->
+
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
 <script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>

@@ -213,7 +213,7 @@ if (!isset($_SESSION['id'])) {
     $archivoEventos = "eventos_materiales.js";
     $archivoPrevisualizacion = "tabla_previsualizacion.php";
     include('../includes/dimensiones_resultantes.php');
-    if ($tipoUsuario == 2 || $tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {
+    if ($tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {
         include('../includes/materiales2.php');
         $archivoEventos = "eventos_materiales2.js";
         $archivoPrevisualizacion = "tabla_previsualizacion2.php";

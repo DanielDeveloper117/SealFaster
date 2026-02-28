@@ -31,7 +31,7 @@ $(document).ready(function(){
             },
             "pageLength": 30,
             "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-            "scrollY": "400px", // Altura del área de desplazamiento vertical
+            "scrollY": "300px", // Altura del área de desplazamiento vertical
             "scrollX": true,
             dom: 'Blfrtip',
             buttons: [
@@ -92,7 +92,7 @@ $(document).ready(function(){
             },
             "pageLength": 30,
             "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-            "scrollY": "400px", // Altura del área de desplazamiento vertical
+            "scrollY": "300px", // Altura del área de desplazamiento vertical
             "scrollX": true,
             initComplete: function () {
                 var api = this.api();

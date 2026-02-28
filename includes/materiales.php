@@ -111,6 +111,14 @@
                                     <input id="inputCantidad_m<?= $i ?>" type="number" class="input-estimador" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
                                 </div>
 
+                                <div class="d-flex flex-column mb-1 font-monospace">
+                                    <ul>
+                                        <li>Desbaste H/pz: +<span id="toleranciaHpzMaterial_m<?= $i ?>">0</span> mm</li>
+                                        <li>Tolerancia de barra: DI-<span id="toleranciaBarraDI_m<?= $i ?>">0</span> mm</li>
+                                        <li>Tolerancia de barra: DE+<span id="toleranciaBarraDE_m<?= $i ?>">0</span> mm</li>
+                                    </ul>
+                                </div>
+
                                 <div id="containerErrorDimensiones_m<?= $i ?>" class="text-faltan">
                                     <span></span>
                                 </div>
@@ -121,11 +129,11 @@
                                     <button id="btnBilletsSimulacion_m<?= $i ?>" type="button" class="d-none btn-disabled mb-2" data-bs-toggle="modal" data-bs-target="#modalBilletsSimulacion_m<?= $i ?>" disabled>Ver barras coincidentes</button>
 
                                     <!-- <span>Desbaste añadido por pieza: 2.5 mm</span> -->
-                                    <div class="d-flex flex-column">
+                                    <div class="d-flex flex-column font-monospace">
                                         <div id="containerFaltanSiNo_m<?= $i ?>" class="text-faltan">
                                             <span>Milímetros necesarios: </span>
                                             <span id="spanMilimetrosNecesarios_m<?= $i ?>">0</span>
-                                            <span>, Faltan: </span>
+                                            <span>| Faltan: </span>
                                             <span id="spanSellosRestantes_m<?= $i ?>">0</span>
                                             <span> pz</span>
                                         </div>
