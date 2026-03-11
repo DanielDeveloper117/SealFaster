@@ -64,30 +64,58 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
-// Verifica si se recibió el parámetro 'material' mediante GET
-if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+$arregloSelectInventario = [];
+// *** METODO GET DE FILTROS RECIBIDOS ***
+if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+    $origen = $_GET['origen'];
     $material = $_GET['material'];
     $proveedor = $_GET['proveedor'];
 
     if($proveedor == "all"){
-        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
+        $sqlInventario = "
+            SELECT i.*, 
+                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+        ";
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
-        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
+        $sqlInventario = "
+            SELECT i.*, 
+                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
+            ORDER BY i.stock ASC
+        ";        
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
         $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
     }
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
+}else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
     // Eliminar todos los espacios en blanco de la clave antes de consultar
     $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE Clave = :clave ";
+    $sqlInventario = "
+        SELECT i.*, 
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen AND i.Clave = :clave
+        ORDER BY i.stock ASC
+    ";
     $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
@@ -96,18 +124,82 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
     $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
 
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE lote_pedimento = :lp ";
+    $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else{
+    $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
+    $sqlInventario = "
+    SELECT i.*, 
+        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+    FROM sellosyr_sellosctd.inventario_cnc AS i
+    INNER JOIN sellosyr_sellosctd.almacenes AS a
+        ON i.almacen_id = a.id
+    WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-    $sqlInventario = "SELECT * FROM inventario_cnc ";
+}else if (isset($_GET['pendientes'])) {
+    
+    $sqlInventario = 
+        "SELECT 
+            i.id, 
+            i.almacen_id,
+            i.Clave, 
+            i.Medida, 
+            i.proveedor, 
+            i.material, 
+            i.max_usable, 
+            i.stock, 
+            i.lote_pedimento,
+            i.estatus, 
+            i.updated_at,
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        LEFT JOIN parametros p ON i.Clave = p.clave
+        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' 
+        ORDER BY i.interior DESC;
+    ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+}elseif(isset($_GET['archivados'])){
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
+        ORDER BY i.interior DESC
+    ";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+}elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
+
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen
+        ORDER BY i.interior DESC";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+}else{
+    $arregloSelectInventario = [];
 }
 ?>
 
@@ -135,7 +227,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                 <thead>
                     <tr>
                         <th>Clave</th>
-                        <th>Lote/Pedimento</th>
+                        <th>Lote</th>
                         <th>Medida</th>
                         <th>Estatus</th>
                         <th>Proveedor</th>
@@ -145,6 +237,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Existencia</th>
                         <!-- <th>Stock</th> -->
                         <th>Usabilidad</th>
+                        <th>Almacén</th>
                         <th>Fecha de Ingreso</th>
                         <th>Actualización</th>
                     </tr>
@@ -214,6 +307,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         </td>
                         <!-- <td style="<?php echo $usableStyle; ?>"><?php echo htmlspecialchars($row['stock']); ?></td> -->
                         <td style="<?php echo $usableStyle; ?>"><?php echo $usableText; ?></td>
+                        <td class="td-almacen" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['almacen']); ?></td>
                         <td class="td-created" style="<?php echo $usableStyle; ?>">
                             <?php
                                 if (!empty($row['created_at'])) {

@@ -1,0 +1,93 @@
+Resumen de Implementación - Funcionalidad de Operaciones en Masa para Inventario CNC
+====================================================================================
+
+CAMBIOS REALIZADOS:
+
+1. ARCHIVO: inventario.php
+   ├─ Cambio del botón btnInitOperacion:
+   │  └─ De: <button> que abre modal directamente
+   │  └─ A: <a> (link) que activa modo de operación (?oper=1)
+   │
+   ├─ Modificación de tabla:
+   │  ├─ Primer encabezado: "Acciones" → columna vacía (para checkboxes)
+   │  ├─ Agregados checkboxes condicionales en cada fila:
+   │  │  └─ Solo visibles cuando ?oper=1
+   │  │  └─ Almacenan id en atributo "val"
+   │  │  └─ Almacenan lote_pedimento en atributo "data-lp"
+   │  └─ Botones de edición/eliminación movidos a estructura de container-actions
+   │
+   └─ Agregado contenedor agrupacionBar:
+      ├─ Mostrado cuando hay checkboxes seleccionados
+      ├─ Texto: "Seleccione las barras a las que desea aplicar una operacion de almacen"
+      ├─ Botones:
+      │  ├─ btnContinuarOperacion: Continúa con la operación (abre modal)
+      │  └─ btnCancelOperacion: Cancela la operación
+
+2. ARCHIVO: inventario_operaciones.js (NUEVO)
+   └─ Funcionalidad implementada:
+      ├─ Gestión del parámetro URL ?oper=1
+      ├─ Control de visibilidad de checkboxes
+      ├─ Animación "pop" al seleccionar/deseleccionar
+      ├─ Recopilación de datos seleccionados:
+      │  ├─ obtenerLotesSeleccionados(): Retorna array de lote_pedimento
+      │  ├─ obtenerIdsSeleccionados(): Retorna array de IDs
+      │  └─ Almacenamiento en sessionStorage:
+      │     ├─ inventarioOperacionIds
+      │     └─ inventarioOperacionLotes
+      ├─ Control de visibilidad de barra de operación
+      └─ Funciones auxiliares para soporte
+
+3. ARCHIVO: modal_add_billet.php (SIN CAMBIOS)
+   └─ Modal modalInventario:
+      ├─ Se abre automáticamente al hacer click en "Continuar"
+      ├─ Puede ser usado para operaciones individuales O en masa
+      ├─ Los datos están disponibles en sessionStorage para procesar
+
+FLUJO DE FUNCIONAMIENTO:
+
+1. Usuario hace click en "Realizar operación"
+   └─ Se redirige a: ?oper=1
+   
+2. Se muestran checkboxes en cada fila de la tabla
+   
+3. Usuario selecciona las barras deseadas
+   └─ Se muestra la barra agrupacionBar
+   └─ Animación "pop" en cada selección
+   
+4. Usuario hace click en "Continuar"
+   └─ Los datos se guardan en sessionStorage
+   └─ Se abre el modal modalInventario
+   
+5. En el modal (próxima fase):
+   └─ Los datos estarán disponibles para procesar
+   └─ Código de acceso:
+      const ids = JSON.parse(sessionStorage.getItem('inventarioOperacionIds'));
+      const lotes = JSON.parse(sessionStorage.getItem('inventarioOperacionLotes'));
+
+ESTILOS CSS DISPONIBLES:
+
+- .btn-check-cute: Checkbox personalizado (ya existe)
+- .pop: Animación en selección (ya existe)
+- .agrupacion-bar: Barra inferior con opciones (ya existe)
+- .d-none: Ocultar elementos (Bootstrap)
+
+PRÓXIMAS FASES (Para el Usuario):
+
+1. Completar el contenido del modal modalInventario con campos específicos
+2. Crear endpoint AJAX para procesar los datos seleccionados
+3. Implementar la lógica de la operación según sea necesaria
+4. Guardar datos en base de datos si es requerido
+
+ARCHIVOS MODIFICADOS:
+✓ c:\xampp\htdocs\sealfaster\modules\inventario.php
+✓ c:\xampp\htdocs\sealfaster\assets\js\inventario_operaciones.js (NUEVO)
+
+ARCHIVOS NO MODIFICADOS (pero involucrados):
+- c:\xampp\htdocs\sealfaster\includes\modal_add_billet.php (incluido al final de inventario.php)
+- c:\xampp\htdocs\sealfaster\assets\css\datatable1.css (contiene estilos requeridos)
+- c:\xampp\htdocs\sealfaster\assets\js\modal_add_billet.js (controla el modal)
+
+NOTAS:
+- La funcionalidad es muy similar a la de cotizaciones.php (btnInitFusionar)
+- El sessionStorage se limpia cuando se cierra el navegador o la pestaña
+- Para pruebas: Abre la consola (F12) y verifica sessionStorage después de hacer click en "Continuar"

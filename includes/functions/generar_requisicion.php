@@ -191,7 +191,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(30, 6, 'FECHA Y HORA:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
-    $pdf->Cell(52, 6, utf8_decode($arregloRequisicion['fechahora']), 1, 1, 'L', 0);
+    $pdf->Cell(52, 6, utf8_decode($arregloRequisicion['fecha_insercion']), 1, 1, 'L', 0);
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(50, 6, 'FACTURA/REMISION/NOTA:', 1, 0, 'R', true);
     $pdf->SetFont('Arial', '', 10);
@@ -282,7 +282,7 @@ if (isset($_GET['id_requisicion'])) {
         // Agregar alturas adicionales si existen
         $alturasAdicionales = [
             'altura_caja' => 'Caja:',
-            'altura_escalon' => 'Escalón:', 
+            'altura_escalon' => 'Caja + Escalón:', 
             'altura_h2' => 'H2:',
             'altura_h3' => 'H3:'
         ];
@@ -840,9 +840,6 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->Ln(5); 
     }
 
-
-
-
     // VERIFICAR SI HAY ESPACIO SUFICIENTE PARA LAS FIRMAS (aprox. 50mm)
     $pdf->CheckPageBreak(50);
     // Espaciado antes de las firmas
@@ -851,12 +848,12 @@ if (isset($_GET['id_requisicion'])) {
     // Verifica si las imágenes existen en disco antes de usarlas
     if (!empty($rutaFirmaGerente) && file_exists(ROOT_PATH . $rutaFirmaGerente)) {
         // X=30 Y=posición actual (antes del Cell) Ancho=50
-        $pdf->Image(ROOT_PATH . $rutaFirmaGerente, 30, $pdf->GetY() - 16, 40); 
+        $pdf->Image(ROOT_PATH . $rutaFirmaGerente, 88, $pdf->GetY() - 16, 40); 
     }
 
     if (!empty($rutaFirmaDireccion) && file_exists(ROOT_PATH . $rutaFirmaDireccion)) {
         // X=130 Y=posición actual (antes del Cell) Ancho=50
-        $pdf->Image(ROOT_PATH . $rutaFirmaDireccion, 130, $pdf->GetY() - 16, 40);
+        $pdf->Image(ROOT_PATH . $rutaFirmaDireccion, 88, $pdf->GetY() - 16, 40);
     }
 
     // if (!empty($rutaFirmaCnc) && file_exists(ROOT_PATH . $rutaFirmaCnc)) {
@@ -866,14 +863,30 @@ if (isset($_GET['id_requisicion'])) {
 
     // Líneas de firma
     $pdf->SetFont('Arial', '', 8);
-    $pdf->Cell(80, 8, '_____________________________________', 0, 0, 'C');
-    $pdf->Cell(20, 1, '', 0, 0); // Espacio entre celdas
-    $pdf->Cell(80, 8, '_____________________________________', 0, 1, 'C');
 
+    
+    //$pdf->Cell(20, 1, '', 0, 0); // Espacio entre celdas
+    //$pdf->Cell(80, 8, '_____________________________________', 0, 1, 'C');
+
+    $pdf->Cell(190, 8, '______________________________________________________________________________', 0, 1, 'C');
     // Descripciones debajo
-    $pdf->Cell(80, 2, 'AUTORIZA GERENCIA', 0, 0, 'C');
-    $pdf->Cell(20, 1, '', 0, 0);
-    $pdf->Cell(80, 2, utf8_decode('AUTORIZA DIRECCIÓN'), 0, 1, 'C');
+    if(!empty($arregloRequisicion['fecha_autorizacion']) && !empty($arregloRequisicion['ruta_firma'])){
+        $pdf->Cell(40, 1, '', 0, 0);
+        $pdf->Cell(40, 2, utf8_decode('AUTORIZA GERENCIA'), 0, 0, 'L');
+        $pdf->Cell(35, 2, utf8_decode(utf8_decode($arregloRequisicion['fecha_autorizacion'])), 0, 0, 'L');
+        $pdf->Cell(0, 2, utf8_decode(utf8_decode($arregloRequisicion['autorizo'])), 0, 0, 'L');
+
+    }elseif(!empty($arregloRequisicion['fecha_autorizacion']) && !empty($arregloRequisicion['ruta_firma_admin'])){
+        $pdf->Cell(40, 1, '', 0, 0);
+        $pdf->Cell(40, 2, utf8_decode('AUTORIZA DIRECCIÓN'), 0, 0, 'L');
+        $pdf->Cell(35, 2, utf8_decode(utf8_decode($arregloRequisicion['fecha_autorizacion'])), 0, 0, 'L');
+        $pdf->Cell(0, 2, utf8_decode(utf8_decode($arregloRequisicion['autorizo'])), 0, 0, 'L');
+        
+    }else{
+        $pdf->Cell(190, 2, utf8_decode('AUTORIZACIÓN'), 0, 1, 'C');
+    }
+    
+    //$pdf->Cell(180, 2, utf8_decode('AUTORIZA DIRECCIÓN'), 0, 1, 'C');
 
     // Espacio antes de la segunda fila
     // $pdf->Ln(22);

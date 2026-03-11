@@ -469,9 +469,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <option value="Auxiliar">No gerente</option>`);
             }if(inputTipo == "1"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
-                                <option value="Direccion">Direccion</option>`);
+                                <option value="Direccion">Direccion</option>
+                                <option value="Sistemas">Sistemas</option>`);
                 $("#inputRol").html(`<option value="" selected disabled>Seleccione un rol</option>
-                                <option value="Gerente">Gerente</option>`);
+                                <option value="Gerente">Gerente</option>
+                                <option value="Auxiliar">Auxiliar</option>`);
             }if(inputTipo == "2"){
                 $("#inputArea").html(`<option value="" selected disabled>Seleccione área</option>
                                 <option value="Sellos Maquinados">Sellos Maquinados</option>

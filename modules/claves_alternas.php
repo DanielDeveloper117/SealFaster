@@ -571,7 +571,11 @@ if(isset($_GET["pendientes"])){
 <body class="scroll-disablado">
     
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
-
+<div id="overlay">
+    <div class="loading-message">
+        <span>Cargando datos de inventario, por favor, espere...</span>    
+    </div>
+</div>
 <section class="section-table flex-column mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
         <div class="titulo mt-3 mb-3">

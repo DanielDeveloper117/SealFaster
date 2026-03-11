@@ -172,11 +172,17 @@
             <div class="modal-header">
                 <h5 class="modal-title" id="otrasAlturasTitle">
                     Otras alturas para este perfil
-                    <i id="questionIconSpecialWiper" class="bi bi-question-circle-fill d-none" style="padding-left:5px;"></i>
+                    <!-- <i id="questionIconSpecialWiper" class="bi bi-question-circle-fill d-none" style="padding-left:5px;"></i> -->
                 </h5>
             </div>
             <div class="modal-body text-center">
                 <div class="d-flex col-12 flex-column justify-content-between" >
+                    <div id="containerWiperEscalon" class="d-none d-flex col-12 flex-column justify-content-between align-items-center">
+                        <img src="../assets/img/general/wiper_escalon.jpg" class="img-fluid col-8 col-md-4" alt="Wiper con Escalon">
+                    </div>
+                    <div id="containerWiperEspecial" class="d-none d-flex col-12 flex-column justify-content-between align-items-center">
+                        <img src="../assets/img/general/wisper_especial3.jpg" class="img-fluid col-8 col-md-4" alt="Wiper Especial">
+                    </div>
                     <div class="col-12 col-md-12 d-flex flex-column flex-md-row gap-4 justify-content-center">
                         <div id="divAlturaCaja" class="d-flex flex-column d-none">
                             <label for="inputAlturaCaja" id="labelAlturaCajaMM" class="lbl-general mt-3">Altura de caja (mm)</label>
@@ -185,9 +191,9 @@
                             <input type="number" id="inputAlturaCajaInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaEscalon" class="d-flex flex-column d-none">
-                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="lbl-general mt-3">Altura escalon (mm)</label>
+                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="lbl-general mt-3">Altura caja + escalón (mm)</label>
                             <input type="number" id="inputAlturaEscalon" class="input-text" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="lbl-general mt-2">Altura escalon (inches)</label>
+                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="lbl-general mt-2">Altura caja + escalón (inches)</label>
                             <input type="number" id="inputAlturaEscalonInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH2" class="d-flex flex-column d-none">

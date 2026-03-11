@@ -247,9 +247,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         return bloquearAcciones('El DE no puede ser menor o igual a 0');
                     }
                     // 5. VALIDACIÓN: DI vs DE (Lógica de Negocio)
-                    if (di >= de) {
-                        return bloquearAcciones('El DI no puede ser mayor o igual al DE');
-                    }
+                    // if (di >= de) {
+                    //     return bloquearAcciones('El DI no puede ser mayor o igual al DE');
+                    // }
 
                     // 5. ÉXITO: Si llega aquí, todo es válido
                     errorSpan.text(''); // Limpiamos mensajes de error

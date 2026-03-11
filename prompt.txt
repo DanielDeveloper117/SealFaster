@@ -125,3 +125,160 @@ ningun folio. desea liberarla?", solamente mostrar la opcion de liberar la barra
 *si alguno de los campos de la requisicion esta vacio, solo mostrar "No disponible", por ejemplo 
 cuando aun no aplica alguna fecha.
 *NO CREAR ARCHIVOS DE REPORTE DE CAMBIOS.
+
+Vamos a desarrollar una adicion para el modulo de inventario.php, se trata de una funcionalidad que 
+le dara la capacidad al usuario de seleccionar varios registros de la tabla inventario_cnc en el 
+frontend. Vea que esta funcionalidad ya existe en el modulo de cotizaciones.php, especificamente al 
+hacer click a btnInitFusionar, se muestran checkbox para cada registro de la tabla del frontend, con la 
+capacidad de seleccionar los que el usuario desee, despues, se muestra en la parte inferior una 
+barra para decidir si continuar con la siguiente operacion que se relacionara con la seleccion y 
+especificamente se muestra el contenedor agrupacionBar. Esa misma version aplicará para el modulo de 
+inventario, pero con la diferencia de cotizaciones, en este, se hara click al boton btnInitOperacion 
+para comenzar con el proceso de seleccion de registros, ademas, para esta version el titulo de 
+la barra inferior en lugar de ser "Seleccione las cotizaciones que desea agrupar" va a ser "Seleccione 
+las barras a las que desea aplicar una operacion de almacen". Para esta version de inventario, al 
+hacer click en el boton de Continuar, se mostrara un modal modalInventario del archivo 
+modal_add_billet.php, para este nuevo modal, mientras tanto, dejarlo vacío y mas adelante continuaremos 
+con el contenido del modal. Cabe destacar que en un futuro debemos capturar en un arreglo el dato de 
+$row['lote_pedimento'] de la tabla acumulando los registros que selecciona el usuario y en base a ese 
+arreglo haremos una serie de operaciones para el modal de operaciones mencionado anteriormente. 
+Es libre de hacer esta adicion de manera profesional, si lo desea puede hacer archivos por separado 
+para el modal o javascript por separado o ahi todo junto.  
+
+Con base a la estructura de la base de datos mostrada en el archivo dbdiagramio.txt, desarrollaremos 
+una serie de operaciones enfocadas al traspaso o venta de una barra/unas barras de material 
+provenientes del inventario_cnc tanto frontend como backend.
+*Como puede observar en modal_operacion_inventario.php, tenemos un selector inputTipoOperacion, el 
+cual será dinamico: 
+-si seleccionan Traspaso, el selector inputDestinoId se debe llenar dinamicamente con los 
+valores de la tabla almacenes que se muestra en el diagrama, para ello puede realizar una consulta 
+ajax al iniciar el dom para que en todo caso esten disponibles los almacenes.
+-si seleccionan Venta, el selector inputDestinoId no aplica asi que debera estar oculto y su 
+valor sera 0 como default en la tabla.
+*Los registros seleccionados del frontend se deben mostrar en el contenedor containerBarrasSeleccionadas 
+de manera profesional, como puede observar hay un <li> mostrando el ejemplo del orden de los 
+datos esperados a manera de previsualizacion, tal orden es "clave lote medida material proveedor", 
+estos datos pueden ser extraidos de la tabla cargada. La manera en que el usuario debe ver estos datos 
+en el modal, debe ser agradable para el usuario y los datos deben ser claros dado que realizará operaciones 
+importantes. Cada registro seleccionado representa una actualizacion al campo inventario_cnc.operacion_id.
+*Al enviar el formulario con tipo Traspaso, el procesamiento de los datos es el siguiente:
+-se crea un nuevo registro en operaciones_inv con los siguientes campos;
+    +usuario_id = id del usuario en sesion.
+    +tipo = Traspaso
+    +almacen_origen_id = inventario_cnc.almacen_id
+    +almacen_destino_id = almacenes.id seleccionado del selector.
+    +justificacion = lo que digito el usuario, minimo 10 caracteres.
+    +img_envio = la ruta de la imagen que el usuario subira al servidor.
+    la ruta debe ser algo como files/operaciones_inv/[operaciones_inv.id].[extension] 
+    asegurando que el nombre de la imagen sea sanitizado.
+- Se realiza la siguiente actualizacion:
+    +inventario_cnc.operacion_id = operaciones_inv.id.
+    +inventario_cnc.estatus = "Traspaso".
+*Al enviar el formulario con tipo Venta, el procesamiento de los datos es el siguiente:
+-se crea un nuevo registro en operaciones_inv con los siguientes campos;
+    +usuario_id = id del usuario en sesion.
+    +tipo = venta
+    +almacen_origen_id = inventario_cnc.almacen_id
+    +almacen_destino_id = 0.
+    +justificacion = lo que digito el usuario, minimo 10 caracteres.
+    +img_envio = la ruta de la imagen que el usuario subira al servidor.
+    la ruta debe ser algo como files/operaciones_inv/[operaciones_inv.id].[extension] 
+    asegurando que el nombre de la imagen sea sanitizado.
+- Se realiza la siguiente actualizacion:
+    +inventario_cnc.operacion_id = operaciones_inv.id.
+    +inventario_cnc.estatus = "Venta".
+*Cuando el usuario cierra el modal modalOperacionInventario los campos no se resetean, se 
+resetean cuando el usuario hace click al boton de cancelar btnCancelOperacion de agrupacionBar.
+*Las peticiones deben ser asincronas, en la carpeta ajax hay muchos ejemplos de estructura de 
+backend de las peticiones ajax.
+*modal_add_billet.js tiene peticiones ajax frontend de ejemplo.
+*Asegurar que el desarrollo sea profesional y robusto.
+
+Hay que desarrollar las funcionalidades que comienzan al clickear los diferentes botones 
+del contenedor "container-actions". Como podra observar tenemos los botones; "delete-btn", 
+"btn-detalles" y "modalRecepcion". A continuacion se explica que comportamiento y acciones 
+son las esperadas.
+*delete-btn: este boton tomara el data-id y hara una solicitud asincrona al servidor 
+para eliminar el registro en base a su operaciones_inv.id pero no sin antes pedir 
+la confirmacion del usuario para evitar eliminaciones accidentales. No olvide eliminar 
+tambien las imagenes relacionadas al registro, la ruta/nombre de las imagenes son los campos 
+"img_envio_barras" y "img_envio_paquete". Cuando sea exitosa la 
+eliminacion, en el mismo backend de la solicitud va a cambiar el estatus de las barras 
+ligadas al registro eliminado, el proceso 
+para cambiar el estatus es tomar el operaciones_inv.id y buscar cada registro de 
+inventario_cnc donde inventario_cnc.operacion_id = operaciones_inv.id, traera uno o varios 
+registros, entonces va a actualizar cada registro de inventario_cnc a 
+inventario_cnc.estatus = "Disponible para cotizar" dado que antes de la eliminacion su 
+estatus era "Traspaso". El archivo backend que se encargara de esto es eliminar_traspaso.php.
+Por ultimo eliminar el renglon del frontend. 
+*btn-detalles: Este boton mostrara un modal con todos los detalles del registro dado 
+que no estamos mostrando toda la informacion en la tabla. El modal debe ser grande para 
+poder mostrar toda la informacion logistica de la operacion traspaso. El modal se parecera 
+mucho al modal_operacion_inventario.php, pero todo será solo vista. El cuerpo se conformara 
+de un componente grande de 2 pestañas, en la pestaña que se muestra inicialmente se 
+llamara "Detalles", la segunda 
+pestaña se llamara "Barras". La primer pestaña detalles, tendra 3 partes/secciones horizontales y 
+en movil serán verticales.
+-1. Seccion de detalles mostrara:
+    +id.operaciones_inv es el id del registro.
+    +operaciones_inv.usuario_id = mostrara el nombre del usuario que creó la operacion 
+    buscando con la id 
+    de la manera operacion_id.usuario_id = login.id pero mostrar login.nombre, sin embargo 
+    al estar la tabla login encriptada debera tomar el ejemplo del script 
+    autorizar_firma_predeterminada.php, ahi se aplica la clave para desencriptar, hagalo para 
+    poder mostrar el nombre del usuario que ha creado la operacion.
+    +almacen_origen_id, debe mostrarse el almacenes.almacen para que se muestre el nombre 
+    del almacen de origen, puede tomar el ejemplo de como obtenemos el nombre en 
+    sqlTraspasos de traspasos.php.
+    +almacen_destino_id, mismo caso que almacen_origen_id para mostrar el almacen de destino.
+    +operaciones_inv.justificacion es un texto directo.
+    +operaciones_inv.recibido, este tynint cuando es 0 mostrara "No recibido aun por el 
+    almacen de destino", si es 1, mostrar "El envio ha sido recibido" y mostrar la informacion 
+    relacionada a la recepcion.
+    +operaciones_inv.recibio_id, mismo caso que usuario_id, recibido_id es el usuario que 
+    recibió el paquete, esta informacion solo se mostrara si recibido = 1.
+    +operaciones_inv.fecha_recibido, es la fecha en la que recibieron el paquete, 
+    esta informacion solo se mostrara si recibido = 1.
+    +operaciones_inv.created_at, es la fecha en la que se creó la operacion.
+-2. Seccion de evidencias de envío. Esta seccion simplemente mostrará dos imagenes de manera 
+vertical, lo que viene siendo "Fotografia de las barras enviadas"; operaciones_inv.img_envio_barras y 
+lo que viene siendo "Fotografia del paquete enviado"; operaciones_inv.img_envio_paquete.
+-3. Seccion de evidencias de recepcion. Esta seccion simplemente mostrará dos imagenes de manera 
+vertical, estas van a ser las imagenes que se mostraran ya cuando recibido = 1 dado que cuando 
+han recibido el paquete ya habría evidencias de recepcion, siendo "Fotografia de paquete recibido"; 
+operaciones_inv.img_recepcion_paquete y "Fotografia de barras recibidas"; 
+operaciones_inv.img_recepcion_barras, en ese orden.
+*La segunda pestaña del modal detalles (la primera era "Detalles") llamada "Barras" debera 
+contener el listado de barras relacionadas a esa operacion, vea el modal de  
+modal_operacion_inventario.php, ahi se encuentra un frontend que lista barras pero de 
+manera simple, sin embargo para esta pestaña el listado de barras se debe ver mejor dado que 
+el contenido se enfoca en que el usuario vea las barras de manera legible y profesional, puede 
+usar la creatividad para mostrarla a manera de tabla responsiva, dado que una tabla podria ser 
+mas amigable para un usuario de inventarios que esta acostumbrado a ver registros de excel y 
+registros en forma de tablas. La manera en la que vas a consultar el listado de barras es una 
+relacion entre las tablas operaciones_inv e inventario_cnc. Vea el archivo dbdiagramio.txt para 
+que vea la relacion entre tablas, en resumen la relacion es 
+inventario_cnc.operacion_id = operaciones_inv.id. Vea la estructura de la tabla de inventario_cnc, 
+dado que es importante traer los datos mas utiles para la operacion, tales registros como 
+la clave, medida, lote, material, proveedor y stock. En esta pestaña tambien habra en algun 
+lugar un boton de "Ver en Inventario CNC", tal boton hara una solicitud get a inventario.php 
+con el payload get inventario.php?traspaso=[operaciones_inv.id]&oper=0.
+Si necesita crear archivos nuevos hagalo, vea ejemplos de backend de solicitudes en la carpeta 
+ajax. Si necesita crear un archivo javascript especial para el modulo traspasos, hagalo.
+
+Desarrollaremos la funcionalidad del boton modalRecepcion para recibir el paquete.
+*Al hacer click al boton, debe mostrar un modal en el cual le pida al usuario dos imagenes; 
+la foto img_recepcion_paquete y la foto img_recepcion_barras, las cuales son obligatorias. 
+Despues de enviar el formulario con una solicitud ajax, el backend debe realizar lo siguiente:
+-recibido = 1.
+-recibio_id = el id del usuario en sesion.
+-fecha_recibido = now
+-guardar las imagenes en el servidor.
+-Consultar las barras de inventario_cnc.operacion_id = operaciones_inv=id, para que con esto 
+se actualicen los campos almacen_id, y el estatus de la siguiente manera para cada una de las barras
+asociadas a la operacion:
++inventario_cnc.almacen_id ahora va a ser el operaciones_inv.almacen_destino_id del traspaso, 
+dando a entender que ya ocurrio el traspaso entre almacenes. 
++inventario_cnc.estatus cambiar a "Disponible para cotizar".
++inventario_cnc.updated_at = now.
+*El backend debera estar en recibir_traspaso.php.

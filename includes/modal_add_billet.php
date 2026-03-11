@@ -10,11 +10,16 @@
                 <form id="formInventario">                        
                     <input type="hidden" id="inputId" name="id">
                     <input type="hidden" id="inputAction" name="action" value="insert">
-                    <input type="hidden" id="inputEstatus" name="estatus" value="">
+                    <input type="hidden" id="inputEstatus" name="estatus" value="Disponible para cotizar">
                     <input type="hidden" id="inputClaveAlterna" name="clave_alterna" value="">
-
                     <div class="mb-3">
-                        <label for="inputClavePost" class="lbl-general">Clave</label>
+                        <label for="inputAlmacenIdBilletForm" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
+                        <select id="inputAlmacenIdBilletForm" class="selector" name="almacen_id" required>
+                            <option value="" disabled selected>Seleccionar un almacén</option>
+                        </select>
+                    </div>    
+                    <div class="mb-3">
+                        <label for="inputClavePost" class="lbl-general">Clave <span class="text-danger">*</span></label>
                         <input type="text" class="input-text" id="inputClavePost" name="clave" placeholder="Ingrese una clave" required>
                         <p id="pAlterna" class="d-none p-warning my-1"></p>
                         <p id="pWarning" class="d-none p-warning"></p>
@@ -26,9 +31,9 @@
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputMaterial" class="lbl-general">Material</label>
+                            <label for="inputMaterial" class="lbl-general">Material <span class="text-danger">*</span></label>
                             <select id="inputMaterial" class="selector" name="material" required>
-                                <option disabled selected>Seleccionar</option>
+                                <option value="" disabled selected>Seleccionar</option>
                                 <option value="H-ECOPUR">H-ECOPUR</option>
                                 <option value="ECOSIL">ECOSIL</option>
                                 <option value="ECORUBBER 1">ECORUBBER 1</option>
@@ -43,9 +48,9 @@
                             </select>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputProveedor" class="lbl-general">Proveedor</label>
+                            <label for="inputProveedor" class="lbl-general">Proveedor <span class="text-danger">*</span></label>
                             <select id="inputProveedor" class="selector" name="proveedor" required>
-                                <option selected disabled>Seleccionar</option>
+                                <option value="" selected disabled>Seleccionar</option>
                                 <option value="TRYGONAL">TRYGONAL</option>
                                 <option value="CARVIFLON">CARVIFLON</option>
                                 <option value="SKF">SKF</option>
@@ -55,34 +60,25 @@
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputMedida" class="lbl-general">Medida (interior/exterior)</label>
+                            <label for="inputMedida" class="lbl-general">Medida (interior/exterior) <span class="text-danger">*</span></label>
                             <input id="inputMedida" type="text" class="input-text"  name="medida" placeholder="Ej. 27/50" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputMaxUsable" class="lbl-general">Max. Usable</label>
+                            <label for="inputMaxUsable" class="lbl-general">Max. Usable <span class="text-danger">*</span></label>
                             <input id="inputMaxUsable" type="number" class="input-text"  name="max_usable" min="0" placeholder="Ej. 144" required>
                         </div>                        
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <div class="" style="width:48%;">
-                            <label for="inputStock" class="lbl-general">Stock</label>
+                            <label for="inputStock" class="lbl-general">Stock <span class="text-danger">*</span></label>
                             <input id="inputStock" type="number" class="input-text"  min="0" step="0.01" name="stock" required>
                         </div>
                         <div class="" style="width:48%;">
-                            <label for="inputLotePedimento" class="lbl-general">Lote pedimento</label>
+                            <label for="inputLotePedimento" class="lbl-general">Lote <span class="text-danger">*</span></label>
                             <input id="inputLotePedimento" type="text" class="input-text"  name="lote_pedimento" required>
-                            <p id="pInvalida3" class="d-none p-invalida">Ese Lote pedimento ya existe.</p>
+                            <p id="pInvalida3" class="d-none p-invalida">Ese Lote ya existe.</p>
                         </div>                        
                     </div>
-
-                    <!-- <div id="containerSelectorDureza" class="mb-4">
-                        <label for="selectorDureza" class="lbl-general">Dureza del material</label>
-                        <select id="selectorDureza" class="form-select" name="dureza" required disabled>
-                            <option value="" disabled selected>Seleccionar</option>
-                            <option value="duro">Polimero (material duro)</option>
-                            <option value="suave">Elastomero (material suave)</option>
-                        </select>
-                    </div> -->
 
                     <button id="btnGuardar" type="button" class="btn-general">Guardar</button>
                 </form>

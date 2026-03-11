@@ -37,7 +37,7 @@ if ($arregloUser) {
             $tipo_usuario = "Vendedor";
         break;
         case 4:
-            $tipo_usuario = "Comprador";
+            $tipo_usuario = "Compras";
         break;
         case 6:
             $tipo_usuario = "Inventarios";

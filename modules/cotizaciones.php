@@ -432,6 +432,21 @@ if (!isset($_SESSION['id'])) {
             padding: 0 4px;
             pointer-events: none;
         }
+        /* Estilo para wrapper del checkbox */
+        .checkbox-wrapper {
+            position: relative;
+            display: flex; 
+            align-items: stretch;
+            height: stretch; 
+        }
+
+        .badge-checkbox {
+            position: absolute;
+            top: 0px;
+            right: 6px;
+            font-size: 32px !important;
+            pointer-events: none;
+        }
     </style>
 <div id="overlay">
     <div class="loading-message">
@@ -514,12 +529,15 @@ if (!isset($_SESSION['id'])) {
                             <td class="td-first-actions">
                                 <div class="d-flex gap-2 container-actions">
                                     <?php if (isset($_GET['agru']) && $_GET['agru'] == '1'): ?>
-                                        <input
-                                            type="checkbox"
-                                            class="d-none btn-check-cute"
-                                            val="<?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                            aria-label="Seleccionar cotizacion <?= htmlspecialchars($row['id_cotizacion']); ?>"
-                                        />
+                                        <div class="checkbox-wrapper">
+                                            <input
+                                                type="checkbox"
+                                                class="d-none btn-check-cute"
+                                                val="<?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                                title="Seleccionar cotizacion <?= htmlspecialchars($row['id_cotizacion']); ?>"
+                                            />
+                                        <i class="bi bi-check2 badge-checkbox d-none"></i>
+                                    </div>
                                     <?php endif; ?>
 
                                     <?php if ($tipoUsuario != 5): ?>

@@ -44,7 +44,9 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
+    <script src="<?= controlCache('../assets/js/inventario_operaciones.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/modal_operacion_inventario.js'); ?>"></script>
+
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Inventario CNC</title>
@@ -68,47 +70,79 @@ if (!isset($_SESSION['id'])) {
         box-shadow: 0 0 10px rgba(0,0,0,0.2);
         transition: all 0.3s ease;
     }
+
+    /* Estilo para wrapper del checkbox */
+    .checkbox-wrapper {
+        position: relative;
+        display: flex; 
+        align-items: stretch;
+        height: stretch; 
+    }
+
+    .badge-checkbox {
+        position: absolute;
+        top: 0px;
+        right: 6px;
+        font-size: 32px !important;
+        pointer-events: none;
+    }
 </style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
+$arregloSelectInventario = [];
+// *** METODO GET DE FILTROS RECIBIDOS ***
+if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
 
-// Obtener los datos del registro para edicion
-if ($_SERVER['REQUEST_METHOD'] == 'GET' && isset($_GET['action']) && $_GET['action'] == 'get_data') {
-    $id = $_GET['id'];
-    $sql = "SELECT * FROM inventario_cnc WHERE id = :id";
-    $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id', $id);
-    $stmt->execute();
-    $registro = $stmt->fetch(PDO::FETCH_ASSOC);
-    echo json_encode($registro);
-    exit;
-}
-
-// Verifica si se recibio el parametro 'material' mediante GET
-if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+    $origen = $_GET['origen'];
     $material = $_GET['material'];
     $proveedor = $_GET['proveedor'];
 
     if($proveedor == "all"){
-        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material ORDER BY interior DESC";
+        $sqlInventario = "
+            SELECT i.*, 
+                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+        ";
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
     }else{
-        $sqlInventario = "SELECT * FROM inventario_cnc WHERE material = :material AND proveedor = :proveedor ORDER BY interior DESC";
+        $sqlInventario = "
+            SELECT i.*, 
+                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
+            ORDER BY i.stock ASC
+        ";        
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
         $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
         $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
     }
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else if (isset($_GET['clave']) && !empty($_GET['clave'])) {
+}else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
     // Eliminar todos los espacios en blanco de la clave antes de consultar
     $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
 
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE Clave = :clave ";
+    $sqlInventario = "
+        SELECT i.*, 
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen AND i.Clave = :clave
+        ORDER BY i.stock ASC
+    ";
     $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
     $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
@@ -117,50 +151,101 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
     $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
 
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE lote_pedimento = :lp ";
+    $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
     $stmtInventario = $conn->prepare($sqlInventario);
     $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else if (isset($_GET['corregir'])) {
-    // esto ya no se usa porque ya se actualizaron todos los registros y porque se valida que ese campo sea correcto
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE max_usable = 0.00 ";
+    $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
+    $sqlInventario = "
+    SELECT i.*, 
+        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+    FROM sellosyr_sellosctd.inventario_cnc AS i
+    INNER JOIN sellosyr_sellosctd.almacenes AS a
+        ON i.almacen_id = a.id
+    WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
     $stmtInventario = $conn->prepare($sqlInventario);
-    //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+    $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
 }else if (isset($_GET['pendientes'])) {
     
-    $sqlInventario = "SELECT 
-                            i.id, 
-                            i.Clave, 
-                            i.Medida, 
-                            i.proveedor, 
-                            i.material, 
-                            i.max_usable, 
-                            i.stock, 
-                            i.lote_pedimento
-                        ,estatus, updated_at FROM inventario_cnc i
-                        LEFT JOIN parametros p ON i.Clave = p.clave
-                        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' ORDER BY stock DESC;
-                        ";
-                        $stmtInventario = $conn->prepare($sqlInventario);
-                        $stmtInventario->execute();
-                        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+    $sqlInventario = 
+        "SELECT 
+            i.id, 
+            i.almacen_id,
+            i.Clave, 
+            i.Medida, 
+            i.proveedor, 
+            i.material, 
+            i.max_usable, 
+            i.stock, 
+            i.lote_pedimento,
+            i.estatus, 
+            i.updated_at,
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        LEFT JOIN parametros p ON i.Clave = p.clave
+        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' 
+        ORDER BY i.interior DESC;
+    ";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
 }elseif(isset($_GET['archivados'])){
-    $sqlInventario = "SELECT * FROM inventario_cnc WHERE solicita_archivado = 1 AND estatus = 'Eliminado'";
+
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
+        ORDER BY i.interior DESC
+    ";
     $stmtInventario = $conn->prepare($sqlInventario);
     //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-}else{
 
-    $sqlInventario = "SELECT * FROM inventario_cnc ";
+}elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
+
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen
+        ORDER BY i.interior DESC";
     $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+}elseif(isset($_GET['traspaso']) && !empty($_GET['traspaso'])){
+    
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.operacion_id = :traspaso
+        ORDER BY i.interior DESC";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':traspaso', $_GET['traspaso'], PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+}else{
+    $arregloSelectInventario = [];
 }
 ?>
 <div id="overlay">
@@ -173,12 +258,26 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
     <div class="col-11">
         <div class="titulo mt-3 mb-3">
             <h1>Inventario CNC</h1>
-            <div class="d-flex flex-row justify-content-start col-12 col-md-3">
-                <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
-                        data-bs-toggle="modal" data-bs-target="#modalInventario">
-                    <i class="bi bi-file-plus" style="font-size:24px;"></i>
-                    Agregar Registro
-                </button>
+            <div class="d-flex flex-row justify-content-start col-12 col-md-6 gap-2">
+                <div>
+
+                    <button type="button" id="btnAgregar" class="btn-general d-flex justify-content-center align-items-center gap-2" 
+                            data-bs-toggle="modal" data-bs-target="#modalInventario">
+                        <i class="bi bi-file-plus" style="font-size:24px;"></i>
+                        Agregar Registro
+                    </button>
+                </div>
+                <?php if (!isset($_GET['pendientes']) 
+                            && !isset($_GET['archivados']) 
+                            && !isset($_GET['traspaso']) 
+                            && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                || ($tipo_usuario === "Administrador") 
+                                || ($tipo_usuario == "Sistemas"))): ?>
+                    <a id="btnInitOperacion" class="btn-unlink d-flex justify-content-center align-items-center gap-2" href="#">
+                        <i class="bi bi-box-seam" style="font-size:24px;"></i>
+                        Iniciar Operación
+                    </a>
+                <?php endif; ?>
             </div>
         </div>
         <div class="table-container">
@@ -193,9 +292,9 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
             <table id="inventarioTable" class="table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Acciones</th>
+                        <th style="background-color:#55ad9b52;"></th>
                         <th>Clave</th>
-                        <th>Lote/Pedimento</th>
+                        <th>Lote</th>
                         <th>Medida</th>
                         <th>Estatus</th>
                         <th>Material</th>
@@ -204,6 +303,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         <th>Stock</th>
                         <th>Existencia</th>
                         <th>Usabilidad</th>
+                        <th>Almacén</th>
                         <th>Fecha de Ingreso</th>
                         <th>Actualización</th>
                     </tr>
@@ -241,11 +341,34 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                         
                     ?>
                     <tr id="tr_<?= $row['id']; ?>" class="fila-inventario" style="<?= $usableStyle; ?>">
-                        <td class="acciones d-flex flex-column" style="<?php echo $usableStyle; ?>">
-                            <div class="d-flex flex-column">
-                                <?php if ($row['estatus'] != "Eliminado"): ?>
-                                    <button class="btn-general edit-btn mb-1" 
+                        <td class="td-first-actions" style="<?php echo $usableStyle; ?>">
+                            <div class="d-flex gap-2 container-actions">
+                                <?php if (isset($_GET['oper']) 
+                                        && $_GET['oper'] == '1' 
+                                        && $row['estatus'] == "Disponible para cotizar" 
+                                        && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente")
+                                            || $tipo_usuario === "Administrador") ): ?>
+                                    <div class="checkbox-wrapper">
+                                        <input
+                                            type="checkbox"
+                                            class="d-none btn-check-cute"
+                                            val="<?= htmlspecialchars($row['id']); ?>"
+                                            data-lp="<?= htmlspecialchars($row['lote_pedimento']); ?>"
+                                            data-almacen-id="<?= htmlspecialchars($row['almacen_id']); ?>"
+                                            title="Seleccionar barra <?= htmlspecialchars($row['lote_pedimento']); ?>"
+                                        />
+                                        <i class="bi bi-check2 badge-checkbox d-none"></i>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if ($row['estatus'] != "Eliminado" 
+                                        && $row['estatus'] != "En uso" 
+                                        && $row['estatus'] != "Traspaso"
+                                        && $row['estatus'] != "Venta"
+                                        && $row['estatus'] != "Maquinado en curso"): ?>
+                                    <button class="btn-general edit-btn" 
                                         data-id="<?= $row['id']; ?>"
+                                        data-almacen_id="<?= $row['almacen_id']; ?>"
                                         data-clave="<?= $row['Clave']; ?>"
                                         data-medida="<?= $row['Medida']; ?>"
                                         data-proveedor="<?= $row['proveedor']; ?>"
@@ -255,80 +378,87 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                                         data-lote_pedimento="<?= $row['lote_pedimento']; ?>"
                                         data-estatus="<?= $row['estatus']; ?>"
                                     >
-                                        Editar<i class="bi bi-pencil-square px-2"></i>
+                                        <i class="bi bi-pencil-square px-2"></i>
                                     </button>
                                 <?php endif; ?>
-                                <form class="form-delete d-flex flex-column gap-2">
-                                    <?php
-                                    if($row['estatus'] == "Disponible para cotizar"){                                      
-                                        echo '
-                                            <button type="button" class="btn-eliminar delete-btn" 
-                                                    data-id='.$row["id"].'
-                                                    data-lp='.$row["lote_pedimento"].'
-                                                    title="Archivar registro (marcar como no disponible para cotizar y solicitar archivar la barra)">
-                                                Archivar<i class="bi bi-archive px-2"></i>
-                                            </button>
-                                        ';
-                                    }else if($row['estatus'] == "Eliminado"){
-                                        if($tipo_usuario === "Administrador"){
-                                            echo '';
-                                            if($row['archivado_auth'] == 0){
-                                                echo '
-                                                    <button type="button" class="btn-auth btn-autorizar-archivado" 
-                                                            data-id='.$row["id"].'
-                                                            data-lp='.$row["lote_pedimento"].'
-                                                            title="Autorizar">
-                                                        Autorizar archivado<i class="bi bi-archive-fill px-2"></i>
-                                                    </button>
-                                                '; 
-                                            }
-                                            if($row['archivado_auth'] == 1){
-                                                echo '<p>';
-                                                echo 'Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>';
-                                                echo '</p>';
-
-                                            }
+                                
+                                <?php
+                                if($row['estatus'] == "Disponible para cotizar"){                                      
+                                    echo '
+                                        <button type="button" class="btn-eliminar delete-btn" 
+                                                data-id='.$row["id"].'
+                                                data-lp='.$row["lote_pedimento"].'
+                                                title="Archivar registro (marcar como no disponible para cotizar y solicitar archivar la barra)">
+                                            <i class="bi bi-archive px-2"></i>
+                                        </button>
+                                    ';
+                                }else if($row['estatus'] == "Eliminado"){
+                                    if($tipo_usuario === "Administrador"){
+                                        echo '';
+                                        if($row['archivado_auth'] == 0){
                                             echo '
-                                                <button type="button" class="btn-general btn-ver-justificacion" 
-                                                        data-id="'.$row["id"].'"
-                                                        data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
-                                                        data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
-                                                        data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
-                                                        data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
-                                                        title="Ver la justificación y fotografía de la solicitud">
-                                                    Ver justificación <i class="bi bi-chat-text px-2"></i>
+                                                <button type="button" class="btn-auth btn-autorizar-archivado" 
+                                                        data-id='.$row["id"].'
+                                                        data-lp='.$row["lote_pedimento"].'
+                                                        title="Autorizar">
+                                                    Autorizar archivado<i class="bi bi-archive-fill px-2"></i>
                                                 </button>
                                             '; 
-                                            
-                                            
-                                        }else{
-                                            
-                                            echo '
-                                                <button type="button" class="btn-general btn-ver-justificacion" 
-                                                        data-id="'.$row["id"].'"
-                                                        data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
-                                                        data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
-                                                        data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
-                                                        data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
-                                                        title="Ver la justificación y fotografía de la solicitud">
-                                                    Ver justificación <i class="bi bi-chat-text px-2"></i>
-                                                </button>
-                                            '; 
-                                            echo '<p>';
-                                            if($row['archivado_auth'] == 0){
-                                                echo 'Solicitud enviada para archivar';
-                                            }elseif($row['archivado_auth'] == 1){
-                                                echo 'Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>';
-                                                
-                                            }
-                                            echo '</p>';
                                         }
+                                        if($row['archivado_auth'] == 1){
+                                            $htmlP = '
+                                                <p>
+                                                Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>
+                                                </p>
+                                            ';
+
+                                        }
+                                        echo '
+                                            <button type="button" class="btn-general btn-ver-justificacion" 
+                                                    data-id="'.$row["id"].'"
+                                                    data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
+                                                    data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
+                                                    data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
+                                                    data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
+                                                    title="Ver la justificación y fotografía de la solicitud">
+                                                Ver justificación <i class="bi bi-chat-text px-2"></i>
+                                            </button>
+                                        '; 
+                                        
+                                        
                                     }else{
-                                        echo '<p>'.htmlspecialchars($row['estatus']).'</p>';
+                                        
+                                        echo '
+                                            <button type="button" class="btn-general btn-ver-justificacion" 
+                                                    data-id="'.$row["id"].'"
+                                                    data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
+                                                    data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
+                                                    data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
+                                                    data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
+                                                    title="Ver la justificación y fotografía de la solicitud">
+                                                Ver justificación <i class="bi bi-chat-text px-2"></i>
+                                            </button>
+                                        '; 
+                                        $htmlP = '<p>';
+                                        if($row['archivado_auth'] == 0){
+                                            $htmlP .=  'Solicitud enviada para archivar';
+                                        }elseif($row['archivado_auth'] == 1){
+                                            $htmlP .= 'Autorizado para archivar<i class="bi bi-archive-fill px-2"></i>';
+                                        }
+                                        $htmlP .= '</p>';
                                     }
-                                    ?>
-                                    
-                                </form>
+                                }else{
+                                    $htmlP =  '<p>'.htmlspecialchars($row['estatus']).'</p>';
+                                }
+                                ?>
+                            </div>
+                            <div>
+                                <?php 
+                                    if(isset($htmlP)){
+                                        echo $htmlP;
+                                        unset($htmlP);
+                                    }
+                                ?>
                             </div>
                         </td>
                         <td class="td-clave" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['Clave']); ?></td>
@@ -364,6 +494,7 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
                             </div>
                         </td>
                         <td class="td-usable" style="<?php echo $usableStyle; ?>"><?= $usableText; ?></td>
+                        <td class="td-almacen" style="<?php echo $usableStyle; ?>"><?= htmlspecialchars($row['almacen']); ?></td>
                         <td class="td-created" style="<?php echo $usableStyle; ?>"> 
                             <?php
                                 if (!empty($row['created_at'])) {
@@ -391,6 +522,17 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
         </div>
     </div>
 </section>
+
+<div id="agrupacionBar" class="agrupacion-bar d-none">
+    <span class="agrupacion-texto">Seleccione las barras a las que desea aplicar una operacion de almacen</span>
+    <div class="d-flex flex-column flex-md-row gap-3">
+        <button id="btnContinuarOperacion" class="btn-general">Continuar</button>
+        <button id="btnCancelOperacion" type="button" class="btn btn-secondary">
+            Cancelar
+        </button>
+    </div>
+</div>
+
 <!-- //////////////////////////MODAL: FORMULARIO SOLICITAR ARCHIVAR BARRA /////////////////////// -->
 <div class="modal fade" id="modalSolicitarArchivar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -483,8 +625,10 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
 </div>
 <!-- ////////////////////////////////////////////////////////////////////////////////////////// -->
 <?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
+<?php include(ROOT_PATH . 'includes/modal_operacion_inventario.php'); ?>
 <?php include(ROOT_PATH . 'includes/modal_localizar_barra.php'); ?>
 
+<!-- Scripts para DataTable y funcionalidades -->
 <script>
     $(document).ready(function(){
         $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
@@ -493,7 +637,9 @@ if (isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['provee
         $('#btnExportarDatos').on('click', function() {
             $(".buttons-excel").trigger("click");
         });
-
+        setTimeout(() => {
+            $(".badge-checkbox").removeClass("d-none");
+        }, 500);
     });
 </script>
 </body>

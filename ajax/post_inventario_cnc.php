@@ -18,7 +18,7 @@ try {
     }
 
     $action = $_POST['action'] ?? '';
-    $id = $_POST['id'] ?? null;
+    $id = $_POST['id'] ?? '';
 
     set_error_handler(function($severity, $message, $file, $line) {
         throw new ErrorException($message, 0, $severity, $file, $line);
@@ -30,6 +30,7 @@ try {
     }
 
     // Limpiar espacios automáticamente sin notificar al usuario
+    $almacen_id     = preg_replace('/\s+/', '', trim($_POST['almacen_id'] ?? ''));
     $clave          = preg_replace('/\s+/', '', trim($_POST['clave'] ?? ''));
     $medida         = preg_replace('/\s+/', '', trim($_POST['medida'] ?? ''));
     $proveedor      = trim($_POST['proveedor'] ?? '');
@@ -42,16 +43,17 @@ try {
 
     if ($action !== 'delete' && $action !== 'autorizar_archivado') {
         $errores = [];
-        if ($action === '') $errores[] = "Falta la acción";
-        if ($id === null && $action === 'update') $errores[] = "Falta el id";
-        if ($estatus === '') $errores[] = "Falta el estatus";
-        if ($clave === '') $errores[] = "Falta la clave";
-        if ($material === '') $errores[] = "Falta el material";
-        if ($proveedor === '') $errores[] = "Falta el proveedor";
-        if ($medida === '') $errores[] = "Falta la medida";
-        if ($max_usable === '') $errores[] = "Falta el maximo usable";
-        if ($stock === '') $errores[] = "Falta el stock";
-        if ($lote_pedimento === '') $errores[] = "Falta el lote/pedimento";
+        if ($action === '' || $action === null) $errores[] = "Falta la acción";
+        if (($id === '' || $id === null) && $action === 'update') $errores[] = "Falta el id";
+        if ($estatus === '' || $estatus === null) $errores[] = "Faltan datos";
+        if ($almacen_id === '' || $almacen_id === null) $errores[] = "Falta el almacén";
+        if ($clave === '' || $clave === null) $errores[] = "Falta la clave";
+        if ($material === '' || $material === null) $errores[] = "Falta el material";
+        if ($proveedor === '' || $proveedor === null) $errores[] = "Falta el proveedor";
+        if ($medida === '' || $medida === null) $errores[] = "Falta la medida";
+        if ($max_usable === '' || $max_usable === null) $errores[] = "Falta el maximo usable";
+        if ($stock === '' || $stock === null) $errores[] = "Falta el stock";
+        if ($lote_pedimento === '' || $lote_pedimento === null) $errores[] = "Falta el lote";
 
         if (!empty($errores)) {
             echo json_encode([
@@ -79,15 +81,16 @@ try {
 
     if ($action === 'insert' || $action === 'insert2') {
         $sql = "INSERT INTO inventario_cnc 
-                (clave, medida, interior, exterior, proveedor, material, max_usable, pre_stock, stock, lote_pedimento, estatus)
+                (almacen_id, clave, medida, interior, exterior, proveedor, material, max_usable, pre_stock, stock, lote_pedimento, estatus)
                 VALUES 
-                (:clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :pre_stock, :stock, :lote_pedimento, :estatus)";
+                (:almacen_id, :clave, :medida, :interior, :exterior, :proveedor, :material, :max_usable, :pre_stock, :stock, :lote_pedimento, :estatus)";
         $stmt = $conn->prepare($sql);
     }
 
     if ($action === 'update') {
         if (empty($id)) throw new Exception("ID requerido para actualizar.");
         $sql = "UPDATE inventario_cnc SET 
+                    almacen_id = :almacen_id,
                     clave = :clave, 
                     medida = :medida, 
                     interior = :interior, 
@@ -106,6 +109,7 @@ try {
     }
 
     if ($action === 'insert' || $action === 'insert2' || $action === 'update') {
+        $stmt->bindParam(':almacen_id', $almacen_id);
         $stmt->bindParam(':clave', $clave);
         $stmt->bindParam(':medida', $medida);
         $stmt->bindParam(':interior', $interior);

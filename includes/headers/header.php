@@ -21,6 +21,7 @@
                     # administrador/directivo
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
+                        <li><a href="../modules/traspasos.php">Traspasos</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/produccion_vn.php">Requisiciónes</a></li>
@@ -68,6 +69,7 @@
                     # sistemas
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
+                        <li><a href="../modules/traspasos.php">Traspasos</a></li>
                         <li><a href="../modules/selectTipoSello.php">Cotizador</a></li>
                         <li><a id ="enlaceCotizaciones" href="../modules/cotizaciones.php">Cotizaciones</a></li>
                         <li><a class="" href="../modules/parametros_cotizador.php" >Parametros</a></li>
@@ -88,6 +90,7 @@
                     # Inventarios
                     echo '
                         <li><a href="../modules/filtros_inventario_cnc.php">Inventario CNC</a></li>
+                        <li><a href="../modules/traspasos.php">Traspasos</a></li>
                         <li><a href="../modules/produccion_cnc.php">Requisiciónes</a></li>
                     ';
                 break;

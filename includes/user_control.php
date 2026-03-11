@@ -82,13 +82,15 @@
         "welcome.php",
         "configuracion.php"
     ];
+
     $accesoRestringido = False;
-    if (!empty($rol_usuario) && !empty($lider_usuario)) {
-        $tipoUsuario = $lider_usuario;
-        if ($tipoUsuario == 1) {
+    if (!empty($rol_usuario) && !empty($tipo_usuario)) {
+        $tipoUsuario = $tipo_usuario;
+        if ($tipoUsuario == "Administrador") {
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
                 "inventario.php",
+                "traspasos.php",
                 "selectTipoSello.php",
                 "tipo.php",
                 "estimador.php",
@@ -106,7 +108,7 @@
             }else{
                 $accesoRestringido = False;
             }
-        }else if($tipoUsuario == 2){
+        }else if($tipoUsuario == "CNC"){
             if($rol_usuario == "Gerente"){
                 $arrayPermitidos = array_merge($arrayPermitidos, [
                     "filtros_inventario_cnc.php",
@@ -129,7 +131,7 @@
             } else {
                 $accesoRestringido = False;
             }
-        }else if ($tipoUsuario == 3) {
+        }else if ($tipoUsuario == "Vendedor") {
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "selectTipoSello.php",
                 "tipo.php",
@@ -146,10 +148,11 @@
                 $accesoRestringido = False;
             }
 
-        }else if($tipoUsuario == 0){
+        }else if($tipoUsuario == "Sistemas"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
                 "inventario_vn.php",
+                "traspasos.php",
                 "selectTipoSello.php",
                 "tipo.php",
                 "estimador.php",
@@ -167,7 +170,7 @@
                 $accesoRestringido = False; 
             }
 
-        }else if($tipoUsuario == 5){
+        }else if($tipoUsuario == "Cliente Externo"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "selectTipoSello.php",
                 "tipo.php",
@@ -181,7 +184,7 @@
                 $accesoRestringido = False; 
             }
 
-        }else if($tipoUsuario == 4){
+        }else if($tipoUsuario == "Compras"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "precios_compras.php"
             ]);
@@ -192,10 +195,11 @@
                 $accesoRestringido = False; 
             }
 
-        }else if($tipoUsuario == 6){
+        }else if($tipoUsuario == "Inventarios"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
                 "inventario.php",
+                "traspasos.php",
                 "produccion_cnc.php"
             ]);
             if(!in_array($selfFile, $arrayPermitidos)){
@@ -228,7 +232,7 @@
                 $(document).ready(function(){
                     Swal.fire({
                         title: 'Aviso',
-                        text: 'La sesion ha expirado, inicie sesion nuevamente.',
+                        text: 'La sesion ha expirado, inicie sesion nuevamente2.".$rol_usuario.$lider_usuario.$tipoUsuario."',
                         icon: 'warning',
                         confirmButtonText: 'Ok',
                         confirmButtonColor: '#dc3545',

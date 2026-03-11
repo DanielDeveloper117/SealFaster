@@ -254,9 +254,9 @@ document.addEventListener("DOMContentLoaded", function () {
                         altura, di, de
                     ];
 
-                    console.log(parseFloat(altura));
-                    console.log(parseFloat(di));
-                    console.log(parseFloat(de));
+                    //console.log(parseFloat(altura));
+                    //console.log(parseFloat(di));
+                    //console.log(parseFloat(de));
                     const errorSpan = $(`#containerErrorDimensiones_m${i} span`);
                     const botones = [
                         `#btnBillets_m${i}`, 

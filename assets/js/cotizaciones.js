@@ -154,6 +154,7 @@ $(document).ready(function() {
                         if (typeof $ !== 'undefined') {
                             console.log($);
                             $("#overlay").addClass("d-none");
+                            $(".badge-checkbox").removeClass("d-none");
                         }
                     }, 400);
                 }
@@ -201,6 +202,7 @@ $(document).ready(function() {
                         if (typeof $ !== 'undefined') {
                             console.log($);
                             $("#overlay").addClass("d-none");
+                            $(".badge-checkbox").removeClass("d-none");
                         }
                     }, 400);
                 }
@@ -278,34 +280,6 @@ $(document).ready(function() {
 
     mostrarTablaPorCot(cotActual);
     mostrarFiltrosActivos();
-    
-    //$("#overlay").addClass("d-none");
-
-    // Verificar si ya existe la preferencia en localStorage
-    // if (!localStorage.getItem("FiltrosActualizados")) {
-    //     Swal.fire({
-    //         title: 'Actualizacion',
-    //         text: 'Filtros de busqueda actualizados. Nuevo filtro de carga por default de cotizaciones.',
-    //         icon: 'info',
-    //         confirmButtonText: 'Entendido',
-    //         width: '400px',
-    //         padding: '10px',
-    //         position: 'bottom-end',
-    //         toast: true,
-    //         showConfirmButton: true,
-    //         showCloseButton: false,
-    //         input: 'checkbox',
-    //         inputPlaceholder: 'No mostrar nuevamente',
-    //         inputAttributes: {
-    //         id: 'noMostrarCheckbox'
-    //         }
-    //     }).then((result) => {
-    //         if (result.isConfirmed && result.value) {
-    //             // Guardar preferencia en localStorage
-    //             localStorage.setItem("FiltrosActualizados", "1");
-    //         }
-    //     });
-    // }
     
 
     // ************** EVENTOS DEL DOM **************

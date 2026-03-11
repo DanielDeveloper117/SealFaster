@@ -1126,16 +1126,15 @@ $(document).ready(function() {
             }
             console.log("wiper = ", window.esWiper);
 
-            if(window.conEscalon !== "0" && window.esWisperEspecial == "0"){
-                $(`#divAlturaEscalon, #containerWiperEscalon`).removeClass("d-none");
+            if(window.conEscalon !== "0" && window.esWisperEspecial === "0"){
+                $(`#divAlturaEscalon`).removeClass("d-none");
                 console.log("Tiene escalon");
             }else{
                 console.log("No tiene escalon");
             }
 
             if(window.esWisperEspecial !== "0"){
-                //$(`#divAlturaH2, #divAlturaH3, #questionIconSpecialWiper`).removeClass("d-none");
-                $(`#divAlturaH2, #divAlturaH3, #containerWiperEspecial`).removeClass("d-none");
+                $(`#divAlturaH2, #divAlturaH3, #questionIconSpecialWiper`).removeClass("d-none");
                 console.log("Es wisper especial");
             }else{
                 console.log("No es wisper especial");

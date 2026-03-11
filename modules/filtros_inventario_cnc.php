@@ -233,15 +233,15 @@ if (!isset($_SESSION['id'])) {
                     </button>
                 </div>
 
-                <!-- Búsqueda por Lote Pedimento -->
+                <!-- Búsqueda por lote-->
                 <div class="function-card">
                     <div class="function-icon">
                         <i class="bi bi-database"></i>
                     </div>
-                    <h3 class="function-title">Buscar Lote Pedimento</h3>
-                    <p class="function-description">Ingresa un lote pedimento específico.</p>
+                    <h3 class="function-title">Buscar Lote</h3>
+                    <p class="function-description">Ingresa un lote específico.</p>
                     <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalLP">
-                        Digitar lote pedimento
+                        Digitar lote
                     </button>
                 </div>
                 
@@ -251,17 +251,16 @@ if (!isset($_SESSION['id'])) {
                         <i class="bi bi-table"></i>
                     </div>
                     <h3 class="function-title">Inventario Completo</h3>
-                    <p class="function-description">Cargar todos los registros del inventario CNC en una nueva pestaña. Tiempo de carga estimado es de 15 seg.</p>
-                    <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'inventario_vn.php';}else{echo 'inventario.php';}?>" 
-                       class="function-button" target="_blank">
-                        Cargar tabla<i class="bi bi-arrow-up-right mx-2"></i>
-                    </a>
+                    <p class="function-description">Cargar todos los registros de un almacen en una nueva pestaña. Tiempo de carga estimado es de 15 seg.</p>
+                    <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalQueAlmacen">
+                        Ver almacenes
+                    </button>
                 </div>
             </div>
         </div>
         
         <!-- Sección de funciones administrativas -->
-        <div class="dashboard-section <?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'd-none';}?>">
+        <div class="dashboard-section <?php if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){echo 'd-none';}?>">
             <h2 class="section-title">Funciones Administrativas</h2>
             <div class="functions-grid">
                 <!-- Agregar Registro -->
@@ -309,7 +308,7 @@ if (!isset($_SESSION['id'])) {
                     </div>
                     <h3 class="function-title">Barras archivadas y pendientes</h3>
                     <p class="function-description">Consultar las barras archivadas y pendientes de autorización del inventario CNC en una nueva pestaña.</p>
-                    <a href="<?php if($tipoUsuario == 2 || $tipoUsuario == 3){echo 'inventario_vn.php';}else{echo 'inventario.php?archivados';}?>" 
+                    <a href="<?php if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){echo 'inventario_vn.php';}else{echo 'inventario.php?archivados';}?>" 
                        class="function-button" target="_blank">
                         Consultar<i class="bi bi-arrow-up-right mx-2"></i>
                     </a>
@@ -320,7 +319,6 @@ if (!isset($_SESSION['id'])) {
     </div>
 </section>
 
-<!-- Los modales se mantienen igual que en el código original -->
 <!-- Modal para crear query material y proveedor -->
 <div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
@@ -331,19 +329,26 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 3){
+                        if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){
                             echo 'inventario_vn.php';
                         }else{
                             echo 'inventario.php';
                         }
-                    ?>" method="GET" target="_blank" id="formMaterial">                         
-                    <div id="containerSelectorMaterial" class="mb-4">
-                        <label for="selectorMaterial" class="lbl-general">Material</label>
+                    ?>" method="GET" target="_blank" id="formMaterial"> 
+                    
+                    <div class="mb-3">
+                        <label for="inputAlmacenId1" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
+                        <select id="inputAlmacenId1" class="inputAlmacenIdClass selector" name="origen" required>
+                            <option value="" disabled selected>Seleccionar un almacén</option>
+                        </select>
+                    </div>                        
+                    <div id="containerSelectorMaterial" class="mb-3">
+                        <label for="selectorMaterial" class="lbl-general">Material <span class="text-danger">*</span></label>
                         <select id="selectorMaterial" class="form-select" name="material" required >
                             <option value="" disabled selected>Seleccionar</option>
                         </select>
                     </div> 
-                    <div id="containerSelectorProveedor" class="mb-4">
+                    <div id="containerSelectorProveedor" class="mb-3">
                         <label for="selectorProveedor" class="lbl-general">Proveedor</label>
                         <select id="selectorProveedor" class="form-select" name="proveedor">
                             <option value="all" selected>Todos</option>
@@ -371,14 +376,20 @@ if (!isset($_SESSION['id'])) {
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 3){
+                        if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){
                             echo 'inventario_vn.php';
                         }else{
                             echo 'inventario.php';
                         }
-                    ?>" method="GET" target="_blank" id="formClave">                        
+                    ?>" method="GET" target="_blank" id="formClave">
                     <div class="mb-3">
-                        <label for="inputClave" class="lbl-general">Clave</label>
+                        <label for="inputAlmacenId2" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
+                        <select id="inputAlmacenId2" class="inputAlmacenIdClass selector" name="origen" required>
+                            <option value="" disabled selected>Seleccionar un almacén</option>
+                        </select>
+                    </div>                                
+                    <div class="mb-3">
+                        <label for="inputClave" class="lbl-general">Clave <span class="text-danger">*</span></label>
                         <input type="text" class="input-text" id="inputClave" name="clave" required>
                     </div>
 
@@ -389,24 +400,24 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 
-<!-- Modal para buscar por Lote pedimento -->
+<!-- Modal para buscar por lote-->
 <div class="modal fade" id="modalLP" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">Consultar un Lote pedimento del inventario CNC</h5>
+                <h5 class="modal-title">Consultar un lote del inventario CNC</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <form action="<?php
-                        if($tipoUsuario == 2 || $tipoUsuario == 3){
+                        if($tipo_usuario == "CNC" || $tipo_usuario == "Vendedor"){
                             echo 'inventario_vn.php';
                         }else{
                             echo 'inventario.php';
                         }
                     ?>" method="GET" target="_blank" id="formLP">                        
                     <div class="mb-3">
-                        <label for="inputLP" class="lbl-general">Ingrese Lote Pedimento</label>
+                        <label for="inputLP" class="lbl-general">Ingrese Lote <span class="text-danger">*</span></label>
                         <input type="text" class="input-text" id="inputLP" name="lp" required>
                     </div>
 
@@ -417,7 +428,7 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 
-<!-- Modal para crear query claves validas -->
+<!-- Modal para consultar claves existentes de parametros -->
 <div class="modal fade" id="modalClavesValidas" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog" style="max-width: 65% !important;">
         <div class="modal-content">
@@ -474,31 +485,122 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 
+<!-- Modal para preguntar que almacen -->
+<div class="modal fade" id="modalQueAlmacen" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Consultar todo el inventario CNC</h5>
+                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form action="<?php
+                        if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){
+                            echo 'inventario_vn.php';
+                        }else{
+                            echo 'inventario.php';
+                        }
+                    ?>" method="GET" target="_blank" id="formClave">
+                    <input type="hidden" name="data" value="all">
+                    <div class="mb-3">
+                        <label for="inputAlmacenId2" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
+                        <select id="inputAlmacenId2" class="inputAlmacenIdClass selector" name="origen" required>
+                            <option value="" disabled selected>Seleccionar un almacén</option>
+                        </select>
+                    </div>     
+
+                    <button type="submit" class="btn-general">Consultar<i class="bi bi-arrow-up-right mx-2"></i></button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
 
 <script>
-    $(document).ready(function(){
-        // COINSULTA AJAX PARA MATERIALES
+    // ============================================================
+    // VARIABLES GLOBALES
+    // ============================================================
+    let almacenesDisponibles = [];
+
+    // ============================================================
+    // FUNCIONES
+    // ============================================================
+    /**
+     * Carga los almacenes disponibles desde el backend
+     */
+    function cargarAlmacenes() {
         $.ajax({
-            url: '../ajax/ajax_materiales.php', 
+            url: '../ajax/ajax_almacenes.php',
             type: 'GET',
+            data: {
+                excluir: "0"
+            },
             dataType: 'json',
             success: function(data) {
-                if (data.length > 0) {
-                    $.each(data, function(index, item) {
-                        $("#selectorMaterial").append(
-                            `
-                            <option value="${item.material}">${item.material}</option>
-                            `
-                        );
-                    });
+                if (data.success && data.almacenes) {
+                    almacenesDisponibles = data.almacenes;
+                    llenarSelectorAlmacenes();
                 } else {
+                    console.error('Error cargando almacenes:', data.message);
+                    sweetAlertResponse("warning", "Ocurrió un problema", data.message, "none");
                 }
             },
-            error: function() {
-                console.error('Error al realizar la petición AJAX');
+            error: function(xhr, status, error) {
+                // Aquí 'data' NO existe. Debes usar los argumentos de esta función.
+                console.error('Error de red/servidor:', error);
+                
+                // Intentamos obtener un mensaje del servidor si es que mandó algo
+                let mensajeError = "No se pudo conectar con el servidor.";
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    mensajeError = xhr.responseJSON.message;
+                }
+                sweetAlertResponse("warning", "Ocurrió un problema" , mensajeError, "none");
             }
         });
+    }
+    /**
+     * Llena el selector de almacen con los almacenes disponibles
+     */
+    function llenarSelectorAlmacenes() {
+        const selector = $('.inputAlmacenIdClass');      
+        selector.html("");  
+        selector.append(`<option value="" disabled selected>Seleccionar almacén</option>`);
+        if (almacenesDisponibles.length > 0) {
+            almacenesDisponibles.forEach(almacen => {
+                selector.append(`<option value="${almacen.id}">${almacen.almacen} - ${almacen.descripcion}</option>`);
+            });
+        }
+    }
+    // COINSULTA AJAX PARA MATERIALES
+    $.ajax({
+        url: '../ajax/ajax_materiales.php', 
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            if (data.length > 0) {
+                $.each(data, function(index, item) {
+                    $("#selectorMaterial").append(
+                        `
+                        <option value="${item.material}">${item.material}</option>
+                        `
+                    );
+                });
+            } else {
+            }
+        },
+        error: function() {
+            console.error('Error al realizar la petición AJAX');
+        }
+    });
+
+    // ============================================================
+    // EVENTOS DEL DOM
+    // ============================================================  
+    $(document).ready(function(){
+
+        cargarAlmacenes();
 
         $("#btnConsutarClavesValidas").on("click", function(){
             $("#tablaClavesValidas tbody").empty();

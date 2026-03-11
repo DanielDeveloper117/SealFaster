@@ -144,64 +144,67 @@
                     <small class="fst-italic text-secondary">No hay comentarios adjuntos</small>
                 </div>
                 <!-- Formulario para agregar nuevo (inicialmente oculto) -->
-                <?php if($tipo_usuario != "CNC" && $tipo_usuario != "Inventarios"): ?>
-                <div id="formularioNuevo" class="d-none">
-                    <div class="card border-secondary-subtle border-2 mb-3">
-                        <div class="card-body">
-                            <form id="formComentarioAdjunto">
-                                <input type="hidden" id="inputIdCotizacionAdicion" name="id_cotizacion">
-                                <!-- Selector para origen "requi" (inicialmente oculto) -->
-                                <div id="selectorCotizacionContainer" class="mb-3 d-none">
-                                    <label for="selectCotizacionRequisicion" class="form-label fw-bold">Seleccionar cotización *</label>
-                                    <select class="form-select" id="selectCotizacionRequisicion" name="id_cotizacion_requi" required>
-                                        <option value="" selected disabled>Selecciona una cotización...</option>
-                                        <!-- Las opciones se llenarán dinámicamente -->
-                                    </select>
-                                    <div class="form-text">Selecciona a qué cotización de la requisición pertenece este comentario</div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="inputComentarioAdjunto" class="form-label fw-bold">Comentario *</label>
-                                    <textarea class="form-control" id="inputComentarioAdjunto" name="comentario" rows="2" 
-                                            maxlength="98" required></textarea>
-                                    <div class="form-text text-end">
-                                        <span id="contadorCaracteres">0/98</span> caracteres
+                <?php if(($tipo_usuario == "CNC" && $rol_usuario == "Gerente") 
+                        || $tipo_usuario == "Administrador" 
+                        || $tipo_usuario == "Vendedor"
+                        || $tipo_usuario == "Sistemas"): ?>
+                    <div id="formularioNuevo" class="d-none">
+                        <div class="card border-secondary-subtle border-2 mb-3">
+                            <div class="card-body">
+                                <form id="formComentarioAdjunto">
+                                    <input type="hidden" id="inputIdCotizacionAdicion" name="id_cotizacion">
+                                    <!-- Selector para origen "requi" (inicialmente oculto) -->
+                                    <div id="selectorCotizacionContainer" class="mb-3 d-none">
+                                        <label for="selectCotizacionRequisicion" class="form-label fw-bold">Seleccionar cotización *</label>
+                                        <select class="form-select" id="selectCotizacionRequisicion" name="id_cotizacion_requi" required>
+                                            <option value="" selected disabled>Selecciona una cotización...</option>
+                                            <!-- Las opciones se llenarán dinámicamente -->
+                                        </select>
+                                        <div class="form-text">Selecciona a qué cotización de la requisición pertenece este comentario</div>
                                     </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="inputAdjunto" class="form-label fw-bold">Archivo adjunto</label>
-                                    <div id="areaAdjunto">
-                                        <button type="button" class="input-file-simple w-100" id="btnSeleccionarArchivo">
-                                            <i class="bi bi-paperclip"></i> Añadir adjunto
-                                        </button>
-                                        
-                                        <input type="file" class="d-none" id="inputAdjunto" name="nombre_archivo" required>
-                                        <div id="archivoSeleccionado" class="d-none mt-2 p-2">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <span id="nombreArchivo" class="text-secondary"></span>
-                                                <button type="button" class="btn btn-sm btn-outline-danger" id="btnQuitarArchivo">
-                                                    <i class="bi bi-x-lg"></i>
-                                                </button>
+                                    <div class="mb-3">
+                                        <label for="inputComentarioAdjunto" class="form-label fw-bold">Comentario *</label>
+                                        <textarea class="form-control" id="inputComentarioAdjunto" name="comentario" rows="2" 
+                                                maxlength="98" required></textarea>
+                                        <div class="form-text text-end">
+                                            <span id="contadorCaracteres">0/98</span> caracteres
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="inputAdjunto" class="form-label fw-bold">Archivo adjunto</label>
+                                        <div id="areaAdjunto">
+                                            <button type="button" class="input-file-simple w-100" id="btnSeleccionarArchivo">
+                                                <i class="bi bi-paperclip"></i> Añadir adjunto
+                                            </button>
+                                            
+                                            <input type="file" class="d-none" id="inputAdjunto" name="nombre_archivo" required>
+                                            <div id="archivoSeleccionado" class="d-none mt-2 p-2">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span id="nombreArchivo" class="text-secondary"></span>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger" id="btnQuitarArchivo">
+                                                        <i class="bi bi-x-lg"></i>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <div class="d-flex gap-2">
-                                    <button type="button" class="btn-eliminar" id="btnCancelarFormulario">Cancelar</button>
-                                    <button type="button" class="btn-general" id="btnAgregarRegistro">Agregar</button>
-                                </div>
-                            </form>
+                                    
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn-eliminar" id="btnCancelarFormulario">Cancelar</button>
+                                        <button type="button" class="btn-general" id="btnAgregarRegistro">Agregar</button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
-                </div>
-                
-                <!-- Botón para agregar nuevo comentario -->
-                <div id="botonAgregarInicial" class="text-center">
-                    <div class="border-dashed p-4 rounded cursor-pointer" id="btnAgregarComentario">
-                        <i class="bi bi-plus-lg fs-1 text-muted"></i>
-                        <div class="text-muted">Agregar</div>
+                    
+                    <!-- Botón para agregar nuevo comentario -->
+                    <div id="botonAgregarInicial" class="text-center">
+                        <div class="border-dashed p-4 rounded cursor-pointer" id="btnAgregarComentario">
+                            <i class="bi bi-plus-lg fs-1 text-muted"></i>
+                            <div class="text-muted">Agregar</div>
+                        </div>
                     </div>
-                </div>
                 <?php endif;?>
             </div>
             <div class="modal-footer">
