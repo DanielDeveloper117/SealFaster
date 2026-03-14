@@ -1,39 +1,39 @@
-<!-- Modal para detalles del traspaso -->
-<div class="modal fade" id="modalDetallesTraspaso" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-detalles-traspaso" data-bs-backdrop="static" data-bs-keyboard="false">
+<!-- Modal para detalles del venta -->
+<div class="modal fade" id="modalDetallesVenta" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-detalles-venta" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-xl mdt-dialog">
         <div class="modal-content mdt-content">
 
             <!-- HEADER -->
             <div class="modal-header">
-                <h5 id="label-modal-operacion" class="modal-title">Detalles del traspaso</h5>
+                <h5 id="label-modal-operacion" class="modal-title">Detalles de venta</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
             <div class="modal-body mdt-body">
 
                 <!-- TABS NAV -->
-                <ul class="nav mdt-tabs" id="tabsDetallesTraspaso" role="tablist">
+                <ul class="nav mdt-tabs" id="tabsDetallesVenta" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="mdt-tab-btn active" id="tab-detalles-traspaso"
-                            data-bs-toggle="tab" data-bs-target="#content-detalles-traspaso"
-                            type="button" role="tab" aria-controls="content-detalles-traspaso" aria-selected="true">
+                        <button class="mdt-tab-btn active" id="tab-detalles-venta"
+                            data-bs-toggle="tab" data-bs-target="#content-detalles-venta"
+                            type="button" role="tab" aria-controls="content-detalles-venta" aria-selected="true">
                             Detalles
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="mdt-tab-btn" id="tab-barras-traspaso"
-                            data-bs-toggle="tab" data-bs-target="#content-barras-traspaso"
-                            type="button" role="tab" aria-controls="content-barras-traspaso" aria-selected="false">
+                        <button class="mdt-tab-btn" id="tab-barras-venta"
+                            data-bs-toggle="tab" data-bs-target="#content-barras-venta"
+                            type="button" role="tab" aria-controls="content-barras-venta" aria-selected="false">
                             Barras &nbsp;<span class="mdt-tab-badge" id="cantidad-barras">0</span>
                         </button>
                     </li>
                 </ul>
 
                 <!-- TAB CONTENT -->
-                <div class="tab-content mdt-tab-content" id="contentDetallesTraspaso">
+                <div class="tab-content mdt-tab-content" id="contentDetallesVenta">
 
                     <!-- PESTAÑA: DETALLES -->
-                    <div class="tab-pane fade show active" id="content-detalles-traspaso" role="tabpanel" aria-labelledby="tab-detalles-traspaso">
+                    <div class="tab-pane fade show active" id="content-detalles-venta" role="tabpanel" aria-labelledby="tab-detalles-venta">
 
                         <!-- BLOQUE: Información General -->
                         <div class="mdt-section">
@@ -47,7 +47,7 @@
                             <div class="mdt-section-body">
                                 <div class="mdt-grid">
                                     <div class="mdt-field">
-                                        <span class="mdt-field-label">ID del Traspaso</span>
+                                        <span class="mdt-field-label">ID del venta</span>
                                         <p id="info-id" class="mdt-field-value">-</p>
                                     </div>
                                     <div class="mdt-field">
@@ -59,45 +59,29 @@
                                         <p id="info-almacen-origen" class="mdt-field-value">-</p>
                                     </div>
                                     <div class="mdt-field">
-                                        <span class="mdt-field-label">Almacén de Destino</span>
-                                        <p id="info-almacen-destino" class="mdt-field-value">-</p>
+                                        <span class="mdt-field-label">Fecha de Creación</span>
+                                        <p id="info-fecha-creacion" class="mdt-field-value">-</p>
                                     </div>
                                     <div class="mdt-field mdt-field--full">
                                         <span class="mdt-field-label">Justificación</span>
                                         <p id="info-justificacion" class="mdt-field-value">-</p>
                                     </div>
-                                    <div class="mdt-field">
-                                        <span class="mdt-field-label">Estado de Recepción</span>
-                                        <p id="info-recibido" class="">-</p>
-                                    </div>
-                                    <div class="mdt-field">
-                                        <span class="mdt-field-label">Fecha de Creación</span>
-                                        <p id="info-fecha-creacion" class="mdt-field-value">-</p>
-                                    </div>
-                                    <div class="mdt-field" id="section-usuario-receptor" style="display:none;">
-                                        <span class="mdt-field-label">Usuario Receptor</span>
-                                        <p id="info-usuario-receptor" class="mdt-field-value">-</p>
-                                    </div>
-                                    <div class="mdt-field" id="section-fecha-recepcion" style="display:none;">
-                                        <span class="mdt-field-label">Fecha de Recepción</span>
-                                        <p id="info-fecha-recepcion" class="mdt-field-value">-</p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- BLOQUE: Evidencias de Envío -->
+                        <!-- BLOQUE: Evidencias -->
                         <div class="mdt-section">
                             <div class="mdt-section-header mdt-section-header--cyan">
                                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>
                                 </svg>
-                                Evidencias de Envío
+                                Evidencias
                             </div>
                             <div class="mdt-section-body">
                                 <div class="mdt-images-grid">
                                     <div class="mdt-image-block">
-                                        <span class="mdt-field-label">Fotografía de Barras Enviadas</span>
+                                        <span class="mdt-field-label">Fotografía de Barras</span>
                                         <div id="img-envio-barras" class="mdt-img-viewer">
                                             <span class="mdt-img-placeholder">
                                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -109,46 +93,8 @@
                                         </div>
                                     </div>
                                     <div class="mdt-image-block">
-                                        <span class="mdt-field-label">Fotografía del Paquete Enviado</span>
+                                        <span class="mdt-field-label">Fotografía del Paquete</span>
                                         <div id="img-envio-paquete" class="mdt-img-viewer">
-                                            <span class="mdt-img-placeholder">
-                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                                                    <polyline points="21 15 16 10 5 21"/>
-                                                </svg>
-                                                Sin imagen
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- BLOQUE: Evidencias de Recepción -->
-                        <div class="mdt-section mdt-section--success" id="section-evidencias-recepcion" style="display:none;">
-                            <div class="mdt-section-header mdt-section-header--green">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-                                </svg>
-                                Evidencias de Recepción
-                            </div>
-                            <div class="mdt-section-body">
-                                <div class="mdt-images-grid">
-                                    <div class="mdt-image-block">
-                                        <span class="mdt-field-label">Fotografía de Paquete Recibido</span>
-                                        <div id="img-recepcion-paquete" class="mdt-img-viewer">
-                                            <span class="mdt-img-placeholder">
-                                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                                                    <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
-                                                    <polyline points="21 15 16 10 5 21"/>
-                                                </svg>
-                                                Sin imagen
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="mdt-image-block">
-                                        <span class="mdt-field-label">Fotografía de Barras Recibidas</span>
-                                        <div id="img-recepcion-barras" class="mdt-img-viewer">
                                             <span class="mdt-img-placeholder">
                                                 <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                                                     <rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/>
@@ -165,14 +111,14 @@
                     </div><!-- /PESTAÑA DETALLES -->
 
                     <!-- PESTAÑA: BARRAS -->
-                    <div class="tab-pane fade" id="content-barras-traspaso" role="tabpanel" aria-labelledby="tab-barras-traspaso">
+                    <div class="tab-pane fade" id="content-barras-venta" role="tabpanel" aria-labelledby="tab-barras-venta">
                         <div class="mdt-barras-toolbar mb-1 justify-content-end mdt-section pt-2 pb-2">
                             <button id="btn-ver-inventario" type="button" class="btn-general w-auto">
                                 Ver en Inventario CNC
                             </button>
                         </div>
                         <div class="mdt-table-wrapper mdt-section">
-                            <table class=" table-striped table-bordered table-sm mdt-table" id="tabla-barras-traspaso">
+                            <table class=" table-striped table-bordered table-sm mdt-table" id="tabla-barras-venta">
                                 <thead>
                                     <tr>
                                         <th>Clave</th>
@@ -183,7 +129,7 @@
                                         <th>Stock</th>
                                     </tr>
                                 </thead>
-                                <tbody id="tbody-barras-traspaso">
+                                <tbody id="tbody-barras-venta">
                                     <tr>
                                         <td colspan="8" class="text-center text-muted">Cargando barras...</td>
                                     </tr>
@@ -208,7 +154,7 @@
 
 <style>
 /* ================================================================
-   MODAL DETALLES TRASPASO — Estilo refinado industrial
+   MODAL DETALLES venta — Estilo refinado industrial
    ================================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');

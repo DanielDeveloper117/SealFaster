@@ -2,6 +2,7 @@
     include(ROOT_PATH . 'includes/backend_info_user.php');
 ?>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="<?= controlCache('../assets/css/root.css'); ?>">
 <link rel="stylesheet" href="<?= controlCache('../assets/css/menu.css'); ?>">
 <script src="<?= controlCache('../assets/js/menu.js'); ?>"></script>
 

@@ -244,6 +244,21 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
     $stmtInventario->execute();
     $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
+}elseif(isset($_GET['venta']) && !empty($_GET['venta'])){
+    
+    $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.operacion_id = :venta
+        ORDER BY i.interior DESC";
+    $stmtInventario = $conn->prepare($sqlInventario);
+    $stmtInventario->bindParam(':venta', $_GET['venta'], PDO::PARAM_STR);
+    $stmtInventario->execute();
+    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
 }else{
     $arregloSelectInventario = [];
 }
@@ -269,7 +284,8 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                 </div>
                 <?php if (!isset($_GET['pendientes']) 
                             && !isset($_GET['archivados']) 
-                            && !isset($_GET['traspaso']) 
+                            && !isset($_GET['traspaso'])
+                            && !isset($_GET['venta'])  
                             && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
                                 || ($tipo_usuario === "Administrador") 
                                 || ($tipo_usuario == "Sistemas"))): ?>
@@ -289,7 +305,7 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                     </button>
                 </div>
             </div>
-            <table id="inventarioTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="inventarioTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th style="background-color:#55ad9b52;"></th>
@@ -346,18 +362,19 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                                 <?php if (isset($_GET['oper']) 
                                         && $_GET['oper'] == '1' 
                                         && $row['estatus'] == "Disponible para cotizar" 
-                                        && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente")
-                                            || $tipo_usuario === "Administrador") ): ?>
+                                        && $row['stock']!=0
+                                        && (($tipo_usuario == "Inventarios" && $rol_usuario == "Gerente")
+                                            || $tipo_usuario == "Administrador") ): ?>
                                     <div class="checkbox-wrapper">
                                         <input
                                             type="checkbox"
-                                            class="d-none btn-check-cute"
+                                            class="btn-check-cute"
                                             val="<?= htmlspecialchars($row['id']); ?>"
                                             data-lp="<?= htmlspecialchars($row['lote_pedimento']); ?>"
                                             data-almacen-id="<?= htmlspecialchars($row['almacen_id']); ?>"
                                             title="Seleccionar barra <?= htmlspecialchars($row['lote_pedimento']); ?>"
                                         />
-                                        <i class="bi bi-check2 badge-checkbox d-none"></i>
+                                        <i class="bi bi-check2 badge-checkbox"></i>
                                     </div>
                                 <?php endif; ?>
                                 
@@ -637,9 +654,9 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
         $('#btnExportarDatos').on('click', function() {
             $(".buttons-excel").trigger("click");
         });
-        setTimeout(() => {
-            $(".badge-checkbox").removeClass("d-none");
-        }, 500);
+        // setTimeout(() => {
+        //     $(".badge-checkbox").removeClass("d-none");
+        // }, 500);
     });
 </script>
 </body>

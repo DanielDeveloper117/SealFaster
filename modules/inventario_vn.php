@@ -223,7 +223,7 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                     </button>
                 </div>
             </div>
-            <table id="inventarioTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="inventarioTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Clave</th>

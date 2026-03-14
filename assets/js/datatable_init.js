@@ -1,5 +1,6 @@
 $(document).ready(function(){        
-    window.NOMBRE_TABLA = $('table').attr("id");
+    window.NOMBRE_TABLA = $('.mainTable').attr("id");
+    console.log(window.NOMBRE_TABLA);
     if(window.NOMBRE_TABLA == "inventarioTable"){
         $(`#${NOMBRE_TABLA}`).DataTable({
             "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
@@ -56,6 +57,7 @@ $(document).ready(function(){
                     if (typeof $ !== 'undefined') {
                         console.log($);
                         $("#overlay").addClass("d-none");
+                        $(".badge-checkbox").removeClass("d-none");
                     }
                 }, 400);
           

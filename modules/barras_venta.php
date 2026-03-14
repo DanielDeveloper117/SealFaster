@@ -33,11 +33,11 @@ if (!isset($_SESSION['id'])) {
 
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/traspasos.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/barras_venta.js'); ?>"></script>
 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
-    <title>Traspasos</title>
+    <title>Barras Vendidas</title>
 
 </head>
 <body>
@@ -51,40 +51,38 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
-$arregloSelectTraspasos = [];
+$arregloSelectBarrasVendidas = [];
 // *** METODO GET DE FILTROS RECIBIDOS ***
 
-    $sqlTraspasos = "
+    $sqlBarrasVendidas = "
         SELECT 
             o.*,
-            a_origen.almacen AS origen,       
-            a_destino.almacen AS destino,     
+            a_origen.almacen AS origen,      
             COUNT(i.id) AS cantidad_barras   
         FROM sellosyr_sellosctd.operaciones_inv AS o
         INNER JOIN sellosyr_sellosctd.almacenes AS a_origen 
             ON o.almacen_origen_id = a_origen.id
-        INNER JOIN sellosyr_sellosctd.almacenes AS a_destino 
-            ON o.almacen_destino_id = a_destino.id
         LEFT JOIN sellosyr_sellosctd.inventario_cnc AS i 
             ON i.operacion_id = o.id
-        WHERE o.tipo = 'Traspaso'
+        WHERE o.tipo = 'Venta'
         GROUP BY o.id
-        ORDER BY o.created_at DESC";
-    $stmtTraspasos = $conn->prepare($sqlTraspasos);
-    $stmtTraspasos->execute();
-    $arregloSelectTraspasos = $stmtTraspasos->fetchAll(PDO::FETCH_ASSOC);
+        ORDER BY o.created_at DESC
+    ";
+    $stmtBarrasVendidas = $conn->prepare($sqlBarrasVendidas);
+    $stmtBarrasVendidas->execute();
+    $arregloSelectBarrasVendidas = $stmtBarrasVendidas->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 <div id="overlay">
     <div class="loading-message">
-        <span>Cargando datos de traspasos, por favor, espere...</span>    
+        <span>Cargando datos de barras vendidas, por favor, espere...</span>    
     </div>
 </div>
 
 <section class="section-table flex-column mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
         <div class="titulo mt-3 mb-3">
-            <h1>Traspasos</h1>
+            <h1>Barras Vendidas</h1>
             <div class="d-flex flex-row justify-content-start col-12 col-md-6 gap-2">
                 <div>
 
@@ -94,22 +92,19 @@ $arregloSelectTraspasos = [];
             </div>
         </div>
         <div class="table-container">
-            <table id="traspasosTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
+            <table id="ventasTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th style="background-color:#55ad9b52;"></th>
                         <th>Id</th>
                         <th>Origen</th>
-                        <th>Destino</th>
-                        <th>Estatus</th>
                         <th>Justificación</th>
                         <th>Cantidad Barras</th>
-                        <th>Fecha Recepción</th>
                         <th>Fecha Creación</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <?php foreach ($arregloSelectTraspasos as $row):
+                    <?php foreach ($arregloSelectBarrasVendidas as $row):
                      
                     ?>
                     <tr id="tr_<?= $row['id']; ?>" class="fila-inventario" >
@@ -123,69 +118,32 @@ $arregloSelectTraspasos = [];
                                     echo '
                                         <button type="button" class="btn-cancel delete-btn" 
                                                 data-id='.htmlspecialchars($row["id"]).'
-                                                title="Eliminar traspaso y liberar barras">
+                                                title="Eliminar venta y liberar barras">
                                             <i class="bi bi-trash px-2"></i>
                                         </button>
                                     ';
                                 }
                                 ?>
-                                <form action="../includes/functions/generar_traspaso.php" method="GET" target="_blank" style="width: stretch;">
-                                    <input id="idTraspasoPDF" type="hidden" name="id" value="<?= htmlspecialchars($row['id']??""); ?>">
+                                <form action="../includes/functions/generar_barras_venta.php" method="GET" target="_blank" style="width: stretch;">
+                                    <input id="idBarrasVentaPDF" type="hidden" name="id" value="<?= htmlspecialchars($row['id']??""); ?>">
                                     <button type="submit" class="btn-pdf"
-                                        title="Generar PDF del traspaso">
+                                        title="Generar PDF de venta">
                                         <i class="bi bi-filetype-pdf"></i>
                                     </button>
                                 </form>
                                 <?php
                                 echo '<button type="button" class="btn-thunder btn-detalles" 
                                         data-id="' . htmlspecialchars($row['id']) . '"
-                                        title="Detalles del traspaso">
+                                        title="Detalles de venta">
                                         <i class="bi bi-box-seam"></i>
                                     </button>';
-                                ?>
-                                <?php if ($row['recibido']=="0"
-                                    && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
-                                    || ($tipo_usuario === "Administrador") 
-                                    || ($tipo_usuario == "Sistemas"))): ?>
-                                    <button type="button" class="btn-auth btn-recibir" 
-                                            data-bs-toggle="modal" data-bs-target="#modalRecepcion"
-                                            data-id="<?= htmlspecialchars($row['id']); ?>"
-                                            title="Recibir traspaso y actualizar estatus">
-                                        <i class="bi bi-clipboard2-check"></i>
-                                    </button>
-                                <?php endif; ?>
-                            </div>
-                            <div>
-                                <?php 
-                                   
                                 ?>
                             </div>
                         </td>
                         <td class="td-id" ><?= htmlspecialchars($row['id']); ?></td>
                         <td class="td-origen" ><?= htmlspecialchars($row['origen']); ?></td>
-                        <td class="td-destino" ><?= htmlspecialchars($row['destino']); ?></td>
-                        <td class="td-estatus fw-bold" >
-                            <div class="d-flex align-items-center gap-1">
-                                <?php 
-                                    if($row['recibido']=="0"){
-                                        echo("Recepción pendiente");
-                                    }else{
-                                        echo("Recibido");
-                                    } 
-                                ?>
-                            </div>
-                        </td>
                         <td class="td-justificacion" ><?= htmlspecialchars($row['justificacion']); ?></td>
                         <td class="td-cantidad_barras" ><?= htmlspecialchars($row['cantidad_barras']); ?></td>
-                        <td class="td-fecha_recibido" >
-                            <?php
-                                if (!empty($row['fecha_recibido'])) {
-                                    echo date("d/m/Y h:i:s A", strtotime($row['fecha_recibido']));
-                                } else {
-                                    echo "No recibido aún";
-                                }
-                            ?>
-                        </td>
                         <td class="td-created" > 
                             <?php
                                 if (!empty($row['created_at'])) {
@@ -206,11 +164,8 @@ $arregloSelectTraspasos = [];
     </div>
 </section>
 
-<!-- Incluir Modal de Detalles del Traspaso -->
-<?php include(ROOT_PATH . 'includes/modal_detalles_traspaso.php'); ?>
-
-<!-- Incluir Modal de Recepción del Traspaso -->
-<?php include(ROOT_PATH . 'includes/modal_recepcion_traspaso.php'); ?>
+<!-- Incluir Modal de Detalles de venta-->
+<?php include(ROOT_PATH . 'includes/modal_detalles_venta.php'); ?>
 
 <!-- Scripts para DataTable y funcionalidades -->
 <script>

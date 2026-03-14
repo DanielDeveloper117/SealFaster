@@ -91,6 +91,8 @@
                 "filtros_inventario_cnc.php",
                 "inventario.php",
                 "traspasos.php",
+                "barras_venta.php",
+                "almacenes.php",
                 "selectTipoSello.php",
                 "tipo.php",
                 "estimador.php",
@@ -101,6 +103,7 @@
                 "precios.php",
                 "precios_compras.php",
                 "claves_alternas.php",
+                "desencriptar.php",
                 "users.php"
             ]);
             if(!in_array($selfFile, $arrayPermitidos)){
@@ -108,11 +111,13 @@
             }else{
                 $accesoRestringido = False;
             }
+            
         }else if($tipoUsuario == "CNC"){
             if($rol_usuario == "Gerente"){
                 $arrayPermitidos = array_merge($arrayPermitidos, [
                     "filtros_inventario_cnc.php",
                     "inventario_vn.php",
+                    "almacenes.php",
                     "selectTipoSello.php",
                     "tipo.php",
                     "estimador.php",
@@ -122,6 +127,7 @@
             }else{
                 $arrayPermitidos = array_merge($arrayPermitidos, [
                     "filtros_inventario_cnc.php",
+                    "almacenes.php",
                     "inventario_vn.php",
                     "produccion_cnc.php"
                 ]);
@@ -137,6 +143,7 @@
                 "tipo.php",
                 "estimador.php",
                 "filtros_inventario_cnc.php",
+                "almacenes.php",
                 "cotizaciones.php",
                 "produccion_vn.php",
                 "inventario_vn.php"
@@ -151,12 +158,17 @@
         }else if($tipoUsuario == "Sistemas"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
                 "filtros_inventario_cnc.php",
-                "inventario_vn.php",
+                "inventario.php",
                 "traspasos.php",
+                "barras_venta.php",
+                "almacenes.php",
                 "selectTipoSello.php",
                 "tipo.php",
                 "estimador.php",
                 "cotizaciones.php",
+                "produccion_vn.php",
+                "produccion_cnc.php",
+                "parametros_cotizador.php",
                 "precios.php",
                 "precios_compras.php",
                 "claves_alternas.php",
@@ -200,6 +212,8 @@
                 "filtros_inventario_cnc.php",
                 "inventario.php",
                 "traspasos.php",
+                "barras_venta.php",
+                "almacenes.php",
                 "produccion_cnc.php"
             ]);
             if(!in_array($selfFile, $arrayPermitidos)){
@@ -208,7 +222,6 @@
                 //header de inventarios
                 $accesoRestringido = False; 
             }
-
         }else{
             echo "<script type='text/javascript'>
                     $(document).ready(function(){
@@ -263,6 +276,6 @@
                 });
             </script>";
     }else{
-        include(ROOT_PATH . 'includes/headers/header.php');
+        include(ROOT_PATH . 'includes/headers/header2.php');
     }
 ?>

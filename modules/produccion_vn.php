@@ -79,7 +79,7 @@ if (!isset($_SESSION['id'])) {
                     </button>
                 </div>
             </div>
-            <table id="productionTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="productionTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th></th>

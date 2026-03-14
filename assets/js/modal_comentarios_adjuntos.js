@@ -1,130 +1,14 @@
-// Variables globales
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
 let idCotizacionActual = '';
 let origenComentariosAdjuntos = '';
 let idRequisicionActual = '';
 let esMia = "0";
 
-$(document).ready(function() {
-    
-    // 1. Al hacer click en el botón principal del modal
-    $(document).on('click', '.btn-modal-comentarios-adjuntos', function() {
-        // Resetear variables globales
-        idCotizacionActual = '';
-        origenComentariosAdjuntos = '';
-        idRequisicionActual = '';
-        
-        // Obtener datos del botón clickeado
-        const $boton = $(this);
-        esMia = $boton.data('es-mia') || "0";
-        origenComentariosAdjuntos = $boton.data('origen');
-        
-        // Validar origen
-        if (origenComentariosAdjuntos !== 'coti' && origenComentariosAdjuntos !== 'requi') {
-            alert('Error: Origen no válido');
-            return;
-        }
-        
-        if (origenComentariosAdjuntos === 'coti') {
-            // Obtener ID de cotización
-            idCotizacionActual = $('#inputIdCotizacion').val() || $boton.data('id_cotizacion');
-            
-            if (!idCotizacionActual) {
-                alert('Error: No se encontró el ID de cotización');
-                return;
-            }
-            
-            console.log('Modal abierto desde COTIZACIÓN:', idCotizacionActual);
-            
-        } else if (origenComentariosAdjuntos === 'requi') {
-            // Obtener ID de requisición
-            idRequisicionActual = $boton.data('id_requisicion');
-            
-            if (!idRequisicionActual) {
-                alert('Error: No se encontró el ID de requisición');
-                return;
-            }
-            
-            console.log('Modal abierto desde REQUISICIÓN:', idRequisicionActual);
-        }
-        
-        // Mostrar el modal
-        $('#modalComentariosAdjuntos').modal('show');
-        
-        // Cargar los registros existentes
-        cargarRegistrosComentarios(origenComentariosAdjuntos, idRequisicionActual);
-    });
-    
-    // 2. Al hacer click en el botón "Agregar"
-    $(document).on('click', '#btnAgregarComentario', function() {
-        mostrarFormularioNuevo();
-    });
-    
-    // 3. Al hacer click en "Cancelar" del formulario
-    $(document).on('click', '#btnCancelarFormulario', function() {
-        ocultarFormularioNuevo();
-        resetearFormulario();
-    });
-    
-    // 4. Manejo de archivos adjuntos
-    $(document).on('click', '#btnSeleccionarArchivo', function() {
-        $('#inputAdjunto').click();
-    });
-    
-    $('#inputAdjunto').on('change', function() {
-        const file = this.files[0];
-        if (file) {
-            $('#nombreArchivo').text(file.name);
-            $('#archivoSeleccionado').removeClass('d-none');
-            $('#btnSeleccionarArchivo').addClass('d-none');
-        }
-    });
-    
-    $(document).on('click', '#btnQuitarArchivo', function() {
-        $('#inputAdjunto').val('');
-        $('#archivoSeleccionado').addClass('d-none');
-        $('#btnSeleccionarArchivo').removeClass('d-none');
-    });
-    
-    // 5. Envío del formulario
-    $('#btnAgregarRegistro').on('click', function(e) {
-        //e.preventDefault();
-        agregarComentarioAdjunto();
-    });
-    
-    // 6. Eliminar registro
-    $(document).on('click', '.btn-eliminar-registro', function() {
-        const idRegistro = $(this).data('id');
-        eliminarRegistro(idRegistro);
-    });
-
-    // Versión mejorada del contador con cambios visuales en el textarea
-    $('#inputComentarioAdjunto').on('input', function() {
-        const $this = $(this);
-        const longitud = $this.val().length;
-        const maximo = 98;
-        const $contador = $('#contadorCaracteres');
-        
-        $contador.text(longitud + '/' + maximo);
-        
-        // Remover todas las clases primero
-        $this.removeClass('warning danger');
-        $contador.removeClass('text-warning text-danger');
-        
-        // Aplicar estilos según la longitud
-        if (longitud === 0) {
-            // Estado normal
-        } else if (longitud > 80 && longitud < maximo) {
-            // Advertencia (amarillo)
-            $this.addClass('warning');
-            $contador.addClass('text-warning');
-        } else if (longitud >= maximo) {
-            // Peligro (rojo)
-            $this.addClass('danger');
-            $contador.addClass('text-danger');
-        }
-    });
-});
-
+// ============================================================
+// FUNCIONES
+// ============================================================
 // Función para cargar registros existentes - CORREGIDA
 function cargarRegistrosComentarios(origen, idRequisicion) {
     if (origen === 'coti') {
@@ -419,3 +303,126 @@ function eliminarRegistro(idRegistro) {
         }
     });
 }
+
+// ============================================================
+// EVENTOS DEL DOM
+// ============================================================
+$(document).ready(function() {
+    // 1. Al hacer click en el botón principal del modal
+    $(document).on('click', '.btn-modal-comentarios-adjuntos', function() {
+        // Resetear variables globales
+        idCotizacionActual = '';
+        origenComentariosAdjuntos = '';
+        idRequisicionActual = '';
+        
+        // Obtener datos del botón clickeado
+        const $boton = $(this);
+        esMia = $boton.data('es-mia') || "0";
+        origenComentariosAdjuntos = $boton.data('origen');
+        
+        // Validar origen
+        if (origenComentariosAdjuntos !== 'coti' && origenComentariosAdjuntos !== 'requi') {
+            alert('Error: Origen no válido');
+            return;
+        }
+        
+        if (origenComentariosAdjuntos === 'coti') {
+            // Obtener ID de cotización
+            idCotizacionActual = $('#inputIdCotizacion').val() || $boton.data('id_cotizacion');
+            
+            if (!idCotizacionActual) {
+                alert('Error: No se encontró el ID de cotización');
+                return;
+            }
+            
+            console.log('Modal abierto desde COTIZACIÓN:', idCotizacionActual);
+            
+        } else if (origenComentariosAdjuntos === 'requi') {
+            // Obtener ID de requisición
+            idRequisicionActual = $boton.data('id_requisicion');
+            
+            if (!idRequisicionActual) {
+                alert('Error: No se encontró el ID de requisición');
+                return;
+            }
+            
+            console.log('Modal abierto desde REQUISICIÓN:', idRequisicionActual);
+        }
+        
+        // Mostrar el modal
+        $('#modalComentariosAdjuntos').modal('show');
+        
+        // Cargar los registros existentes
+        cargarRegistrosComentarios(origenComentariosAdjuntos, idRequisicionActual);
+    });
+    
+    // 2. Al hacer click en el botón "Agregar"
+    $(document).on('click', '#btnAgregarComentario', function() {
+        mostrarFormularioNuevo();
+    });
+    
+    // 3. Al hacer click en "Cancelar" del formulario
+    $(document).on('click', '#btnCancelarFormulario', function() {
+        ocultarFormularioNuevo();
+        resetearFormulario();
+    });
+    
+    // 4. Manejo de archivos adjuntos
+    $(document).on('click', '#btnSeleccionarArchivo', function() {
+        $('#inputAdjunto').click();
+    });
+    
+    $('#inputAdjunto').on('change', function() {
+        const file = this.files[0];
+        if (file) {
+            $('#nombreArchivo').text(file.name);
+            $('#archivoSeleccionado').removeClass('d-none');
+            $('#btnSeleccionarArchivo').addClass('d-none');
+        }
+    });
+    
+    $(document).on('click', '#btnQuitarArchivo', function() {
+        $('#inputAdjunto').val('');
+        $('#archivoSeleccionado').addClass('d-none');
+        $('#btnSeleccionarArchivo').removeClass('d-none');
+    });
+    
+    // 5. Envío del formulario
+    $('#btnAgregarRegistro').on('click', function(e) {
+        //e.preventDefault();
+        agregarComentarioAdjunto();
+    });
+    
+    // 6. Eliminar registro
+    $(document).on('click', '.btn-eliminar-registro', function() {
+        const idRegistro = $(this).data('id');
+        eliminarRegistro(idRegistro);
+    });
+
+    // Versión mejorada del contador con cambios visuales en el textarea
+    $('#inputComentarioAdjunto').on('input', function() {
+        const $this = $(this);
+        const longitud = $this.val().length;
+        const maximo = 98;
+        const $contador = $('#contadorCaracteres');
+        
+        $contador.text(longitud + '/' + maximo);
+        
+        // Remover todas las clases primero
+        $this.removeClass('warning danger');
+        $contador.removeClass('text-warning text-danger');
+        
+        // Aplicar estilos según la longitud
+        if (longitud === 0) {
+            // Estado normal
+        } else if (longitud > 80 && longitud < maximo) {
+            // Advertencia (amarillo)
+            $this.addClass('warning');
+            $contador.addClass('text-warning');
+        } else if (longitud >= maximo) {
+            // Peligro (rojo)
+            $this.addClass('danger');
+            $contador.addClass('text-danger');
+        }
+    });
+});

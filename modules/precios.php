@@ -470,7 +470,7 @@ if (isset($_GET['material']) && !empty($_GET['material'])) {
             </div>
         </div>
         <div class="mt-4 table-container <?php if(empty($arregloSelectPrecios)){echo 'd-none';}?>">
-            <table id="parametrosTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="parametrosTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Acciones</th>

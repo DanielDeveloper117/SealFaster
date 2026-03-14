@@ -251,7 +251,7 @@ if (!isset($_SESSION['id'])) {
                         <i class="bi bi-table"></i>
                     </div>
                     <h3 class="function-title">Inventario Completo</h3>
-                    <p class="function-description">Cargar todos los registros de un almacen en una nueva pestaña. Tiempo de carga estimado es de 15 seg.</p>
+                    <p class="function-description">Cargar todos los registros de un almacen en una nueva pestaña. Esto puede tardar demasiado.</p>
                     <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalQueAlmacen">
                         Ver almacenes
                     </button>
@@ -314,6 +314,22 @@ if (!isset($_SESSION['id'])) {
                     </a>
                 </div>               
 
+                <!-- Agregar Almacen -->
+                 <?php if ((($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                            || ($tipo_usuario === "Administrador") 
+                            || ($tipo_usuario == "Sistemas"))): ?>
+                    <div class="function-card ">
+                        
+                        <div class="function-icon">
+                            <i class="bi bi-building-add"></i>
+                        </div>
+                        <h3 class="function-title">Agregar Almacén</h3>
+                        <p class="function-description">Llena el formulario y agrega un nuevo almacén al sistema.</p>
+                        <button type="button" class="btnAgregarAlmacen function-button" data-bs-toggle="modal" data-bs-target="#modalAlmacen">
+                            Abrir formulario
+                        </button>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
@@ -517,6 +533,7 @@ if (!isset($_SESSION['id'])) {
 </div>
 
 <?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
+<?php include(ROOT_PATH . 'includes/modal_almacen.php'); ?>
 
 <script>
     // ============================================================

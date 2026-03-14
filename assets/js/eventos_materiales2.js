@@ -2,10 +2,8 @@ document.addEventListener("DOMContentLoaded", function () {
     console.log("Cantidad de materiales:", cantidadMateriales);
 
     for (let iLocal = 1; iLocal <= cantidadMateriales; iLocal++) {
-        console.log("material N = ", iLocal );
         (function(i) {
             $(document).ready(function () {
-                console.log(`Document ready listo para material ${i}`);
                 // estado inicial de variables globales del material
                 window[`DIMENSIONES_VALIDAS_m${i}`] = false;
                 window[`DESBASTE_DUREZA_m${i}`] = 0.00;
@@ -82,7 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     let alturaPorSello = alturaSello + window[`DESBASTE_DUREZA_m${i}`];
-                    let milimetrosNecesarios = (alturaPorSello * valueCantidad) + window.MEDIDA_AGARRE_MAQUINA;
+                    let milimetrosNecesarios = (alturaPorSello * valueCantidad);
 
                     // inicializar globales solo la primera vez
                     if (!window[`INICIO_SELECCION_BILLETS_m${i}`]) {
@@ -113,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     let alturaPorSello = alturaSello + window[`DESBASTE_DUREZA_m${i}`];
                     
                     // Calcular cuántos sellos caben en este billet
-                    let caben = Math.floor((alturaBillet - window.MEDIDA_AGARRE_MAQUINA) / alturaPorSello);
+                    let caben = Math.floor((alturaBillet) / alturaPorSello);
                     let milimetrosUsados = caben * alturaPorSello;
 
                     // Restar lo que se puede usar del billet actual
@@ -134,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     $(`#spanSellosRestantes_m${i}`).text(Math.max(nuevosSellosRestantes, 0)); // Nunca negativos
 
                     // Mostrar sobrantes
-                    let sobrantes = alturaBillet - (milimetrosUsados + window.MEDIDA_AGARRE_MAQUINA);
+                    let sobrantes = alturaBillet - (milimetrosUsados);
                     $(`#spanMilimetrosSobrantes_m${i}`).text(sobrantes.toFixed(2));
 
                     // Cerrar modal
@@ -159,7 +157,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     let alturaSello = parseFloat($(`#altura_mm_m${i}`).val()) || 0;
                     let alturaPorSello = alturaSello + window[`DESBASTE_DUREZA_m${i}`];
-                    let cabenPz = Math.floor((alturaBillet - window.MEDIDA_AGARRE_MAQUINA) / alturaPorSello);
+                    let cabenPz = Math.floor((alturaBillet) / alturaPorSello);
                     return cabenPz;
                 };
 
@@ -320,12 +318,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     resetTextareasBillets();
 
-                    window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
-                    // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
+                    // console.log(`Limpiando billets seleccionados_m${i}. `, window[`BILLETS_SELECCIONADOS_m${i}`]);
                 
                     reiniciarMilimetrosNecesarios();
                 
@@ -467,15 +465,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     resetTextareasBillets();
 
-                    window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
-                    // console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
+                    // console.log(`Limpiando billets seleccionados_m${i}. `, window[`BILLETS_SELECCIONADOS_m${i}`]);
                     let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
 
-                    if(window.perfilSello.includes("R16") && tipoDurezaMateriales == "duros"){
+                    if(window.PERFIL_SELLO.includes("R16") && tipoDurezaMateriales == "duros"){
                         sweetAlertResponse("warning", "Advertencia","No es posible maquinar este sello con materiales duros", "none");
                         return;
                     }
@@ -490,11 +488,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     let dInteriorSeleccionado = parseFloat($(`#diametro_interior_mm_m${i}`).val());
                     let dExteriorSeleccionado = parseFloat($(`#diametro_exterior_mm_m${i}`).val());
                     // sumatoria de altura total 
-                    let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
+                    let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`])).toFixed(2);
                     let dInteriorNecesario = 0.00;
                     let dExteriorNecesario = 0.00;
-                    let materialConLabioDI = "_m"+window.CON_LABIO_DI;
-                    let materialConLabioDE = "_m"+window.CON_LABIO_DE;
                     if(!materialSeleccionado || materialSeleccionado === "" || materialSeleccionado==null){
                         $(`#selectorMaterial_m${i}`).val("");
                         $(`#btnCerrarModalBillets_m${i}`).trigger("click");
@@ -538,7 +534,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     window.unirBilletsSeleccionados();
 
-                    console.log(`Excluir billets en la consulta: `, window.billetsSeleccionados);
+                    console.log(`Excluir billets en la consulta: `, window.BILLETS_SELECCIONADOS);
 
                     if (materialSeleccionado) {
                         // Realizar la llamada AJAX para obtener los billets filtrados
@@ -551,7 +547,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 altura_mm: alturaNecesario,
                                 diametro_interior_mm: dInteriorNecesario,
                                 diametro_exterior_mm: dExteriorNecesario,
-                                arreglo_excluir: window.billetsSeleccionados
+                                arreglo_excluir: window.BILLETS_SELECCIONADOS
                             },
                             dataType: 'json',
                             success: function(data) {
@@ -852,7 +848,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     alturaSeleccionada = parseFloat(alturaSeleccionada);
                     let dInteriorSeleccionado = parseFloat(inputDI); // Usar los valores exactos de los inputs
                     let dExteriorSeleccionado = parseFloat(inputDE); // Usar los valores exactos de los inputs
-                    let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`] + window.MEDIDA_AGARRE_MAQUINA)).toFixed(2);
+                    let alturaNecesario = Math.abs(parseFloat(alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`])).toFixed(2);
 
                     console.log(`Aplicando calculos al Material _m${i}`);
                     
@@ -874,7 +870,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     window.unirBilletsSeleccionados();
 
-                    console.log(`Excluir billets en la consulta: `, window.billetsSeleccionados);
+                    console.log(`Excluir billets en la consulta: `, window.BILLETS_SELECCIONADOS);
 
                     // Validar que los campos requeridos estén completos
                     if (inputDI && inputDE && materialSeleccionado) {
@@ -887,7 +883,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 diametro_exterior: dExteriorSeleccionado, // Enviar valores exactos
                                 material: materialSeleccionado,
                                 stock: alturaNecesario,
-                                excluir_billets: window.billetsSeleccionados.join(',')
+                                excluir_billets: window.BILLETS_SELECCIONADOS.join(',')
                             },
                             dataType: 'json',
                             success: function(data) {
@@ -1205,7 +1201,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                     console.log(`Max Usable = `, max_usable);
                                     console.log(`Altura = `, altura);
                                     console.log(`Desbaste por Dureza = `, window[`DESBASTE_DUREZA_m${i}`]);
-                                    console.log(`Desbaste por Agarre de la Maquina = `, window.MEDIDA_AGARRE_MAQUINA);
                                     if (isNaN(precio) || isNaN(max_usable) || isNaN(altura)) {
                                         console.error('Uno o más valores no son números válidos.');
                                         $(`#miniTableCostoBarra_m${i} tbody`).append('<tr><td colspan="4">Uno o más valores no son números válidos.</td></tr>');
@@ -1283,16 +1278,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         let billetInfoString = claveSeleccionada + " (" + dataInterior + "/" + dataExterior + ") " + ocupaEnBillet + " pz";
 
                         window[`PRECIO_BARRAS_m${i}`] += totalPrecioBarraUtilidad;
-                        window[`billetsSeleccionados_m${i}`].push(lotePedimentoSeleccionado);
+                        window[`BILLETS_SELECCIONADOS_m${i}`].push(lotePedimentoSeleccionado);
                         window[`BILLETS_SELECCIONADOS_LOTES_m${i}`].push(billetInfoStringLote);
                         window[`BILLETS_SELECCIONADOS_STRING_m${i}`].push(billetInfoString);
-                        if(esBilletSeleccionadoManualmente === "1"){
+                        if(esBilletSeleccionadoManualmente == "1"){
                             window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`].push(lotePedimentoSeleccionado);
                         }
 
                         $(`#precioBarra_m${i}`).val(window[`PRECIO_BARRAS_m${i}`].toFixed(2));
 
-                        console.log(`Billets seleccionados_m${i} son: `, window[`billetsSeleccionados_m${i}`]);
+                        console.log(`Billets seleccionados_m${i} son: `, window[`BILLETS_SELECCIONADOS_m${i}`]);
                         console.log(`Billets Lotes string m${i} son: `, window[`BILLETS_SELECCIONADOS_LOTES_m${i}`]);
                         console.log(`Billets string m${i} son: `, window[`BILLETS_SELECCIONADOS_STRING_m${i}`]);
                         console.log(`Billets manualmente m${i} son: `, window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`]);
@@ -1423,7 +1418,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     window.unirBilletsSeleccionados();
 
-                    console.log(`Excluir billets en la consulta: `, window.billetsSeleccionados);
+                    console.log(`Excluir billets en la consulta: `, window.BILLETS_SELECCIONADOS);
 
                     if (materialSeleccionado) {
                         // Realizar la llamada AJAX para obtener los billets filtrados
@@ -1511,7 +1506,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                                         // Recuperamos el porcentaje calculado previamente
                                         let porcentajeAprovechamiento = item.porcentajeAprovechamiento;
-                                        let sumatoriaAlturaMM = (alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`]+ window.MEDIDA_AGARRE_MAQUINA)*(cantidadDigitada);
+                                        let sumatoriaAlturaMM = (alturaSeleccionada + window[`DESBASTE_DUREZA_m${i}`])*(cantidadDigitada);
                                         // Si la clave no ha sido insertada aún, la agrega
                                         if (!clavesUnicas[item.clave]) {
                                             $(`#tablaBilletsSimulacion_m${i} tbody`).append(
@@ -1707,7 +1702,6 @@ document.addEventListener("DOMContentLoaded", function () {
                                     console.log(`Max Usable = `, max_usable);
                                     console.log(`Altura = `, altura);
                                     console.log(`Desbaste por Dureza = `, window[`DESBASTE_DUREZA_m${i}`]);
-                                    console.log(`Desbaste por Agarre de la Maquina = `, window.MEDIDA_AGARRE_MAQUINA);
                                     if (isNaN(precio) || isNaN(max_usable) || isNaN(altura)) {
                                         console.error('Uno o más valores no son números válidos.');
                                         $(`#miniTableCostoBarra_m${i} tbody`).append('<tr><td colspan="4">Uno o más valores no son números válidos.</td></tr>');
@@ -1782,10 +1776,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         let billetInfoStringLote = lotePedimentoSeleccionado + " (" + dataInterior + "/" + dataExterior + ") " + ocupaEnBillet + " pz";
                         let billetInfoString = claveSeleccionada + " (" + dataInterior + "/" + dataExterior + ") " + ocupaEnBillet + " pz";
                         window[`PRECIO_BARRAS_m${i}`] += totalPrecioBarraUtilidad;
-                        window[`billetsSeleccionados_m${i}`].push(lotePedimentoSeleccionado);
+                        window[`BILLETS_SELECCIONADOS_m${i}`].push(lotePedimentoSeleccionado);
                         window[`BILLETS_SELECCIONADOS_LOTES_m${i}`].push(billetInfoStringLote);
                         window[`BILLETS_SELECCIONADOS_STRING_m${i}`].push(billetInfoString);
-                        if(esBilletSeleccionadoManualmente === "1"){
+                        if(esBilletSeleccionadoManualmente == "1"){
                             window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`].push(lotePedimentoSeleccionado);
                         }
 
@@ -1911,12 +1905,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     }, 300);
                     reiniciarMilimetrosNecesarios();
 
-                    window[`billetsSeleccionados_m${i}`] = [];
+                    window[`BILLETS_SELECCIONADOS_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_STRING_m${i}`] = [];
                     window[`BILLETS_SELECCIONADOS_MANUALMENTE_m${i}`] = [];
                     window[`PRECIO_BARRAS_m${i}`] = 0.00;
-                    console.log(`Limpiando billets seleccionados_m${i}. `, window[`billetsSeleccionados_m${i}`]);
+                    console.log(`Limpiando billets seleccionados_m${i}. `, window[`BILLETS_SELECCIONADOS_m${i}`]);
 
                 });
                 // CUANDO SE LE DA A SIGUIENTE, CALCULOS: SUMATORIA PB, (CO, CH, CPDI, CRM)(CANTIDAD) DESCUENTOS Y TOTAL
@@ -2101,13 +2095,13 @@ document.addEventListener("DOMContentLoaded", function () {
                                 success: function(data) {
                                     // Verifica que la respuesta tenga datos
                                     if (data.length > 0) {
-                                        if(window.tieneResorte === "1"){
-                                            window.multiploResorte = data[0].valor;
+                                        if(window.CON_RESORTE == "1"){
+                                            window.MULTIPLO_RESORTE = data[0].valor;
                                         }else{
-                                            window.multiploResorte = 1.00;
+                                            window.MULTIPLO_RESORTE = 1.00;
                                         }
                                         console.log(`caso: `, data[0].caso);
-                                        console.log(`Multiplo por resorte es = `, window.multiploResorte);
+                                        console.log(`Multiplo por resorte es = `, window.MULTIPLO_RESORTE);
                                         console.log(`------------------------------------------`);
 
                                     } else {
@@ -2141,8 +2135,8 @@ document.addEventListener("DOMContentLoaded", function () {
                             let subTotalSinDescuentos = window[`PRECIO_BARRAS_m${i}`] + costoMinimoUnidad + costoOperacion + costoHerramienta + costoPreparacionDIbarra;
                             console.log(`Sub total antes de descuentos = `, subTotalSinDescuentos);
                             // sumar el costo del resorte SI EXISTE
-                            if(window.tieneResorte === "1"){
-                                costoResorte = subTotalSinDescuentos * window.multiploResorte;
+                            if(window.CON_RESORTE == "1"){
+                                costoResorte = subTotalSinDescuentos * window.MULTIPLO_RESORTE;
                                 $(`#inputCostoResorte_m${i}`).val(costoResorte.toFixed(2));
                                 console.log(`Costo por resorte metalico = `, costoResorte);
                                 subTotalSinDescuentos = subTotalSinDescuentos + costoResorte;

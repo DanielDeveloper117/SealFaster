@@ -497,6 +497,7 @@ $(document).ready(function(){
     // CAMBIAR A add AL CLICK AGREGAR REGISTRO
     $("#btnAgregar").on("click", function(){
         $("#formInventario")[0].reset();
+        $("#inputAlmacenIdBilletForm").removeClass("input-disabled").attr("disabled", false);
         $('#inputAction').val('insert');
         $("#titleModal").text("Agregar registro");
         $("#formInventario").removeAttr("target");
@@ -514,6 +515,8 @@ $(document).ready(function(){
     $('#inventarioTable').on('click', '.edit-btn', function() {
         // Limpiar formulario
         $('#formInventario')[0].reset();
+
+        $("#inputAlmacenIdBilletForm").addClass("input-disabled").attr("disabled", true);
 
         // Variables de edición
         window.CLAVE_VALIDA = true;

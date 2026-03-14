@@ -490,7 +490,7 @@ if (!isset($_SESSION['id'])) {
                 </div>
             </div>
             <div id="containerUnicas" class="">
-                <table id="cotizacionesTable" class="table table-striped table-bordered " style="width: 100%;">
+                <table id="cotizacionesTable" class="mainTable table table-striped table-bordered " style="width: 100%;">
                     <thead>
                         <tr>
                             <th style="background-color:#55ad9b52;"></th>
@@ -532,11 +532,11 @@ if (!isset($_SESSION['id'])) {
                                         <div class="checkbox-wrapper">
                                             <input
                                                 type="checkbox"
-                                                class="d-none btn-check-cute"
+                                                class="btn-check-cute"
                                                 val="<?= htmlspecialchars($row['id_cotizacion']); ?>"
                                                 title="Seleccionar cotizacion <?= htmlspecialchars($row['id_cotizacion']); ?>"
                                             />
-                                        <i class="bi bi-check2 badge-checkbox d-none"></i>
+                                        <i class="bi bi-check2 badge-checkbox"></i>
                                     </div>
                                     <?php endif; ?>
 

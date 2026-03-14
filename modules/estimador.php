@@ -98,7 +98,7 @@ if (!isset($_SESSION['id'])) {
 
         $imagePath = $imageDir . $sello . '.jpg';
         // extraer el ultimo caracter del nombre de la imagen
-        echo '<script>window.perfilSello = "'.$selloOriginal.'";</script>';
+        echo '<script>window.PERFIL_SELLO = "'.$selloOriginal.'";</script>';
 
     } else {
         header('Location: selectTipoSello.php');
@@ -131,28 +131,19 @@ if (!isset($_SESSION['id'])) {
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador2.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/select2-selector.css'); ?>">
     <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/chosen-selector.css'); ?>"> -->
-    <script src="<?= controlCache('../assets/js/estimador.js'); ?>"></script>
     <!-- <script src="<?= controlCache('../assets/js/scripts_ajax.js'); ?>"></script> -->
     <title><?= $selloOriginal ?></title>
 </head>
 <body>
     
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
-
+<div id="overlay">
+    <div class="loading-message">
+        <span>Cargando datos del perfil, por favor, espere...</span>    
+    </div>
+</div>
 <section id="containerSections" class="d-flex flex-column">
-    <section id="sectionSelectorCM" class="section-container d-none">
-        <div class="mb-3">
-            <h4 for="selectorCantidadMateriales" class="label-estimador">Cantidad de materiales</h4>
-            <select id="selectorCantidadMateriales" class="form-select" name="cantidad_materiales" style="font-size: 18px;">
-                <option value="" disabled selected>Seleccione una cantidad</option>
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-                <option value="5">5</option>
-            </select>
-        </div> 
-    </section>
+
     <div class="d-flex flex-column flex-md-row col-12 mb-3 gap-3">
 
         <?php if ($tipoUsuario == 5): ?>
@@ -173,7 +164,7 @@ if (!isset($_SESSION['id'])) {
                         <option value="" disabled selected>Seleccione un cliente</option>
                     </select>
                 </div> 
-                <div class="d-flex col-11 col-md-12 flex-column">
+                <div class="d-flex col-12 col-md-12 flex-column">
                     <h5 class="mb-3">Tipo de inventario *</h5>
                     <select id="selectorTipoInventario" class="" name="tipo_inventario" required>
                         <option value="" disabled selected>Seleccione una opción</option>
@@ -368,26 +359,13 @@ if (!isset($_SESSION['id'])) {
 
 <script>
     const cantidadMateriales = <?= (int)$cantidadMateriales ?>;
+    window.CANTIDAD_MATERIALES = cantidadMateriales;
 </script>
-<?php?>
 
+
+<script src="<?= controlCache('../assets/js/estimador.js'); ?>"></script>
 <script src="<?= controlCache('../assets/js/'.$archivoEventos.''); ?>"></script>
 <script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
-<script>
-$(document).ready(function(){
-    // $.ajax({
-    //     url: "../ajax/ajax_notificacion.php",
-    //     type: "POST",
-    //     data: { mensaje: "El usuario ha cargado estimador" },
-    //     success: function(response) {
-    //         console.log("Notificación enviada: ", response);
-    //     },
-    //     error: function(error) {
-    //         console.error("Error al enviar la notificación: ", error);
-    //     }
-    // });
 
-});
-</script>
 </body>
 </html>

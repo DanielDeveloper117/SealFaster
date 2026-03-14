@@ -214,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         </div>
         <div class="mt-4 table-container">
-            <table id="usersTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="usersTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Acciones</th>

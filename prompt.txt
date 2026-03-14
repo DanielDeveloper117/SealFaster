@@ -282,3 +282,40 @@ dando a entender que ya ocurrio el traspaso entre almacenes.
 +inventario_cnc.estatus cambiar a "Disponible para cotizar".
 +inventario_cnc.updated_at = now.
 *El backend debera estar en recibir_traspaso.php.
+
+Se necesita que el siguiente header de la pagina sea responsivo, actualmente el problema es que 
+cada que se van agregando nuevos enlaces, el espacio esta reducido y los enlaces se ven muy 
+apretados causando que la experiencia del usuario se vea afectada. Para solucionarlo, hay que 
+desarrollar una solucion para que este nav se pueda ver bien en todo dispositivo, ademas necesita 
+que se agregue un icono bootstrap ilustrativo cerca del enlace por ejemplo "Inicio", llevaría el 
+icono "bi-home", como el nav de linkedin. Una solucion podria ser agrupar los enlaces por contexto 
+y desplegar un dropdown o buscar la mejor solucion para este caso.
+
+Se desea modificar la nueva altura total del perfil del sello en base a la altura de cliente, 
+y en base a la cantidad de clientes. Se observa que para cada perfil pueden existir X cantidad de 
+materiales, el sistema calcula en base a un cierto porcentaje la altura de cada material basandose 
+en la altura de cliente, es decir, si por ejemplo la altura de cliente es 10mm y el perfil tiene 5 
+materiales y cada material tiene un 20% de la altura de cliente, entonces cada material obtendría 
+como altura 2mm. El sistema ya hace eso existosamente, sin embargo, hay otro parametro que hay que 
+tomar en cuenta y que no se esta aplicando actualmente, se observa que cada material puede ser 
+omitido para cotizar mediante un checkbox, el usuario puede omitir todos los materiales del 
+perfil validando que quede almenos 1 material para cotizar. El problema es que el sistema no esta 
+recalculando la altura de los materiales no omitidos, tal que, si por ejemplo la altura de 
+cliente es 10mm y hay 5 materiales, cada uno con un 20% de la altura total, pero, 
+se omitieron 3 materiales, entonces, ahora se recalcularia el porcentaje para obtener la altura 
+en mm de cada uno de los materiales no omitidos. Dicho eso, resolver el siguiente ejercicio para el 
+siguiente perfil de sello hidraulico S1012-M.
+*CASO SIN MATERIALES OMITIDOS:
+H cliente = 10mm
+p. material 1 = 0.252, H = 2.52mm, NO OMITIDO
+p. material 2 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 3 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 4 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 5 = 0.408, H = 4.08mm, NO OMITIDO
+*CASI DE MATERIALES OMITIDOS:
+H cliente = 10mm
+p. material 1 = 0.252, H = ?mm, NO OMITIDO
+p. material 2 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 3 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 4 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 5 = 0.408, H = ?mm, NO OMITIDO

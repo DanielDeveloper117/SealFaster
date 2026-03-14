@@ -587,7 +587,7 @@ if(isset($_GET["pendientes"])){
             </div>
         </div>
         <div class="mt-4 table-container">
-            <table id="parametrosTable" class="table table-striped table-bordered" style="width: 100%;">
+            <table id="parametrosTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
                         <th>Acciones</th>
