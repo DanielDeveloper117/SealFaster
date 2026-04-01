@@ -6,6 +6,11 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
 session_start();
+if (!isset($_SESSION['id'])) {
+    header("Location: ../auth/cerrar_sesion.php");
+    exit;
+}
+include(ROOT_PATH . 'includes/backend_info_user.php');
 
 try {
     header('Content-Type: application/json');
@@ -27,7 +32,7 @@ try {
     $accion = trim($_POST['accion']);
 
     // Validar que la acción sea válida
-    if (!in_array($accion, ['remplazo', 'extra'])) {
+    if (!in_array($accion, ['remplazo', 'extra', 'eliminacion'])) {
         echo json_encode([
             'success' => false,
             'message' => "Acción no válida: $accion"
@@ -56,6 +61,13 @@ try {
 
         // 2. Verificar si ya estaba autorizado según la acción
         if ($accion === 'remplazo') {
+            if ($tipo_usuario === "CNC") {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No tiene permisos para realizar esta acción'
+                ]);
+                exit;
+            }
             if (isset($registro['es_remplazo_auth']) && $registro['es_remplazo_auth'] == 1) {
                 throw new Exception("Esta barra de reemplazo ya estaba autorizada");
             }
@@ -68,7 +80,14 @@ try {
             ");
             $stmtUpdate->bindParam(':id_control', $id_control, PDO::PARAM_INT);
             
-        } else { // $accion === 'extra'
+        } elseif ($accion === 'extra') {
+            if ($tipo_usuario === "CNC") {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'No tiene permisos para realizar esta acción'
+                ]);
+                exit;
+            }
             if (isset($registro['es_extra_auth']) && $registro['es_extra_auth'] == 1) {
                 throw new Exception("Esta barra extra ya estaba autorizada");
             }
@@ -77,6 +96,18 @@ try {
             $stmtUpdate = $conn->prepare("
                 UPDATE control_almacen 
                 SET es_extra_auth = 1 
+                WHERE id_control = :id_control
+            ");
+            $stmtUpdate->bindParam(':id_control', $id_control, PDO::PARAM_INT);
+        } elseif ($accion === 'eliminacion') {
+            if (isset($registro['es_eliminacion_auth']) && $registro['es_eliminacion_auth'] == 1) {
+                throw new Exception("Esta eliminación de barra ya estaba autorizada");
+            }
+            
+            // Actualizar autorización de eliminación
+            $stmtUpdate = $conn->prepare("
+                UPDATE control_almacen 
+                SET es_eliminacion_auth = 1 
                 WHERE id_control = :id_control
             ");
             $stmtUpdate->bindParam(':id_control', $id_control, PDO::PARAM_INT);
@@ -104,7 +135,8 @@ try {
         $stmtPendientes = $conn->prepare("
             SELECT 
                 es_remplazo, es_remplazo_auth, 
-                es_extra, es_extra_auth 
+                es_extra, es_extra_auth,
+                es_eliminacion, es_eliminacion_auth
             FROM control_almacen 
             WHERE id_requisicion = :id_requisicion
         ");
@@ -125,6 +157,13 @@ try {
             // Verificar si hay extras pendientes de autorizar
             if (isset($reg['es_extra']) && $reg['es_extra'] == 1 && 
                 isset($reg['es_extra_auth']) && $reg['es_extra_auth'] == 0) {
+                $hayPendientes = true;
+                break;
+            }
+
+            // Verificar si hay eliminaciones pendientes de autorizar
+            if (isset($reg['es_eliminacion']) && $reg['es_eliminacion'] == 1 && 
+                isset($reg['es_eliminacion_auth']) && $reg['es_eliminacion_auth'] == 0) {
                 $hayPendientes = true;
                 break;
             }
@@ -197,7 +236,12 @@ try {
                 }
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
-                    $tipoBarra = $accion === 'remplazo' ? 'reemplazo de barra' : 'barra extra';
+                    $tipoBarraMapEmail = [
+                        'remplazo' => 'reemplazo de barra',
+                        'extra' => 'barra extra',
+                        'eliminacion' => 'eliminación de barra'
+                    ];
+                    $tipoBarra = $tipoBarraMapEmail[$accion] ?? $accion;
 
                     // Determinar descripción de la barra autorizada
                     if ($accion === 'remplazo') {
@@ -235,17 +279,23 @@ try {
         }
 
         // Preparar respuesta exitosa (incluyendo nota sobre correo)
-        $tipoBarra = $accion === 'remplazo' ? 'reemplazo' : 'extra';
+        $tipoBarraMap = [
+            'remplazo' => 'reemplazo',
+            'extra' => 'extra',
+            'eliminacion' => 'eliminación'
+        ];
+        $tipoBarraStr = $tipoBarraMap[$accion] ?? $accion;
+
         if($SEND_MAIL === true){
             echo json_encode([
                 'success' => true,
-                'message' => "Barra $tipoBarra autorizada correctamente." . $mensajeAdicional . $mensajeCorreo,
+                'message' => "Barra $tipoBarraStr autorizada correctamente." . $mensajeAdicional . $mensajeCorreo,
                 'no_hay_pendientes' => !$hayPendientes
             ]);
         }else{
             echo json_encode([
                 'success' => true,
-                'message' => "Barra $tipoBarra autorizada correctamente. Envío de correos no disponible." . $mensajeAdicional,
+                'message' => "Barra $tipoBarraStr autorizada correctamente. Envío de correos no disponible." . $mensajeAdicional,
                 'no_hay_pendientes' => !$hayPendientes
             ]);
         }

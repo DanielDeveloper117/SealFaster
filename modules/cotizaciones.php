@@ -13,13 +13,13 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
+    <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
@@ -211,8 +211,8 @@ if (!isset($_SESSION['id'])) {
         //}
     }
 
+    // --------- LECTURA DE GET / GET FILTROS ----------
     try {
-        // --------- LECTURA DE GET / GET INPUTS ----------
         $cot = isset($_GET['cot']) && in_array($_GET['cot'], ['u', 'f']) ? $_GET['cot'] : 'u';
 
         $familia      = isset($_GET['familia']) && $_GET['familia'] !== '' ? trim($_GET['familia']) : null;
@@ -594,7 +594,7 @@ if (!isset($_SESSION['id'])) {
                                         }
 
                                     ?>
-                                    <?php if ($tipoUsuario == 1 || $tipoUsuario == 2 ): ?>
+                                    <?php if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente"): ?> 
                                         <button type="button" class="btn-blue btn-asignar-cotizacion" 
                                             data-id-cotizacion="<?= htmlspecialchars($row['id_cotizacion']); ?>"
                                             title="Asignarle esta cotización a un vendedor">
@@ -926,35 +926,6 @@ if (!isset($_SESSION['id'])) {
                         <div class="row">
                             <div class="checkbox-container col-md-6 mb-3">
                                 <label class="form-check-label" >
-                                    <i class="bi bi-archive"></i> <strong>Mostrar cotizaciones archivadas</strong>
-                                </label>
-                                <?php $archivadas = $_GET['archivadas'] ?? '0'; // valor por defecto ?>
-                                <div class="form-check">
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSoloActivas" value="0" 
-                                            <?= ($archivadas == '0') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioSoloActivas">
-                                            Mostrar solo activas
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSoloArchivadas" value="1" 
-                                            <?= ($archivadas == '1') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioSoloArchivadas">
-                                            Mostrar solo archivadas
-                                        </label>
-                                    </div>
-                                    <div class="form-check mb-2">
-                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSinFiltroArchivadas" value="n" 
-                                            <?= ($archivadas === 'n') ? 'checked' : '' ?>>
-                                        <label class="form-check-label" for="radioSinFiltroArchivadas">
-                                            Mostrar activas y archivadas
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="checkbox-container col-md-6 mb-3">
-                                <label class="form-check-label" >
                                     <i class="bi bi-table"></i> <strong>Default al cargar la tabla</strong>
                                 </label>
                                 <?php $default = $_GET['default'] ?? '2'; // valor por defecto ?>
@@ -989,8 +960,37 @@ if (!isset($_SESSION['id'])) {
                                     </div>
                                 </div>
                             </div>
+                           
+                            <div class="checkbox-container col-md-6 mb-3">
+                                <label class="form-check-label" >
+                                    <i class="bi bi-archive"></i> <strong>Mostrar cotizaciones archivadas</strong>
+                                </label>
+                                <?php $archivadas = $_GET['archivadas'] ?? '0'; // valor por defecto ?>
+                                <div class="form-check">
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSoloActivas" value="0" 
+                                            <?= ($archivadas == '0') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioSoloActivas">
+                                            Mostrar solo activas
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSoloArchivadas" value="1" 
+                                            <?= ($archivadas == '1') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioSoloArchivadas">
+                                            Mostrar solo archivadas
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-2">
+                                        <input class="form-check-input" type="radio" name="archivadas" id="radioSinFiltroArchivadas" value="n" 
+                                            <?= ($archivadas === 'n') ? 'checked' : '' ?>>
+                                        <label class="form-check-label" for="radioSinFiltroArchivadas">
+                                            Mostrar activas y archivadas
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-
                     </div>
 
                     <!-- Botones del formulario -->
@@ -1217,184 +1217,60 @@ if (!isset($_SESSION['id'])) {
 <!-- //////////////////////////////////////////////////////////////////////// -->
 
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
-<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
-   <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            //$("#overlay").addClass("d-none");
-            // Verificar si ya existe la preferencia en localStorage
-            /*
-            if (!localStorage.getItem("ocultarInfoVigencias")) {
-                Swal.fire({
-                    title: 'Información importante',
-                    text: 'Ahora las cotizaciones tendrán una vigencia de 72 horas a partir de su creación. Las cotizaciones vencidas ya no podran ser usadas en futuras requisiciones.',
-                    icon: 'info',
-                    confirmButtonText: 'Entendido',
-                    width: '400px',
-                    padding: '10px',
-                    position: 'bottom-end',
-                    toast: true,
-                    showConfirmButton: true,
-                    showCloseButton: false,
-                    input: 'checkbox',
-                    inputPlaceholder: 'No mostrar nuevamente',
-                    inputAttributes: {
-                    id: 'noMostrarCheckbox'
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed && result.value) {
-                    // Guardar preferencia en localStorage
-                    localStorage.setItem("ocultarInfoVigencias", "1");
-                    }
-                });
-            }
-            */
-            // Add hover effects to action buttons
-            const actionButtons = document.querySelectorAll('.container-actions button');
-            actionButtons.forEach(button => {
-                button.addEventListener('mouseenter', function() {
-                    this.style.transform = 'translateY(-3px) scale(1.05)';
-                });
-                
-                button.addEventListener('mouseleave', function() {
-                    this.style.transform = 'translateY(0) scale(1)';
-                });
-                
-                // Add ripple effect on click
-                button.addEventListener('click', function(e) {
-                    const ripple = document.createElement('span');
-                    const rect = this.getBoundingClientRect();
-                    const size = Math.max(rect.width, rect.height);
-                    const x = e.clientX - rect.left - size / 2;
-                    const y = e.clientY - rect.top - size / 2;
-                    
-                    ripple.style.width = ripple.style.height = size + 'px';
-                    ripple.style.left = x + 'px';
-                    ripple.style.top = y + 'px';
-                    ripple.style.position = 'absolute';
-                    ripple.style.borderRadius = '50%';
-                    ripple.style.background = 'rgba(255, 255, 255, 0.3)';
-                    ripple.style.transform = 'scale(0)';
-                    ripple.style.animation = 'ripple 0.6s linear';
-                    ripple.style.pointerEvents = 'none';
-                    
-                    this.appendChild(ripple);
-                    
-                    setTimeout(() => {
-                        ripple.remove();
-                    }, 600);
-                });
-            });
-            
-            // Add smooth scrolling and parallax effects
-            let ticking = false;
-            
-            function updateParallax() {
-                const scrolled = window.pageYOffset;
-                const parallaxElements = document.querySelectorAll('.section-table');
-                
-                parallaxElements.forEach(element => {
-                    const speed = 0.5;
-                    const yPos = -(scrolled * speed);
-                    element.style.transform = `translateY(${yPos}px)`;
-                });
-                
-                ticking = false;
-            }
-            
-            function requestTick() {
-                if (!ticking) {
-                    requestAnimationFrame(updateParallax);
-                    ticking = true;
-                }
-            }
-            
-            window.addEventListener('scroll', requestTick);
-            
-            // Initialize table animations
-            // setTimeout(() => {
-            //     animateTableEntrance(containerUnicas);
-            // }, 800);
-            
-            // Add glow effect to table rows on data change
-            function addRowGlow(row) {
-                row.style.boxShadow = '0 0 20px rgba(85, 173, 155, 0.6)';
-                setTimeout(() => {
-                    row.style.boxShadow = '';
-                }, 1000);
-            }
-            
-            // Simulate data updates (for demo purposes)
-            setInterval(() => {
-                const rows = document.querySelectorAll('tbody tr');
-                if (rows.length > 0) {
-                    const randomRow = rows[Math.floor(Math.random() * rows.length)];
-                    addRowGlow(randomRow);
-                }
-            }, 1000);
-            
-            // Add dynamic theme detection
-            const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-            mediaQuery.addListener(handleThemeChange);
-            
-            function handleThemeChange(e) {
-                document.body.classList.toggle('light-theme', !e.matches);
-                
-                // Trigger re-animation for smooth transition
-                const elements = document.querySelectorAll('.loading-effect');
-                elements.forEach((el, index) => {
-                    el.style.animation = 'none';
-                    setTimeout(() => {
-                        el.style.animation = `fadeInUp 0.6s ease-out forwards`;
-                        el.style.animationDelay = (index * 0.1) + 's';
-                    }, 50);
-                });
-            }
-            
-            // Add interactive table sorting simulation
-            const headers = document.querySelectorAll('th');
-            headers.forEach(header => {
-                if (header.textContent !== 'Acciones') {
-                    header.style.cursor = 'pointer';
-                    header.addEventListener('click', function() {
-                        // Add visual feedback for sorting
-                        this.style.background = 'var(--glow-color)';
-                        this.style.transform = 'scale(1.02)';
-                        
-                        setTimeout(() => {
-                            this.style.background = 'var(--accent-bg)';
-                            this.style.transform = 'scale(1)';
-                        }, 300);
-                        
-                        // Animate table rows for sorting effect
-                        const tbody = this.closest('table').querySelector('tbody');
-                        const rows = Array.from(tbody.querySelectorAll('tr'));
-                        
-                        rows.forEach((row, index) => {
-                            row.style.transform = 'translateX(-10px)';
-                            row.style.opacity = '0.7';
-                            
-                            setTimeout(() => {
-                                row.style.transform = 'translateX(0)';
-                                row.style.opacity = '1';
-                            }, index * 50);
-                        });
-                    });
-                }
-            });
+<script>
+// ============================================================
+//          ******** EVENTOS DEL DOM ********
+// ============================================================ 
+$(document).ready(function(){    
+    // Add hover and click effects to action buttons
+    const actionButtons = document.querySelectorAll('.container-actions button');
+    actionButtons.forEach(button => {
+        button.addEventListener('mouseenter', function() {
+            this.style.transform = 'translateY(-3px) scale(1.05)';
         });
         
-        // Add CSS for ripple animation
-        const style = document.createElement('style');
-        style.textContent = `
-            @keyframes ripple {
-                to {
-                    transform: scale(4);
-                    opacity: 0;
-                }
+        button.addEventListener('mouseleave', function() {
+            this.style.transform = 'translateY(0) scale(1)';
+        });
+        
+        // Add ripple effect on click
+        button.addEventListener('click', function(e) {
+            const ripple = document.createElement('span');
+            const rect = this.getBoundingClientRect();
+            const size = Math.max(rect.width, rect.height);
+            const x = e.clientX - rect.left - size / 2;
+            const y = e.clientY - rect.top - size / 2;
+            
+            ripple.style.width = ripple.style.height = size + 'px';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.position = 'absolute';
+            ripple.style.borderRadius = '50%';
+            ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+            ripple.style.transform = 'scale(0)';
+            ripple.style.animation = 'ripple 0.6s linear';
+            ripple.style.pointerEvents = 'none';
+            
+            this.appendChild(ripple);
+            
+            setTimeout(() => {
+                ripple.remove();
+            }, 600);
+        });
+    });
+    // Add CSS for ripple animation
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
             }
-        `;
-        document.head.appendChild(style);
-    </script>
+        }
+    `;
+    document.head.appendChild(style);
+});
+</script>
 </body>
 </html>

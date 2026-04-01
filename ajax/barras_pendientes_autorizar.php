@@ -36,6 +36,8 @@ try {
             $situacion = 'remplazo';
         } elseif ((isset($registro['es_extra']) && $registro['es_extra'] == 1) && (isset($registro['es_extra_auth']) && $registro['es_extra_auth'] == 0)) {
             $situacion = 'extra';
+        } elseif ((isset($registro['es_eliminacion']) && $registro['es_eliminacion'] == 1) && (isset($registro['es_eliminacion_auth']) && $registro['es_eliminacion_auth'] == 0)) {
+            $situacion = 'eliminacion';
         }
         
         // Solo incluir registros que tengan situación definida
@@ -63,8 +65,11 @@ try {
                 'justificacion_remplazo' => $registro['justificacion_remplazo'],
                 // Justificación cuando se solicitó una barra extra
                 'justificacion_extra' => isset($registro['justificacion_extra']) ? $registro['justificacion_extra'] : null,
+                // Justificación cuando se solicitó eliminar una barra
+                'justificacion_eliminacion' => isset($registro['justificacion_eliminacion']) ? $registro['justificacion_eliminacion'] : null,
                 // Campo extra
-                'es_extra' => $registro['es_extra']
+                'es_extra' => $registro['es_extra'],
+                'es_eliminacion' => $registro['es_eliminacion']
             ];
             
             $billetsPendientes[] = $billet;

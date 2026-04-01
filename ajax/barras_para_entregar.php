@@ -19,6 +19,7 @@ try {
     $stmtControlAlmacen = $conn->prepare("
         SELECT * FROM control_almacen 
         WHERE id_requisicion = :id_requisicion
+        AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
     ");
     $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmtControlAlmacen->execute();
@@ -146,6 +147,7 @@ try {
                 'id_estimacion' => $cotizacion['id_estimacion'],
                 'id_cotizacion' => $cotizacion['id_cotizacion'],
                 'perfil_sello' => $cotizacion['perfil_sello'],
+                'componente' => $cotizacion['cantidad_material'],
                 'material' => $cotizacion['material'],
                 'clave' => $clave,
                 'lote_pedimento' => $lote_pedimento,
@@ -154,6 +156,7 @@ try {
                 'di_sello' => $di_sello,
                 'de_sello' => $de_sello,
                 'a_sello' => $cotizacion['a_sello'],
+                'h_componente' => $cotizacion['altura'],
                 'billet_item_original' => $billetItem
             ];
 
@@ -168,12 +171,12 @@ try {
         try {
             $insertStmt = $conn->prepare("
                 INSERT INTO control_almacen (
-                    id_requisicion, id_estimacion, id_cotizacion, perfil_sello, material, 
-                    clave, lote_pedimento, medida, pz_teoricas, di_sello, de_sello, altura_pz,
+                    id_requisicion, id_estimacion, id_cotizacion, perfil_sello, componente, material, 
+                    clave, lote_pedimento, medida, pz_teoricas, di_sello, de_sello, altura_pz, h_componente,
                     fecha_registro
                 ) VALUES (
-                    :id_requisicion, :id_estimacion, :id_cotizacion, :perfil_sello, :material,
-                    :clave, :lote_pedimento, :medida, :pz_teoricas, :di_sello, :de_sello, :altura_pz,
+                    :id_requisicion, :id_estimacion, :id_cotizacion, :perfil_sello, :componente, :material,
+                    :clave, :lote_pedimento, :medida, :pz_teoricas, :di_sello, :de_sello, :altura_pz, :h_componente,
                     NOW()
                 )
             ");
@@ -192,12 +195,13 @@ try {
                 
                 $existe = $checkStmt->fetch(PDO::FETCH_ASSOC);
                 
-                if (!$existe) {
+                //if (!$existe) {
                     // Insertar solo si no existe
                     $insertStmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
                     $insertStmt->bindParam(':id_estimacion', $registro['id_estimacion']);
                     $insertStmt->bindParam(':id_cotizacion', $registro['id_cotizacion']);
                     $insertStmt->bindParam(':perfil_sello', $registro['perfil_sello']);
+                    $insertStmt->bindParam(':componente', $registro['componente']);
                     $insertStmt->bindParam(':material', $registro['material']);
                     $insertStmt->bindParam(':clave', $registro['clave']);
                     $insertStmt->bindParam(':lote_pedimento', $registro['lote_pedimento']);
@@ -206,8 +210,9 @@ try {
                     $insertStmt->bindParam(':di_sello', $registro['di_sello']);
                     $insertStmt->bindParam(':de_sello', $registro['de_sello']);
                     $insertStmt->bindParam(':altura_pz', $registro['a_sello']);
+                    $insertStmt->bindParam(':h_componente', $registro['h_componente']);
                     $insertStmt->execute();
-                }
+                //}
             }
             
             $conn->commit();
@@ -221,6 +226,7 @@ try {
         $stmtFinal = $conn->prepare("
             SELECT * FROM control_almacen 
             WHERE id_requisicion = :id_requisicion
+            AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
         ");
         $stmtFinal->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
         $stmtFinal->execute();

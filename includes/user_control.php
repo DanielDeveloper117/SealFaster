@@ -86,21 +86,25 @@
     $accesoRestringido = False;
     if (!empty($rol_usuario) && !empty($tipo_usuario)) {
         $tipoUsuario = $tipo_usuario;
-        if ($tipoUsuario == "Administrador") {
+        if ($tipoUsuario == "Administrador" || $tipoUsuario == "Sistemas") {
             $arrayPermitidos = array_merge($arrayPermitidos, [
-                "filtros_inventario_cnc.php",
+                "panel_inventario.php",
                 "inventario.php",
                 "traspasos.php",
                 "barras_venta.php",
                 "almacenes.php",
-                "selectTipoSello.php",
-                "tipo.php",
+                "select_familia.php",
+                "select_perfil.php",
                 "estimador.php",
                 "cotizaciones.php",
                 "produccion_vn.php",
                 "produccion_cnc.php",
+                "herramientas.php",
+                "grupos_limitantes.php",
+                "perfiles.php",
                 "parametros_cotizador.php",
-                "precios.php",
+                "panel_claves.php",
+                "claves.php",
                 "precios_compras.php",
                 "claves_alternas.php",
                 "desencriptar.php",
@@ -115,21 +119,25 @@
         }else if($tipoUsuario == "CNC"){
             if($rol_usuario == "Gerente"){
                 $arrayPermitidos = array_merge($arrayPermitidos, [
-                    "filtros_inventario_cnc.php",
+                    "panel_inventario.php",
                     "inventario_vn.php",
                     "almacenes.php",
-                    "selectTipoSello.php",
-                    "tipo.php",
+                    "select_familia.php",
+                    "select_perfil.php",
                     "estimador.php",
                     "cotizaciones.php",
-                    "produccion_cnc.php"
+                    "produccion_cnc.php",
+                    "herramientas.php", 
+                    "grupos_limitantes.php",
+                    "perfiles.php"
                 ]);
             }else{
                 $arrayPermitidos = array_merge($arrayPermitidos, [
-                    "filtros_inventario_cnc.php",
+                    "panel_inventario.php",
                     "almacenes.php",
                     "inventario_vn.php",
-                    "produccion_cnc.php"
+                    "produccion_cnc.php",
+                    "herramientas.php",
                 ]);
             }
             if (!in_array($selfFile, $arrayPermitidos)) {
@@ -139,10 +147,10 @@
             }
         }else if ($tipoUsuario == "Vendedor") {
             $arrayPermitidos = array_merge($arrayPermitidos, [
-                "selectTipoSello.php",
-                "tipo.php",
+                "select_familia.php",
+                "select_perfil.php",
                 "estimador.php",
-                "filtros_inventario_cnc.php",
+                "panel_inventario.php",
                 "almacenes.php",
                 "cotizaciones.php",
                 "produccion_vn.php",
@@ -155,37 +163,10 @@
                 $accesoRestringido = False;
             }
 
-        }else if($tipoUsuario == "Sistemas"){
-            $arrayPermitidos = array_merge($arrayPermitidos, [
-                "filtros_inventario_cnc.php",
-                "inventario.php",
-                "traspasos.php",
-                "barras_venta.php",
-                "almacenes.php",
-                "selectTipoSello.php",
-                "tipo.php",
-                "estimador.php",
-                "cotizaciones.php",
-                "produccion_vn.php",
-                "produccion_cnc.php",
-                "parametros_cotizador.php",
-                "precios.php",
-                "precios_compras.php",
-                "claves_alternas.php",
-                "desencriptar.php",
-                "users.php"
-            ]);
-            if(!in_array($selfFile, $arrayPermitidos)){
-                $accesoRestringido = True;
-            }else{
-                //header de general/lider/sistemas
-                $accesoRestringido = False; 
-            }
-
         }else if($tipoUsuario == "Cliente Externo"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
-                "selectTipoSello.php",
-                "tipo.php",
+                "select_familia.php",
+                "select_perfil.php",
                 "estimador.php",
                 "cotizaciones.php"
             ]);
@@ -209,7 +190,7 @@
 
         }else if($tipoUsuario == "Inventarios"){
             $arrayPermitidos = array_merge($arrayPermitidos, [
-                "filtros_inventario_cnc.php",
+                "panel_inventario.php",
                 "inventario.php",
                 "traspasos.php",
                 "barras_venta.php",

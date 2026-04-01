@@ -72,6 +72,41 @@ try {
         list($interior, $exterior) = explode('/', $medida);
         $interior = (int)$interior;
         $exterior = (int)$exterior;
+
+        // --- NUEVA LÓGICA DE ESTATUS Y CREACIÓN DE PARÁMETRO ---
+        $sqlP = "SELECT id, precio FROM parametros WHERE clave = :c OR (clave_alterna != '' AND clave_alterna = :ca)";
+        $stmtP = $conn->prepare($sqlP);
+        $stmtP->bindParam(':c', $clave);
+        $stmtP->bindParam(':ca', $clave);
+        $stmtP->execute();
+        $paramRow = $stmtP->fetch(PDO::FETCH_ASSOC);
+
+        if (!$paramRow) {
+            // NO EXISTE: insertar automáticamente en parámetros
+            $sqlIns = "INSERT INTO parametros (clave, clave_alterna, material, proveedor, tipo, interior, exterior, max_usable, precio, usuario_id, created_at, updated_at)
+                       VALUES (:c, NULL, :m, :p, 'S/T', :i, :e, :mu, 0.00, :uid, NOW(), NOW())";
+            $stmtIns = $conn->prepare($sqlIns);
+            $stmtIns->bindParam(':c', $clave);
+            $stmtIns->bindParam(':m', $material);
+            $stmtIns->bindParam(':p', $proveedor);
+            $stmtIns->bindParam(':i', $interior, PDO::PARAM_INT);
+            $stmtIns->bindParam(':e', $exterior, PDO::PARAM_INT);
+            $muParams = (float)($max_usable ?? 0);
+            $stmtIns->bindParam(':mu', $muParams);
+            $stmtIns->bindParam(':uid', $_SESSION['id']);
+            $stmtIns->execute();
+            
+            $estatus = "Clave nueva pendiente";
+        } else {
+            // SÍ EXISTE
+            $precioParam = (float)$paramRow['precio'];
+            if ($precioParam <= 0.00) {
+                $estatus = "Clave nueva pendiente";
+            } else {
+                $estatus = "Disponible para cotizar";
+            }
+        }
+        // --------------------------------------------------------
     }
 
     // Variables para acciones posteriores
@@ -128,169 +163,47 @@ try {
             $insertId = $conn->lastInsertId();
         }
 
-        // MANEJO DE ESTATUS ESPECIALES
-        if (in_array($estatus, ['Relación pendiente', 'Clave nueva pendiente', 'Clave SRS inexistente'])) {
+        // MANEJO DE ESTATUS Y ENVÍO DE CORREO (Reducido a Clave nueva pendiente)
+        if ($estatus === 'Clave nueva pendiente') {
+            $asunto = "Nuevo billet con clave nueva - Relación pendiente o Sin Precio";
+            $mensaje = "Se ha agregado o detectado un billet con clave nueva o costo cero, pendiente de validación o captura de tarifa en catálogo de parámetros. Clave: " . $clave;
             
-            // CASO 1: "Relación pendiente" - Solo insertar/actualizar en inventario_cnc y enviar correo
-            if ($estatus === 'Relación pendiente') {
-                $asunto = "Nuevo billet con clave alterna existente - Relación pendiente";
-                $mensaje = "Se ha agregado un nuevo billet con clave alterna existente, relación pendiente de clave SRS. Clave: " . $clave;
-                
-                // Envío de correo directo (sin función)
-                $correoEnviado = false;
-                try {
-                    //require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                    //$mail = getMailer($conn);
-                    $mail = new PHPMailer(true);
-                    $mail->isSMTP();
-                    $mail->Host = $HOST;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = $USER;
-                    $mail->Password = $PASS; 
-                    $mail->SMTPSecure = $SECURE;
-                    $mail->Port = $PORT;
-                    $mail->setFrom($FROM, $DOMAIN_NAME);
-                    $mail->isHTML(true);
-                    $mail->CharSet = 'UTF-8';
-                    $mail->Encoding = 'base64';
-                    if($DEV_MODE === false){
-                        $mail->addAddress($AUX_GESTOR_EMAIL);
-                    }else{
-                        $mail->addAddress($DEV_EMAIL);
-                    }
-                    $mail->isHTML(true);
-                    $mail->Subject = $asunto;
-                    $mail->Body = $mensaje;
-                    if($SEND_MAIL === true){
-                        if ($mail->send()) {
-                            $correoEnviado = true;
-                            $msjExtra = "Correo enviado a Inventarios correctamente.";
-                        } else {
-                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
+            $correoEnviado = false;
+            try {
+                $mail = new PHPMailer(true);
+                $mail->isSMTP();
+                $mail->Host = $HOST;
+                $mail->SMTPAuth = true;
+                $mail->Username = $USER;
+                $mail->Password = $PASS; 
+                $mail->SMTPSecure = $SECURE;
+                $mail->Port = $PORT;
+                $mail->setFrom($FROM, $DOMAIN_NAME);
+                $mail->isHTML(true);
+                $mail->CharSet = 'UTF-8';
+                $mail->Encoding = 'base64';
+                if($DEV_MODE === false){
+                    $mail->addAddress($AUX_GESTOR_EMAIL);
+                }else{
+                    $mail->addAddress($DEV_EMAIL);
                 }
                 
-                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
-                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
+                $mail->Subject = $asunto;
+                $mail->Body = $mensaje;
+                if($SEND_MAIL === true){
+                    if ($mail->send()) {
+                        $correoEnviado = true;
+                        $msjExtra = "Correo enviado a Inventarios correctamente.";
+                    } else {
+                        $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
+                    }
+                }
+            } catch (Throwable $e) {
+                $msjExtra = "Error al enviar correo: " . $e->getMessage();
             }
             
-            // CASO 2: "Clave nueva pendiente" - Insertar en claves_alternas y enviar correo
-            else if ($estatus === 'Clave nueva pendiente') {
-                // Insertar en claves_alternas (clave_srs como NULL inicialmente)
-                $sqlClavesAlternas = "INSERT INTO claves_alternas (clave_alterna, clave_srs, fecha_registro) 
-                                     VALUES (:clave_alterna, NULL, NOW()) 
-                                     ON DUPLICATE KEY UPDATE fecha_registro = NOW()";
-                $stmtClavesAlternas = $conn->prepare($sqlClavesAlternas);
-                $claveAlterna = !empty($inputClaveAlterna) ? $inputClaveAlterna : $clave;
-                $stmtClavesAlternas->bindParam(':clave_alterna', $claveAlterna);
-                $stmtClavesAlternas->execute();
-                
-                $asunto = "Nuevo billet con clave nueva - Relación pendiente";
-                $mensaje = "Se ha agregado un nuevo billet con clave nueva, relación pendiente de clave SRS. Clave: " . $clave;
-                
-                // Envío de correo directo (sin función)
-                $correoEnviado = false;
-                try {
-                    //require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                    //$mail = getMailer($conn);
-                    $mail = new PHPMailer(true);
-                    $mail->isSMTP();
-                    $mail->Host = $HOST;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = $USER;
-                    $mail->Password = $PASS; 
-                    $mail->SMTPSecure = $SECURE;
-                    $mail->Port = $PORT;
-                    $mail->setFrom($FROM, $DOMAIN_NAME);
-                    $mail->isHTML(true);
-                    $mail->CharSet = 'UTF-8';
-                    $mail->Encoding = 'base64';
-                    if($DEV_MODE === false){
-                        $mail->addAddress($AUX_GESTOR_EMAIL);
-                    }else{
-                        $mail->addAddress($DEV_EMAIL);
-                    }
-                    
-                    $mail->isHTML(true);
-                    $mail->Subject = $asunto;
-                    $mail->Body = $mensaje;
-                    if($SEND_MAIL === true){
-                        if ($mail->send()) {
-                            $correoEnviado = true;
-                            $msjExtra = "Correo enviado a Inventarios correctamente.";
-                        } else {
-                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
-                }
-                
-                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
-                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
-                
-                $claveParaCorreo = $claveAlterna;
-            }
-            
-            // CASO 3: "Clave SRS inexistente" - Insertar en claves_alternas y enviar correo
-            else if ($estatus === 'Clave SRS inexistente') {
-                // Insertar en claves_alternas (clave_srs como NULL)
-                $sqlClavesAlternas = "INSERT INTO claves_alternas (clave_alterna, clave_srs, fecha_registro) 
-                                     VALUES (:clave_alterna, NULL, NOW()) 
-                                     ON DUPLICATE KEY UPDATE fecha_registro = NOW()";
-                $stmtClavesAlternas = $conn->prepare($sqlClavesAlternas);
-                $claveAlterna = !empty($inputClaveAlterna) ? $inputClaveAlterna : $clave;
-                $stmtClavesAlternas->bindParam(':clave_alterna', $claveAlterna);
-                $stmtClavesAlternas->execute();
-                
-                $asunto = "Nuevo billet con clave nueva - Clave SRS no encontrada";
-                $mensaje = "Se ha agregado un nuevo billet con clave nueva, no se encontró la clave SRS. Clave: " . $clave;
-                
-                // Envío de correo directo (sin función)
-                $correoEnviado = false;
-                try {
-                    //require_once(ROOT_PATH . 'includes/PHPMailer.php');
-                    //$mail = getMailer($conn);
-                    $mail = new PHPMailer(true);
-                    $mail->isSMTP();
-                    $mail->Host = $HOST;
-                    $mail->SMTPAuth = true;
-                    $mail->Username = $USER;
-                    $mail->Password = $PASS; 
-                    $mail->SMTPSecure = $SECURE;
-                    $mail->Port = $PORT;
-                    $mail->setFrom($FROM, $DOMAIN_NAME);
-                    $mail->isHTML(true);
-                    $mail->CharSet = 'UTF-8';
-                    $mail->Encoding = 'base64';
-                    if($DEV_MODE === false){
-                        $mail->addAddress($AUX_GESTOR_EMAIL);
-                    }else{
-                        $mail->addAddress($DEV_EMAIL);
-                    }
-                    $mail->isHTML(true);
-                    $mail->Subject = $asunto;
-                    $mail->Body = $mensaje;
-                    if($SEND_MAIL === true){
-                        if ($mail->send()) {
-                            $correoEnviado = true;
-                            $msjExtra = "Correo enviado a Inventarios correctamente.";
-                        } else {
-                            $msjExtra = "No se pudo enviar el correo: " . $mail->ErrorInfo;
-                        }
-                    }
-                } catch (Throwable $e) {
-                    $msjExtra = "Error al enviar correo: " . $e->getMessage();
-                }
-                
-                $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
-                error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
-                
-                $claveParaCorreo = $claveAlterna;
-            }
+            $mensajeCorreo = $correoEnviado ? "" : " (Error al enviar correo)";
+            error_log("INTENTO DE CORREO - Asunto: " . $asunto . " - Éxito: " . ($correoEnviado ? "Sí" : "No"));
         }
         
         $mensajeBase = $action === 'update' ? 'Registro actualizado correctamente.' : 'Registro agregado correctamente.';

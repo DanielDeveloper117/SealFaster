@@ -205,372 +205,550 @@
         </div><!-- /modal-content -->
     </div><!-- /modal-dialog -->
 </div>
+<script>
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================    
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================
+    /**
+     * Carga los detalles del traspaso desde el servidor
+     * @param {number} traspasoId - ID del traspaso
+     */
+    function cargarDetallesTraspaso(traspasoId) {
+        $.ajax({
+            url: '../ajax/detalles_traspaso.php',
+            method: 'GET',
+            data: { id: traspasoId },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    llenarDetallesTraspaso(response.operacion, response.barras);
+                    // Guardar el ID en el modal para usarlo en el botón de inventario
+                    $('#modalDetallesTraspaso').data('traspaso-id', traspasoId);
+                } else {
+                    Swal.fire('Error', response.error || 'Error al cargar los detalles', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error al cargar detalles:', error);
+                Swal.fire('Error', 'Error al cargar los detalles del traspaso', 'error');
+            }
+        });
+    }
+    /**
+     * Llena el modal con los detalles del traspaso
+     * @param {object} operacion - Datos de la operación
+     * @param {array} barras - Listado de barras
+     */
+    function llenarDetallesTraspaso(operacion, barras) {
+        // Llenar información general
+        $('#info-id').text(operacion.id || '-');
+        $('#info-usuario-creador').text(operacion.usuario_creador || '-');
+        $('#info-almacen-origen').text(operacion.almacen_origen || '-');
+        $('#info-almacen-destino').text(operacion.almacen_destino || '-');
+        $('#info-justificacion').text(operacion.justificacion || '-');
+        $('#info-fecha-creacion').text(formatearFecha(operacion.created_at) || '-');
+        
+        // Mostrar información de recepción si recibido = 1
+        if (operacion.recibido == 1) {
+            $('#section-usuario-receptor').show();
+            $('#section-fecha-recepcion').show();
+            $('#section-evidencias-recepcion').show();
+            
+            $('#info-recibido').html('<span class="badge bg-success">El envío ha sido recibido</span>');
+            $('#info-usuario-receptor').text(operacion.usuario_receptor || '-');
+            $('#info-fecha-recepcion').text(formatearFecha(operacion.fecha_recibido) || '-');
+            
+            // Cargar imágenes de recepción
+            if (operacion.img_recepcion_paquete) {
+                $('#img-recepcion-paquete').html(`<img src="../${operacion.img_recepcion_paquete}" alt="Paquete Recibido">`);
+            }
+            if (operacion.img_recepcion_barras) {
+                $('#img-recepcion-barras').html(`<img src="../${operacion.img_recepcion_barras}" alt="Barras Recibidas">`);
+            }
+        } else {
+            $('#section-usuario-receptor').hide();
+            $('#section-fecha-recepcion').hide();
+            $('#section-evidencias-recepcion').hide();
+            $('#info-recibido').html('<span class="badge bg-warning">No recibido aún por el almacén de destino</span>');
+        }
+        
+        // Cargar imágenes de envío
+        if (operacion.img_envio_barras) {
+            $('#img-envio-barras').html(`<img src="../${operacion.img_envio_barras}" alt="Barras Enviadas">`);
+        } else {
+            $('#img-envio-barras').html('<span class="text-muted">Sin imagen</span>');
+        }
+        
+        if (operacion.img_envio_paquete) {
+            $('#img-envio-paquete').html(`<img src="../${operacion.img_envio_paquete}" alt="Paquete Enviado">`);
+        } else {
+            $('#img-envio-paquete').html('<span class="text-muted">Sin imagen</span>');
+        }
+        
+        // Llenar tabla de barras
+        llenarTablaBarras(barras);
+        
+        // Actualizar cantidad en la pestaña
+        $('#cantidad-barras').text(barras.length);
+    }
+    /**
+     * Llena la tabla de barras con los datos del traspaso
+     * @param {array} barras - Listado de barras
+     */
+    function llenarTablaBarras(barras) {
+        const tbody = $('#tbody-barras-traspaso');
+        tbody.empty();
+        
+        if (barras.length === 0) {
+            tbody.html('<tr><td colspan="8" class="text-center text-muted">No hay barras asociadas a este traspaso</td></tr>');
+            return;
+        }
+        
+        barras.forEach(barra => {
+            const fila = `
+                <tr>
+                    <td>${barra.Clave || '-'}</td>
+                    <td>${barra.lote_pedimento || '-'}</td>
+                    <td>${barra.Medida || '-'}</td>
+                    <td>${barra.material || '-'}</td>
+                    <td>${barra.proveedor || '-'}</td>
+                    <td>${barra.stock || '-'}</td>
+                </tr>
+            `;
+            tbody.append(fila);
+        });
+    }
+    /**
+     * Formatea una fecha al formato DD/MM/YYYY HH:MM:SS
+     * @param {string} fecha - Fecha en formato ISO o MySQL
+     * @returns {string} Fecha formateada
+     */
+    function formatearFecha(fecha) {
+        if (!fecha) return '-';
+        
+        const date = new Date(fecha);
+        if (isNaN(date.getTime())) return fecha;
+        
+        const dia = String(date.getDate()).padStart(2, '0');
+        const mes = String(date.getMonth() + 1).padStart(2, '0');
+        const año = date.getFullYear();
+        const horas = String(date.getHours()).padStart(2, '0');
+        const minutos = String(date.getMinutes()).padStart(2, '0');
+        const segundos = String(date.getSeconds()).padStart(2, '0');
+        
+        return `${dia}/${mes}/${año} ${horas}:${minutos}:${segundos}`;
+    }
 
+
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
+    $(document).ready(function () {
+        /**
+         * Evento: Click en btn-detalles para mostrar detalles del traspaso
+         */
+        $(document).on('click', '.btn-detalles', function(e) {
+            e.preventDefault();
+            
+            const traspasoId = $(this).data('id');
+            
+            if (!traspasoId) {
+                Swal.fire('Error', 'ID de traspaso no encontrado', 'error');
+                return;
+            }
+            
+            // Mostrar modal de detalles
+            const modalDetalles = new bootstrap.Modal(
+                document.getElementById('modalDetallesTraspaso'),
+                { backdrop: 'static', keyboard: false }
+            );
+            modalDetalles.show();
+            
+            // Cargar datos del traspaso
+            cargarDetallesTraspaso(traspasoId);
+        });  
+        /**
+         * Evento: Click en btn-ver-inventario desde el modal de detalles
+         */
+        $(document).on('click', '#btn-ver-inventario', function(e) {
+            e.preventDefault();
+            
+            const traspasoId = $('#modalDetallesTraspaso').data('traspaso-id');
+            
+            if (traspasoId) {
+                window.open(`inventario.php?traspaso=${traspasoId}&oper=0`, '_blank');
+            }
+        });
+    });
+</script>
 <style>
-/* ================================================================
-   MODAL DETALLES TRASPASO — Estilo refinado industrial
-   ================================================================ */
+    /* ================================================================
+    MODAL DETALLES TRASPASO — Estilo refinado industrial
+    ================================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
-/* Variables */
-:root {
-    --mdt-bg:           #f0f8f0;
-    --mdt-surface:      #fff;
-    --mdt-surface-2:    #e6f2e6;
-    --mdt-surface-3:    #d1e7d1;
-    --mdt-border:       rgba(255,255,255,0.07);
-    --mdt-border-hover: rgba(255,255,255,0.14);
-    --mdt-text-primary: #e8eaf0;
-    --mdt-text-muted:   #5a6070;
-    --mdt-text-label:   #7c8494;
-    --mdt-accent-blue:  #3b82f6;
-    --mdt-accent-cyan:  #06b6d4;
-    --mdt-accent-green: #22c55e;
-    --mdt-accent-amber: #f59e0b;
-    --mdt-radius:       10px;
-    --mdt-radius-sm:    6px;
-    --mdt-font:         'DM Sans', sans-serif;
-    --mdt-mono:         'JetBrains Mono', monospace;
-    --mdt-shadow:       0 24px 64px rgba(0,0,0,0.6);
-}
-
-/* Dialog */
-.mdt-dialog {
-    max-width: 960px;
-}
-
-/* Content */
-.mdt-content {
-    font-family: var(--mdt-font);
-    background: var(--mdt-surface);
-    border: 1px solid var(--mdt-border);
-    border-radius: 14px !important;
-    box-shadow: var(--mdt-shadow);
-    overflow: hidden;
-}
-
-
-/* ---- BODY ---- */
-.mdt-body {
-    background: var(--mdt-surface);
-    padding: 1.5rem;
-}
-
-/* ---- TABS ---- */
-.mdt-tabs {
-    display: flex;
-    gap: 4px;
-    padding-bottom: 0;
-    list-style: none;
-    padding-left: 0;
-}
-
-.mdt-tab-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    padding: 0.55rem 1rem;
-    font-size: 16px;
-    font-weight: 500;
-    font-family: var(--mdt-font);
-    color: #0a0f0a;
-    background: transparent;
-    border: 1px solid transparent;
-    border-bottom: none;
-    border-radius: var(--mdt-radius-sm) var(--mdt-radius-sm) 0 0;
-    cursor: pointer;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
-    position: relative;
-    bottom: -1px;
-    white-space: nowrap;
-}
-
-.mdt-tab-btn:hover {
-    color: #55ad9b;
-    background: var(--mdt-surface-2);
-}
-
-.mdt-tab-btn.active {
-    color: #55ad9b;
-    font-weight: 700;
-    background: var(--mdt-surface);
-    border-color: var(--mdt-border);
-    border-bottom-color: var(--mdt-surface);
-}
-
-.mdt-tab-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    font-size: 14px;
-    font-weight: 600;
-    background: rgba(85, 173, 155, 0.1);
-    color: #55ad9b;
-    border-radius: 20px;
-    border: 1px solid #55ad9b;
-}
-
-/* ---- SECCIONES ---- */
-.mdt-section {
-    background: #fff;
-    border: 1px solid var(--mdt-border);
-    margin-bottom: 1.25rem;
-    overflow: hidden;
-}
-
-.mdt-section:last-child {
-    margin-bottom: 0;
-}
-
-.mdt-section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 0.7rem 1.1rem;
-    font-size: 16px;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    background-color: #607d8b;
-    border-bottom: 1px solid rgba(59,130,246,0.15);
-    color: #fff;
-}
-
-.mdt-section-body {
-    padding: 1.25rem 1.1rem;
-}
-
-/* ---- GRID DE CAMPOS ---- */
-.mdt-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.85rem;
-}
-
-.mdt-field {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.mdt-field--full {
-    grid-column: 1 / -1;
-}
-
-.mdt-field-label {
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: #333;
-}
-
-.mdt-field-value {
-    font-size: 14px;
-    font-weight: 500;
-    color: #555;
-    margin: 0;
-    padding: 0.45rem 0.65rem;
-    background: var(--mdt-surface-2);
-    border: 1px solid var(--mdt-border);
-    border-radius: var(--mdt-radius-sm);
-    line-height: 1.4;
-    min-height: 34px;
-    display: flex;
-    align-items: center;
-}
-
-
-/* ---- IMÁGENES ---- */
-.mdt-images-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-}
-
-.mdt-image-block {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.mdt-img-viewer {
-    min-height: 220px;
-    background: var(--mdt-surface-2);
-    border: 1px dashed var(--mdt-border-hover);
-    border-radius: var(--mdt-radius);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    transition: border-color 0.2s;
-}
-
-.mdt-img-viewer:hover {
-    border-color: rgba(59,130,246,0.3);
-}
-
-.mdt-img-viewer img {
-    max-width: 100%;
-    max-height: 280px;
-    object-fit: contain;
-    border-radius: var(--mdt-radius-sm);
-}
-
-.mdt-img-placeholder {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.78rem;
-    color: var(--mdt-text-muted);
-    font-family: var(--mdt-font);
-    letter-spacing: 0.02em;
-}
-
-/* ---- TABLA BARRAS ---- */
-.mdt-barras-toolbar {
-    display: flex;
-    align-items: center;
-}
-
-.mdt-table-wrapper {
-    max-height: 520px;
-    overflow-y: auto;
-    overflow-x: auto;
-    border: 1px solid var(--mdt-border);
-    scrollbar-width: thin;
-    scrollbar-color: #2a2e3a transparent;
-}
-
-.mdt-table-wrapper::-webkit-scrollbar { width: 6px; }
-.mdt-table-wrapper::-webkit-scrollbar-track { background: transparent; }
-.mdt-table-wrapper::-webkit-scrollbar-thumb { background: #2a2e3a; border-radius: 4px; }
-
-.mdt-table {
-    width: 100%;
-    margin: 0 !important;
-    font-family: var(--mdt-font);
-    background: var(--mdt-bg) !important;
-}
-
-.mdt-table thead tr th {
-    background: #b8d4b8 !important;
-    color: #0a0f0a !important;
-    font-size: 14px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 0.65rem 0.85rem;
-    white-space: nowrap;
-    position: sticky;
-    top: 0;
-    z-index: 2;
-}
-
-.mdt-table tbody tr {
-    background: #e8f5e8 !important;
-    transition: background 0.12s;
-}
-
-.mdt-table tbody td {
-    font-size: 14px;
-    font-weight: 400;
-    color: #0a0f0a !important;
-    padding: 0.55rem 0.85rem;
-    vertical-align: middle;
-}
-
-/* Badges del JS — sobrescribir colores para tema oscuro */
-.mdt-table .badge.bg-info {
-    background: rgba(6,182,212,0.15) !important;
-    color: #67e8f9 !important;
-    border: 1px solid rgba(6,182,212,0.25);
-    font-size: 0.68rem;
-    font-family: var(--mdt-font);
-    font-weight: 500;
-    padding: 0.28em 0.55em;
-}
-
-.mdt-table .badge.bg-warning {
-    background: rgba(245,158,11,0.15) !important;
-    color: #fcd34d !important;
-    border: 1px solid rgba(245,158,11,0.25);
-    font-size: 0.68rem;
-    font-family: var(--mdt-font);
-    font-weight: 500;
-    padding: 0.28em 0.55em;
-}
-
-.mdt-table .badge.bg-secondary {
-    background: rgba(100,116,139,0.2) !important;
-    color: #94a3b8 !important;
-    border: 1px solid rgba(100,116,139,0.25);
-    font-size: 0.68rem;
-    font-family: var(--mdt-font);
-    font-weight: 500;
-    padding: 0.28em 0.55em;
-}
-
-.mdt-table .badge.bg-danger {
-    background: rgba(239,68,68,0.12) !important;
-    color: #fca5a5 !important;
-    border: 1px solid rgba(239,68,68,0.22);
-    font-size: 0.68rem;
-    font-family: var(--mdt-font);
-    font-weight: 500;
-    padding: 0.28em 0.55em;
-}
-
-.mdt-table .badge.bg-light {
-    background: rgba(255,255,255,0.05) !important;
-    color: #9ca3af !important;
-    border: 1px solid rgba(255,255,255,0.1);
-    font-size: 0.68rem;
-    font-family: var(--mdt-font);
-    font-weight: 500;
-    padding: 0.28em 0.55em;
-}
-
-/* Badges fuera de la tabla (estado de recepción) */
-.badge.bg-success {
-    background: rgba(34,197,94,0.12) !important;
-    /* #86efac */
-    color: #00876cde !important;
-    border: 1px solid rgba(34,197,94,0.22);
-    font-size: 14px;
-    font-weight: 700;
-    padding: 10px 0.65em;
-    border-radius: 4px;
-}
-
-.badge.bg-warning {
-    background: rgba(245, 158, 11, 0.12) !important;
-    color: #ffbf00 !important;
-    border: 1px solid rgba(245, 158, 11, 0.22);
-    font-size: 14px;
-    font-weight: 700;
-    padding: 10px 0.65em;
-    border-radius: 4px;
-}
-
-/* ---- RESPONSIVO ---- */
-@media (max-width: 768px) {
-    .mdt-grid {
-        grid-template-columns: 1fr;
+    /* Variables */
+    :root {
+        --mdt-bg:           #f0f8f0;
+        --mdt-surface:      #fff;
+        --mdt-surface-2:    #e6f2e6;
+        --mdt-surface-3:    #d1e7d1;
+        --mdt-border:       rgba(255,255,255,0.07);
+        --mdt-border-hover: rgba(255,255,255,0.14);
+        --mdt-text-primary: #e8eaf0;
+        --mdt-text-muted:   #5a6070;
+        --mdt-text-label:   #7c8494;
+        --mdt-accent-blue:  #3b82f6;
+        --mdt-accent-cyan:  #06b6d4;
+        --mdt-accent-green: #22c55e;
+        --mdt-accent-amber: #f59e0b;
+        --mdt-radius:       10px;
+        --mdt-radius-sm:    6px;
+        --mdt-font:         'DM Sans', sans-serif;
+        --mdt-mono:         'JetBrains Mono', monospace;
+        --mdt-shadow:       0 24px 64px rgba(0,0,0,0.6);
     }
-    .mdt-field--full {
-        grid-column: 1;
+
+    /* Dialog */
+    .mdt-dialog {
+        max-width: 960px;
     }
-    .mdt-images-grid {
-        grid-template-columns: 1fr;
+
+    /* Content */
+    .mdt-content {
+        font-family: var(--mdt-font);
+        background: var(--mdt-surface);
+        border: 1px solid var(--mdt-border);
+        border-radius: 14px !important;
+        box-shadow: var(--mdt-shadow);
+        overflow: hidden;
     }
+
+
+    /* ---- BODY ---- */
     .mdt-body {
-        padding: 1rem;
+        background: var(--mdt-surface);
+        padding: 1.5rem;
     }
-}
+
+    /* ---- TABS ---- */
+    .mdt-tabs {
+        display: flex;
+        gap: 4px;
+        padding-bottom: 0;
+        list-style: none;
+        padding-left: 0;
+    }
+
+    .mdt-tab-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 0.55rem 1rem;
+        font-size: 16px;
+        font-weight: 500;
+        font-family: var(--mdt-font);
+        color: #0a0f0a;
+        background: transparent;
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: var(--mdt-radius-sm) var(--mdt-radius-sm) 0 0;
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
+        position: relative;
+        bottom: -1px;
+        white-space: nowrap;
+    }
+
+    .mdt-tab-btn:hover {
+        color: #55ad9b;
+        background: var(--mdt-surface-2);
+    }
+
+    .mdt-tab-btn.active {
+        color: #55ad9b;
+        font-weight: 700;
+        background: var(--mdt-surface);
+        border-color: var(--mdt-border);
+        border-bottom-color: var(--mdt-surface);
+    }
+
+    .mdt-tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 20px;
+        height: 20px;
+        padding: 0 5px;
+        font-size: 14px;
+        font-weight: 600;
+        background: rgba(85, 173, 155, 0.1);
+        color: #55ad9b;
+        border-radius: 20px;
+        border: 1px solid #55ad9b;
+    }
+
+    /* ---- SECCIONES ---- */
+    .mdt-section {
+        background: #fff;
+        border: 1px solid var(--mdt-border);
+        margin-bottom: 1.25rem;
+        overflow: hidden;
+    }
+
+    .mdt-section:last-child {
+        margin-bottom: 0;
+    }
+
+    .mdt-section-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0.7rem 1.1rem;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        background-color: #607d8b;
+        border-bottom: 1px solid rgba(59,130,246,0.15);
+        color: #fff;
+    }
+
+    .mdt-section-body {
+        padding: 1.25rem 1.1rem;
+    }
+
+    /* ---- GRID DE CAMPOS ---- */
+    .mdt-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.85rem;
+    }
+
+    .mdt-field {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .mdt-field--full {
+        grid-column: 1 / -1;
+    }
+
+    .mdt-field-label {
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #333;
+    }
+
+    .mdt-field-value {
+        font-size: 14px;
+        font-weight: 500;
+        color: #555;
+        margin: 0;
+        padding: 0.45rem 0.65rem;
+        background: var(--mdt-surface-2);
+        border: 1px solid var(--mdt-border);
+        border-radius: var(--mdt-radius-sm);
+        line-height: 1.4;
+        min-height: 34px;
+        display: flex;
+        align-items: center;
+    }
+
+
+    /* ---- IMÁGENES ---- */
+    .mdt-images-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    .mdt-image-block {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .mdt-img-viewer {
+        min-height: 220px;
+        background: var(--mdt-surface-2);
+        border: 1px dashed var(--mdt-border-hover);
+        border-radius: var(--mdt-radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        transition: border-color 0.2s;
+    }
+
+    .mdt-img-viewer:hover {
+        border-color: rgba(59,130,246,0.3);
+    }
+
+    .mdt-img-viewer img {
+        max-width: 100%;
+        max-height: 280px;
+        object-fit: contain;
+        border-radius: var(--mdt-radius-sm);
+    }
+
+    .mdt-img-placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.78rem;
+        color: var(--mdt-text-muted);
+        font-family: var(--mdt-font);
+        letter-spacing: 0.02em;
+    }
+
+    /* ---- TABLA BARRAS ---- */
+    .mdt-barras-toolbar {
+        display: flex;
+        align-items: center;
+    }
+
+    .mdt-table-wrapper {
+        max-height: 520px;
+        overflow-y: auto;
+        overflow-x: auto;
+        border: 1px solid var(--mdt-border);
+        scrollbar-width: thin;
+        scrollbar-color: #2a2e3a transparent;
+    }
+
+    .mdt-table-wrapper::-webkit-scrollbar { width: 6px; }
+    .mdt-table-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .mdt-table-wrapper::-webkit-scrollbar-thumb { background: #2a2e3a; border-radius: 4px; }
+
+    .mdt-table {
+        width: 100%;
+        margin: 0 !important;
+        font-family: var(--mdt-font);
+        background: var(--mdt-bg) !important;
+    }
+
+    .mdt-table thead tr th {
+        background: #b8d4b8 !important;
+        color: #0a0f0a !important;
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 0.65rem 0.85rem;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 2;
+    }
+
+    .mdt-table tbody tr {
+        background: #e8f5e8 !important;
+        transition: background 0.12s;
+    }
+
+    .mdt-table tbody td {
+        font-size: 14px;
+        font-weight: 400;
+        color: #0a0f0a !important;
+        padding: 0.55rem 0.85rem;
+        vertical-align: middle;
+    }
+
+    /* Badges del JS — sobrescribir colores para tema oscuro */
+    .mdt-table .badge.bg-info {
+        background: rgba(6,182,212,0.15) !important;
+        color: #67e8f9 !important;
+        border: 1px solid rgba(6,182,212,0.25);
+        font-size: 0.68rem;
+        font-family: var(--mdt-font);
+        font-weight: 500;
+        padding: 0.28em 0.55em;
+    }
+
+    .mdt-table .badge.bg-warning {
+        background: rgba(245,158,11,0.15) !important;
+        color: #fcd34d !important;
+        border: 1px solid rgba(245,158,11,0.25);
+        font-size: 0.68rem;
+        font-family: var(--mdt-font);
+        font-weight: 500;
+        padding: 0.28em 0.55em;
+    }
+
+    .mdt-table .badge.bg-secondary {
+        background: rgba(100,116,139,0.2) !important;
+        color: #94a3b8 !important;
+        border: 1px solid rgba(100,116,139,0.25);
+        font-size: 0.68rem;
+        font-family: var(--mdt-font);
+        font-weight: 500;
+        padding: 0.28em 0.55em;
+    }
+
+    .mdt-table .badge.bg-danger {
+        background: rgba(239,68,68,0.12) !important;
+        color: #fca5a5 !important;
+        border: 1px solid rgba(239,68,68,0.22);
+        font-size: 0.68rem;
+        font-family: var(--mdt-font);
+        font-weight: 500;
+        padding: 0.28em 0.55em;
+    }
+
+    .mdt-table .badge.bg-light {
+        background: rgba(255,255,255,0.05) !important;
+        color: #9ca3af !important;
+        border: 1px solid rgba(255,255,255,0.1);
+        font-size: 0.68rem;
+        font-family: var(--mdt-font);
+        font-weight: 500;
+        padding: 0.28em 0.55em;
+    }
+
+    /* Badges fuera de la tabla (estado de recepción) */
+    .badge.bg-success {
+        background: rgba(34,197,94,0.12) !important;
+        /* #86efac */
+        color: #00876cde !important;
+        border: 1px solid rgba(34,197,94,0.22);
+        font-size: 14px;
+        font-weight: 700;
+        padding: 10px 0.65em;
+        border-radius: 4px;
+    }
+
+    .badge.bg-warning {
+        background: rgba(245, 158, 11, 0.12) !important;
+        color: #ffbf00 !important;
+        border: 1px solid rgba(245, 158, 11, 0.22);
+        font-size: 14px;
+        font-weight: 700;
+        padding: 10px 0.65em;
+        border-radius: 4px;
+    }
+
+    /* ---- RESPONSIVO ---- */
+    @media (max-width: 768px) {
+        .mdt-grid {
+            grid-template-columns: 1fr;
+        }
+        .mdt-field--full {
+            grid-column: 1;
+        }
+        .mdt-images-grid {
+            grid-template-columns: 1fr;
+        }
+        .mdt-body {
+            padding: 1rem;
+        }
+    }
 </style>

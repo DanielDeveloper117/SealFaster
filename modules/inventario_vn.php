@@ -14,193 +14,178 @@ if (!isset($_SESSION['id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
 
     <!-- SweetAlert -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
 
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">
 
     <!-- DataTables -->
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
-    <!-- DataTables Buttons -->
-    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
-
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-
-    <!-- JSZip para Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-    <!-- Botones HTML5 -->
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
 
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
+    <?php include(ROOT_PATH . 'includes/exportar_datatable_excel.php'); ?>
     <title>Inventario CNC</title>
 </head>
 
 <body>
 <style>
-    .buttons-excel{
-        display: none !important;
-    }
     .dt-scroll{
         margin-top:10px !important;
         margin-bottom:10px !important;
-    }.btn-ver-justificacion:hover{
-        cursor: pointer !important;
     }
 </style>
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
-$arregloSelectInventario = [];
-// *** METODO GET DE FILTROS RECIBIDOS ***
-if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
-    $origen = $_GET['origen'];
-    $material = $_GET['material'];
-    $proveedor = $_GET['proveedor'];
+    $arregloSelectInventario = [];
+    // *** METODO GET DE FILTROS RECIBIDOS ***
+    if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+        $origen = $_GET['origen'];
+        $material = $_GET['material'];
+        $proveedor = $_GET['proveedor'];
 
-    if($proveedor == "all"){
+        if($proveedor == "all"){
+            $sqlInventario = "
+                SELECT i.*, 
+                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a
+                    ON i.almacen_id = a.id
+                WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+            ";
+            $stmtInventario = $conn->prepare($sqlInventario);
+            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
+        }else{
+            $sqlInventario = "
+                SELECT i.*, 
+                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a
+                    ON i.almacen_id = a.id
+                WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
+                ORDER BY i.stock ASC
+            ";        
+            $stmtInventario = $conn->prepare($sqlInventario);
+            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
+        }
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
+        // Eliminar todos los espacios en blanco de la clave antes de consultar
+        $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
+
         $sqlInventario = "
             SELECT i.*, 
                     (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
             FROM sellosyr_sellosctd.inventario_cnc AS i
             INNER JOIN sellosyr_sellosctd.almacenes AS a
                 ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+            WHERE i.almacen_id = :origen AND i.Clave = :clave
+            ORDER BY i.stock ASC
         ";
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
+        $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
+        // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
+        $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
+
+        $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+        $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
+        $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
         $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-    }else{
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['pendientes'])) {
+        
+        $sqlInventario = 
+            "SELECT 
+                i.id, 
+                i.almacen_id,
+                i.Clave, 
+                i.Medida, 
+                i.proveedor, 
+                i.material, 
+                i.max_usable, 
+                i.stock, 
+                i.lote_pedimento,
+                i.estatus, 
+                i.updated_at,
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            LEFT JOIN parametros p ON i.Clave = p.clave
+            WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' 
+            ORDER BY i.interior DESC;
+        ";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+    }elseif(isset($_GET['archivados'])){
         $sqlInventario = "
             SELECT i.*, 
-                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
             FROM sellosyr_sellosctd.inventario_cnc AS i
             INNER JOIN sellosyr_sellosctd.almacenes AS a
                 ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
-            ORDER BY i.stock ASC
-        ";        
+            WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
+            ORDER BY i.interior DESC
+        ";
         $stmtInventario = $conn->prepare($sqlInventario);
-        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
-    }
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+        //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+    }elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
 
-}else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
-    // Eliminar todos los espacios en blanco de la clave antes de consultar
-    $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
-
-    $sqlInventario = "
-        SELECT i.*, 
+        $sqlInventario = "
+            SELECT i.*, 
                 (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.almacen_id = :origen AND i.Clave = :clave
-        ORDER BY i.stock ASC
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
-    $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
-    // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
-    $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
-
-    $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-    $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
-    $sqlInventario = "
-    SELECT i.*, 
-        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-    FROM sellosyr_sellosctd.inventario_cnc AS i
-    INNER JOIN sellosyr_sellosctd.almacenes AS a
-        ON i.almacen_id = a.id
-    WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}else if (isset($_GET['pendientes'])) {
-    
-    $sqlInventario = 
-        "SELECT 
-            i.id, 
-            i.almacen_id,
-            i.Clave, 
-            i.Medida, 
-            i.proveedor, 
-            i.material, 
-            i.max_usable, 
-            i.stock, 
-            i.lote_pedimento,
-            i.estatus, 
-            i.updated_at,
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        LEFT JOIN parametros p ON i.Clave = p.clave
-        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' 
-        ORDER BY i.interior DESC;
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-}elseif(isset($_GET['archivados'])){
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
-        ORDER BY i.interior DESC
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-}elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
-
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.almacen_id = :origen
-        ORDER BY i.interior DESC";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-}else{
-    $arregloSelectInventario = [];
-}
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen
+            ORDER BY i.interior DESC";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+    }else{
+        $arregloSelectInventario = [];
+    }
 ?>
 
 <div id="overlay">
@@ -340,13 +325,12 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
 <?php include(ROOT_PATH . 'includes/modal_localizar_barra.php'); ?>
 
 <script>
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
     $(document).ready(function(){
-        $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
-        $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
-
-        $('#btnExportarDatos').on('click', function() {
-            $(".buttons-excel").trigger("click");
-        });
+        // =================================
+        //  ****** INICIALIZACIONES ****** 
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
@@ -358,11 +342,7 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
-        // CLICK A VER LA JUSTIFICACION DE ARCHIVAR
-        $('#inventarioTable').on('click', '.btn-ver-justificacion', function() {
-            var dataJus = $(this).data('jus');
-            sweetAlertResponse("info", "Justificación", dataJus, "none");
-        });
+        // =================================
     });
 </script>
 </body>

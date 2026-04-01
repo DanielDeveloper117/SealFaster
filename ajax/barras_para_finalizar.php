@@ -21,10 +21,12 @@ try {
     $fechaRetorno = $stmtFecha->fetchColumn();
 
     // 1. Obtener todas las barras del control_almacen para esta requisición
+    // Se filtran las barras que ya fueron eliminadas oficialmente
     $stmtControlAlmacen = $conn->prepare("
         SELECT *
         FROM control_almacen 
         WHERE id_requisicion = :id_requisicion
+        AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
     ");
     $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmtControlAlmacen->execute();
@@ -55,7 +57,6 @@ try {
             'perfil_sello' => $barra['perfil_sello'],
             'pz_teoricas' => $barra['pz_teoricas'],
             'pz_maquinadas' => $barra['pz_maquinadas'],
-            'altura_pz' => $barra['altura_pz'],
             'mm_usados' => $barra['mm_usados'],
             'total_sellos' => $barra['total_sellos'],
             'merma_corte' => $barra['merma_corte'],
@@ -83,11 +84,14 @@ try {
             'justificacion_extra' => $barra['justificacion_extra'],
             'es_extra' => $barra['es_extra'],
             'es_extra_auth' => $barra['es_extra_auth'],
-            // Otros campos
             'clave' => $barra['clave'],
+            'altura_pz' => $barra['altura_pz'],
             'di_sello' => $barra['di_sello'],
             'de_sello' => $barra['de_sello'],
-            'altura_pz' => $barra['altura_pz']
+            'componente' => $barra['componente'],
+            'h_componente' => $barra['h_componente'],
+            'es_eliminacion' => $barra['es_eliminacion'],
+            'es_eliminacion_auth' => $barra['es_eliminacion_auth']
         ];
 
         // Determinar si esta barra tiene una autorización pendiente (extra o reemplazo)

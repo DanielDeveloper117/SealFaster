@@ -5,8 +5,6 @@
         
         <div class="d-flex col-12 flex-column flex-md-row justify-content-between align-items-md-start align-items-center">
             <div class="controles d-flex col-12 flex-column border-gray" style="backdrop-filter:none !important;">
-                <h4>Familia: <?php echo $tipoEcho ?>, Perfil: <?php echo $selloOriginal ?></h4>
-
                 <div class="d-flex flex-column">
                     <div class="d-flex col-12 flex-column justify-content-between mt-4" >
                         

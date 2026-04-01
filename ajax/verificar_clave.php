@@ -2,113 +2,121 @@
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'config/config.php');
 
-try{
+try {
     header('Content-Type: application/json');
-    if (isset($_GET['clave'])) {
-        // Eliminar todos los espacios en blanco de la clave antes de consultar
-        $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
-        $claveFinal = $clave;
-        $esAlterna = 0;
-        $claveAlterna = $clave;
 
-        // PRIMERO: Consultar en claves_alternas
-        $stmtAlterna = $conn->prepare("SELECT clave_srs, clave_alterna FROM claves_alternas WHERE clave_alterna = :clave");
-        $stmtAlterna->bindParam(':clave', $clave);
-        $stmtAlterna->execute();
-        $claveAlternaData = $stmtAlterna->fetch(PDO::FETCH_ASSOC);
+    if (!isset($_GET['clave'])) {
+        echo json_encode(['no_encontrada' => true, 'mensaje' => 'Parámetro clave no proporcionado.']);
+        exit;
+    }
 
-        if ($claveAlternaData) {
-            // Si existe en claves_alternas, usar clave_srs para consultar parametros
-            $claveFinal = $claveAlternaData['clave_srs'];
-            $esAlterna = 1;
-            $claveAlterna = $claveAlternaData['clave_alterna'];
-        }
+    // Limpiar espacios de la clave ingresada
+    $clave_input = preg_replace('/\s+/', '', trim($_GET['clave']));
 
-        // SEGUNDO: Consultar en parametros con la clave final
-        $stmt = $conn->prepare("SELECT * FROM parametros WHERE clave = :clave AND max_usable != 0 AND precio != 0.00");
-        $stmt->bindParam(':clave', $claveFinal);
-        $stmt->execute();
+    if ($clave_input === '') {
+        echo json_encode(['no_encontrada' => true, 'mensaje' => 'Clave vacía.']);
+        exit;
+    }
+
+    // ── Buscar en parametros: coincidencia por clave principal O por clave_alterna ──────────────
+    $stmt = $conn->prepare(
+        "SELECT * FROM parametros
+          WHERE (REPLACE(clave, CHAR(0), '') = :clave1
+             OR  REPLACE(clave_alterna, CHAR(0), '') = :clave2)
+          AND max_usable != 0
+         LIMIT 1"
+    );
+    $stmt->bindValue(':clave1', $clave_input);
+    $stmt->bindValue(':clave2', $clave_input);
+    $stmt->execute();
+    $registro = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // ── No encontrado ────────────────────────────────────────────────────────────────────────────
+    if (!$registro) {
+        echo json_encode([
+            'no_encontrada' => true,
+            'mensaje'       => 'No se encontró ninguna clave. Favor de comunicarse con el área de sistemas para alta de clave.'
+        ]);
+        exit;
+    }
+
+    // ── Determinar si el usuario digitó la clave principal o la alterna ──────────────────────────
+    $clave_principal = trim(str_replace("\0", '', $registro['clave']         ?? ''));
+    $clave_alterna   = trim(str_replace("\0", '', $registro['clave_alterna'] ?? ''));
+
+    $es_alterna = ($clave_alterna !== '' && strtoupper($clave_input) === strtoupper($clave_alterna));
+
+    // ── Mapeo de material ────────────────────────────────────────────────────────────────────────
+    $mapeoMateriales = [
+        // Prioridad 1: Coincidencias compuestas/específicas
+        "PU ROJO"      => "H-ECOPUR",
+        "PU VERDE"     => "ECOPUR",
+        "PTFE VIRGEN"  => "ECOFLON 1",
+        "PTFE NIKEL"   => "ECOFLON 2",
+        "PTFE MOLLY"   => "ECOFLON 2",
+        "PTFE BRONCE"  => "ECOFLON 3",
         
-        // Obtener resultados
-        $billet = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Prioridad 2: Materiales base
+        "NITRILO"      => "ECORUBBER 1",
+        "VITON"        => "ECORUBBER 2",
+        "EPDM"         => "ECORUBBER 3",
+        "SILICON"      => "ECOSIL",
+        "ECOTAL"       => "ECOTAL",
+        "ECOMID"       => "ECOMID",
+        "NIKEL"   => "ECOFLON 2",
+        "MOLLY"   => "ECOFLON 2",
+        "PA"       => "ECOMID", // Mapeo de poliamida
+        
+        // Prioridad 3: Nombres comerciales directos
+        "H-ECOPUR"     => "H-ECOPUR",
+        "ECOPUR"       => "ECOPUR",
+        "ECOSIL"       => "ECOSIL",
+        "ECORUBBER 1"  => "ECORUBBER 1",
+        "ECORUBBER 2"  => "ECORUBBER 2",
+        "ECORUBBER 3"  => "ECORUBBER 3",
+    ];
 
-        // Mapeo inverso: de material de parametros a material de inventario_cnc
-        $mapeoInversoMateriales = [
-            "PU ROJO" => "H-ECOPUR",
-            "SILICON" => "ECOSIL",
-            "NITRILO" => "ECORUBBER 1",
-            "VITON" => "ECORUBBER 2", 
-            "EPDM" => "ECORUBBER 3",
-            "PU VERDE" => "ECOPUR",
-            "ECOTAL" => "ECOTAL",
-            "ECOMID" => "ECOMID",
-            "VIRGEN" => "ECOFLON 1",
-            "NIKEL" => "ECOFLON 2",
-            "MOLLY" => "ECOFLON 2",
-            "BRONCE" => "ECOFLON 3"
-        ];
-
-        // Procesar cada resultado para convertir el material y agregar info de clave alterna
-        foreach ($billet as &$registro) {
-            if (isset($registro['material'])) {
-                $materialParametros = $registro['material'];
-                $materialInventario = null;
-                
-                // Buscar coincidencia en el mapeo inverso
-                foreach ($mapeoInversoMateriales as $patron => $materialMapeado) {
-                    if (stripos($materialParametros, $patron) !== false) {
-                        $materialInventario = $materialMapeado;
-                        break;
-                    }
-                }
-                
-                // Si no se encuentra coincidencia, mantener el material original
-                $registro['material_corregido'] = $materialInventario ?: $materialParametros;
-            }
-
-            // Agregar información de clave alterna
-            $registro['es_alterna'] = $esAlterna;
-            $registro['clave_alterna'] = $claveAlterna;
-            $registro['clave_original_buscada'] = $clave;
-            $registro['clave_srs_utilizada'] = $claveFinal;
-        }
-
-        // CASO 1: No existe en claves_alternas ni en parametros
-        if (empty($billet) && !$claveAlternaData) {
-            echo json_encode([
-                'es_alterna' => 0,
-                'no_encontrada' => true,
-                'mensaje' => 'No se encontró clave SRS, no se encontró clave alterna'
-            ]);
-        }
-        // CASO 2: Existe en claves_alternas pero clave_srs es null (sin relación)
-        else if (empty($billet) && $claveAlternaData && $claveAlternaData['clave_srs'] === null) {
-            echo json_encode([
-                'es_alterna' => 1,
-                'sin_relacion' => true,
-                'clave_alterna' => $claveAlternaData['clave_alterna'],
-                'clave_srs' => null,
-                'mensaje' => 'Clave alterna encontrada pero no tiene relación con clave SRS'
-            ]);
-        }
-        // CASO 3: Existe en claves_alternas y tiene relación (clave_srs no es null) pero no existe en parametros
-        else if (empty($billet) && $claveAlternaData && $claveAlternaData['clave_srs'] !== null) {
-            echo json_encode([
-                'es_alterna' => 1,
-                'no_en_parametros' => true,
-                'clave_alterna' => $claveAlternaData['clave_alterna'],
-                'clave_srs' => $claveAlternaData['clave_srs'],
-                'mensaje' => 'Clave alterna encontrada pero no existe en parametros'
-            ]);
-        }
-        // CASO 4: Existe en parametros (con o sin ser clave alterna)
-        else {
-            echo json_encode($billet);
+    $material_raw     = trim(str_replace("\0", '', $registro['material'] ?? ''));
+    $material_mapeado = $material_raw;
+    foreach ($mapeoMateriales as $patron => $mapeado) {
+        if (stripos($material_raw, $patron) !== false) {
+            $material_mapeado = $mapeado;
+            break;
         }
     }
-} catch(PDOException $e) {
+
+    // ── Respuesta unificada ──────────────────────────────────────────────────────────────────────
+    if ($es_alterna) {
+        $mensaje = "Clave alterna encontrada. Clave principal: $clave_principal";
+    } else {
+        $mensaje = "Clave principal encontrada.";
+        if ($clave_alterna !== '') {
+            $mensaje .= " Clave alterna: $clave_alterna";
+        }
+    }
+
+    echo json_encode([[
+        // Datos del registro
+        'id'                    => $registro['id'],
+        'clave'                 => $clave_principal,
+        'clave_alterna'         => $clave_alterna,
+        'material'              => $material_raw,
+        'material_corregido'    => $material_mapeado,
+        'proveedor'             => trim(str_replace("\0", '', $registro['proveedor'] ?? '')),
+        'interior'              => $registro['interior'] ?? 0,
+        'exterior'              => $registro['exterior'] ?? 0,
+        'max_usable'            => $registro['max_usable'] ?? 0,
+        // Info de coincidencia
+        'es_alterna'            => $es_alterna ? 1 : 0,
+        'clave_original_buscada'=> $clave_input,
+        'clave_srs_utilizada'   => $clave_principal,
+        // Mensaje legible
+        'mensaje'               => $mensaje,
+    ]]);
+
+} catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 } finally {
-    $conn = null; // Cerrar la conexión
+    $conn = null;
 }
 ?>

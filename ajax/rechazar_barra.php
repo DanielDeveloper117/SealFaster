@@ -28,7 +28,7 @@ try {
     $razon = trim($_POST['razon']);
 
     // Validar que la acción sea válida
-    if (!in_array($accion, ['remplazo', 'extra'])) {
+    if (!in_array($accion, ['remplazo', 'extra', 'eliminacion'])) {
         echo json_encode([
             'success' => false,
             'message' => "Acción no válida: $accion"
@@ -70,29 +70,32 @@ try {
         
         if ($accion === 'remplazo') {
             $lote_a_actualizar = $registroControl['lp_remplazo'];
-        } else { // $accion === 'extra'
+        } elseif ($accion === 'extra') {
             $lote_a_actualizar = $registroControl['lote_pedimento'];
         }
+        // Para 'eliminacion' no actualizamos inventario_cnc porque la barra ya estaba en uso
 
-        if (empty($lote_a_actualizar)) {
+        if (empty($lote_a_actualizar) && ($accion === 'extra' || $accion === 'remplazo')) {
             throw new Exception("No se pudo determinar el lote pedimento a actualizar");
         }
 
-        // 3. Actualizar estatus en inventario_cnc a "Disponible para cotizar"
-        $stmtUpdateInventario = $conn->prepare("
-            UPDATE inventario_cnc 
-            SET estatus = 'Disponible para cotizar' 
-            WHERE lote_pedimento = :lote_pedimento
-        ");
-        $stmtUpdateInventario->bindParam(':lote_pedimento', $lote_a_actualizar);
-        
-        if (!$stmtUpdateInventario->execute()) {
-            throw new Exception("Error al actualizar el estatus del inventario");
-        }
+        if (!empty($lote_a_actualizar) && ($accion === 'extra' || $accion === 'remplazo')) {
+            // 3. Actualizar estatus en inventario_cnc a "Disponible para cotizar"
+            $stmtUpdateInventario = $conn->prepare("
+                UPDATE inventario_cnc 
+                SET estatus = 'Disponible para cotizar' 
+                WHERE lote_pedimento = :lote_pedimento
+            ");
+            $stmtUpdateInventario->bindParam(':lote_pedimento', $lote_a_actualizar);
+            
+            if (!$stmtUpdateInventario->execute()) {
+                throw new Exception("Error al actualizar el estatus del inventario");
+            }
 
-        // Verificar que se actualizó al menos un registro
-        if ($stmtUpdateInventario->rowCount() === 0) {
-            throw new Exception("El lote pedimento '$lote_a_actualizar' no existe en inventario_cnc");
+            // Verificar que se actualizó al menos un registro
+            if ($stmtUpdateInventario->rowCount() === 0) {
+                throw new Exception("El lote pedimento '$lote_a_actualizar' no existe en inventario_cnc");
+            }
         }
 
         // 4. Ejecutar acciones específicas según el tipo
@@ -113,7 +116,7 @@ try {
                 throw new Exception("Error al actualizar los campos de reemplazo");
             }
             
-        } else { // $accion === 'extra'
+        } elseif ($accion === 'extra') {
             // Eliminar el registro de control_almacen
             $stmtDeleteExtra = $conn->prepare("
                 DELETE FROM control_almacen 
@@ -124,13 +127,27 @@ try {
             if (!$stmtDeleteExtra->execute()) {
                 throw new Exception("Error al eliminar la barra extra");
             }
+        } elseif ($accion === 'eliminacion') {
+            // Resetear flags de eliminación
+            $stmtResetEliminacion = $conn->prepare("
+                UPDATE control_almacen 
+                SET es_eliminacion = 0,
+                    justificacion_eliminacion = NULL
+                WHERE id_control = :id_control
+            ");
+            $stmtResetEliminacion->bindParam(':id_control', $id_control, PDO::PARAM_INT);
+            
+            if (!$stmtResetEliminacion->execute()) {
+                throw new Exception("Error al resetear los campos de eliminación");
+            }
         }
 
         // 5. Verificar si quedan pendientes en la requisición
         $stmtPendientes = $conn->prepare("
             SELECT 
                 es_remplazo, es_remplazo_auth, 
-                es_extra, es_extra_auth 
+                es_extra, es_extra_auth,
+                es_eliminacion, es_eliminacion_auth
             FROM control_almacen 
             WHERE id_requisicion = :id_requisicion
         ");
@@ -151,6 +168,13 @@ try {
             // Verificar si hay extras pendientes de autorizar
             if (isset($reg['es_extra']) && $reg['es_extra'] == 1 && 
                 isset($reg['es_extra_auth']) && $reg['es_extra_auth'] == 0) {
+                $hayPendientes = true;
+                break;
+            }
+
+            // Verificar si hay eliminaciones pendientes de autorizar
+            if (isset($reg['es_eliminacion']) && $reg['es_eliminacion'] == 1 && 
+                isset($reg['es_eliminacion_auth']) && $reg['es_eliminacion_auth'] == 0) {
                 $hayPendientes = true;
                 break;
             }
@@ -219,8 +243,14 @@ try {
                 }
                 if ($contadorCorreos > 0) {
                     // Preparar contenido del correo
-                    $tipoBarra = $accion === 'remplazo' ? 'remplazo de barra' : 'barra extra';
-                    $barraCompleta = $registroControl['clave'] . " " . $lote_a_actualizar . " (" . $registroControl['medida'] . ")";
+                    $tipoBarraMap = [
+                        'remplazo' => 'remplazo de barra',
+                        'extra' => 'barra extra',
+                        'eliminacion' => 'eliminación de barra'
+                    ];
+                    $tipoBarra = $tipoBarraMap[$accion] ?? $accion;
+                    $loteIdentificador = ($accion === 'eliminacion') ? $registroControl['lote_pedimento'] : $lote_a_actualizar;
+                    $barraCompleta = $registroControl['clave'] . " " . $loteIdentificador . " (" . $registroControl['medida'] . ")";
                     $asunto = "Solicitud rechazada para $tipoBarra. Folio: " . $id_requisicion;
                     
                     $cuerpo = "Se ha rechazado la solicitud de $tipoBarra para la requisición de maquinado con folio: <b>" . $id_requisicion . "</b>.</br>";
@@ -245,18 +275,24 @@ try {
             $mensajeCorreo = ", pero error al enviar correo: " . $e->getMessage();
         }
 
-        // Respuesta exitosa
-        $tipoBarra = $accion === 'remplazo' ? 'reemplazo' : 'extra';
+// Respuesta exitosa
+        $tipoBarraMapRes = [
+            'remplazo' => 'reemplazo',
+            'extra' => 'extra',
+            'eliminacion' => 'eliminación'
+        ];
+        $tipoBarraStr = $tipoBarraMapRes[$accion] ?? $accion;
+
         if($SEND_MAIL === true){
             echo json_encode([
                 'success' => true,
-                'message' => "Barra $tipoBarra rechazada correctamente" . $mensajeCorreo,
+                'message' => "Barra $tipoBarraStr rechazada correctamente" . $mensajeCorreo,
                 'no_hay_pendientes' => !$hayPendientes
             ]);
         }else{
             echo json_encode([
                 'success' => true,
-                'message' => "Barra $tipoBarra rechazada correctamente.  Envío de correos no disponible.",
+                'message' => "Barra $tipoBarraStr rechazada correctamente.  Envío de correos no disponible.",
                 'no_hay_pendientes' => !$hayPendientes
             ]);            
         }

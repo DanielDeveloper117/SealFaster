@@ -8,6 +8,7 @@ html {
 }
 
 /* Deteccion de tema del navegador */
+/* TEMA OSCURO */
 :root {
     --primary-bg: #0a0f0a;
     --secondary-bg: #1a2f1a;
@@ -31,10 +32,10 @@ html {
     --color-tabla-billets-tbody-row-hover:#f0f8f0;
     --card-glow: rgba(85, 173, 155, 0.2);
     --particle-color: rgba(85, 173, 155, 0.1);
-    
-
+    --color-input-disabled-table-modal: #ededed9c;
+    --small-table-modal: #555;
 }
-
+/* TEMA CLARO */
 @media (prefers-color-scheme: light) {
     :root {
         --primary-bg: #f0f8f0;
@@ -59,6 +60,8 @@ html {
         --color-tabla-billets-tbody-row-hover:#f0f8f0;
         --card-glow: rgba(85, 173, 155, 0.3);
         --particle-color: rgba(85, 173, 155, 0.15);
+        --color-input-disabled-table-modal: #555;
+        --small-table-modal: #555;
     }
 }
 
@@ -66,7 +69,6 @@ html {
 body {
     background: var(--gradient-primary);
     /* color: var(--text-primary); */
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     min-height: 100vh;
     margin: 0;
     position: relative;

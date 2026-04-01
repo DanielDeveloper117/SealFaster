@@ -6,7 +6,6 @@
 .section-container{
   border-radius: 10px;
   padding: 2%;
-  width: 100%;
   border-bottom: 2px solid #55ad9b85;
   background-color: #fff; 
   background: var(--glass-bg);
@@ -24,13 +23,11 @@
   visibility:hidden;
 }
 .controles{ 
-  padding: 1%;
   height: auto;
   background: var(--glass-bg);
-  
   border-radius: 20px;
   border: 1px solid var(--glow-color);
-  padding: 2rem;
+  padding: 1.3rem;
   box-shadow: 
       0 15px 35px var(--shadow-color),
       inset 0 1px 0 rgba(255, 255, 255, 0.1);
@@ -528,10 +525,6 @@ h4,h5{
     }
     .img-dimensions2{
       visibility:visible;
-    }
-    .controles{ 
-      width: 100%;
-      padding: 3%;
     }
     #btnCotizar, #btnPrevisualizar{
       height:auto;

@@ -19,7 +19,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!url.searchParams.has('cot')) {
             url.searchParams.set('cot', 'u');
         }
-        const savedDefault = localStorage.getItem('filtroDefault') || '1';
+        let savedDefault = localStorage.getItem('filtroDefault') || '1';
+        if (savedDefault === '0') savedDefault = '1';
         url.searchParams.set('default', savedDefault);
         enlace.href = url.toString();
     }

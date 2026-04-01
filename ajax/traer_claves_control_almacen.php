@@ -19,18 +19,20 @@ try {
     }
     try {
         // 1. Obtener la fecha de retorno de la tabla requisiciones
-        $sqlReq = "SELECT observaciones_inv, fecha_retorno_barras FROM requisiciones WHERE id_requisicion = :id LIMIT 1";
+        $sqlReq = "SELECT observacion_maquinado, observaciones_inv, fecha_retorno_barras FROM requisiciones WHERE id_requisicion = :id LIMIT 1";
         $stmtReq = $conn->prepare($sqlReq);
         $stmtReq->execute([':id' => $id_requisicion]);
         $resReq = $stmtReq->fetch(PDO::FETCH_ASSOC);
         $fechaRetorno = $resReq['fecha_retorno_barras'] ?? null;
         $observaciones_inv = $resReq['observaciones_inv'] ?? null;
+        $observacion_maquinado = $resReq['observacion_maquinado'] ?? null;
 
         // 2. Tu consulta de claves existente
         $sqlClaves = "SELECT * FROM control_almacen 
                     WHERE id_requisicion = :id_requisicion 
                     AND clave IS NOT NULL 
-                    AND clave <> ''";
+                    AND clave <> ''
+                    AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)";
         $stmtClaves = $conn->prepare($sqlClaves);
         $stmtClaves->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
         $stmtClaves->execute();
@@ -43,9 +45,10 @@ try {
         // Enviamos la fecha de retorno en la raíz de la respuesta JSON
         echo json_encode([
             'success' => true,
-            'data' => $allClaves,
+            'billets' => $allClaves,
             'fecha_retorno_barras' => $fechaRetorno,
-            'observaciones_inv' => $observaciones_inv
+            'observaciones_inv' => $observaciones_inv,
+            'observacion_maquinado' => $observacion_maquinado
         ]);
 
     } catch (PDOException $e) {

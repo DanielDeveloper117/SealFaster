@@ -5,3 +5,5 @@
 /files
 secure_config/.env
 prompt.txt
+/secure_config
+/scripts

@@ -54,32 +54,12 @@
     </div>
 </div>
 <script>
-    /*
- * MODAL LOCALIZAR BARRA - JavaScript
- * ====================================
- * 
- * Sistema reutilizable para localizar barras en requisiciones
- * 
- * FUNCIONAMIENTO:
- * 1. El usuario hace clic en un botón con clase "btn-localizacion"
- * 2. El modal se abre y realiza una búsqueda asincrónica en el servidor
- * 3. Se busca la barra en dos lugares:
- *    - Forma 1: Si está en cotizacion_materiales (requiere autorización)
- *    - Forma 2: Si está en control_almacen (en producción)
- * 4. Se muestran los resultados con información de la requisición
- * 5. Según el estatus, se muestra diferente información y acciones
- * 
- * DEPENDENCIAS:
- * - Bootstrap Modal
- * - jQuery
- * - SweetAlert2 (sweetAlertResponse)
- * 
- * EVENTOS QUE EMITE:
- * - Recarga tabla DataTable si existe en la página
- */
-
-$(document).ready(function(){
-
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================
     // Función para construir tarjeta de requisición
     function construirCardRequisicion(req, lotePedimento, index) {
         var html = '<div class="card mb-3">';
@@ -218,97 +198,100 @@ $(document).ready(function(){
                 sweetAlertResponse('error', 'Error', 'Error al procesar la solicitud: ' + error, 'none');
             }
         });
-    }    
+    }  
 
-    // *EVENTOS DEL DOM *
-    // // Handle btn-localizacion click
-    $(document).on('click', '.btn-localizacion', function() {
-        var lotePedimento = $(this).data('lote');
-        
-        if (!lotePedimento) {
-            sweetAlertResponse('error', 'Error', 'Lote/Pedimento no disponible', 'none');
-            return;
-        }
 
-        // Abrir modal
-        var modal = new bootstrap.Modal(document.getElementById('modalLocalizarBarra'));
-        modal.show();
-
-        // Mostrar loader
-        $('#localizarBarraLoader').removeClass('d-none');
-        $('#localizarBarraResultado').addClass('d-none');
-        $('#localizarBarraError').addClass('d-none');
-        $('#botonesBarraNoEncontrada').addClass('d-none');
-        $('#botonesBarraEncontrada').addClass('d-none');
-
-        // Hacer llamada AJAX
-        $.ajax({
-            url: '../ajax/localizar_barra.php',
-            type: 'POST',
-            data: {
-                lote_pedimento: lotePedimento
-            },
-            dataType: 'json',
-            success: function(response) {
-                $('#localizarBarraLoader').addClass('d-none');
-                $('#localizarBarraResultado').removeClass('d-none');
-
-                if (response.error) {
-                    $('#localizarBarraError').html(response.mensaje).removeClass('d-none');
-                    return;
-                }
-
-                // Si no se encontró la barra
-                if (!response.encontrada) {
-                    $('#barraNoEncontrada').removeClass('d-none');
-                    $('#barraEncontrada').addClass('d-none');
-                    $('#botonesBarraNoEncontrada').removeClass('d-none');
-                    $('#botonesBarraEncontrada').addClass('d-none');
-
-                    // Guardar datos para la acción de liberar
-                    $('#btnLiberarBarraNoEncontrada').data('lote', lotePedimento);
-                } else {
-                    // Si se encontró la barra
-                    $('#barraNoEncontrada').addClass('d-none');
-                    $('#barraEncontrada').removeClass('d-none');
-                    $('#botonesBarraNoEncontrada').addClass('d-none');
-                    $('#botonesBarraEncontrada').removeClass('d-none');
-
-                    // Construir HTML con las requisiciones
-                    var htmlRequisiciones = '';
-                    response.requisiciones.forEach(function(req, index) {
-                        htmlRequisiciones += construirCardRequisicion(req, lotePedimento, index);
-                    });
-                    $('#listaRequisiciones').html(htmlRequisiciones);
-                }
-            },
-            error: function(xhr, status, error) {
-                $('#localizarBarraLoader').addClass('d-none');
-                $('#localizarBarraResultado').removeClass('d-none');
-                $('#localizarBarraError').html('Error al buscar la barra: ' + error).removeClass('d-none');
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
+    $(document).ready(function(){
+        // // Handle btn-localizacion click
+        $(document).on('click', '.btn-localizacion', function() {
+            var lotePedimento = $(this).data('lote');
+            
+            if (!lotePedimento) {
+                sweetAlertResponse('error', 'Error', 'Lote/Pedimento no disponible', 'none');
+                return;
             }
+
+            // Abrir modal
+            var modal = new bootstrap.Modal(document.getElementById('modalLocalizarBarra'));
+            modal.show();
+
+            // Mostrar loader
+            $('#localizarBarraLoader').removeClass('d-none');
+            $('#localizarBarraResultado').addClass('d-none');
+            $('#localizarBarraError').addClass('d-none');
+            $('#botonesBarraNoEncontrada').addClass('d-none');
+            $('#botonesBarraEncontrada').addClass('d-none');
+
+            // Hacer llamada AJAX
+            $.ajax({
+                url: '../ajax/localizar_barra.php',
+                type: 'POST',
+                data: {
+                    lote_pedimento: lotePedimento
+                },
+                dataType: 'json',
+                success: function(response) {
+                    $('#localizarBarraLoader').addClass('d-none');
+                    $('#localizarBarraResultado').removeClass('d-none');
+
+                    if (response.error) {
+                        $('#localizarBarraError').html(response.mensaje).removeClass('d-none');
+                        return;
+                    }
+
+                    // Si no se encontró la barra
+                    if (!response.encontrada) {
+                        $('#barraNoEncontrada').removeClass('d-none');
+                        $('#barraEncontrada').addClass('d-none');
+                        $('#botonesBarraNoEncontrada').removeClass('d-none');
+                        $('#botonesBarraEncontrada').addClass('d-none');
+
+                        // Guardar datos para la acción de liberar
+                        $('#btnLiberarBarraNoEncontrada').data('lote', lotePedimento);
+                    } else {
+                        // Si se encontró la barra
+                        $('#barraNoEncontrada').addClass('d-none');
+                        $('#barraEncontrada').removeClass('d-none');
+                        $('#botonesBarraNoEncontrada').addClass('d-none');
+                        $('#botonesBarraEncontrada').removeClass('d-none');
+
+                        // Construir HTML con las requisiciones
+                        var htmlRequisiciones = '';
+                        response.requisiciones.forEach(function(req, index) {
+                            htmlRequisiciones += construirCardRequisicion(req, lotePedimento, index);
+                        });
+                        $('#listaRequisiciones').html(htmlRequisiciones);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    $('#localizarBarraLoader').addClass('d-none');
+                    $('#localizarBarraResultado').removeClass('d-none');
+                    $('#localizarBarraError').html('Error al buscar la barra: ' + error).removeClass('d-none');
+                }
+            });
+        });
+        // Handle btn-liberar-barra-no-encontrada
+        $(document).on('click', '#btnLiberarBarraNoEncontrada', function() {
+            var lotePedimento = $(this).data('lote');
+
+            Swal.fire({
+                title: 'Confirmar liberación',
+                text: '¿Desea liberar esta barra marcándola como "Disponible para cotizar"? Se da por hecho que ya consultó existencia física',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Sí, liberar',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    liberarBarra(lotePedimento);
+                }
+            });
         });
     });
-    // Handle btn-liberar-barra-no-encontrada
-    $(document).on('click', '#btnLiberarBarraNoEncontrada', function() {
-        var lotePedimento = $(this).data('lote');
-
-        Swal.fire({
-            title: 'Confirmar liberación',
-            text: '¿Desea liberar esta barra marcándola como "Disponible para cotizar"? Se da por hecho que ya consultó existencia física',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, liberar',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#28a745',
-            cancelButtonColor: '#6c757d'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                liberarBarra(lotePedimento);
-            }
-        });
-    });
-
-});
 
 </script>

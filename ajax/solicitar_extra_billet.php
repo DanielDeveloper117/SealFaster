@@ -17,6 +17,8 @@ try {
         'perfil', 
         'pz_teoricas', 
         'altura_pz', 
+        'componente',
+        'h_componente',
         'mm_entrega',
         'justificacion_extra'
     ];
@@ -99,11 +101,11 @@ try {
         $stmtInsert = $conn->prepare("
             INSERT INTO control_almacen (
                 id_requisicion, material, clave, lote_pedimento, medida, 
-                perfil_sello, pz_teoricas, altura_pz, mm_entrega, justificacion_extra, 
+                perfil_sello, pz_teoricas, altura_pz, componente, h_componente, mm_entrega, justificacion_extra, 
                 es_extra, fecha_registro
             ) VALUES (
                 :id_requisicion, :material, :clave, :lote_pedimento, :medida,
-                :perfil_sello, :pz_teoricas, :altura_pz, :mm_entrega, :justificacion_extra, 
+                :perfil_sello, :pz_teoricas, :altura_pz, :componente, :h_componente, :mm_entrega, :justificacion_extra, 
                 1, NOW()
             )
         ");
@@ -116,6 +118,8 @@ try {
         $stmtInsert->bindParam(':perfil_sello', $perfil);
         $stmtInsert->bindParam(':pz_teoricas', $pz_teoricas, PDO::PARAM_INT);
         $stmtInsert->bindParam(':altura_pz', $altura_pz);
+        $stmtInsert->bindParam(':componente', $_POST['componente'], PDO::PARAM_INT);
+        $stmtInsert->bindParam(':h_componente', $_POST['h_componente']);
         $stmtInsert->bindParam(':mm_entrega', $mm_entrega);
         $stmtInsert->bindParam(':justificacion_extra', $justificacion_extra);
 

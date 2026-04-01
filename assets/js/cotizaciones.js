@@ -102,10 +102,17 @@ $(document).ready(function() {
 
     // Función para crear href con el parámetro cot modificado
     function crearHrefConCot(valorCot) {
-        const savedDefault = localStorage.getItem("filtroDefault") || 1;
+        let savedDefault = localStorage.getItem("filtroDefault") || 1;
+        if (savedDefault === "0") savedDefault = 1;
+        
         const nuevaUrl = new URL(urlInicial);
         nuevaUrl.searchParams.set('cot', valorCot);
-        nuevaUrl.searchParams.set('default', savedDefault);
+        
+        // Si venimos con default=0 explícito, lo pasamos al cambiar de tab,
+        // de lo contrario usamos el guardado (que ya aseguramos que no es 0)
+        let actualDefault = urlInicial.searchParams.get('default');
+        nuevaUrl.searchParams.set('default', actualDefault === "0" ? 0 : savedDefault);
+        
         return nuevaUrl.toString();
     }
 
@@ -231,7 +238,12 @@ $(document).ready(function() {
         // Agregar cot=u sin eliminar otros parametros
         urlInicial.searchParams.set('cot', 'u');
 
-        const savedDefault = localStorage.getItem("filtroDefault") || 0;
+        let savedDefault = localStorage.getItem("filtroDefault") || 1;
+        if (savedDefault === "0") {
+            savedDefault = 1;
+            localStorage.setItem("filtroDefault", "1");
+        }
+        
         if (savedDefault !== null) {
             // Buscar el input con ese valor
             const radio = document.querySelector(`input[name="default"][value="${savedDefault}"]`);
@@ -300,7 +312,9 @@ $(document).ready(function() {
     // Cuando cambie el radio, guardarlo en localstorage
     document.querySelectorAll('input[name="default"]').forEach(radio => {
         radio.addEventListener('change', function () {
-            localStorage.setItem("filtroDefault", this.value);
+            if (this.value !== "0") {
+                localStorage.setItem("filtroDefault", this.value);
+            }
         });
     });
     // COMENZAR LA FUNCIONALIDAD DE FUSIONAR 
@@ -700,28 +714,48 @@ $(document).ready(function() {
     var anchoPantallaInicial = screen.width;
     var zoomInicial = anchoVentanaInicial / anchoPantallaInicial * 100;
 
+    /**
+     * Detects browser zoom and shows a recommendation toast.
+     * Detecta el zoom del navegador y muestra un toast de recomendación.
+     */
     function detectarZoom() {
+        // 1. Verificar si el usuario ya eligió ocultar este mensaje
+        if (localStorage.getItem('hideZoomAdvice') === 'true') {
+            return;
+        }
+
         var anchoVentana = window.innerWidth;
         var anchoPantalla = screen.width;
-        var zoom = anchoVentana / anchoPantalla * 100;
+        var zoom = (anchoVentana / anchoPantalla) * 100;
 
-        if ((zoom < 98 || zoom > 100) && anchoPantalla>= 991) {
+        // Solo mostrar si el zoom no está en el rango ideal (98% - 100%)
+        if (zoom < 98 || zoom > 100) {
             Swal.fire({
                 title: 'Recomendación de visualización',
                 text: 'Para una correcta visualización de las tablas de datos, se recomienda poner el zoom al 100%.',
                 icon: 'info',
                 confirmButtonText: 'Entendido',
-                width: '350px',  // Tamaño pequeño del modal
-                padding: '10px',  // Relleno para que se vea agradable
-                position: 'top-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
-                toast: true, // Mostrar como un "toast", que es una notificación pequeña
-                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
-                showConfirmButton: true // Mostrar el botón de confirmación
+                width: '400px',
+                padding: '10px',
+                position: 'top-start',
+                toast: true,
+                showConfirmButton: true,
+                // Usamos el input nativo de Swal para el checkbox
+                input: 'checkbox',
+                inputPlaceholder: 'No volver a mostrar',
+                inputAttributes: {
+                    id: 'stopShowingZoom'
+                }
+            }).then((result) => {
+                // result.value contendrá true si el checkbox fue marcado
+                if (result.isConfirmed && result.value) {
+                    localStorage.setItem('hideZoomAdvice', 'true');
+                }
             });
         } else {
-            if(zoomInicial !== zoom){
-                window.location.reload(true);  // Recargar desde el servidor (sin usar la caché)
-            }else{
+            // Si el zoom regresa a la normalidad, recargar para ajustar DataTables
+            if (typeof zoomInicial !== 'undefined' && zoomInicial !== zoom) {
+                window.location.reload(true);
             }
         }
     }

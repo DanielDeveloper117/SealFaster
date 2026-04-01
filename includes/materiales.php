@@ -8,22 +8,22 @@
                 }else{
                     if($i == 1){
                         $numeroMaterial="1";
-                        echo '<h2>Material 1</h2>';
+                        echo '<h2>Componente 1</h2>';
     
                     }
                     if($i > 1){
                         $numeroMaterial = $i;
-                        echo '<h2>Material '.$i.'</h2>';
+                        echo '<h2>Componente '.$i.'</h2>';
                     }
                 }
             ?>
-            <div class="d-flex col-12 flex-column flex-md-row justify-content-between align-items-md-start align-items-center">
+            <div class="d-flex col-12 flex-column gap-1 flex-md-row justify-content-between align-items-md-start align-items-center">
                 <?php
                     if (file_exists($imagePath)) {
-                        $imgMaterial=$imageDir . $selloOriginal . '_'.$numeroMaterial.'.jpg';
+                        $imgMaterial=$imagePath . '/' . $perfilOriginal . '_'.$numeroMaterial.'.jpg';
                         echo '<div class="d-flex col-8 col-md-3 mb-3 justify-content-center">';
-                        echo '<a class="img-sello" href="tipo.php?tipo=' . $tipoButton . '" title="Click para cambiar el perfil">';
-                        echo '<img id="imagenMaterial_m'. $i.'" src="'. $imgMaterial . '" alt="' . htmlspecialchars($selloOriginal) . '" class="border-gray img-fluid">';
+                        echo '<a class="img-sello" href="select_perfil.php?fam=' . $familia . '" title="Click para cambiar el perfil">';
+                        echo '<img id="imagenMaterial_m'. $i.'" src="'. $imgMaterial . '" alt="' . htmlspecialchars($perfilOriginal) . '" class="border-gray img-fluid">';
                         echo '</a></div>';
                     } else {
                         echo "<h2>Imagen no encontrada</h2>";
@@ -50,7 +50,7 @@
                     </div>
 
                     <div id="containerPags_m<?= $i ?>" class="d-flex">
-                        <div id="pag1_m<?= $i ?>" class="d-flex col-12 flex-column-reverse flex-md-row justify-content-evenly mt-4" >
+                        <div id="pag1_m<?= $i ?>" class="d-flex col-12 flex-column-reverse flex-md-row justify-content-between mt-4" >
                             <div class="col-12 col-md-5">
                                 <div class="mb-4 d-flex col-12 justify-content-between align-items-center">
                                     <div class="img-dimensions col-3" style="height:auto;">
@@ -111,11 +111,24 @@
                                     <input id="inputCantidad_m<?= $i ?>" type="number" class="input-estimador" value="" name="cantidad" step="1" min="1" oninput="this.value = this.value.replace(/\D+/g, '')" placeholder="Cantidad de piezas">
                                 </div>
 
-                                <div class="d-flex flex-column mb-1 font-monospace">
-                                    <ul>
-                                        <li>Desbaste H/pz: +<span id="toleranciaHpzMaterial_m<?= $i ?>">0</span> mm</li>
-                                        <li>Tolerancia de barra: DI-<span id="toleranciaBarraDI_m<?= $i ?>">0</span> mm</li>
-                                        <li>Tolerancia de barra: DE+<span id="toleranciaBarraDE_m<?= $i ?>">0</span> mm</li>
+                                <div class="d-flex flex-column mb-1 p-2 font-monospace border border-dark-subtitle bg-white bg-opacity-10 rounded-2">
+                                    <label for="ulDiametrosTeoricos_m<?= $i ?>" class="label-estimador">Diámetros Teóricos</label>
+                                    <ul id="ulDiametrosTeoricos_m<?= $i ?>">
+                                        <li>DI - Tolerancia: 
+                                            <span id="calculoTeoricoDI_m<?= $i ?>" class="fw-bold">0</span> -
+                                            <span id="toleranciaBarraDI_m<?= $i ?>" class="fw-bold">0</span> mm
+                                        </li>
+                                        <li>DE + Tolerancia: 
+                                            <span id="calculoTeoricoDE_m<?= $i ?>" class="fw-bold">0</span> +
+                                            <span id="toleranciaBarraDE_m<?= $i ?>" class="fw-bold">0</span> mm
+                                        </li>
+                                    </ul>
+                                    <label for="ulAlturaTeorica_m<?= $i ?>" class="label-estimador">Altura Teórica/pz</label>
+                                    <ul id="ulAlturaTeorica_m<?= $i ?>">
+                                        <li>H + Desbaste: 
+                                            <span id="calculoTeoricoH_m<?= $i ?>" class="fw-bold">0</span> +
+                                            <span id="toleranciaHpzMaterial_m<?= $i ?>" class="fw-bold">0</span> mm
+                                        </li>
                                     </ul>
                                 </div>
 
@@ -151,7 +164,7 @@
                                             <thead>
                                                 <tr>
                                                     <th scope="col">Clave</th>
-                                                    <th scope="col">Lote/pedimento</th>
+                                                    <th scope="col">Lote</th>
                                                     <th scope="col">Stock MM</th>
                                                     <th scope="col">Medida</th>
                                                     <th scope="col">Piezas</th>
@@ -182,7 +195,7 @@
                                         <thead>
                                             <tr>
                                                 <th scope="col">Clave</th>
-                                                <th scope="col">Lote/pedimento</th>
+                                                <th scope="col">Lote</th>
                                                 <th scope="col">Stock MM</th>
                                                 <th scope="col">Medida</th>
                                                 <th scope="col">Piezas</th>
@@ -316,7 +329,7 @@
         <textarea id="inputBilletsLotes_m<?= $i ?>" class="d-none" name="billets_lotes" readonly></textarea>
         <textarea id="inputBilletsString_m<?= $i ?>" class="d-none" name="billets_string" readonly></textarea>
         <textarea id="inputBilletsManualmente_m<?= $i ?>" class="d-none" name="billets_manualmente" readonly></textarea>
-        <input type="hidden" value="<?php echo $selloOriginal; ?>" name="perfil_sello">
+        <input type="hidden" value="<?php echo $perfilOriginal; ?>" name="perfil_sello">
         <input type="hidden" id="seraEnviado_m<?= $i ?>" value="no">
         <input type="hidden" class="id-cotizacion" name="id_cotizacion">
         <input id="cantidadMaterial_m<?= $i ?>" type="hidden" value="<?= $i ?>" name="cantidad_material">
@@ -408,7 +421,7 @@
                                     <th scope="col">Estatus</th>
                                     <th scope="col">Piezas</th>
                                     <th scope="col">Medida</th>
-                                    <th scope="col">Lote/pedimento</th>
+                                    <th scope="col">Lote</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -493,16 +506,16 @@
                     </div>
                     <div id="container38Simulacion_m<?= $i ?>" 
                             class="d-flex flex-column d-none" 
-                            style="<?php if ($tipoUsuario != 3 && $tipoUsuario != 4 && $tipoUsuario != 5) {echo 'width:38%';} ?>;">
+                            style="<?php if ($lider_usuario != 3 && $lider_usuario != 4 && $lider_usuario != 5) {echo 'width:38%';} ?>;">
                         <button id="btnQuitarCircleSimulacion_m<?= $i ?>" class="btn-close align-self-end d-none" style="padding-right:5%;"></button>
 
                         <div id="containerCircleBilletSimulacion_m<?= $i ?>" 
-                            class="d-flex flex-column justify-content-center align-items-center <?php if ($tipoUsuario == 3 || $tipoUsuario == 4) {echo 'd-none';}?>">
+                            class="d-flex flex-column justify-content-center align-items-center <?php if ($lider_usuario == 3 || $lider_usuario == 4) {echo 'd-none';}?>">
                             <div class="d-flex justify-content-center align-items-start">
                             <svg 
                                 id="circuloSvgSimulacion_m<?= $i ?>"
-                                width="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
-                                height="<?= ($tipoUsuario == 3 || $tipoUsuario == 4) ? '330' : '260' ?>"
+                                width="<?= ($lider_usuario == 3 || $lider_usuario == 4) ? '330' : '260' ?>"
+                                height="<?= ($lider_usuario == 3 || $lider_usuario == 4) ? '330' : '260' ?>"
                                 viewBox="0 0 100 100">
                             </svg>
                             </div>

@@ -1,59 +1,59 @@
 <?php
-require_once(__DIR__ . '/../config/rutes.php');
-require_once(ROOT_PATH . 'includes/functions/control_cache.php');
-require_once(ROOT_PATH . 'config/config.php');
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
+    require_once(__DIR__ . '/../config/rutes.php');
+    require_once(ROOT_PATH . 'includes/functions/control_cache.php');
+    require_once(ROOT_PATH . 'config/config.php');
+    session_start();
+    if (!isset($_SESSION['id'])) {
+        header("Location: ../auth/cerrar_sesion.php");
+        exit;
+    }
 
     $cantidadMateriales = 1;
     $ultimoCaracter = "";
-    $selloOriginal = "";
+    $perfilOriginal = "";
     try {
-        $sello = $_GET['sello'];
-        $ultimoCaracter = substr($sello, -1);
-        $selloOriginal = substr($sello, 0, -2);
+        $perfilOriginal = $_GET['perfil'];
+        $ultimoCaracter = substr($perfilOriginal, -1);
+        $perfilImg = substr($perfilOriginal, 0, -2);
         $stmtPerfilSello = "SELECT * FROM perfiles WHERE perfil = :perfil";
         $stmtPerfilSello = $conn->prepare($stmtPerfilSello);
-        $stmtPerfilSello->bindParam(':perfil', $selloOriginal, PDO::PARAM_STR);
+        $stmtPerfilSello->bindParam(':perfil', $perfilOriginal, PDO::PARAM_STR);
         $stmtPerfilSello->execute();
         $arregloPerfilSello = $stmtPerfilSello->fetch(PDO::FETCH_ASSOC);
 
         $cantidadMateriales = $arregloPerfilSello["cantidad_materiales"];
 
-        if (!isset($arregloPerfilSello["perfil"]) || $arregloPerfilSello["perfil"] != $sello) {
+        if (!isset($arregloPerfilSello["perfil"]) || $arregloPerfilSello["perfil"] != $perfilOriginal) {
             $arregloPerfilSello["perfil"] = "No existe ese perfil.";
         }
     } catch (PDOException $e) {
         echo 'Error: ' . $e->getMessage();
     }
 
-    if (isset($_GET['tipo']) && isset($_GET['sello'])) {
-        $tipo = $_GET['tipo'];
-        $sello = $_GET['sello'];
+    if (isset($_GET['fam']) && isset($_GET['perfil'])) {
+        $familia = $_GET['fam'];
+        $perfilOriginal = $_GET['perfil'];
         $baseDir = '../assets/img/';
         $imageDir = '';
 
-        if (in_array($sello, ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7'])) {
-            header('Location: selectTipoSello.php');
+        if (in_array($perfilOriginal, ['z1', 'z2', 'z3', 'z4', 'z5', 'z6', 'z7'])) {
+            header('Location: select_familia.php');
             exit();
         }
 
-        switch ($tipo) {
+        switch ($familia) {
             case 'rotary':
                 $imageDir = $baseDir . 'rotary/';
-                $tipoEcho = "Rotativo";
-                $tipoButton = $tipo;
+                $familiaEcho = "Rotativo";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/rotary/di_rotary.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/rotary/de_rotary.jpg';
                 $imageDirFamilyH = $baseDir . 'family/rotary/h_rotary.jpg';
                 break;
             case 'piston':
                 $imageDir = $baseDir . 'piston/';
-                $tipoEcho = "Pistón";
-                $tipoButton = $tipo;
+                $familiaEcho = "Pistón";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/piston/di_piston.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/piston/de_piston.jpg';
                 $imageDirFamilyH = $baseDir . 'family/piston/h_piston.jpg';
@@ -61,47 +61,48 @@ if (!isset($_SESSION['id'])) {
 
             case 'backup':
                 $imageDir = $baseDir . 'backup/';
-                $tipoEcho = "Respaldo";
-                $tipoButton = $tipo;
+                $familiaEcho = "Respaldo";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/backup/di_backup.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/backup/de_backup.jpg';
                 $imageDirFamilyH = $baseDir . 'family/backup/h_backup.jpg';
             break;
             case 'guide':
                 $imageDir = $baseDir . 'guide/';
-                $tipoEcho = "Guía";
-                $tipoButton = $tipo;
+                $familiaEcho = "Guía";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/guide/di_guide.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/guide/de_guide.jpg';
                 $imageDirFamilyH = $baseDir . 'family/guide/h_guide.jpg';
             break;
             case 'wipers':
-                $imageDir = $baseDir . 'wipers/';
-                $tipoEcho = "Limpiadores";
-                $tipoButton = $tipo;
+                $imageDir = $baseDir . 'wiper/';
+                $familiaEcho = "Limpiadores";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/wiper/di_wiper.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/wiper/de_wiper.jpg';
                 $imageDirFamilyH = $baseDir . 'family/wiper/h_wiper.jpg';
             break;
             case 'rod':
                 $imageDir = $baseDir . 'rod/';
-                $tipoEcho = "Vástago";
-                $tipoButton = $tipo;
+                $familiaEcho = "Vástago";
+                $familiaButton = $familia;
                 $imageDirFamilyDI = $baseDir . 'family/rod/di_rod.jpg';
                 $imageDirFamilyDE = $baseDir . 'family/rod/de_rod.jpg';
                 $imageDirFamilyH = $baseDir . 'family/rod/h_rod.jpg';
                 break;            
             default:
-                header('Location: selectTipoSello.php');
+                header('Location: select_familia.php');
                 exit();
         }
 
-        $imagePath = $imageDir . $sello . '.jpg';
+        $imagePath = $imageDir.$perfilOriginal;
+       
         // extraer el ultimo caracter del nombre de la imagen
-        echo '<script>window.PERFIL_SELLO = "'.$selloOriginal.'";</script>';
+        echo '<script>window.PERFIL_SELLO = "'.$perfilOriginal.'";</script>';
 
     } else {
-        header('Location: selectTipoSello.php');
+        header('Location: select_familia.php');
         exit();
     }
 
@@ -111,28 +112,26 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
-    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/dependencies/html2canvas.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/chosen.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/chosen.jquery.min.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/dependencies/d3.v7.min.js'); ?>"></script>
 
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="<?= controlCache('../assets/dependencies/select2.min.css'); ?>" rel="stylesheet" />
+    <script src="<?= controlCache('../assets/dependencies/select2.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador2.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/select2-selector.css'); ?>">
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/chosen-selector.css'); ?>"> -->
-    <!-- <script src="<?= controlCache('../assets/js/scripts_ajax.js'); ?>"></script> -->
-    <title><?= $selloOriginal ?></title>
+    <title><?= $perfilOriginal ?></title>
 </head>
 <body>
     
@@ -144,8 +143,23 @@ if (!isset($_SESSION['id'])) {
 </div>
 <section id="containerSections" class="d-flex flex-column">
 
-    <div class="d-flex flex-column flex-md-row col-12 mb-3 gap-3">
-
+    <div class="controles d-flex flex-column justify-content-evenly flex-md-row col-12 mb-3 gap-3">
+        <div class="d-flex w-100 flex-column justify-content-evenly align-items-center">
+            <h4><?= $perfilOriginal ?> (<?= $familiaEcho ?>), Componentes: <?=  $cantidadMateriales ?></h4>
+            <?php
+                if (file_exists($imagePath)) {
+                    $imgMaterial=$imagePath . '/' . $perfilOriginal . '_0.jpg';
+                    echo '<a class="align-self-center align-self-md-center img-sello" href="select_perfil.php?fam=' . $familia . '" title="Click para cambiar el perfil">';
+                    echo '<img  src="'. $imgMaterial . '" alt="' . htmlspecialchars($perfilOriginal) . '" class="border-gray img-fluid">';
+                    echo '</a>';
+                } else {
+                    echo "<h2>Imagen no encontrada</h2>";
+                }
+            ?>
+            <div class="text-center w-100 mt-3 py-2 px-3 px-md-5 border border-dark-subtitle bg-white bg-opacity-10 font-monospace rounded-2">
+                <span id="descripcionPerfil"></span>
+            </div>
+        </div>
         <?php if ($tipoUsuario == 5): ?>
             <input id="isFive" type="hidden" value="1">
             <div class="selector-estimador-container">
@@ -157,14 +171,14 @@ if (!isset($_SESSION['id'])) {
             </div>
         <?php else: ?>
             <input id="isFive" type="hidden" value="0">
-            <section id="sectionSelectorCliente" class="section-container">
+            <section id="sectionSelectorCliente" class="section-container d-flex flex-column col-12 col-md-6">
                 <div class="mb-3 d-flex flex-column  col-12 col-md-12">
                     <h5>Cliente *</h5>
                     <select id="selectorCliente" class="" style="z-index:999;">
                         <option value="" disabled selected>Seleccione un cliente</option>
                     </select>
                 </div> 
-                <div class="d-flex col-12 col-md-12 flex-column">
+                <div class="d-flex col-12 col-md-12 flex-column mb-3">
                     <h5 class="mb-3">Tipo de inventario *</h5>
                     <select id="selectorTipoInventario" class="" name="tipo_inventario" required>
                         <option value="" disabled selected>Seleccione una opción</option>
@@ -173,38 +187,42 @@ if (!isset($_SESSION['id'])) {
                     </select>
                     <span id="spanSimulacion" class="d-none text-truncate fst-italic">La cotización no podrá ser usada para requisiciones</span>
                 </div>
+                <div id="sectionDureza" class="">
+                    <div class="d-flex col-12 flex-column">
+                        <div class="d-flex col-12 flex-row mb-3">
+                            <div class="d-flex col-11 col-md-11 flex-column">
+
+                                <h5 class="mb-3">Dureza de materiales *</h5>
+                                <select id="selectorDurezaMateriales" class="" name="material" required>
+                                    <option value="" disabled selected>Seleccione una opción</option>
+                                    <option value="blandos">Limitantes para materiales Blandos</option>
+                                    <option value="duros">Limitantes para materiales Duros</option>
+                                    <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                                </select>
+                            </div>
+                            <div class="align-self-end">
+                                <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:30px;"></i>
+                            </div>                                
+
+                        </div>
+                        <div class="d-flex col-11 col-md-12 flex-column gap-2">
+                            <span class="text-truncate fst-italic">Materiales Blandos: H-ECOPUR, ECOSIL, ECORUBBER 1/2/3, ECOPUR</span>
+                            <span class="text-truncate fst-italic">Materiales Duros: ECOTAL, ECOMID, ECOFLON 1/2/3</span>
+                        </div>
+                    </div>
+                </div>
             </section>
         <?php endif; ?>
-        <div id="sectionDureza" class="section-container">
-            <div class="d-flex col-12 flex-column">
-                <div class="d-flex col-12 flex-row mb-3">
-                    <div class="d-flex col-11 col-md-11 flex-column">
-    
-                        <h5 class="mb-3">Dureza de materiales *</h5>
-                        <select id="selectorDurezaMateriales" class="" name="material" required>
-                            <option value="" disabled selected>Seleccione una opción</option>
-                            <option value="blandos">Limitantes para materiales Blandos</option>
-                            <option value="duros">Limitantes para materiales Duros</option>
-                            <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-                        </select>
-                    </div>
-                    <div class="align-self-end">
-                        <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:30px;"></i>
-                    </div>                                
-
-                </div>
-                <div class="d-flex col-11 col-md-12 flex-column gap-2">
-                    <span class="text-truncate fst-italic">Materiales Blandos: H-ECOPUR, ECOSIL, ECORUBBER 1/2/3, ECOPUR</span>
-                    <span class="text-truncate fst-italic">Materiales Duros: ECOTAL, ECOMID, ECOFLON 1/2/3</span>
-                </div>
-            </div>
-        </div>
+        
     </div>
+
+
+
     <?php
     $archivoEventos = "eventos_materiales.js";
     $archivoPrevisualizacion = "tabla_previsualizacion.php";
     include('../includes/dimensiones_resultantes.php');
-    if ($tipoUsuario == 3 || $tipoUsuario == 4 || $tipoUsuario == 5) {
+    if ($tipoUsuario == "Vendedor" || $tipoUsuario == "Cliente Externo") {
         include('../includes/materiales2.php');
         $archivoEventos = "eventos_materiales2.js";
         $archivoPrevisualizacion = "tabla_previsualizacion2.php";

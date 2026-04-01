@@ -11,7 +11,8 @@ try {
         'fecha_inicio' => '',
         'fecha_fin' => '',
         'default' => 2,
-        'orden' => 'desc'
+        'orden' => 'desc',
+        'revision' => ''
     ];
 
     // --------- LECTURA DE GET ----------
@@ -21,6 +22,7 @@ try {
     $fecha_fin = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
     $default = isset($_GET['default']) ? (int)$_GET['default'] : $preferencias['default'];
     $orden = (isset($_GET['orden']) && $_GET['orden'] === 'asc') ? 'ASC' : 'DESC';
+    $revision = isset($_GET['revision']) ? trim($_GET['revision']) : $preferencias["revision"];
 
     $params = [];
 
@@ -88,6 +90,14 @@ try {
         }
     }
 
+    if ($revision) {
+        if ($revision === 'pendiente') {
+            $sqlRequisiciones .= " AND fecha_revision_maquinado IS NULL AND estatus IN ('Finalizada', 'Completada')";
+        } elseif ($revision === 'enviada') {
+            $sqlRequisiciones .= " AND fecha_revision_maquinado IS NOT NULL";
+        }
+    }
+
     if ($sucursal) {
         $sqlRequisiciones .= " AND sucursal = :sucursal";
         $params[':sucursal'] = $sucursal;
@@ -139,7 +149,8 @@ try {
         'fecha_inicio' => $fecha_inicio,
         'fecha_fin' => $fecha_fin,
         'default' => $default,
-        'orden' => strtolower($orden)
+        'orden' => strtolower($orden),
+        'revision' => $revision
     ];
 
 } catch (Throwable $e) {
@@ -155,6 +166,7 @@ $preferencias = $_SESSION['filtros_requisiciones_cnc'] ?? [
     'fecha_inicio' => '',
     'fecha_fin' => '',
     'default' => 2,
-    'orden' => 'des'
+    'orden' => 'des',
+    'revision' => ''
 ];
 ?>

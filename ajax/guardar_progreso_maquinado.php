@@ -46,6 +46,7 @@ try {
                       id_cotizacion = :id_cotizacion,
                       id_estimacion = :id_estimacion,
                       pz_teoricas = :pz_teoricas,
+                      h_componente = :h_componente,
                       causa_merma = :causa_merma,
                       justificacion_merma = :justificacion_merma
                   WHERE id_control = :id_control";
@@ -71,6 +72,7 @@ try {
                 ':id_cotizacion' => $fila['id_cotizacion'] ?? null,
                 ':id_estimacion' => $fila['id_estimacion'] ?? null,
                 ':pz_teoricas' => $fila['pz_teoricas'] ?? 0,
+                ':h_componente' => $fila['h_componente'] ?? 0,
                 ':causa_merma' => $fila['causa_merma'] ?? '',
                 ':justificacion_merma' => $fila['justificacion_merma'] ?? '',
                 ':id_control' => $fila['id_control']

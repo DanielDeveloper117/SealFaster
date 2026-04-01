@@ -14,49 +14,38 @@ if (!isset($_SESSION['id'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
 
     <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
 
     <!-- SweetAlert -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
 
     <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">
 
     <!-- DataTables -->
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
-    <!-- DataTables Buttons -->
-    <link href="https://cdn.datatables.net/buttons/2.3.6/css/buttons.dataTables.min.css" rel="stylesheet">
-
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/dataTables.buttons.min.js"></script>
-
-    <!-- JSZip para Excel -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-
-    <!-- Botones HTML5 -->
-    <script src="https://cdn.datatables.net/buttons/2.3.6/js/buttons.html5.min.js"></script>
+    <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
 
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/modal_add_billet.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/inventario_operaciones.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/modal_operacion_inventario.js'); ?>"></script>
-
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
-
+    
+    <?php include(ROOT_PATH . 'includes/exportar_datatable_excel.php'); ?>
     <title>Inventario CNC</title>
 
 </head>
 <body>
+    <div id="overlay">
+        <div class="loading-message">
+            <span>Cargando datos de inventario, por favor, espere...</span>    
+        </div>
+    </div>
 <style>
-    .buttons-excel{
-        display: none !important;
-    }
     .dt-scroll{
         margin-top:10px !important;
         margin-bottom:10px !important;
@@ -90,184 +79,177 @@ if (!isset($_SESSION['id'])) {
 <?php include(ROOT_PATH . 'includes/user_control.php'); ?>
 
 <?php
-$arregloSelectInventario = [];
-// *** METODO GET DE FILTROS RECIBIDOS ***
-if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+    // *** METODO GET DE FILTROS RECIBIDOS ***
+    $arregloSelectInventario = [];
+    if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
 
-    $origen = $_GET['origen'];
-    $material = $_GET['material'];
-    $proveedor = $_GET['proveedor'];
+        $origen = $_GET['origen'];
+        $material = $_GET['material'];
+        $proveedor = $_GET['proveedor'];
 
-    if($proveedor == "all"){
+        if($proveedor == "all"){
+            $sqlInventario = "
+                SELECT i.*, 
+                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a
+                    ON i.almacen_id = a.id
+                WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+            ";
+            $stmtInventario = $conn->prepare($sqlInventario);
+            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
+        }else{
+            $sqlInventario = "
+                SELECT i.*, 
+                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a
+                    ON i.almacen_id = a.id
+                WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
+                ORDER BY i.stock ASC
+            ";        
+            $stmtInventario = $conn->prepare($sqlInventario);
+            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
+            $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
+        }
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
+        // Eliminar todos los espacios en blanco de la clave antes de consultar
+        $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
+
         $sqlInventario = "
             SELECT i.*, 
                     (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
             FROM sellosyr_sellosctd.inventario_cnc AS i
             INNER JOIN sellosyr_sellosctd.almacenes AS a
                 ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
+            WHERE i.almacen_id = :origen AND i.Clave = :clave
+            ORDER BY i.stock ASC
         ";
         $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
+        $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
+        // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
+        $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
+
+        $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+        $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
+        $sqlInventario = "
+        SELECT i.*, 
+            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+        FROM sellosyr_sellosctd.inventario_cnc AS i
+        INNER JOIN sellosyr_sellosctd.almacenes AS a
+            ON i.almacen_id = a.id
+        WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
         $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-    }else{
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }else if (isset($_GET['pendientes'])) {
+        
+        $sqlInventario = 
+            "SELECT 
+                i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
+                i.material, i.max_usable, i.stock, i.lote_pedimento,
+                i.estatus, i.updated_at, a.almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a 
+                ON i.almacen_id = a.id
+            WHERE 
+                -- Condición 1: El estatus es incorrecto
+                (i.estatus = 'Clave incorrecta' OR i.estatus = 'Clave nueva pendiente' OR i.estatus = 'Relación pendiente')
+                OR 
+                -- Condición 2: NO existe ni en clave ni en clave_alterna
+                NOT EXISTS (
+                    SELECT 1 FROM sellosyr_sellosctd.parametros p 
+                    WHERE p.clave = i.Clave OR p.clave_alterna = i.Clave
+                )
+            ORDER BY i.id DESC -- Cambiado de 'interior' a 'id' para usar índice primario
+        ";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+
+    }elseif(isset($_GET['archivados'])){
+
         $sqlInventario = "
             SELECT i.*, 
-                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
             FROM sellosyr_sellosctd.inventario_cnc AS i
             INNER JOIN sellosyr_sellosctd.almacenes AS a
                 ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
-            ORDER BY i.stock ASC
-        ";        
+            WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
+            ORDER BY i.interior DESC
+        ";
         $stmtInventario = $conn->prepare($sqlInventario);
-        $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-        $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
-    }
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+        //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['clave']) && !empty($_GET['clave'])) {
-    // Eliminar todos los espacios en blanco de la clave antes de consultar
-    $clave = preg_replace('/\s+/', '', trim($_GET['clave']));
+    }elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
 
-    $sqlInventario = "
-        SELECT i.*, 
+        $sqlInventario = "
+            SELECT i.*, 
                 (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.almacen_id = :origen AND i.Clave = :clave
-        ORDER BY i.stock ASC
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
-    $stmtInventario->bindParam(':clave', $clave, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen
+            ORDER BY i.interior DESC";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-}else if (isset($_GET['lp']) && !empty($_GET['lp'])) {
-    // Eliminar todos los espacios en blanco del lote pedimento antes de consultar
-    $lp = preg_replace('/\s+/', '', trim($_GET['lp']));
+    }elseif(isset($_GET['traspaso']) && !empty($_GET['traspaso'])){
+        
+        $sqlInventario = "
+            SELECT i.*, 
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.operacion_id = :traspaso
+            ORDER BY i.interior DESC";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':traspaso', $_GET['traspaso'], PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-    $sqlInventario = "SELECT id, almacen_id, lote_pedimento FROM inventario_cnc WHERE lote_pedimento = :lp ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
+    }elseif(isset($_GET['venta']) && !empty($_GET['venta'])){
+        
+        $sqlInventario = "
+            SELECT i.*, 
+                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.operacion_id = :venta
+            ORDER BY i.interior DESC";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        $stmtInventario->bindParam(':venta', $_GET['venta'], PDO::PARAM_STR);
+        $stmtInventario->execute();
+        $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
 
-    $origen = $arregloSelectInventario[0]['almacen_id'] ?? null; // Obtener el origen del primer resultado
-    $sqlInventario = "
-    SELECT i.*, 
-        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-    FROM sellosyr_sellosctd.inventario_cnc AS i
-    INNER JOIN sellosyr_sellosctd.almacenes AS a
-        ON i.almacen_id = a.id
-    WHERE i.almacen_id = :origen AND i.lote_pedimento = :lp";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}else if (isset($_GET['pendientes'])) {
-    
-    $sqlInventario = 
-        "SELECT 
-            i.id, 
-            i.almacen_id,
-            i.Clave, 
-            i.Medida, 
-            i.proveedor, 
-            i.material, 
-            i.max_usable, 
-            i.stock, 
-            i.lote_pedimento,
-            i.estatus, 
-            i.updated_at,
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        LEFT JOIN parametros p ON i.Clave = p.clave
-        WHERE p.clave IS NULL OR i.estatus = 'Clave incorrecta' 
-        ORDER BY i.interior DESC;
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}elseif(isset($_GET['archivados'])){
-
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE (i.solicita_archivado = 1 AND i.estatus = 'Eliminado') OR i.estatus = 'Venta' 
-        ORDER BY i.interior DESC
-    ";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    //$stmtInventario->bindParam(':lp', $lp, PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
-
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.almacen_id = :origen
-        ORDER BY i.interior DESC";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}elseif(isset($_GET['traspaso']) && !empty($_GET['traspaso'])){
-    
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.operacion_id = :traspaso
-        ORDER BY i.interior DESC";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':traspaso', $_GET['traspaso'], PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}elseif(isset($_GET['venta']) && !empty($_GET['venta'])){
-    
-    $sqlInventario = "
-        SELECT i.*, 
-            (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-        FROM sellosyr_sellosctd.inventario_cnc AS i
-        INNER JOIN sellosyr_sellosctd.almacenes AS a
-            ON i.almacen_id = a.id
-        WHERE i.operacion_id = :venta
-        ORDER BY i.interior DESC";
-    $stmtInventario = $conn->prepare($sqlInventario);
-    $stmtInventario->bindParam(':venta', $_GET['venta'], PDO::PARAM_STR);
-    $stmtInventario->execute();
-    $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
-
-}else{
-    $arregloSelectInventario = [];
-}
+    }else{
+        $arregloSelectInventario = [];
+    }
 ?>
-<div id="overlay">
-    <div class="loading-message">
-        <span>Cargando datos de inventario, por favor, espere...</span>    
-    </div>
-</div>
 
 <section class="section-table flex-column mb-5 d-flex col-12 justify-content-center align-items-center">
     <div class="col-11">
@@ -411,14 +393,24 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                                     ';
                                 }else if($row['estatus'] == "Eliminado"){
                                     if($tipo_usuario === "Administrador"){
-                                        echo '';
+                                        echo '
+                                            <button type="button" class="btn-general btn-ver-justificacion" 
+                                                    data-id="'.$row["id"].'"
+                                                    data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
+                                                    data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
+                                                    data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
+                                                    data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
+                                                    title="Ver la justificación y fotografía de la solicitud">
+                                                 <i class="bi bi-chat-text px-2"></i>
+                                            </button>
+                                        '; 
                                         if($row['archivado_auth'] == 0){
                                             echo '
-                                                <button type="button" class="btn-auth btn-autorizar-archivado" 
+                                                <button type="button" class="btn-auth btn-autorizar-archivado gap-2" 
                                                         data-id='.$row["id"].'
                                                         data-lp='.$row["lote_pedimento"].'
-                                                        title="Autorizar">
-                                                    Autorizar archivado<i class="bi bi-archive-fill px-2"></i>
+                                                        title="Autorizar el archivado de esta barra">
+                                                    <i class="bi bi-archive-fill px-2"></i><i class="bi bi-check-circle"></i>
                                                 </button>
                                             '; 
                                         }
@@ -430,17 +422,7 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
                                             ';
 
                                         }
-                                        echo '
-                                            <button type="button" class="btn-general btn-ver-justificacion" 
-                                                    data-id="'.$row["id"].'"
-                                                    data-jus="'.htmlspecialchars($row["justificacion_archivado"]).'"
-                                                    data-ruta="'.htmlspecialchars($row["ruta_foto_barra"] ?? '').'"
-                                                    data-lote="'.htmlspecialchars($row["lote_pedimento"]).'"
-                                                    data-fecha="'.htmlspecialchars($row["deleted_at"] ?? $row["updated_at"]).'"
-                                                    title="Ver la justificación y fotografía de la solicitud">
-                                                Ver justificación <i class="bi bi-chat-text px-2"></i>
-                                            </button>
-                                        '; 
+                                        
                                         
                                         
                                     }else{
@@ -550,113 +532,247 @@ if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']
     </div>
 </div>
 
-<!-- //////////////////////////MODAL: FORMULARIO SOLICITAR ARCHIVAR BARRA /////////////////////// -->
-<div class="modal fade" id="modalSolicitarArchivar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">Solicitar archivar barra a dirección</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Describa la razón por la cual desea archivar la barra: <strong></strong></p>
-                <form id="formSolicitarArchivar" enctype="multipart/form-data">
-                    <input id="inputIdBarra" type="hidden">
-                    <div class="d-flex justify-content-between mb-3">
-                        <div class="" style="width:100%;">
-                            <label for="inputJustificacionSolicitarArchivar" class="lbl-general">Justificación *</label>
-                            <textarea id="inputJustificacionSolicitarArchivar" class="form-control" rows="3" placeholder="Ingrese la justificación..." required></textarea>
-                        </div>  
-                    </div>
-                    <div class="mb-3">
-                        <label for="inputFotoArchivar" class="lbl-general">Fotografía de la barra *</label>
-                        <input type="file" id="inputFotoArchivar" class="form-control" accept="image/*" capture="environment" required>
-                        <small class="form-text text-muted">Suba una foto que muestre el estado actual de la barra (máx. 5MB)</small>
-                        <div id="previewFotoArchivar" class="mt-2"></div>
-                    </div>
-                    <button id="btnContinuarSolicitarArchivar" type="button" class="btn-general">Continuar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- Modal para ver justificación y foto -->
-<div class="modal fade" id="modalVerJustificacionFoto" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Solicitud de archivado</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <h6>Justificación:</h6>
-                        <div id="justificacionTexto" class="border rounded p-3 mb-3" style="min-height: 150px; max-height: 300px; overflow-y: auto;">
-                            <!-- La justificación se insertará aquí -->
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <h6>Fotografía de la barra:</h6>
-                        <div id="fotoContenedor" class="text-center">
-                            <div id="sinFoto" class="d-none">
-                                <i class="bi bi-image text-muted" style="font-size: 5rem;"></i>
-                                <p class="text-muted mt-2">No hay fotografía disponible</p>
-                            </div>
-                            <img id="fotoBarra" src="" alt="Foto de la barra" 
-                                 class="img-fluid rounded border" 
-                                 style="max-height: 300px; display: none;">
-                        </div>
-                        <div id="infoFoto" class="mt-2 small text-muted">
-                            <!-- Información de la foto se insertará aquí -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL CONFIRMAR AUTORIZAR ARCHIVADO BARRA /////////////////////// -->
-<div class="modal fade" id="modalAutorizarBarraArchivada" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-autorizar-barra-archivada" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="label-modal-autorizar-barra-archivada">Confirmar autorización</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Desea continuar con la autorización para archivar esta barra?</p>
-                <form id="formAutorizarBarraArchivada">
-                    <input id="inputIdBarraArchivada" type="hidden" name="id"  value="">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnConfirmAutorizarBarraArchivada" class="btn-auth">Si, continuar</button>
-                <button type="button" id="btnCancelAutorizarBarraArchivada" class="btn-cancel" data-bs-dismiss="modal">No, cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
 <!-- ////////////////////////////////////////////////////////////////////////////////////////// -->
-<?php include(ROOT_PATH . 'includes/modal_add_billet.php'); ?>
+<?php include(ROOT_PATH . 'includes/modales_actions_billet.php'); ?>
+<script src="<?= controlCache('../assets/js/modales_actions_billet.js'); ?>"></script>
 <?php include(ROOT_PATH . 'includes/modal_operacion_inventario.php'); ?>
 <?php include(ROOT_PATH . 'includes/modal_localizar_barra.php'); ?>
 
-<!-- Scripts para DataTable y funcionalidades -->
 <script>
-    $(document).ready(function(){
-        $('.dt-length, .dt-search').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
-        $('.dt-info, .dt-paging').wrapAll('<div class="d-flex flex-row justify-content-between"></div>');
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================
+    const urlInicial = new URL(window.location.href);
+    const params = new URLSearchParams(window.location.search);
+    const operActual = urlInicial.searchParams.get('oper') || '0';
 
-        $('#btnExportarDatos').on('click', function() {
-            $(".buttons-excel").trigger("click");
+    let selectedLotes = []; // Array para almacenar los lotes pedimento seleccionados
+    if (params.get('oper') === '1') {
+        document.querySelectorAll('.btn-check-cute').forEach(el => {
+            el.classList.remove('d-none');
+            // Forzar reflow para que la transición se aplique correctamente
+            void el.offsetWidth;
+            el.classList.add('show-cute');
         });
-        // setTimeout(() => {
-        //     $(".badge-checkbox").removeClass("d-none");
-        // }, 500);
+        const bar = document.getElementById('agrupacionBar');
+        if (bar) {
+            bar.classList.remove('d-none');
+            // Forzar reflow para activar animación
+            void bar.offsetWidth;
+            bar.classList.add('show-bar');
+        }
+    }
+
+
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================  
+    /**
+     * Crea una URL con el parámetro 'oper' modificado
+     * @param {string} valorOper - El valor del parámetro oper
+     * @returns {string} URL modificada
+     */
+    function crearHrefConOper(valorOper) {
+        const nuevaUrl = new URL(urlInicial);
+        nuevaUrl.searchParams.set('oper', valorOper);
+        return nuevaUrl.toString();
+    }
+    /**
+     * Actualiza la visibilidad de los checkboxes según el modo de operación
+     */
+    function mostrarCheckboxesPorOper(oper) {
+        const checkboxes = document.querySelectorAll('.btn-check-cute');
+
+        if (oper === '1') {
+            checkboxes.forEach(checkbox => {
+                checkbox.classList.remove('d-none');
+            });
+        } else {
+            checkboxes.forEach(checkbox => {
+                checkbox.classList.add('d-none');
+            });
+        }
+    }
+    /**
+     * Recopila los lotes pedimento de las barras seleccionadas
+     * @returns {Array} Array de lotes pedimento seleccionados
+     */
+    function obtenerLotesSeleccionados() {
+        const lotes = [];
+        document.querySelectorAll('.btn-check-cute:checked').forEach(checkbox => {
+            const lp = checkbox.getAttribute('data-lp');
+            if (lp) {
+                lotes.push(lp);
+            }
+        });
+        return lotes;
+    }
+    /**
+     * Recopila los IDs de las barras seleccionadas
+     * @returns {Array} Array de IDs seleccionados
+     */
+    function obtenerIdsSeleccionados() {
+        const ids = [];
+        document.querySelectorAll('.btn-check-cute:checked').forEach(checkbox => {
+            const id = checkbox.getAttribute('val');
+            if (id) {
+                ids.push(id);
+            }
+        });
+        return ids;
+    }
+    /**
+     * Obtiene el almacen_id de la primera barra seleccionada
+     * @returns {string|null} ID del almacén o null si no hay barras seleccionadas
+     */
+    function obtenerAlmacenIdSeleccionado() {
+        const checkbox = document.querySelector('.btn-check-cute:checked');
+        if (checkbox) {
+            // El almacen_id debe estar en el atributo data-almacen-id
+            return checkbox.getAttribute('data-almacen-id');
+        }
+        return null;
+    }
+    /**
+     * Actualiza la visibilidad de la barra de operación
+     */
+    function actualizarBarraOperacion() {
+        const checkboxesChecked = document.querySelectorAll('.btn-check-cute:checked').length;
+        const agrupacionBar = document.getElementById('agrupacionBar');
+
+        if (checkboxesChecked > 0) {
+            agrupacionBar.classList.remove('d-none');
+        } else {
+            //agrupacionBar.classList.add('d-none');
+        }
+    }
+    /**
+     * Cancela la operación en masa
+     */
+    function cancelarOperacion() {
+        // Obtener todos los parámetros GET de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        urlParams.delete('oper');
+        // Reconstruir la URL sin 'oper'
+        const newUrl = window.location.pathname + '?' + urlParams.toString();
+        window.location.href = newUrl;
+    }
+
+
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
+    $(document).ready(function() {
+        // =================================
+        //  ****** INICIALIZACIONES ****** 
+        // Inicializar la vista según el parámetro 'oper'
+        if (!urlInicial.searchParams.has('oper')) {
+            urlInicial.searchParams.set('oper', '0');
+            history.replaceState({}, '', urlInicial.toString());
+        }
+        // Mostrar/ocultar checkboxes según el estado actual
+        mostrarCheckboxesPorOper(operActual);
+        // Si estamos en modo de operación, mostrar la barra si hay selecciones
+        if (operActual === '1') {
+            // Esperar a que la tabla esté lista antes de actualizar
+            setTimeout(() => {
+                //actualizarBarraOperacion();
+            }, 500);
+        }    
+        // =================================
+        
+        /**
+         * Evento: Click en btnInitOperacion para iniciar el modo de operación
+         */
+        $('#btnInitOperacion').on('click', function(e) {
+            e.preventDefault();
+            let url = new URL(window.location.href);
+            url.searchParams.set('oper', '1');
+            window.location.href = url.toString();
+        });
+        /**
+         * Evento: Cambio en los checkboxes para seleccionar/deseleccionar barras
+         */
+        $(document).on('change', '.btn-check-cute', function() {
+            // Agregar animación "pop"
+            $(this).addClass('pop');
+            setTimeout(() => {
+                $(this).removeClass('pop');
+            }, 220);
+
+            // Actualizar la barra de operación
+            actualizarBarraOperacion();
+        });
+        /**
+         * Evento: Click en btnContinuarOperacion para proceder con la operación
+         */
+        $('#btnContinuarOperacion').on('click', function(e) {
+            e.preventDefault();
+
+            // Obtener los datos seleccionados
+            selectedLotes = obtenerLotesSeleccionados();
+            const selectedIds = obtenerIdsSeleccionados();
+            const almacenId = obtenerAlmacenIdSeleccionado();
+
+            if (selectedIds.length === 0) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Sin selección',
+                    text: 'Por favor, seleccione al menos una barra',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            if (!almacenId) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'No se pudo determinar el almacén de origen',
+                    confirmButtonText: 'Entendido'
+                });
+                return;
+            }
+
+            // Guardar los datos seleccionados en sessionStorage para usar en el modal
+            sessionStorage.setItem('inventarioOperacionIds', JSON.stringify(selectedIds));
+            sessionStorage.setItem('inventarioOperacionLotes', JSON.stringify(selectedLotes));
+            sessionStorage.setItem('inventarioOperacionAlmacenId', almacenId);
+
+            // Establecer el almacen_id en el formulario
+            $('#inputOrigenId').val(almacenId);
+
+            // Abrir el modal
+            const modalOperacionInventario = new bootstrap.Modal(document.getElementById('modalOperacionInventario'), {
+                backdrop: 'static',
+                keyboard: false
+            });
+            modalOperacionInventario.show();
+        });
+        /**
+         * Evento: Click en btnCancelOperacion para cancelar la operación
+         */
+        $('#btnCancelOperacion').on('click', function(e) {
+            e.preventDefault();
+            cancelarOperacion();
+        });
+        /**
+         * Evento: Cuando se cierra el modal, limpiar la selección
+         */
+        $('#modaOperacionlInventario').on('hidden.bs.modal', function() {
+            // Si no se confirmó la operación, regresa al estado normal
+            if (operActual === '1') {
+                // El usuario vuelve a la lista de selección
+            }
+        });
+        /**
+         * Evento: Al cargar la página con parámetro ?oper=1, activar los checkboxes
+         */
+        if (operActual === '1') {
+            document.querySelectorAll('.btn-check-cute').forEach(el => {
+                el.style.display = 'inline-block';
+            });
+        }   
     });
 </script>
 </body>

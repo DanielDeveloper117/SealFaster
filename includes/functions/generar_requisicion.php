@@ -245,7 +245,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
     $pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
     $pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
-    $pdf->Cell(43, 6, 'Lote Pedimento/Clave', 1, 1, 'C', true);
+    $pdf->Cell(43, 6, 'Barras', 1, 1, 'C', true);
 
     foreach ($cotizacion_ids as $id_cotizacion) {
         $stmt->bindValue(':id_cotizacion', $id_cotizacion, PDO::PARAM_INT);
@@ -328,7 +328,7 @@ if (isset($_GET['id_requisicion'])) {
                 $pdf->Cell(33, 6, 'D. Interior', 1, 0, 'C', true);
                 $pdf->Cell(33, 6, 'D. Exterior', 1, 0, 'C', true);
                 $pdf->Cell(33, 6, 'Altura(s)', 1, 0, 'C', true);
-                $pdf->Cell(43, 6, 'Lote Pedimento/Clave', 1, 1, 'C', true);
+                $pdf->Cell(43, 6, 'Barras', 1, 1, 'C', true);
             }
             
             // === RENGLÓN GENERAL (PRIMER RENGLÓN) ===
@@ -837,7 +837,7 @@ if (isset($_GET['id_requisicion'])) {
         }
         
         // Separación entre cotizaciones
-        $pdf->Ln(5); 
+        $pdf->Ln(8); 
     }
 
     // VERIFICAR SI HAY ESPACIO SUFICIENTE PARA LAS FIRMAS (aprox. 50mm)
@@ -928,7 +928,7 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFillColor(220, 220, 220);
     $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
     $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-    $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+    $pdf->Cell(29, 6, 'LOTE', 1, 0, 'C', true);
     $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
     $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
     $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);
@@ -942,19 +942,33 @@ if (isset($_GET['id_requisicion'])) {
 
     if (count($datosControl) > 0) {
         $barrasExtra = [];
+        $barrasRemplazo = [];
+        $barrasEliminacion = [];
         foreach ($datosControl as $fila) {
             $esExtra = "";
+            $esRemplazo = "";
+            $esEliminacion = "";
             if($fila['es_extra']){
                 $barrasExtra[] = $fila['clave']." (".$fila['lote_pedimento'].")";
-                $esExtra = "*";
+                $esExtra = "+";
             }
             $clave = "";
             $lote_pedimento = "";
             $medida = "";
             if($fila['es_remplazo'] == 1 && $fila['es_remplazo_auth'] == 1){
+                $barrasRemplazo[] = $fila['clave']." (".$fila['lote_pedimento'].")";
                 $clave = $fila['clave_remplazo'];
                 $lote_pedimento = $fila['lp_remplazo'];
                 $medida = $fila['medida_remplazo'];
+                $esRemplazo = "* ";
+            }else{
+                $clave = $fila['clave'];
+                $lote_pedimento = $fila['lote_pedimento'];
+                $medida = $fila['medida'];
+            }
+            if($fila['es_eliminacion'] == 1 && $fila['es_eliminacion_auth'] == 1){
+                $barrasEliminacion[] = $fila['clave']." (".$fila['lote_pedimento'].")";
+                $esEliminacion = "! ";
             }else{
                 $clave = $fila['clave'];
                 $lote_pedimento = $fila['lote_pedimento'];
@@ -963,7 +977,7 @@ if (isset($_GET['id_requisicion'])) {
             $pdf->SetFont('Arial', '', 6);
             $pdf->Cell(18, 6, utf8_decode($fila['material']), 1, 0, 'C');
             $pdf->SetFont('Arial', '', 8);
-            $pdf->Cell(43, 6, utf8_decode($clave.$esExtra), 1, 0, 'C');
+            $pdf->Cell(43, 6, utf8_decode($esExtra.$esRemplazo.$esEliminacion.$clave), 1, 0, 'C');
             $pdf->Cell(29, 6, utf8_decode($lote_pedimento), 1, 0, 'C');
             $pdf->Cell(12, 6, utf8_decode($medida), 1, 0, 'C');
             $pdf->Cell(12, 6, utf8_decode($fila['mm_entrega']), 1, 0, 'C');
@@ -994,7 +1008,13 @@ if (isset($_GET['id_requisicion'])) {
     $pdf->SetFont('Arial', 'I', 8);
     if(!empty($barrasExtra)){
         //$pdf->Cell(190, 6,"*La o las barras ".utf8_decode(implode(", ",$barrasExtra)." fueron agregadas como barras extra."), 0, 1, 'L');
-        $pdf->Cell(190, 6,"*La o las barras fueron agregadas como barras extra.", 0, 1, 'L');
+        $pdf->Cell(190, 6,utf8_decode('La o las barras marcadas con + fueron agregadas como barras extra por razones de desición de inventarios.'), 0, 1, 'L');
+    }
+    if(!empty($barrasRemplazo)){
+        $pdf->Cell(190, 6,utf8_decode('La o las barras marcadas con * fueron reemplazadas por razones de desición de inventarios.'), 0, 1, 'L');
+    }
+    if(!empty($barrasEliminacion)){
+        $pdf->Cell(190, 6,utf8_decode('La o las barras marcadas con ! fueron eliminadas por razones de desición de inventarios.'), 0, 1, 'L');
     }
 
     $pdf->Ln(4); 
@@ -1014,7 +1034,7 @@ if (isset($_GET['id_requisicion'])) {
         $pdf->SetFillColor(220, 220, 220);
         $pdf->Cell(18, 6, 'MATERIAL', 1, 0, 'C', true);
         $pdf->Cell(43, 6, 'CLAVE', 1, 0, 'C', true);
-        $pdf->Cell(29, 6, 'LOTE PEDIMENTO', 1, 0, 'C', true);
+        $pdf->Cell(29, 6, 'LOTE', 1, 0, 'C', true);
         $pdf->Cell(12, 6, 'MEDIDA', 1, 0, 'C', true);
         $pdf->Cell(12, 6, 'MM ENT.', 1, 0, 'C', true);
         $pdf->Cell(12, 6, 'MM US.', 1, 0, 'C', true);

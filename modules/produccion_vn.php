@@ -13,15 +13,15 @@ if (!isset($_SESSION['id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.css" rel="stylesheet">
-    <script src="https://cdn.datatables.net/v/dt/dt-2.0.0/datatables.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chosen/1.8.7/chosen.jquery.min.js"></script>
+    <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/chosen.min.css'); ?>">
+    <script src="<?= controlCache('../assets/dependencies/chosen.jquery.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
@@ -82,7 +82,7 @@ if (!isset($_SESSION['id'])) {
             <table id="productionTable" class="mainTable table table-striped table-bordered" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th></th>
+                        <th>Acciones</th>
                         <!-- <th>Id</th> -->
                         <th>Folio</th>
                         <th>Estatus</th>
@@ -103,6 +103,7 @@ if (!isset($_SESSION['id'])) {
                     <tr data-id-requisicion="<?= htmlspecialchars($row['id_requisicion'] ?? ''); ?>" data-estatus="<?= htmlspecialchars($row['estatus'] ?? ''); ?>">
                         <td class="td-first-actions">
                             <div class="d-flex gap-2 container-actions">
+                                
                                 <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
                                     <input id="hiddenIdRequisicionPDF" type="hidden" name="id_requisicion" value="<?= htmlspecialchars($row['id_requisicion']??""); ?>">
                                     <button type="submit" class="btn-pdf"
@@ -110,6 +111,12 @@ if (!isset($_SESSION['id'])) {
                                         <i class="bi bi-filetype-pdf"></i>
                                     </button>
                                 </form>
+                                <button type="button" class="btn-unlink btn-maquinado-sellos" 
+                                    data-bs-toggle="modal" data-bs-target="#modalMaquinadoSellos"
+                                    data-id-requisicion="<?= htmlspecialchars($row['id_requisicion']); ?>"
+                                    title="Ver maquinado de sellos respecto a las cotizaciones de esta requisición">
+                                    <i class="bi bi-motherboard"></i>
+                                </button>
 
                                 <?php
                                 $esMia = "0";
@@ -321,7 +328,6 @@ if (!isset($_SESSION['id'])) {
     </div>
 </section>
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
-<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 <!-- ///////////MODAL SELECCIONAR FILTROS DE BUSQUEDA////////////////// -->
 <div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg">
@@ -799,7 +805,8 @@ if (!isset($_SESSION['id'])) {
     </div>
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
-<?php include("../includes/modal_estatus_requisicion.php"); ?>
+<?php include(ROOT_PATH . 'includes/modal_maquinado_sellos.php'); ?>
+<?php include(ROOT_PATH . "includes/modal_estatus_requisicion.php"); ?>
 <script>
     // JavaScript para mostrar filtros activos
     function mostrarFiltrosActivos() {
@@ -912,26 +919,26 @@ if (!isset($_SESSION['id'])) {
         }
 
         // 4. SweetAlert (Solo si no se ha aceptado antes)
-        if (localStorage.getItem("recomendacionComentarios") != "1") {
-            Swal.fire({
-                title: 'Recomendación para maquinado óptimo',
-                html: 'Recuerda que si tienes comentarios o archivos/imágenes útiles para los operadores CNC, <strong>NO OLVIDES AGREGARLOS</strong> (disponible si el folio aún esta pendiente de autorizar). ' +
-                    'Haz clic en el botón "<i class="bi bi-chat-left-text" style="color: #55AD9B; font-weight: bold;"></i>" en las acciones del folio.',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                width: '600px',
-                position: 'bottom-end',
-                toast: true,
-                showConfirmButton: true,
-                input: 'checkbox',
-                inputPlaceholder: 'No mostrar nuevamente',
-                inputAttributes: { id: 'recomendacionComentarios' }
-            }).then((result) => {
-                if (result.isConfirmed && result.value) {
-                    localStorage.setItem("recomendacionComentarios", "1");
-                }
-            });
-        }
+        // if (localStorage.getItem("recomendacionComentarios") != "1") {
+        //     Swal.fire({
+        //         title: 'Recomendación para maquinado óptimo',
+        //         html: 'Recuerda que si tienes comentarios o archivos/imágenes útiles para los operadores CNC, <strong>NO OLVIDES AGREGARLOS</strong> (disponible si el folio aún esta pendiente de autorizar). ' +
+        //             'Haz clic en el botón "<i class="bi bi-chat-left-text" style="color: #55AD9B; font-weight: bold;"></i>" en las acciones del folio.',
+        //         icon: 'info',
+        //         confirmButtonText: 'Entendido',
+        //         width: '600px',
+        //         position: 'bottom-end',
+        //         toast: true,
+        //         showConfirmButton: true,
+        //         input: 'checkbox',
+        //         inputPlaceholder: 'No mostrar nuevamente',
+        //         inputAttributes: { id: 'recomendacionComentarios' }
+        //     }).then((result) => {
+        //         if (result.isConfirmed && result.value) {
+        //             localStorage.setItem("recomendacionComentarios", "1");
+        //         }
+        //     });
+        // }
     });
 </script>
 </body>

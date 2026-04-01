@@ -33,91 +33,86 @@
     </div>
 </div>
 <script>
-// ============================================================
-// VARIABLES GLOBALES
-// ============================================================
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================
+    function ajaxBackendAlmacen(idAlmacen, accion){
+        var actionForm=accion;    
+        var dataId = idAlmacen;
+        var inputNombre=$('#inputNombreAlmacen').val() || "";
+        var inputDescripcion=$('#inputDescripcionAlmacen').val() || "";
+        
+        // Crear FormData para enviar archivos
+        var formData = new FormData();
+        formData.append('id', dataId);
+        formData.append('almacen', inputNombre);
+        formData.append('descripcion', inputDescripcion);
+        formData.append('action', actionForm);
 
 
-// ============================================================
-// FUNCIONES
-// ============================================================  
-function ajaxBackend(idAlmacen, accion){
-    var actionForm=accion;    
-    var dataId = idAlmacen;
-    var inputNombre=$('#inputNombreAlmacen').val() || "";
-    var inputDescripcion=$('#inputDescripcionAlmacen').val() || "";
-    
-    // Crear FormData para enviar archivos
-    var formData = new FormData();
-    formData.append('id', dataId);
-    formData.append('almacen', inputNombre);
-    formData.append('descripcion', inputDescripcion);
-    formData.append('action', actionForm);
-
-
-    $.ajax({
-        url: '../ajax/post_almacen.php',
-        type: 'POST',
-        data: formData,
-        processData: false,  // Importante para FormData
-        contentType: false,  // Importante para FormData
-        dataType: 'json',
-        success: function(data) {
-            if (data.success) {
-                sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
-                
-            } else {
-                sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+        $.ajax({
+            url: '../ajax/post_almacen.php',
+            type: 'POST',
+            data: formData,
+            processData: false,  // Importante para FormData
+            contentType: false,  // Importante para FormData
+            dataType: 'json',
+            success: function(data) {
+                if (data.success) {
+                    sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                    
+                } else {
+                    sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
+                }
+            },
+            error: function (xhr, status, error) {
+                console.error('Error al realizar la petición AJAX:', error);
+                sweetAlertResponse("error", "Error", "Error al enviar datos. " + error, "self");
             }
-        },
-        error: function (xhr, status, error) {
-            console.error('Error al realizar la petición AJAX:', error);
-            sweetAlertResponse("error", "Error", "Error al enviar datos. " + error, "self");
-        }
+        });
+    }
+
+
+
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================  
+    $(document).ready(function(){
+        // CAMBIAR A add AL CLICK AGREGAR REGISTRO
+        $(".btnAgregarAlmacen").on("click", function(){
+            $("#formAlmacen")[0].reset();
+            $('#inputActionAlmacen').val('insert');
+            $("#titleModalAlmacen").text("Agregar registro");
+            $("#formAlmacen").removeAttr("target");
+        });
+        // CLICK A EDITAR UN REGISTRO
+        $('#almacenesTable').on('click', '.edit-btn', function() {
+            // Limpiar formulario
+            $('#formAlmacen')[0].reset();
+
+            var dataId = $(this).data('id');
+            var dataAlmacen = $(this).attr('data-almacen');
+            var dataDescripcion = $(this).attr('data-descripcion');
+
+            // Llenar solo los campos que corresponden
+            $('#inputIdAlmacen').val(dataId);
+            $('#inputNombreAlmacen').val(dataAlmacen);
+            $('#inputDescripcionAlmacen').val(dataDescripcion);
+
+            $('#inputActionAlmacen').val('update');
+            $('#modalAlmacen').modal('show');
+            $("#titleModalAlmacen").text("Editar registro");
+
+        });
+        // ENVIAR FORMULARIO
+        $("#btnGuardarAlmacen").on("click", function(){
+            var inputIdAlmacen = $('#inputIdAlmacen').val();
+            var actionForm=$('#inputActionAlmacen').val();
+            ajaxBackendAlmacen(inputIdAlmacen, actionForm);
+        });        
+
     });
-}
-
-
-
-// ============================================================
-// EVENTOS DEL DOM
-// ============================================================  
-$(document).ready(function(){
-  
-    // CAMBIAR A add AL CLICK AGREGAR REGISTRO
-    $(".btnAgregarAlmacen").on("click", function(){
-        $("#formAlmacen")[0].reset();
-        $('#inputActionAlmacen').val('insert');
-        $("#titleModalAlmacen").text("Agregar registro");
-        $("#formAlmacen").removeAttr("target");
-    });
-
-    // CLICK A EDITAR UN REGISTRO
-    $('#almacenesTable').on('click', '.edit-btn', function() {
-        // Limpiar formulario
-        $('#formAlmacen')[0].reset();
-
-        var dataId = $(this).data('id');
-        var dataAlmacen = $(this).attr('data-almacen');
-        var dataDescripcion = $(this).attr('data-descripcion');
-
-        // Llenar solo los campos que corresponden
-        $('#inputIdAlmacen').val(dataId);
-        $('#inputNombreAlmacen').val(dataAlmacen);
-        $('#inputDescripcionAlmacen').val(dataDescripcion);
-
-        $('#inputActionAlmacen').val('update');
-        $('#modalAlmacen').modal('show');
-        $("#titleModalAlmacen").text("Editar registro");
-
-    });
-
-    // ENVIAR FORMULARIO
-    $("#btnGuardarAlmacen").on("click", function(){
-        var inputIdAlmacen = $('#inputIdAlmacen').val();
-        var actionForm=$('#inputActionAlmacen').val();
-        ajaxBackend(inputIdAlmacen, actionForm);
-    });        
-
-});
 </script>

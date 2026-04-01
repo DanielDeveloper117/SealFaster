@@ -1,7 +1,7 @@
 <?php
     include(ROOT_PATH . 'includes/backend_info_user.php');
 ?>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">
 <link rel="stylesheet" href="<?= controlCache('../assets/css/root.css'); ?>">
 <link rel="stylesheet" href="<?= controlCache('../assets/css/menu2.css'); ?>">
 <script src="<?= controlCache('../assets/js/menu2.js'); ?>"></script>
@@ -25,7 +25,9 @@
             </li>
 
             <?php switch($lider_usuario):  
+                case 0:
                 case 1: ?>
+                <!-- Administrador || Sistemas -->
                 <!-- Grupo: Inventarios/almacen -->
                 <li class="nav-group">
                     <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
@@ -35,8 +37,8 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/filtros_inventario_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-database nav-icon"></i> 
+                            <a href="../modules/panel_inventario.php" role="menuitem" class="nav-item-simple">
+                                <i class="bi bi-display nav-icon"></i> 
                                 Panel de funciones
                             </a>
                         </li>
@@ -59,7 +61,7 @@
                             </a>
                         </li>
                         <li role="none">
-                            <a href="../modules/inv_tools.php" role="menuitem" class="nav-item-simple">
+                            <a href="../modules/inv_tools.php" role="menuitem" class="nav-item-simple d-none">
                                 <i class="bi bi-tools nav-icon"></i> 
                                 Herramientas
                             </a>
@@ -76,7 +78,7 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/selectTipoSello.php" role="menuitem" class="nav-item-simple">
+                            <a href="../modules/select_familia.php" role="menuitem" class="nav-item-simple">
                                 <i class="bi bi-calculator nav-icon"></i> 
                                 Cotizador
                             </a>
@@ -108,7 +110,7 @@
                         <li role="none">
                             <a href="../modules/produccion_cnc.php" role="menuitem" class="nav-item-simple">
                                 <i class="bi bi-motherboard nav-icon"></i> 
-                                Producción maquinados
+                                Maquinados
                             </a>
                         </li>
                     </ul>
@@ -125,13 +127,7 @@
                         <li role="none">
                             <a href="../modules/perfiles.php" role="menuitem" class="nav-item-simple">
                                 <i class="bi bi-grid-3x3-gap nav-icon"></i> 
-                                Perfiles 
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/porcentajes_dimensiones.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-percent nav-icon"></i> 
-                                Porcentajes dimensiónes
+                                Perfiles - porcentajes y tolerancias
                             </a>
                         </li>
                         <li role="none">
@@ -164,13 +160,13 @@
                             </a>
                         </li>
                         <li role="none">
-                            <a href="../modules/precios.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-tag nav-icon"></i> 
-                                Claves SRS
+                            <a href="../modules/panel_claves.php" role="menuitem" class="nav-item-simple">
+                                <i class="bi bi-display nav-icon"></i> 
+                                Gestión de claves
                             </a>
                         </li>
                         <li role="none">
-                            <a href="../modules/claves_alternas.php" role="menuitem" class="nav-item-simple">
+                            <a href="../modules/claves_alternas.php" role="menuitem" class="nav-item-simple d-none">
                                 <i class="bi bi-shuffle nav-icon"></i> 
                                 Claves alternas
                             </a>
@@ -202,8 +198,8 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/filtros_inventario_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-database nav-icon"></i> 
+                            <a href="../modules/panel_inventario.php" role="menuitem" class="nav-item-simple">
+                                <i class="bi bi-display nav-icon"></i> 
                                 Panel de funciones
                             </a>
                         </li>
@@ -225,7 +221,7 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/selectTipoSello.php" role="menuitem" class="nav-item-simple">
+                            <a href="../modules/select_familia.php" role="menuitem" class="nav-item-simple">
                                 <i class="bi bi-calculator nav-icon"></i> 
                                 Cotizador
                             </a>
@@ -251,6 +247,29 @@
             <?php case 2: /* CNC */ ?>
 
                 <?php if($rol_usuario == "Gerente"): ?>
+                    <!-- Grupo: Inventarios/almacen -->
+                    <li class="nav-group">
+                        <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-table nav-icon"></i>
+                            <span>Inventario</span>
+                            <i class="bi bi-chevron-down nav-chevron"></i>
+                        </button>
+                        <ul class="nav-dropdown" role="menu">
+                            <li role="none">
+                                <a href="../modules/panel_inventario.php" role="menuitem" class="nav-item-simple">
+                                    <i class="bi bi-display nav-icon"></i> 
+                                    Panel de funciones
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a href="../modules/almacenes.php" role="menuitem" class="nav-item-simple">
+                                    <i class="bi bi-buildings nav-icon"></i> 
+                                    Almacenes
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
                     <!-- Grupo: Ventas -->
                     <li class="nav-group">
                         <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
@@ -260,7 +279,7 @@
                         </button>
                         <ul class="nav-dropdown" role="menu">
                             <li role="none">
-                                <a href="../modules/selectTipoSello.php" role="menuitem" class="nav-item-simple">
+                                <a href="../modules/select_familia.php" role="menuitem" class="nav-item-simple">
                                     <i class="bi bi-calculator nav-icon"></i> 
                                     Cotizador
                                 </a>
@@ -273,30 +292,35 @@
                             </li>
                         </ul>
                     </li>
+                    <!-- Grupo: CNC Administracion -->
+                    <li class="nav-group">
+                        <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
+                            <i class="bi bi-cpu nav-icon"></i>
+                            <span>CNC</span>
+                            <i class="bi bi-chevron-down nav-chevron"></i>
+                        </button>
+                        <ul class="nav-dropdown" role="menu">
+                            <li role="none">
+                                <a href="../modules/perfiles.php" role="menuitem" class="nav-item-simple">
+                                    <i class="bi bi-grid-3x3-gap nav-icon"></i> 
+                                    Perfiles - porcentajes y tolerancias
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a href="../modules/grupos_limitantes.php" role="menuitem" class="nav-item-simple">
+                                    <i class="bi bi-columns-gap nav-icon"></i> 
+                                    Grupos y limitantes herramientas
+                                </a>
+                            </li>
+                            <li role="none">
+                                <a href="../modules/herramientas.php" role="menuitem" class="nav-item-simple">
+                                    <i class="bi bi-wrench-adjustable-circle nav-icon"></i> 
+                                    Catálogo herramientas
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 <?php endif; ?>
-
-                <!-- Grupo: Inventarios/almacen -->
-                <li class="nav-group">
-                    <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-table nav-icon"></i>
-                        <span>Inventario</span>
-                        <i class="bi bi-chevron-down nav-chevron"></i>
-                    </button>
-                    <ul class="nav-dropdown" role="menu">
-                        <li role="none">
-                            <a href="../modules/filtros_inventario_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-database nav-icon"></i> 
-                                Panel de funciones
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/almacenes.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-buildings nav-icon"></i> 
-                                Almacenes
-                            </a>
-                        </li>
-                    </ul>
-                </li>
 
                 <!-- Grupo: Producción -->
                 <li role="none">
@@ -319,8 +343,8 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/filtros_inventario_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-database nav-icon"></i> 
+                            <a href="../modules/panel_inventario.php" role="menuitem" class="nav-item-simple">
+                                <i class="bi bi-display nav-icon"></i> 
                                 Panel de funciones
                             </a>
                         </li>
@@ -369,132 +393,6 @@
                 </li>
             <?php break; ?>
 
-            <?php case 0: /* Sistemas */ ?>
-
-                <!-- Grupo: Inventarios/almacen -->
-                <li class="nav-group">
-                    <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-table nav-icon"></i>
-                        <span>Inventario</span>
-                <i class="bi bi-chevron-down nav-chevron"></i>
-                    </button>
-                    <ul class="nav-dropdown" role="menu">
-                        <li role="none">
-                            <a href="../modules/filtros_inventario_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-database nav-icon"></i> 
-                                Panel de funciones
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/traspasos.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-arrow-left-right nav-icon"></i> 
-                                Traspasos de barras
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/barras_venta.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-cash-stack nav-icon"></i> 
-                                Barras vendidas
-                            </a>
-                        </li role="none">
-                        <li role="none">
-                            <a href="../modules/almacenes.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-buildings nav-icon"></i> 
-                                Almacenes
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Grupo: Ventas -->
-                <li class="nav-group">
-                    <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-cash-coin nav-icon"></i>
-                        <span>Ventas</span>
-                        <i class="bi bi-chevron-down nav-chevron"></i>
-                    </button>
-                    <ul class="nav-dropdown" role="menu">
-                        <li role="none">
-                            <a href="../modules/selectTipoSello.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-calculator nav-icon"></i> 
-                                Cotizador
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a id="enlaceCotizaciones" href="../modules/cotizaciones.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-card-heading nav-icon"></i> 
-                                Cotizaciones
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Grupo: Producción -->
-                <li class="nav-group">
-                    <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-gear-wide-connected nav-icon"></i>
-                        <span>Producción</span>
-                        <i class="bi bi-chevron-down nav-chevron"></i>
-                    </button>
-                    <ul class="nav-dropdown" role="menu">
-                        <li role="none">
-                            <a href="../modules/produccion_vn.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-file-earmark-text nav-icon"></i> 
-                                Requisiciones
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/produccion_cnc.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-cpu nav-icon"></i> 
-                                Producción CNC
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-                <!-- Grupo: Configuración -->
-                <li class="nav-group">
-                    <button class="nav-group-trigger" aria-haspopup="true" aria-expanded="false">
-                        <i class="bi bi-sliders nav-icon"></i>
-                        <span>Administración</span>
-                        <i class="bi bi-chevron-down nav-chevron"></i>
-                    </button>
-                    <ul class="nav-dropdown" role="menu">
-                        <li role="none">
-                            <a href="../modules/parametros_cotizador.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-toggles nav-icon"></i> 
-                                Parámetros
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/precios.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-tag nav-icon"></i> 
-                                Claves SRS
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/claves_alternas.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-shuffle nav-icon"></i> 
-                                Claves alternas
-                            </a>
-                        </li>
-                        
-                        <li role="none">
-                            <a href="../modules/desencriptar.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-key nav-icon"></i> Desencriptar
-                            </a>
-                        </li>
-                        <li role="none">
-                            <a href="../modules/users.php" role="menuitem" class="nav-item-simple">
-                                <i class="bi bi-people nav-icon"></i> 
-                                Usuarios
-                            </a>
-                        </li>
-                    </ul>
-                </li>
-
-            <?php break; ?>
-
             <?php case 4: /* Compras */ ?>
 
                 <li>
@@ -518,7 +416,7 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/selectTipoSello.php" role="menuitem">
+                            <a href="../modules/select_familia.php" role="menuitem">
                                 <i class="bi bi-calculator nav-icon"></i> Cotizador
                             </a>
                         </li>
@@ -535,7 +433,7 @@
             <?php default: /* Otro */ ?>
 
                 <li>
-                    <a href="../modules/filtros_inventario_cnc.php" class="nav-item-simple">
+                    <a href="../modules/panel_inventario.php" class="nav-item-simple">
                         <i class="bi bi-box-seam-fill nav-icon"></i>
                         <span>Inventario CNC</span>
                     </a>
@@ -549,7 +447,7 @@
                     </button>
                     <ul class="nav-dropdown" role="menu">
                         <li role="none">
-                            <a href="../modules/selectTipoSello.php" role="menuitem">
+                            <a href="../modules/select_familia.php" role="menuitem">
                                 <i class="bi bi-calculator nav-icon"></i> Cotizador
                             </a>
                         </li>

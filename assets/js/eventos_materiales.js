@@ -184,16 +184,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     let alturaPorSello = alturaSello + window[`DESBASTE_DUREZA_m${i}`];
                     let cabenPz = Math.floor((alturaBillet) / alturaPorSello);
 
-                    console.log({
-                        CANTIDAD_PIEZAS_TEMPORAL_m: window[`CANTIDAD_PIEZAS_TEMPORAL_m${i}`],
-                        SELLOS_RESTANTES_m: window[`SELLOS_RESTANTES_m${i}`],
-                        MILIMETROS_RESTANTES_m: window[`MILIMETROS_RESTANTES_m${i}`],
-                        alturaBillet,
-                        alturaSello,
-                        alturaPorSello,
-                        cabenPz,
-                        BILLETS_SELECCIONADOS_OCUPA_m: window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`]
-                    });
+                    // console.log({
+                    //     CANTIDAD_PIEZAS_TEMPORAL_m: window[`CANTIDAD_PIEZAS_TEMPORAL_m${i}`],
+                    //     SELLOS_RESTANTES_m: window[`SELLOS_RESTANTES_m${i}`],
+                    //     MILIMETROS_RESTANTES_m: window[`MILIMETROS_RESTANTES_m${i}`],
+                    //     alturaBillet,
+                    //     alturaSello,
+                    //     alturaPorSello,
+                    //     cabenPz,
+                    //     BILLETS_SELECCIONADOS_OCUPA_m: window[`BILLETS_SELECCIONADOS_OCUPA_m${i}`]
+                    // });
                     return cabenPz;
                 };
                 // validar que se encuentren todas las claves en minitabla de precios de barra
@@ -544,23 +544,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    // if(window.FAMILIA_PERFIL === "backup" || window.FAMILIA_PERFIL === "guide"){
-                    //     window.DI_TOLERANCIA_DEFAULT = 1.00;
-                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    // }else{
-                    //     window.DI_TOLERANCIA_DEFAULT = 3.00;
-                    //     window.DE_TOLERANCIA_DEFAULT = 1.00;
-                    // }
-                    console.log(`Tolerancia aplicada DI = `, window.DI_TOLERANCIA_DEFAULT);
-                    console.log(`Tolerancia aplicada DE = `, window.DE_TOLERANCIA_DEFAULT);    
+                    console.log(`Tolerancia aplicada DI = `, window[`DI_TOLERANCIA_m${i}`]);
+                    console.log(`Tolerancia aplicada DE = `, window[`DE_TOLERANCIA_m${i}`]);    
 
-                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_TOLERANCIA_DEFAULT))).toFixed(2);
+                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window[`DI_TOLERANCIA_m${i}`]))).toFixed(2);
                     
                     if(dInteriorNecesario >= dInteriorSeleccionado){
                         dInteriorNecesario = 0.00;
                     }
 
-                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_TOLERANCIA_DEFAULT))).toFixed(2);
+                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window[`DE_TOLERANCIA_m${i}`]))).toFixed(2);
 
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
                     $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);
@@ -1460,16 +1453,16 @@ document.addEventListener("DOMContentLoaded", function () {
                         return;
                     }
                     console.log(`Aplicando calculos al Material _m${i}`);
-                    console.log(`Tolerancia aplicada DI = `, window.DI_TOLERANCIA_DEFAULT);
-                    console.log(`Tolerancia aplicada DE = `, window.DE_TOLERANCIA_DEFAULT);                        
+                    console.log(`Tolerancia aplicada DI = `, window[`DI_TOLERANCIA_m${i}`]);
+                    console.log(`Tolerancia aplicada DE = `, window[`DE_TOLERANCIA_m${i}`]);                        
 
-                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window.DI_TOLERANCIA_DEFAULT))).toFixed(2);
+                    dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window[`DI_TOLERANCIA_m${i}`]))).toFixed(2);
                     
                     if(dInteriorNecesario >= dInteriorSeleccionado){
                         dInteriorNecesario = 0.00;
                     }
 
-                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window.DE_TOLERANCIA_DEFAULT))).toFixed(2);
+                    dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window[`DE_TOLERANCIA_m${i}`]))).toFixed(2);
 
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);
                     $(`#spanDiCliente_m${i}`).text(dInteriorSeleccionado);

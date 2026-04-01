@@ -424,39 +424,55 @@ $(document).ready(function(){
                 if (data.success && data.billets && data.billets.length > 0) {
                     $.each(data.billets, function(index, billet) {
                         const tieneRemplazo = billet.situacion === "remplazo";
+                        const tieneEliminacion = billet.situacion === "eliminacion";
                         const tieneJustificacionRemplazo = billet.justificacion_remplazo && billet.justificacion_remplazo.trim() !== '';
                         const tieneJustificacionExtra = billet.justificacion_extra && billet.justificacion_extra.trim() !== '';
+                        const tieneJustificacionEliminacion = billet.justificacion_eliminacion && billet.justificacion_eliminacion.trim() !== '';
 
                         // Decidir cuál justificación mostrar según la situación solicitada.
-                        // Priorizar la justificación que corresponda a la acción actual (situacion).
-                        let mostrarJustificacionTipo = null; // 'extra' | 'remplazo' | null
+                        let mostrarJustificacionTipo = null; // 'extra' | 'remplazo' | 'eliminacion' | null
                         let mostrarJustificacionTexto = '';
+                        
                         if (billet.situacion === 'remplazo') {
                             if (tieneJustificacionRemplazo) {
                                 mostrarJustificacionTipo = 'remplazo';
                                 mostrarJustificacionTexto = billet.justificacion_remplazo;
-                            } else if (tieneJustificacionExtra) {
-                                // Si no hay justificacion de reemplazo, mostrar la de extra (si existe)
-                                mostrarJustificacionTipo = 'extra';
-                                mostrarJustificacionTexto = billet.justificacion_extra;
                             }
-                        } else {
-                            // situacion != 'remplazo' (normalmente 'extra') -> preferir justificacion_extra
+                        } else if (billet.situacion === 'eliminacion') {
+                            if (tieneJustificacionEliminacion) {
+                                mostrarJustificacionTipo = 'eliminacion';
+                                mostrarJustificacionTexto = billet.justificacion_eliminacion;
+                            }
+                        } else if (billet.situacion === 'extra') {
                             if (tieneJustificacionExtra) {
                                 mostrarJustificacionTipo = 'extra';
                                 mostrarJustificacionTexto = billet.justificacion_extra;
-                            } else if (tieneJustificacionRemplazo) {
-                                // fallback
-                                mostrarJustificacionTipo = 'remplazo';
-                                mostrarJustificacionTexto = billet.justificacion_remplazo;
                             }
                         }
                         
                         // Determinar texto del botón y tooltip
-                        const textoBoton = tieneRemplazo ? "Autorizar reemplazo de barra" : "Autorizar barra extra";
-                        const textoBotonRechazo = tieneRemplazo ? "Rechazar reemplazo de barra" : "Rechazar barra extra";
-                        const textoSmall = tieneRemplazo ? "Remplazo de barra" : "Barra extra";
-                        const iconoClase = tieneRemplazo ? "bi-arrow-left-right" : "bi-plus-circle";
+                        let textoBoton = "Autorizar acción";
+                        let textoBotonRechazo = "Rechazar acción";
+                        let textoSmall = "Acción pendiente";
+                        let iconoClase = "bi-check-circle";
+
+                        if (tieneRemplazo) {
+                            textoBoton = "Autorizar reemplazo de barra";
+                            textoBotonRechazo = "Rechazar reemplazo de barra";
+                            textoSmall = "Remplazo de barra";
+                            iconoClase = "bi-arrow-left-right";
+                        } else if (tieneEliminacion) {
+                            textoBoton = "Autorizar eliminación de barra";
+                            textoBotonRechazo = "Rechazar eliminación de barra";
+                            textoSmall = "Eliminación de barra";
+                            iconoClase = "bi-trash";
+                        } else {
+                            // Extra
+                            textoBoton = "Autorizar barra extra";
+                            textoBotonRechazo = "Rechazar barra extra";
+                            textoSmall = "Barra extra";
+                            iconoClase = "bi-plus-circle";
+                        }
                         
                         $('#tableBarrasPendientes tbody').append(`
                             <tr class="data-row" data-id-control="${billet.id_control}">
@@ -598,7 +614,9 @@ $(document).ready(function(){
         console.log('Autorizar barra', { idRequisicion, idControl, accion });
         if (accion === 'remplazo') {
             $("#modalAutorizarBarra .modal-body p").text("¿Está seguro de autorizar el remplazo de la barra?");
-        }else{
+        } else if (accion === 'eliminacion') {
+            $("#modalAutorizarBarra .modal-body p").text("¿Está seguro de autorizar la eliminación de la barra?");
+        } else {
             $("#modalAutorizarBarra .modal-body p").text("¿Está seguro de autorizar la barra extra?");
         }
         // Pasar valores a los inputs ocultos del modal
@@ -762,6 +780,7 @@ $(document).ready(function(){
             }
         });
     });
+    
     $("#formCrearRequisicion").on("submit", function(){
         const btnGuardar = $("#btnGuardar");
         btnGuardar.prop('disabled', true).css("pointer-events", "none").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Cargando...');

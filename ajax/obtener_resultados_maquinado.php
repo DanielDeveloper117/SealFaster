@@ -37,6 +37,7 @@ try {
         SELECT *
         FROM control_almacen 
         WHERE id_requisicion = :id_requisicion
+        AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
     ");
     $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmtControlAlmacen->execute();
@@ -58,7 +59,7 @@ try {
         'id_requisicion' => $id_requisicion,
         'total_barras' => count($barras),
         'requisicion' => $requisicion,
-        'barras' => $barras
+        'billets' => $barras
     ]);
 
 } catch (PDOException $e) {
