@@ -1,9 +1,7 @@
 /vendor
-/debug
+./debug
 /examples
 /modules/debug_autorizacion.log
-/files
-secure_config/.env
-prompt.txt
-/secure_config
-/scripts
+./files
+./secure_config
+./scripts

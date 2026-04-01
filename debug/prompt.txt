@@ -1,0 +1,880 @@
+bien, ahora mire el backend de la logica de agregar la maquina al folio, 
+se debe validar que si el usuario en sesion es maquinista solo pueda ser 
+maquina el rol del usuario actual, pero soportar tambien que peda ser 
+cualquier maquina cuando el usuario sea el gerente, dado que los gerentes 
+pueden seleccionar/asignar cualquier maquina, sin embargo un maquinista 
+no puede asignar a otros. 
+Tambien agregar la validacion de que si la requisicion ya estaba en estatus 
+"Producción" entonces hay que actualizar el estatus a "En producción" pero 
+solo si la columna "fecha_entrega_barras" contiene algo, osease si no es null, 
+dado que puede pasar que ya este en produccion.
+Despues, verificar que esta requisicion no tenga maquina asignada, dado que 
+si alguien se la autoasigna al mismo tiempo va a haber problemas. Para ese 
+caso, responder con un mensaje coherente de que no se puede porque la 
+requisicion ya tiene una maquina asignada, mostrar la maquina, nombre del 
+operador y fecha de inicio del maquinado, eso le dara al usuario la informacion 
+necesaria para que sepa que paso.
+
+Ahora necesitamos incluir en la tabla del frontend un indicador de cuantos 
+comentarios tiene cada requisicion. Existe una tabla llamada comentarios_adjuntos 
+la cual cuenta con un campo llamado id_cotizacion, tal compo es la id_cotizacion de 
+la tabla cotizacion_materiales, es decir su relacion. Entonces, tenemos la tabla 
+requisiciones, la cual cuenta con un campo llamado cotizaciones, ahi, se 
+encuentran las id_cotizaciones separadas por comas. Lo que hay que hacer es 
+encontrar cuantos comentarios tiene cada requisicion y mostrar ese numero 
+en un icono dentro del boton para indicarle al usuario si la requisicion 
+cuenta con comentarios, algo parecido al icono de notificacion, un circulo 
+azul con el numero de comentarios dentro. Lo que se me ocurre es hacer una 
+consulta directa, antes de renderizar el boton y tan solo con la id_requisicion
+consultar las tablas mencionadas anteriormente:
+echo '<button type="button" class="btn-general btn-modal-comentarios-adjuntos" 
+    data-origen="requi"
+    data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
+    data-es-mia="0"
+    title="Comentarios y archivos adjuntos para esta requisición">
+    <i class="bi bi-chat-left-text"></i>
+</button>';
+
+Vemos que el "btn-entregar-barras" cuando es tipo de usuario Inventarios muestra 
+un modal con una tabla de barras para entregar, lo que se desea es implementar el 
+dinamismo del boton btnEntregarBarras, lo que pasa es que se le agregue un boton de 
+Guardar progreso como el que esta en el modal modalFinalizar. El boton btnEntregarBarras 
+solo debera aparecer solo si hay algo en la columna "maquina" ($row['maquina']), es 
+decir, si ya hay maquina asignada, entonces si hacer aparecer el boton btnEntregarBarras, 
+mientras que el nuevo boton de "btnGuardarProgresoEntregaBarras" estara siempre presente. 
+Al guardar progreso, se deberian guardar los datos editables de la tabla tableEntregarBarras, 
+tales son pz_teoricas y mm_entrega. Se envian esos datos y se actualizaran mediante un 
+nuevo script similar a guardar_progreso_maquinado.php, el cual no cambia estatus, 
+solo guarda el progreso.
+
+Ahora necesitamos desarrollar un archivo backend del tipo middleware, el cual cada 
+aproximadamente 30 segundos consulte cambios en los estatus de las requisiciones, el 
+middleware debe estar presente en produccion_cnc y produccion_vn. Sera un bloque 
+de codigo javascript, el cual cada 30 seg, ejecutara un script middleware que compare 
+si se ha efectuado un cambio en el campo estatus de cada requisicion, o tambien si 
+existe una nueva requisicion. Tal script (dentro de la carpeta ajax) va a responder con 
+"se ha detectado un cambio en el estatus de una requisicion" o "se ha detectado una 
+nueva requisicion" y en el frontend mostrar una alerta tipo toaster como el que se muestra 
+en localStorage.getItem("ocultarInfoVigencias"), pero este toaster no tendra boton 
+"volver a mostrar", en cambio, debera tener un boton "recargar tabla" para darle 
+la opcion al usuario de actualizar/refrescar la pagina para asi recargar la ultima version 
+de los datos. Habria que ingeniarselas para que las comparaciones de los datos no sean 
+inexactas, es decir, la comparacion debe ser actualizada y dinamica de manera en que no 
+tomemos en cuenta comparaciones viejas, sino mas bien mostrar toaster solo si hay nuevo 
+cambio en las tablas. Ademas, si es posible usar alguna libreria o plugin para alertar al 
+usuario con un tipo de alerta del navegador, si la hay. El objetivo es que el usuario 
+este enterado de los nuevos cambios de estatus en la tabla y si es que hay nuevos registros.
+
+*Desarrollar un modal que aparezca cuando le des click a #modalDetener, tal modal sera muy 
+parecido al modal #modalDarSalida, en cuanto aspecto,
+
+-- Índice para encontrar la última versión al instante
+CREATE INDEX idx_performance_optim on cotizacion_materiales (id_fusion, id_cotizacion, id_estimacion);
+-- Índice para acelerar los filtros de fecha y usuario
+CREATE INDEX idx_filtros_rapidos on cotizacion_materiales (fecha, id_usuario, archivada);
+-- Índice para el conteo de comentarios
+CREATE INDEX idx_comentarios_count on comentarios_adjuntos (id_cotizacion);
+
+*Ahora vamos a desarrollar un modal que responda al boton "btn-localizacion", que sea 
+ reusable con su javascript/jquery y backend asincrono, tal modal 
+se pueda incluir en otros archivos, el cual mostrara la localizacion de la barra cuando esta 
+usandose en alguna requisicion, como podra darse cuenta, cada requisicion tiene cotizaciones y 
+las cotizaciones son las que nos dicen que barras/billets de material tiene usandose mediante 
+la columna "billets" (separados por comas) en la tabla "cotizacion_materiales". Manualmente 
+hay dos formas de consultar, una mas compleja que la segunda: 
+1. Forma 1. Al inicio se consulta en la base de datos con "select id_cotizacion, billets, 
+estatus_completado from 
+cotizacion_materiales  where billets like "%PSM056080-2%" and estatus_
+completado = "Autorizada";" para saber que cotizaciones tienen la barra. Tras la consulta 
+devuelve una serie de registros y de entre esos registros buscamos cada una para saber que 
+requisicion tiene esa cotizacion, entonces suponiendo que el resultado de la consulta 
+anterior es dos registros; id_cotizacion="56150725" y id_cotizacion="51791256", despues 
+se usa la consulta "select id_requisicion,cotizaciones,estatus from requisiciones 
+where (cotizaciones 
+like "%56150725%" or cotizaciones like "%51791256%") and estatus != "Pendiente";" y el 
+resultado es en que requisicion/folioe se encuentra la barra de material. Cuando se encuentra
+deberia mostrarse en un modal en que folio se encuentra y si es el caso de que se encuentre
+en x folios, tambien mostrarlo en el modal.
+2. Forma 2. Se consulta directamente la tabla de barras en produccion mediante 
+"select id_requisicion, lote_pedimento from control_almacen where lote_pedimento 
+like "%PSM056080-2%";", 
+pero el inconveniente aqui es que se encuentra solo si el folio esta en un estatus superior 
+a Pendiente o Autorizada, dado que al ser una tabla de produccion, el estatus del folio aun 
+no llega a algun estatus de produccion, asi que podria no haber registros. En el caso 
+de que la consulta anterior retorne resultados, ya se tiene el id_requisicion directamente 
+y al encontrarlo simplemente buscamos mediante "select * from requisiciones 
+where id_requisicion = "1423" and estatus != "Pendiente";".
+*Finalmente el modal debe mostrar la informacion basica de la requisicion para que el 
+usuario de inventarios pueda solicitar la cancelacion o la detencion del folio, le explico;
+-se muestra la informacion basica de la requisicon.
+-si el estatus es "Autorizada", mostrar en el modal algo como "este folio se encuentra 
+en estatus de autorizada, para liberar la barra pida a [requisiciones.autorizo] que cancele 
+el folio"
+-si el estatus es != "Autorizada" y != "Pendiente"!= "Detenida", mostrar en el modal algo como 
+"este folio se encuentra en estatus [requisiciones.estatus], para liberar la barra 
+pida a gerencia de CNC que detenga la produccion y luego retorne el nuevo stock de la barra para 
+liberarla".
+-si el estatus es cualquier otro ("Pendiente" o "Detenida", etc), entonces mostrar la opcion de 
+que el mismo usuario cambie el estatus de la barra de material a 
+inventario_cnc.estatus = "Disponible para cotizar" where inventario_cnc.lote_pedimento = lote_pedimento.
+*en el modal pues mostrar datos basicos del folio: id_requisicion, estatus, fecha_insercion, 
+nombre_vendedor, comentario. Si aplica mostrar autorizo (nombre de quien autorizó) y 
+fecha_autorizacion. Si aplica mostrar maquina, operador_cnc, inicio_maquinado y fecha_entrega_barras.
+*Si la barra no se encontro en ninguna requisicion, mostrar algo como "la barra no se encontró en 
+ningun folio. desea liberarla?", solamente mostrar la opcion de liberar la barra. 
+*si alguno de los campos de la requisicion esta vacio, solo mostrar "No disponible", por ejemplo 
+cuando aun no aplica alguna fecha.
+*NO CREAR ARCHIVOS DE REPORTE DE CAMBIOS.
+
+Vamos a desarrollar una adicion para el modulo de inventario.php, se trata de una funcionalidad que 
+le dara la capacidad al usuario de seleccionar varios registros de la tabla inventario_cnc en el 
+frontend. Vea que esta funcionalidad ya existe en el modulo de cotizaciones.php, especificamente al 
+hacer click a btnInitFusionar, se muestran checkbox para cada registro de la tabla del frontend, con la 
+capacidad de seleccionar los que el usuario desee, despues, se muestra en la parte inferior una 
+barra para decidir si continuar con la siguiente operacion que se relacionara con la seleccion y 
+especificamente se muestra el contenedor agrupacionBar. Esa misma version aplicará para el modulo de 
+inventario, pero con la diferencia de cotizaciones, en este, se hara click al boton btnInitOperacion 
+para comenzar con el proceso de seleccion de registros, ademas, para esta version el titulo de 
+la barra inferior en lugar de ser "Seleccione las cotizaciones que desea agrupar" va a ser "Seleccione 
+las barras a las que desea aplicar una operacion de almacen". Para esta version de inventario, al 
+hacer click en el boton de Continuar, se mostrara un modal modalInventario del archivo 
+modal_add_billet.php, para este nuevo modal, mientras tanto, dejarlo vacío y mas adelante continuaremos 
+con el contenido del modal. Cabe destacar que en un futuro debemos capturar en un arreglo el dato de 
+$row['lote_pedimento'] de la tabla acumulando los registros que selecciona el usuario y en base a ese 
+arreglo haremos una serie de operaciones para el modal de operaciones mencionado anteriormente. 
+Es libre de hacer esta adicion de manera profesional, si lo desea puede hacer archivos por separado 
+para el modal o javascript por separado o ahi todo junto.  
+
+Con base a la estructura de la base de datos mostrada en el archivo dbdiagramio.txt, desarrollaremos 
+una serie de operaciones enfocadas al traspaso o venta de una barra/unas barras de material 
+provenientes del inventario_cnc tanto frontend como backend.
+*Como puede observar en modal_operacion_inventario.php, tenemos un selector inputTipoOperacion, el 
+cual será dinamico: 
+-si seleccionan Traspaso, el selector inputDestinoId se debe llenar dinamicamente con los 
+valores de la tabla almacenes que se muestra en el diagrama, para ello puede realizar una consulta 
+ajax al iniciar el dom para que en todo caso esten disponibles los almacenes.
+-si seleccionan Venta, el selector inputDestinoId no aplica asi que debera estar oculto y su 
+valor sera 0 como default en la tabla.
+*Los registros seleccionados del frontend se deben mostrar en el contenedor containerBarrasSeleccionadas 
+de manera profesional, como puede observar hay un <li> mostrando el ejemplo del orden de los 
+datos esperados a manera de previsualizacion, tal orden es "clave lote medida material proveedor", 
+estos datos pueden ser extraidos de la tabla cargada. La manera en que el usuario debe ver estos datos 
+en el modal, debe ser agradable para el usuario y los datos deben ser claros dado que realizará operaciones 
+importantes. Cada registro seleccionado representa una actualizacion al campo inventario_cnc.operacion_id.
+*Al enviar el formulario con tipo Traspaso, el procesamiento de los datos es el siguiente:
+-se crea un nuevo registro en operaciones_inv con los siguientes campos;
+    +usuario_id = id del usuario en sesion.
+    +tipo = Traspaso
+    +almacen_origen_id = inventario_cnc.almacen_id
+    +almacen_destino_id = almacenes.id seleccionado del selector.
+    +justificacion = lo que digito el usuario, minimo 10 caracteres.
+    +img_envio = la ruta de la imagen que el usuario subira al servidor.
+    la ruta debe ser algo como files/operaciones_inv/[operaciones_inv.id].[extension] 
+    asegurando que el nombre de la imagen sea sanitizado.
+- Se realiza la siguiente actualizacion:
+    +inventario_cnc.operacion_id = operaciones_inv.id.
+    +inventario_cnc.estatus = "Traspaso".
+*Al enviar el formulario con tipo Venta, el procesamiento de los datos es el siguiente:
+-se crea un nuevo registro en operaciones_inv con los siguientes campos;
+    +usuario_id = id del usuario en sesion.
+    +tipo = venta
+    +almacen_origen_id = inventario_cnc.almacen_id
+    +almacen_destino_id = 0.
+    +justificacion = lo que digito el usuario, minimo 10 caracteres.
+    +img_envio = la ruta de la imagen que el usuario subira al servidor.
+    la ruta debe ser algo como files/operaciones_inv/[operaciones_inv.id].[extension] 
+    asegurando que el nombre de la imagen sea sanitizado.
+- Se realiza la siguiente actualizacion:
+    +inventario_cnc.operacion_id = operaciones_inv.id.
+    +inventario_cnc.estatus = "Venta".
+*Cuando el usuario cierra el modal modalOperacionInventario los campos no se resetean, se 
+resetean cuando el usuario hace click al boton de cancelar btnCancelOperacion de agrupacionBar.
+*Las peticiones deben ser asincronas, en la carpeta ajax hay muchos ejemplos de estructura de 
+backend de las peticiones ajax.
+*modal_add_billet.js tiene peticiones ajax frontend de ejemplo.
+*Asegurar que el desarrollo sea profesional y robusto.
+
+Hay que desarrollar las funcionalidades que comienzan al clickear los diferentes botones 
+del contenedor "container-actions". Como podra observar tenemos los botones; "delete-btn", 
+"btn-detalles" y "modalRecepcion". A continuacion se explica que comportamiento y acciones 
+son las esperadas.
+*delete-btn: este boton tomara el data-id y hara una solicitud asincrona al servidor 
+para eliminar el registro en base a su operaciones_inv.id pero no sin antes pedir 
+la confirmacion del usuario para evitar eliminaciones accidentales. No olvide eliminar 
+tambien las imagenes relacionadas al registro, la ruta/nombre de las imagenes son los campos 
+"img_envio_barras" y "img_envio_paquete". Cuando sea exitosa la 
+eliminacion, en el mismo backend de la solicitud va a cambiar el estatus de las barras 
+ligadas al registro eliminado, el proceso 
+para cambiar el estatus es tomar el operaciones_inv.id y buscar cada registro de 
+inventario_cnc donde inventario_cnc.operacion_id = operaciones_inv.id, traera uno o varios 
+registros, entonces va a actualizar cada registro de inventario_cnc a 
+inventario_cnc.estatus = "Disponible para cotizar" dado que antes de la eliminacion su 
+estatus era "Traspaso". El archivo backend que se encargara de esto es eliminar_traspaso.php.
+Por ultimo eliminar el renglon del frontend. 
+*btn-detalles: Este boton mostrara un modal con todos los detalles del registro dado 
+que no estamos mostrando toda la informacion en la tabla. El modal debe ser grande para 
+poder mostrar toda la informacion logistica de la operacion traspaso. El modal se parecera 
+mucho al modal_operacion_inventario.php, pero todo será solo vista. El cuerpo se conformara 
+de un componente grande de 2 pestañas, en la pestaña que se muestra inicialmente se 
+llamara "Detalles", la segunda 
+pestaña se llamara "Barras". La primer pestaña detalles, tendra 3 partes/secciones horizontales y 
+en movil serán verticales.
+-1. Seccion de detalles mostrara:
+    +id.operaciones_inv es el id del registro.
+    +operaciones_inv.usuario_id = mostrara el nombre del usuario que creó la operacion 
+    buscando con la id 
+    de la manera operacion_id.usuario_id = login.id pero mostrar login.nombre, sin embargo 
+    al estar la tabla login encriptada debera tomar el ejemplo del script 
+    autorizar_firma_predeterminada.php, ahi se aplica la clave para desencriptar, hagalo para 
+    poder mostrar el nombre del usuario que ha creado la operacion.
+    +almacen_origen_id, debe mostrarse el almacenes.almacen para que se muestre el nombre 
+    del almacen de origen, puede tomar el ejemplo de como obtenemos el nombre en 
+    sqlTraspasos de traspasos.php.
+    +almacen_destino_id, mismo caso que almacen_origen_id para mostrar el almacen de destino.
+    +operaciones_inv.justificacion es un texto directo.
+    +operaciones_inv.recibido, este tynint cuando es 0 mostrara "No recibido aun por el 
+    almacen de destino", si es 1, mostrar "El envio ha sido recibido" y mostrar la informacion 
+    relacionada a la recepcion.
+    +operaciones_inv.recibio_id, mismo caso que usuario_id, recibido_id es el usuario que 
+    recibió el paquete, esta informacion solo se mostrara si recibido = 1.
+    +operaciones_inv.fecha_recibido, es la fecha en la que recibieron el paquete, 
+    esta informacion solo se mostrara si recibido = 1.
+    +operaciones_inv.created_at, es la fecha en la que se creó la operacion.
+-2. Seccion de evidencias de envío. Esta seccion simplemente mostrará dos imagenes de manera 
+vertical, lo que viene siendo "Fotografia de las barras enviadas"; operaciones_inv.img_envio_barras y 
+lo que viene siendo "Fotografia del paquete enviado"; operaciones_inv.img_envio_paquete.
+-3. Seccion de evidencias de recepcion. Esta seccion simplemente mostrará dos imagenes de manera 
+vertical, estas van a ser las imagenes que se mostraran ya cuando recibido = 1 dado que cuando 
+han recibido el paquete ya habría evidencias de recepcion, siendo "Fotografia de paquete recibido"; 
+operaciones_inv.img_recepcion_paquete y "Fotografia de barras recibidas"; 
+operaciones_inv.img_recepcion_barras, en ese orden.
+*La segunda pestaña del modal detalles (la primera era "Detalles") llamada "Barras" debera 
+contener el listado de barras relacionadas a esa operacion, vea el modal de  
+modal_operacion_inventario.php, ahi se encuentra un frontend que lista barras pero de 
+manera simple, sin embargo para esta pestaña el listado de barras se debe ver mejor dado que 
+el contenido se enfoca en que el usuario vea las barras de manera legible y profesional, puede 
+usar la creatividad para mostrarla a manera de tabla responsiva, dado que una tabla podria ser 
+mas amigable para un usuario de inventarios que esta acostumbrado a ver registros de excel y 
+registros en forma de tablas. La manera en la que vas a consultar el listado de barras es una 
+relacion entre las tablas operaciones_inv e inventario_cnc. Vea el archivo dbdiagramio.txt para 
+que vea la relacion entre tablas, en resumen la relacion es 
+inventario_cnc.operacion_id = operaciones_inv.id. Vea la estructura de la tabla de inventario_cnc, 
+dado que es importante traer los datos mas utiles para la operacion, tales registros como 
+la clave, medida, lote, material, proveedor y stock. En esta pestaña tambien habra en algun 
+lugar un boton de "Ver en Inventario CNC", tal boton hara una solicitud get a inventario.php 
+con el payload get inventario.php?traspaso=[operaciones_inv.id]&oper=0.
+Si necesita crear archivos nuevos hagalo, vea ejemplos de backend de solicitudes en la carpeta 
+ajax. Si necesita crear un archivo javascript especial para el modulo traspasos, hagalo.
+
+Desarrollaremos la funcionalidad del boton modalRecepcion para recibir el paquete.
+*Al hacer click al boton, debe mostrar un modal en el cual le pida al usuario dos imagenes; 
+la foto img_recepcion_paquete y la foto img_recepcion_barras, las cuales son obligatorias. 
+Despues de enviar el formulario con una solicitud ajax, el backend debe realizar lo siguiente:
+-recibido = 1.
+-recibio_id = el id del usuario en sesion.
+-fecha_recibido = now
+-guardar las imagenes en el servidor.
+-Consultar las barras de inventario_cnc.operacion_id = operaciones_inv=id, para que con esto 
+se actualicen los campos almacen_id, y el estatus de la siguiente manera para cada una de las barras
+asociadas a la operacion:
++inventario_cnc.almacen_id ahora va a ser el operaciones_inv.almacen_destino_id del traspaso, 
+dando a entender que ya ocurrio el traspaso entre almacenes. 
++inventario_cnc.estatus cambiar a "Disponible para cotizar".
++inventario_cnc.updated_at = now.
+*El backend debera estar en recibir_traspaso.php.
+
+Se necesita que el siguiente header de la pagina sea responsivo, actualmente el problema es que 
+cada que se van agregando nuevos enlaces, el espacio esta reducido y los enlaces se ven muy 
+apretados causando que la experiencia del usuario se vea afectada. Para solucionarlo, hay que 
+desarrollar una solucion para que este nav se pueda ver bien en todo dispositivo, ademas necesita 
+que se agregue un icono bootstrap ilustrativo cerca del enlace por ejemplo "Inicio", llevaría el 
+icono "bi-home", como el nav de linkedin. Una solucion podria ser agrupar los enlaces por contexto 
+y desplegar un dropdown o buscar la mejor solucion para este caso.
+
+Se desea modificar la nueva altura total del perfil del sello en base a la altura de cliente, 
+y en base a la cantidad de clientes. Se observa que para cada perfil pueden existir X cantidad de 
+materiales, el sistema calcula en base a un cierto porcentaje la altura de cada material basandose 
+en la altura de cliente, es decir, si por ejemplo la altura de cliente es 10mm y el perfil tiene 5 
+materiales y cada material tiene un 20% de la altura de cliente, entonces cada material obtendría 
+como altura 2mm. El sistema ya hace eso existosamente, sin embargo, hay otro parametro que hay que 
+tomar en cuenta y que no se esta aplicando actualmente, se observa que cada material puede ser 
+omitido para cotizar mediante un checkbox, el usuario puede omitir todos los materiales del 
+perfil validando que quede almenos 1 material para cotizar. El problema es que el sistema no esta 
+recalculando la altura de los materiales no omitidos, tal que, si por ejemplo la altura de 
+cliente es 10mm y hay 5 materiales, cada uno con un 20% de la altura total, pero, 
+se omitieron 3 materiales, entonces, ahora se recalcularia el porcentaje para obtener la altura 
+en mm de cada uno de los materiales no omitidos. Dicho eso, resolver el siguiente ejercicio para el 
+siguiente perfil de sello hidraulico S1012-M.
+*CASO SIN MATERIALES OMITIDOS:
+H cliente = 10mm
+p. material 1 = 0.252, H = 2.52mm, NO OMITIDO
+p. material 2 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 3 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 4 = 0.260, H = 2.60mm, NO OMITIDO
+p. material 5 = 0.408, H = 4.08mm, NO OMITIDO
+*CASI DE MATERIALES OMITIDOS:
+H cliente = 10mm
+p. material 1 = 0.252, H = ?mm, NO OMITIDO
+p. material 2 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 3 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 4 = 0.260, H = OMITIDOmm, OMITIDO
+p. material 5 = 0.408, H = ?mm, NO OMITIDO
+
+Ahora vamos a desarrollar el modulo de perfiles.php, es el que mencionas como Modulo 4, sin embargo 
+vamos a juntar el 3 y el 4. Es decir, en el modulo de perfiles, se debera editar parcialmente los 
+perfiles, debera ser posible editar los porcentajes y las tolerancias correspondientes al perfil, 
+recordando que 1 perfil puede tener de 1 a N componentes. Vea el archivo grupos_limitantes.php para que 
+se base en esa estructura, en este nuevo modulo, en las acciones de cada registro, tendremos un boton de 
+ver detalles para ver toda la informacion del perfil en un modal, el boton de editar, el cual despliegara 
+un modal con el formulario de edicion del perfil, tal que solo algunos campos son editables, tendremos 
+el boton de gestionar parametros, el cual hara que se muestre un modal demasiado parecido al que se 
+encuentra en modal_grupo_y_limitantes.php modalLimitantes, se aprecia que contiene un tab de "duros" y 
+"blandos", en el nuevo modulo, seran "Porcentajes" y "Tolerancias".
+*Modal de detalles del perfil, se debera mostrar lo siguiente de manera vertical:
+-perfiles2.id, en el titulo del modal.
+-La imagen del perfil, tal ruta se estructura de la siguiente manera; 
+desde perfiles.php, '../assets/img/'+tolowercase(perfiles2.familia)+'/'+perfiles2.nombre+'/'+perfiles2.nombre+'_0.jpg'.
+-perfiles2.nombre.
+-perfiles2.familia_id (mostrar: familias.nombre como perfiles2.familia).
+-perfiles2.detalles || "No hay detalles" (en italica y gris si no hay detalles).
+-perfiles2.cantidad_componentes.
+-Seccion de flags;
++Componente con resorte, perfiles2.con_resorte_en, Si es diferente de "0", si es ="1" mostrar "", sino mostrar "Si, en el componente N!=1"
++Componente con wiper, perfiles2.es_wiper_en, Si es diferente de "0", si es ="1" mostrar "", sino mostrar "Si, en el componente N!=1"
++Componente con caja + escalon, perfiles2.con_escalon_en, Si es diferente de "0", si es ="1" mostrar "", sino mostrar "Si, en el componente N!=1"
++Componente con altura H1 y H2, perfiles2.es_wiper_especial_en, Si es diferente de "0", si es ="1" mostrar "", sino mostrar "Si, en el componente N!=1"
+-Grupo de herramientas, perfiles2.grupo_herramienta_id (mostrar: grupos_herramienta.nombre como perfiles2.grupo_herramienta) || "No asignado aún".
+-perfiles2.updated_at.
+-perfiles2.created_at.
+*Modal de edición, en este modal mostraremos los campos editables para un perfil:
+-como titulo del modal perfiles2.id+' - '+perfiles2.nombre.
+-se puede editar perfiles2.detalles como textarea con limite de 255 caracteres.
+-solo usuarios Administrador puede editar el area de Flags, cada flag sera un selector del 0 al perfiles2.cantidad_componentes, entonces, 
+"0" = "No aplicar bandera" y por ejemplo valor del selector = 2, significa "Aplicar al componente 2".
+-Selector de grupo de limitantes, aqui vamos a mostrar un selector con los grupos_herramienta existentes, si ya tiene grupo de 
+herramienta enlazado, entonces mostrar seleccionado ese valor, sino, mostrar "Seleccione un grupo de herramientas...".
+*Modal de gestion de parametros, aqui es donde se mostraran los datos que tienen relacion con porcentajes_perfil y tolerancias_perfil, 
+se sabe que siempre traera cantidad de registros de 1 al perfiles2.cantidad_componentes:
+-para la pestaña de porcentajes tendremos una tabla con registros editables (como la funcion de btn-lim-editar) no eliminables, las columnas son;
++Imagen del componente mediante la ruta desde perfiles.php, 
+'../assets/img/'+tolowercase(perfiles2.familia)+'/'+perfiles2.nombre+'/'+perfiles2.nombre+'_[componente_n].jpg'.
++Acciones.
++# COMPONENTE.
++ % DI (Para editar verificar que tenga 3 decimales  por ejemplo, "0.325", nunca debe superar el 1.000).
++ % DE(Para editar verificar que tenga 3 decimales  por ejemplo, "0.325", nunca debe superar el 1.000).
++ % H(Para editar verificar que tenga 3 decimales  por ejemplo, "0.325", nunca debe superar el 1.000 ni ser 0).
+-para la pestaña de tolerancias tendremos una tabla con registros editables (como la funcion de btn-lim-editar) no eliminables, las columnas son;
++Imagen del componente mediante la ruta desde perfiles.php, 
+'../assets/img/'+tolowercase(perfiles2.familia)+'/'+perfiles2.nombre+'/'+perfiles2.nombre+'_[componente_n].jpg'.
++Acciones.
++# COMPONENTE.
++ % DI (verificar que sea mayor o igual a 0, dos decimales).
++ % DE (verificar que sea mayor o igual a 0, dos decimales).
+*El modal de gestionar parametros no deberia tener funciones de agregar registro ni eliminar.
+*En la tabla general de perfiles inicial del modulo mostrar algunas columnas importantes de perfiles2, los detalles se mostraran en el modal 
+de detalles.
+*Vea y revise bien los archivos involucrados para obtener su version mas reciente y basarse, por ejemplo modal_grupo_y_limitantes.php ha sido 
+modificado, revisarlo.
+
+Vea el archivo panel_inventario.php y en base a esa estructura de mostrar las funciones para administrar en el inventario, se desea 
+generar una version pero ahora para administrar claves para el usuario Administrador y Sistemas, el archivo panel_claves.php contiene 
+las funciones de administrar claves, principalmente cambiará el frontend de manera que sea muy similar a administrar inventario. Ademas 
+vas a adicionar la funcion de panel de inventario; <!-- Modal para consultar claves existentes de parametros -->; al panel de claves
+
+Muy bien, pero ahora vea la estructura de inventario.php, el cual no contiene el metodo post integrado, en cambio usa un modal 
+para agregar/editar registros de manera asincrona. La tarea es desacoplar el modal de agregar/editar a un archivo modal_clave.php, 
+basarse en el modal_add_billet.php y modal_add_billet.js, sin embargo para el archivo modal de clave poner el php y javascript en 
+el mismo archivo. De esa manera se mejora la experiencia de usuario, asincoronicidad, modularidad y rapidez.
+
+muy bien pero ahora un cambio, el post de "PROCESAMIENTO POST: solo subida de CSV" debe ahora ser asincrono y debe estar solo en el 
+panel de administracion, siguindo el estandar de 
+incluir un modal con su respectivo javascript y un endpoind backend para quede 
+libre del metodo post hardcodeado en la misma tabla. Hay otro cambio 
+en el panel, se trata de que ahora el modal de Claves Validas, va a enviar los parametros de busqueda a claves.php para manejar esos filtros 
+pero en el metodo get, ya no va a renderizar los resultados en el mismo contenedor modal, ahora los renderizara en claves.php para mejorar 
+la experiencia de usuario al manipular los datos.
+Ademas de modificar el panel, vamos a modificar la tabla claves.php de manera 
+en que no maneje modales de filtros de busqueda, solo el boton de volver al panel y el de agregar registro, tambien eliminar el 
+contenedor de filtros de busqueda, ademas, falta adicionar lo del boton verde de exportar datos para exportar el excel. Re lea el 
+archivo inventario.php para hallar discrepancias con claves.php. Si hay posibles mejoras en optimizacion, o huecos de seguridad o 
+validaciones faltantes implemente soluciones. 
+
+Hay una nueva version de dbdiagramio.txt, revisar el archivo y vea que he incluido la estructura de la tabla parametros y la tabla 
+claves_alternas. Lo que hay que hacer primeramente es migrar los datos de claves_alternas a parametros, de manera que el 
+campo parametros.clave_alterna = claves_alternas.clave_alterna. Despues de eso hay que revisar todas las partes donde se 
+agrega/edita los registros de claves, me parece que los archivos son modal_clave.php y post_clave.php, a los cuales le vamos a 
+agregar ese campo en el frontend y en el backend, el usuario debera ingresar clave alterna opcional. Tambien hay que modificar el 
+script que sube los datos de manera masiva con un csv para que soporte las nuevas columnas. Despues, para agregar y editar 
+a sea desde el modal o desde el csv, hay implicaciones, lo que se desea es que la tabla parametros va a influir drasticamente a la 
+tabla de inventario_cnc, cuando se agregue un registro a parametros va a buscar donde inventario_cnc.Clave = parametros.clave || 
+patametros.clave_alterna, ejemplos de casos:
+-Tenemos varios registros de inventario_cnc.Clave = "123", entonces el usuario edita el registro parametros.clave = "123", 
+la actualizacion se hara para todos los registros de inventario_cnc donde Clave = "123" o donde 
+inventario_cnc.Clave = parametros.clave_alterna tomando como datos de origen la tabla de parametros. 
+Aplica esta mecanica de actualizacion a actualizacion masiva de claves.
+-Ese mismo proceso de actualizacion de registros inventario_cnc mediante la Clave para cuando ocurra la insercion de claves tanto 
+individual como para registros masivos mediante csv.
+*Cabe destacar que siempre se debe de validar que al agregar claves a parametros, validar que no se duplique la clave_alterna ni la Clave, 
+dado que no debe dejar insertar o actualizar un registro si ya existe una de las dos claves. 
+*Para todo caso vas a usar la funcion mapearMaterial de mapear material para sobreescribir nombres de material, tal funcion se encuentra en 
+claves_alternas.php.
+*Cuando sea subida de datos masiva csv, las claves que ya existan actualizarlas ya sea haciendo match con clave_alterna o solo clave. 
+Recuerde que siembre va a realizar la actualizacion automatica masiva para actualizar los registros del inventario_cnc y aplicando mapeo de 
+materiales.
+*Recuerde que ahora estaremos registrando parametros.usuario_id = id del usuario en sesion y updated_at = now.
+*Cuando sea actualizacion masiva mediante csv, genera un reporte de actualizacion detallado descargable para el usuario donde diga que paso
+en la actualizacion, por ejemplo el reporte debe mostrar cuantos registros del inventario_cnc fueron actualizados, si hubo un error, si hay 
+duplicados o lo que le pueda ser util al usuario para saber que pasó en la actualizacion. Preguntar al usuario si descargar el reporte, guardarlo en 
+files/reportes_claves/reporte_csv_[fechahora].txt.
+*Siempre antes de proceder preguntarle al usuario que si desea continuar y mencionarle en todo momento que las barras del inventario_cnc serán 
+actualizadas automaticamente con los datos de parametros tras actualizacion/insercion.
+*Recuerde que en la subida masiva de csv, siempre va a comparar todos los registros de inventario_cnc (pueden ser mas de 8000) 
+los registros que no coincidan con la clave o la clave_alterna, no los va a tocar, los dejara como están, cuando si hay coincidencia 
+actualizar todo el registro.
+*Hay una consideracion muy importante al hacer actualizacion automatica a inventario_cnc, y esque el estatus es algo critico, dado que 
+se debe de hacer una validacion condicional para saber si actualizar su estatus, el estatus sera = "Disponible para cotizar" solo si 
+el estatus actual del registro no es: 
++"En uso".
++"Maquinado en curso".
++"Venta".
++"Traspaso".
++"Eliminado".
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Tenemos un problema al ejecutar una busqueda desde el panel_claves.php, especificamente en la busqueda por material, tal que al 
+llenar el selector de materiales, el backend responde desde ajax_materiales_parametros.php con algo como: "[
+    {
+        "material": "\u0000\u0000\u0000V\u0000\u0000\u0000I\u0000\u0000\u0000T\u0000\u0000\u0000O\u0000\u0000\u0000N\u0000\u0000\u0000 \u0000\u0000\u0000Y\u0000\u0000\u0000A\u0000\u0000\u0000N\u0000\u0000\u0000K\u0000\u0000\u0000O"
+    },...restod del json".
+Ocasionando que al enviar el parametro de material a claves.php, se reciba algo como:
+"?material=���V���I���T���O���N���+���Y���A���N���K���O".
+Esto ocasiona que nunca se ejecuten las busquedas correctamente.
+Su deber sera arreglar el bug, viendo todas las posibles causas que puedan ocasionar este bug pero pidiendo permiso para modificar archivos.
+
+Por alguna razon, no se esta actualizando el inventario_cnc tras agregar/editar una clave o claves de manera masiva, siendo que el script 
+de post_clave.php y post_csv_claves.php funcionan al editar/agregar pero no funciona la actualizacion en inventario_cnc, aparentemente en 
+el archivo actualizar_inventario.php es donde no esta funcionando.
+Y por alguna razon no se esta actualizando tampoco el campo usuario_id.
+Su deber sera asegurar que el inventario_cnc sea revisado para actualizar los registros coincidentes mediante claves ya sea que coincida con 
+parametros.clave o con parametros.clave_alterna.
+Tenga en cuenta que parametros.clave_alterna puede ser null (opcional).
+Cuando en el csv se encuentre algun error como que hay una duplicada o en donde parametros.clave debe ser obligatorio, entonces se debe 
+realizar un rollback, dado que no debemos dejar avanzar hasta que todo el csv sea correcto, es decir, no debemos actualizar/insertar lo que 
+hay en el csv masivo hasta que todo sea correcto.
+Nota: el orden de las columnas es "clave, clave_alterna, precio, max_usable, interior, exterior, proveedor, material, tipo" lo cual ya es 
+correcto.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+corroborar que el siguiente comportamiento se este llevando acabo en post_csv_claves.php y en post_clave.php:
+*Si parametros.clave ya existe, entonces solo actualizar el registro, si no existe agregarlo, despues para ambos casos 
+actualizar inventario_cnc.
+*Siempre que se sube el csv masivo, se tiene que recorrer todos los registros de parametros para actualizar inventario_cnc
+Sin embargo aun no esta ocurriendo la actualizacion masiva anteriormente mencionada, aparentemente no se esta efectuando el codigo de 
+actualizar_inventario.php. Elaborar un log que nos diga que esta ocurriendo y por que no se esta efectuando la actualizacion del 
+inventario_cnc.
+Un ejemplo de cuando no ocurre el cambio es el siguiente flujo:
+existe una clave en inventario_cnc = "TEF/BR540/615" y su estatus es "Clave incorrecta", en el csv ya se incluye la clave "TEF/BR540/615", 
+con su respectiva clave alterna y precio. Al ejecutar la actualizacion masiva, el estatus en inventario_cnc donde coincide la clave no 
+se esta cambiando a "Disponible para cotizar" puesto que el estatus de clave incorrecta no esta dentro de los protegidos, deberia de 
+actualizar el registro correctamente.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+El script claves_simulacion.php ya no funciona desde que se aplicó la actualizacion de cotejamiento a "latin1_swedish_ci", tal que los 
+datos de la tabla parametros en columanas tales como "material" se ham corrompido siendo que por ejemplo en lugar de ser "SKF", el 
+frontend muestra "???S???K???F", como hacer para arreglar ese problema?
+Hay algun comando de mysql que nos pueda ayudar a "reparar" los datos?
+
+SELECT 
+    id,
+    clave,
+    clave_alterna,
+    material,
+    -- Creamos una columna de diagnóstico para saber qué campo está sucio
+    CASE 
+        WHEN clave LIKE CONCAT('%', CHAR(0), '%') THEN 'Clave con Null Byte'
+        WHEN clave <> TRIM(clave) THEN 'Clave con espacios'
+        WHEN material LIKE CONCAT('%', CHAR(0), '%') THEN 'Material con Null Byte'
+        WHEN clave_alterna LIKE CONCAT('%', CHAR(0), '%') THEN 'Clave Alterna con Null Byte'
+        ELSE 'Otro campo (Proveedor/Tipo)'
+    END AS diagnostico_error
+FROM parametros
+WHERE 
+    -- Detectar CHAR(0) en cualquier columna
+    clave         LIKE CONCAT('%', CHAR(0), '%') OR
+    clave_alterna LIKE CONCAT('%', CHAR(0), '%') OR
+    material      LIKE CONCAT('%', CHAR(0), '%') OR
+    proveedor     LIKE CONCAT('%', CHAR(0), '%') OR
+    tipo          LIKE CONCAT('%', CHAR(0), '%') OR
+    -- Detectar espacios al inicio o final (que TRIM eliminaría)
+    clave         <> TRIM(clave) OR
+    clave_alterna <> TRIM(clave_alterna) OR
+    material      <> TRIM(material)
+ORDER BY id ASC;
+
+UPDATE parametros
+SET
+    clave         = TRIM(REPLACE(clave,         CHAR(0), '')),
+    clave_alterna = TRIM(REPLACE(clave_alterna, CHAR(0), '')),
+    material      = TRIM(REPLACE(material,      CHAR(0), '')),
+    proveedor     = TRIM(REPLACE(proveedor,     CHAR(0), '')),
+    tipo          = TRIM(REPLACE(tipo,          CHAR(0), ''));
+
+Genera un plan detallado antes de modificar cualquier archivo.
+El script post_csv_claves.php tarda demasiado en ejecutarse, se observa que la vista panel_claves.php usa el modal_csv_claves.php 
+para enviar una solicitud para procesar un archivo csv, siendo que el procesamiento tarda demasiado en ejecutarse, el proceso 
+en el frontend el usuario lo ve eterno. tal vez sea el archivo actualizar_inventario.php. Sin embargo una version anterior, realizaba 
+el proceso similar en cuestion del procesamiento del csv, en precios.php se observa un codigo que no tardaba tanto en ejecutarse y 
+funcionaba correctamente en su momento, hay que ver que "copearle" a precios.php para que el proceso de post_csv_claves no tarde 
+demasiado. Actualmente se tiene que detener apache para reiniciar el atasco por exceso de tiempo de procesamiento. Hallar la manera 
+de hacer que la subida y actualizacion de datos masivos mediante csv sea eficiente y no tarde tanto en cargar. Ademas no olvides 
+que para generar archivos de logs o debug, se deben encontrar en la carpeta /debug. 
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Mismo problema, Aun tarda demasiado en procesar los datos, debe hallar alguna implementacion para resolver el problema. 
+El script post_csv_claves.php tarda demasiado en ejecutarse, se observa que la vista panel_claves.php usa el modal_csv_claves.php 
+para enviar una solicitud para procesar un archivo csv, siendo que el procesamiento tarda demasiado en ejecutarse, el proceso 
+en el frontend el usuario lo ve eterno.
+Tambien puedes sugerir procesos intermediarios para aligerar la carga como parametros de desicion que el usuario pueda decidir 
+o algo ingenioso para que sea mas rapida la carga. Ademas puede que sea buena idea darle al usuario la opcion de cancelar, si ve 
+que se esta tardando mucho, el sistema detecta que el mismo ya se tardó, desea cancelar el proceso? o puede seguir sperando a que 
+termine el proceso masivo. Dado que actualmente hay que reiniciar el servidor para que no se atasque.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Parece que ahora si se esta ejecutando de manera rapida, pero hay algo que falta, se observa que se envia como payload un 
+arreglo de claves_procesadas lo cual supongo que es de la columna "clave" del csv, pero entonces estaria faltando procesar la 
+"clave_alterna" del csv, dado que mediante la clave alterna tambien es posible actualizar registros de inventario_cnc, el asunto 
+es de que inventario_cnc.Clave puede ser igual a parametros.clave o a parametros.clave_alterna. Ademas esta faltando la descarga 
+del reporte de resultados de subida de datos masiva en formato csv y guardandolo en /files/reportes_claves/ para que el usuario tenga conocimiento de que fu lo que 
+ocurrio, cuantos registros actualizados, cuales fueron afectados o informacion que le pueda ser util al usuario para que no 
+se sienta con dudas de que fue lo que paso. Ademas el selector de acciones radiobutton no da a entender con claridad lo que hace cada 
+opcion, no da detalles y son funciones criticas.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Aparentemente el boton btnCancelarCsv no esta haciendo nada, no esta deteniendo el proceso que se esta tardando mucho, actualmente 
+ahora tarda demasiado y hay que reiniciar el servidor porque btnCancelarCsv no resuelve nada. Verificar por que se esta tardando 
+demasiado cualquiera de los procesos del selector radiobutton. Tomar en cuenta la posibilidad de dar la opcion al usuario que 
+si quiere solo quiere comparar la clave principal (clave) o comparar clave alterna (clave_alterna) o ambas, claro, cuando se va a 
+actualizar el inventario_cnc.
+*Insertar/Actualizar los registros de la tabla parametros: esto lo hace siempre, hace cambios o inserciones a partir de la 
+columna clave 
+de parametros, ojo que siempre el campo clave del csv, debe ir con algo, si en el csv, no hay clave no continuar y decirle al usuario 
+que debe ir con clave principal. Esta funcion viene por default y no es opcion
+*Dar la opcion al usuario si actualizar el inventario CNC, siendo que aqui es donde se emplearan las 3 opciones:
++Actualizar mediante clave principal; esto solo tomara la columna clave del csv.
++Actualizar mediante clave altrerna; esto solo tomara la columna clave_alterna del csv.
++Actualizar verificando mediante clave principal y clave alterna; esto va a actualizar registros coincidentes con clave o clave_alterna.
+En teoria es la opcion que tardaria mas.
+*Si consideras que el proceso de generar reporte es el que relentizaria el proceso de procesamiento del csv, entonces considera 
+excluirlo dado que el reporte no es estrictamente necesario, pero no dejar al usuario con mucha insertidumbre.
+
+Por alguna razon no esta respetando si emparejar el inventario_cnc mediante solo clave_alterna, de esto me he dado cuenta 
+porque en inventario_cnc hay registros donde inventario_cnc.Clave = parametros.clave_alterna y al seleccionar la opcion de 
+verificar por clave alterna, no ocurre la actualizacion en el inventario_cnc. Ademas, la tercera opcion de sincronizar por 
+clave principal y clave alterna esta tardando demasiado, tal que hay que reiniciar el servidor para que el sistema vuelva a 
+funcionar, dado que ni cancelando la operacion ni refrescando la pagina el atasco a nivel sistema no se esta resolviendo. se observa 
+que despues del atasco siempre ocurre atasco para cualquier opcion.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Ahora vamos a hacer una modificacion a modal_clave.php y a post_clave.php, dado que ahora se requiere que al agregar/actualizar un 
+registro de clave de manera individual, detectar cuantos registros coinciden cuando inventario_cnc.Clave es igual a parametros.clave 
+o igual a parametros.clave_alterna, Si se detecta que si hay registros coincidentes en inventario_cnc, entondes el paso siguiente es 
+preguntarle al usuario si desea actualizar las barras del Inventario CNC, si el usuario acepta, entonces actualizar todos esos 
+registros coincidentes en el inventario_cnc, si decide no actualizar pues se cierra el modal y no procede a realizar la actualizacion. 
+El objetivo es que el usuario sepa que tiene el control de actualizar el inventario_cnc y cuantos y cuales barras serian actualizadas 
+tras la actualizacion o insercion del registro a parametros.
+
+En claves.php se muestra que recibe varios parametros de filtrado de datos en el metodo get, pero falta un bloque de codigo donde 
+soporte el nuevo parametro "sin_precio", en el cual buscara todos los registros que no tengan precio, es decir, donde 
+parametros.precio = "" o is nul o es <= 0.00, de esa manera filtraremos todas las claves pendientes sin precio.
+
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Ahora vamos a hacer una adicion a post_inventario_cnc.php, dado que cuando una clave digitada en el formulario no se encuentre en 
+parametros ya sea clave o clave_alterna inexistentes, entonces como no existe, se va insertar un nuevo registro a parametros, 
+con los datos del formulario. Vemos que existe un bloque de codigo de "MANEJO DE ESTATUS ESPECIALES", el cual inserta 
+el registro con un estatus determinado. Ahora solo vamos a manejar "Clave nueva pendiente", tal que para este caso, insertaremos 
+el registro en parametros con precio = 0.00 y en inventario_cnc, estatus = "Clave nueva pendiente" y si por ejemplo se trata de una 
+edicion, si el estatus ya era "Clave nueva pendiente", dejarla asi, tal que el estatus "Disponible para cotizar" solo se obtiene si 
+la clave p.clave o p.clave_alterna existen y tienen precio > 0.00, si no cumple con estas condicionales es clave nueva.
+Vea que el script esta manipulando la tabla claves_pendientes, lo cual esta obsoleto dado que la clave alterna ya se incluye en la 
+misma tabla parametros.
+En resumen:
+*si i.Clave no existe en p.clave ni en p.clave_alterna, entonces nuevo registo en parametros con precio 0.00 y el nuevo 
+registro de inventario_cnc i.estatus= "Clave nueva pendiente".
+*si i.Clave existe en p.clave o en p.clave_alterna, pero p.precio <= 0.00 entonces i.estatus= "Clave nueva pendiente".
+*si i.Clave existe en p.clave o p.clave_alterna y ademas p.precio > 0.00, entonces i.estatus="Disponible para cotizar".
+
+Ahora vamos a arreglar el bug en post_clave.php en la seccion de elimianar el registro, dado que siempre responde 
+con "El registro no existe." a pesar de si existir, ademas antes de eliminar verificar que no halla barras en inventario_cnc 
+ligadas a ese registro ya sea mediante clave o clave_alterna, siendo el problema principal es que no queremos dejar barras sin 
+actualizar en dado caso de una eliminacion, si si se encontraron barras, indicarle al usuario que tales barras quedaran con un 
+estatus "Clave nueva pendiente". Si no tiene barras referenciadas en inventario_cnc, entonces solo preguntar si proceder con la 
+eliminacion de la clave
+
+Se observa que el script verificar_clave.php tiene una seccion llamada Mapeo de material, en tal seccion se realiza un mapeo de 
+materiales por coincidencia, el problema es que los scripts actualizar_inventario.php y post_clave.php no cuentan con el mismo 
+mapeo de valores que el de verificar_clave.php. Hacer que todos los mapeos de material sean la misma comparacion de mapeo en 
+base a verificar_clave.php.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Se observa que en varios archivos tenemos una selector de material y en algunos archivos tenemos un selector de proveedor, el 
+problema 
+es que tenemos hardcodeados los valores, siendo que en el inventario_cnc podria haber mas materiales o mas proveedores. Para 
+solucionarlo se propone una tipo "clase" reusable el cual al colocarle la clase magica,
+"selectorMaterialesInventario"/"selectorProveedoresInventario"/"selectorMaterialesParametros"/"selectorProveedoresParametros" 
+puesta 
+a un elemento selector, con jquery, tal selector se llene dinamicamente tomando los materiales o proveedores de la tabla 
+inventario_cnc. 
+*Se requiere evitar el hardcoding del selector de inventario_cnc.material en los archivos:
+-modal_add_billet.php
+*Se requiere evitar el hardcoding del selector de inventario_cnc.proveedor en los archivos:
+-modal_add_billet.php
+*Se requiere evitar el hardcoding del selector de parametros.material en los archivos:
+-modal_clave.php
+*Se requiere evitar el hardcoding del selector de parametros.proveedor en los archivos:
+-modal_clave.php
+*Crear un script para cada tabla que requiera llenar selectores, un script para inventario_cnc y otro para parametros (aunque ya 
+existe ajax_materiales_parametros.php para materiales pero falta de proveedores).
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Tenemos la tabla control_almacen descrita en debug/dbdiagramio.txt, se observa que ahora cuenta con una serie de columnas extra; 
+"componente", "h_componente", "es_eliminacion", "es_eliminacion_auth", "justificacion_eliminacion" y "updated_at". 
+Dicho esto, habra una serie de adiciones a produccion_cnc.php, tal que nos enfocaremos en los modales que muestran tablas de datos, 
+siendo que vamos a mostrar la informacion faltante de los campos anteriormente mencionados. Observe que en el archivo 
+produccion_cnc.js maneja todo el dinamismo, por ejemplo en barras_para_entregar.php hay un script que trae los datos de la tabla 
+cotizacion_materiales, tales equivalencias en valores son los siguientes:
+-control_almacen.componente = cotizacion_materiales.cantidad_material.
+-control_almacen.h_componente = cotizacion_materiales.altura.
+*Ademas vamos aimplementar un nuevo action button para el usuario de inventarios, dado que al cargar la tabla 
+cargarTablaEntregarBarras, debemos incluir una funcionalidad para "eliminar" la barra, siendo que esta funcion debera cumplir 
+algunas caracteristicas:
+-Al hacer click al boton, debera mostrarse un modal para que el usuario justifique por que desea eliminar la barra, tal dato 
+se guardara en control_almacen.justificacion_eliminacion.
+-Cuando el usuario realice el submit a la justificacion, el dato es_eliminacion cambia a 1 y tal como ejemplifica el script 
+solicitar_extra_billet.php, recalcular el campo requisiciones.barra_pendiente para poder mostrarle al usuario autorizado que 
+tiene una nueva solicitud de eliminacion de barra pendiente de autorizar.
+*El proceso de eliminar barra sera como el de remplazar barra, con la diferencia que ahora solo pediremos justificacion siempre 
+para que un usuario autorizado para autorizar, vea la solicitud y decida si autorizar o no.
+-Cuando el usuario autoriza la eliminacion de la barra, el campo es_eliminacion_auth cambiara a 1 como flag.
+-Si rechaza la solicitud revertir es_eliminacion a 0 y dejar es_eliminacion_auth en 0. Ademas de que sera una eliminacion logica, 
+dado que no eliminaremos el registro solo la marcaremos como eliminada mediante flags.
+*Para excluir las barras de control_almacen que han sido eliminadas, adicionaremos a todas las consultas una condicional extra 
+para excluir (no le aparezcan al usuario) los registros que son es_eliminacion = 1 y es_eliminacion_auth = 1. De esa manera 
+ya no apareceran en registros coincidentes.
+*Modificar produccion_vn.php para que soporte las solicitudes de eliminacion de barra cuando $row['barra_pendiente']==1 muestra 
+un boton para desplegar el modal que mostrara las solicitudes de eliminacion de barras pendiente. Nuevo modal o adaptacion a la 
+nueva accion de eliminar barra.
+*Desde produccion_vn.php, el usuario administrador podra tener la opcion de autorizar acciones de barra que modifican la 
+tabla control_almacen, tales acciones como autorizar barra extra, reemplazo de barra o la nueva funcion autorizar eliminacion de 
+barra.
+*Es importante que en todos lados donde se consulte a control_almacen, se incluyan los nuevos campos descritos y que se tomen en 
+cuenta las flags para saber si es una barra eliminada, dado que por ejemplo hay otras partes donde se manda a llamar los datos 
+de control_almacen como por ejemplo en ajaxTraerClavesControlAlmacen de produccion_cnc.js.
+*Es importante la visibilidad del nuevo boton de eliminar barra, dado que solo debe aparecer cuando aparece el boton de reemplazar 
+barra.
+
+Vea el modal modal_entregar_barras.php, en el cual existen los campos "componente", "h_componente", "es_eliminacion", 
+"es_eliminacion_auth", EL problema es que en modal_finalizar_maquinado.php, no se estan implementando tales cambios, faltan 
+campos, siendo que falta el calculo de h_componente, falta mostrar/ocultar la barra "eliminada", falta la columna componente, 
+asi como tambien falta el backend para manejar los datos enviados.
+*Ahora H TOTAL DEL SELLO no debe ser editable y el input que obtiene el calculo de merma, sera respecto a h_componente en lugar de 
+alturaPz, es decir, para todo calculo de merma, scrapMm y multiplos de mm teoricos, usaremos h_componente.
+*Ahora h_componente, sera el input que el usuario pueda modificar para realizar/actualizar el calculo de la merma.
+
+Vea el modal_finalizar_maquinado.php, el cual muestra una tabla con una serie de columnas referentes al maquinado. Su deber sera 
+hacer que el modal_resultados_maquinado.php, tenga la misma estructura de columnas y datos que muestra modal_finalizar_maquinado 
+dado que faltan de agregar algunas columnas de datos. Ademas, falta excluir las barras eliminadas. 
+Claro que respetando que ahora son solo lectura y respetando el recuadro de revision.
+
+vea el modal_retornar_barras.php, en el cual necesitamos modificar para que sea casi igual a modal_entregar_barras, es decir, 
+agregar las columnas y datos que faltan.
+
+En el modal_entregar_barras.php, falta algo que omita la validacion de barras que han sido solicitadas para eliminacion, es decir, 
+no tiene sentido validar que el usuario llene los campos editables de las barras que van a ser "eliminadas". Las validaciones 
+de las filas ocurren al hacer click en "btnConfirmarDarSalidaBillets"
+
+El backend agregar_comentario_adjunto.php se encarga de subir un archivo cualquiera que el usuario guste, sin embargo, el nombre 
+del archivo no se esta sanitizando de manera que se eviten problemas con caracteres o nombres extraños o duplicados, lo que se 
+desea hacer es aplicar un renombramiento del archivo original y aplicar ciberseguridad para evitar posibles subidas de archivos 
+con scripts burlando la extension o el mime etc.
+
+En los modales; modal_add_billet.php, modal_finalizar_maquinado.php, modal_resultados_maquinado.php y modal_retornar_barras, falta 
+un boton en la fila/columna de "componente", de manera que el boton quede a la derecha del input, tal boton, al hacer click en el, 
+debe mostrar un modal bootstrap cuyo contenido debe ser simplemente la imagen del componente del perfil del sello, por ejemplo 
+si el input nos dice que el componente 2, el boton deberia mostrar la imagen del componente 2. La manera en que vamos a extraer 
+la imagen es muy sencilla, vas a realizar una consulta a la tabla "cotizacion_materiales", dicha tabla se muestra su estructura 
+en debug/dbdiagramio.txt, se observa que tenemos el campo cotizacion_materiales.id_cotizacion = control_almacen.id_cotizacion, 
+tambien tenemos el campo cotizacion_materiales.cantidad_material = control_almacen.componente, y tambien 
+cotizacion_materiales.img = la ruta de la imagen del componente.
+Con tales datos tal vez ya sea suficiente para mostrar lo necesario.
+Adicionalmente puede mostrar en el modal alguna otra informacion como el nombre del perfil.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+En modal_entregar_barras.php tenemos una tabla que renderiza filas desde la tabla control_almacen, al renderizar se 
+muestra una columna de acciones, en la cual tenemos la opcion de eliminacion de barra. Se debe realizar una adicion para 
+condicionar la visibilidad de tal boton, tal que el boton solo debe aparecer si hay mas de una clave igual pero filtrando 
+por cotizacion y componente tambien.
+*control_almacen as ca.
+*ca.id_requisicion=1.
+*Por ejemplo, tenemos dos cotizaciones en la requisicion, la primera ca.id_cotizacion = "123", tiene 
+el ca.componente = 1, y clave = "ABC", en este caso no se mostraria el boton de eliminar dado que en esta cotizacion 
+solo tenemos una fila/clave, solo es posible solicitar un reemplazo.
+*En la segunda cotizacion tenemos un perfil de dos componentes, ca.id_cotizacion = "456", tiene 
+el ca.componente = 1, y ca.clave = "DEF", en este caso no se mostraria el boton de eliminar dado que en este componente
+solo tenemos una fila/clave. Despues tenemos en esta misma cotizacion pero el ca.componente = 2, y para este componente 
+tenemos dos filas/barras/claves con la misma clave, la primera y la segunda clave = "GHI", entonces, como aqui se repite 
+2 veces la misma clave, a esas dos filas si se debe de mostrar el boton de solicitar eliminacion.
+*Cuando el usuario solicita la eliminacion, el frontend se debe actualizar dado que nunca debe mostrar el boton si 
+la clave es unica en la misma cotizacion y componente.
+*Analizar backend y frontend para hallar la mejor manera de implementar esta adicion.
+
+Deseo que en panel_claves.php, todos los modales referentes a la busqueda/consulta, manden al usuario a una nueva pestaña 
+al mandar la consulta, dado que el usuario podria desear ejecutar multiples consultas desde el panel pero por ahora tiene que 
+volver al panel y ejecutar otra consulta.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+En el modal_resultados_maquinado.php, tenemos una funcion de terminar revision, cuando se envia la revision, se cierra el 
+modal, permitiendo al usuario ver nuevamente la tabla de registros principal de produccion_cnc.php, el problema es que no 
+se esta actualizando 
+el boton de "btn-amber" a "btn-auth", tampoco esta actualizando las demas caracteristicas del boton, como icono, etc.
+*Ademas, en los filtros de busqueda del mismo produccion_cnc.php, se desea adicionar un nuevo filtro donde el usuario 
+administrador/sistemas o gerente de cnc, pueda filtrar donde la revision (solo la revision de resultados de maquinado de parte de 
+gerente de cnc) esta pendiente o revision enviada. Sea ingenioso al 
+incluir este nuevo filtro dado que el usuario puede que desee desactivar ese filtro y hagalo de manera que sea muy comodo y claro 
+aplicar ese filtro.
+*Tomar en cuenta que la revision solo se muestra cuando el estatus es "Finalizada" o "Completada" actualmente.
+*Incluir las observaciones de inventarios de modal_retornar_barras.php (observacionesInventario) al modal_resultados_maquinado.php
+de manera solo lectura solo si es que existen tales observaciones. 
+*Incluir la revision de maquinado de modal_resultados_maquinado.php (observacionesGerente) al modal_retornar_barras.php
+de manera solo lectura solo si es que existe tal revision. 
+*Ademas, se desea que sobre los botones "btn-tabla-maquinado-mermas" y "btn-claves-retorno" de produccion_cnc.php 
+se muestre un indicador como el que 
+se muestra en el boton de comentarios adjuntos (indicador badge-comentarios sobre el boton btn-modal-comentarios-adjuntos), 
+observe que muestra la cantidad total de 
+comentarios, pero en el caso de los botones mencionados, se incluira en el indicador una cantidad de 1 o 2, siendo 
+la representacion del conteo de revisiones, 
+al ser solamente 2 (observaciones de inventarios y revision de resultados), mostraremos que si hay una de las 2 observaciones 
+pues mostrar 1 en el indicador, si tiene ambas observaciones pues mostrar 2 en el indicador, si no hay ninguna de las 2 
+pues no mostrar el indicador. Esto con el fin de que el usuario pueda ver rapidamente cuales requisiciones tienen algo escrito 
+de entre las observaciones para que no se sienta obligado a abrir una por una para ver si contiene revisiones.
+
+Genera un plan detallado antes de modificar cualquier archivo.
+Tenemos un problema, en produccion_cnc.php, al hacer click a cualquier boton que muestre modales relacionados con mostrar 
+tablas de registros de barras y algunos mas, ocurre que no se estan mostrando los modales, el comportamiento es que 
+se muestra la pantalla oscura tipo overlay per no se muestra el modal, en network se observa que no hay errores al extraer los 
+datos, tampoco se muestran errores javascript en la consola ni errores en ajax.
+tales modales afectados; modalTablaMaquinadoMermas, modalFinalizar, modalGuardarOperador, 
+modalRetorno, modalTableControlAlmacenEntrega, modalEditarMedidas.
+Su tarea sera analizar las posibles razones de que esto ocurra y hallar una solucion para implementar. 
+
+Vamos a elaborar un modal bootstrap visible para todos los usuarios sin restricciones por rol o estatus de requisicion. Habra un 
+boton dentro de las acciones de la fila en las tablas; modules/produccion_vn.php y modules/produccion_cnc.php el cual despliegara 
+el modal. Dicho modal tendrá como finalidad mostrar la informacion de las cotizaciones correspondientes a la id_requisicion, 
+consultando asi la tabla cotizacion_materiales para que la informacion de las cotizaciones sea plasmada de manera que sea entendible 
+los perfiles a maquinar.
+El contenido del modal es el siguiente.
+*cotizacion_materiales as cm.
+*Como titulo: "Maquinado de sellos".
+*Como body:
+-mostrar en un card grande; "ID Cotización: cm.id_cotizacion, salto de linea, Perfil: cm.perfil_sello (cm.familia_perfil)".
+-dentro del modal de cotizacion tendremos unas "sub cards" que mostraran la informacion del componente del sello, sin embargo, 
+se debe de mostrar un contenido dinamico dependiendo de la cantidad de componentes cotizados, a continuacion mostrar lo siguiente si 
+"count(cm.id_estimacion) where cm.id_cotizacion = X" = 1. En primera seccion, dos contenedores en renglon y en movil columna. Primer 
+contenedor de la primer seccion
+debera mostrar la imagen con la ruta cm.img, el segundo contenedor de la primera seccion tendra dos contenedores en columna; el primero 
+mostrara "Cantidad pz: cm.cantidad Material: cm.material", el segundo (este es importante) es una mini tabla donde se mostraran las 
+medidas, el titulo es "Nominales" la estructura es la siguiente:
++Headers; DI, DE Y Altura(s).
++Filas: cm.di_sello, cm.de_sello, 
+
+Vea el modal_maquinado_sellos.php, tal modal esta listo para que se le implemente el dinamismo y el backend. 
+Dicho modal tendrá como finalidad mostrar la informacion de las cotizaciones correspondientes a la id_requisicion, 
+consultando asi la tabla cotizacion_materiales para que la informacion de las cotizaciones sea plasmada de manera que sea entendible 
+los perfiles a maquinar.
+*cotizacion_materiales as cm.
+*Vea el archivo generar_requisicion.php para ver como se esta consultando la informacion de dichas cotizaciones.
+*En cuestion a la seccion de la tabla de barras, tendra que extraer la informacion del campo cm.billets_claves_lotes y formatearla 
+como lo hace generar_requisicion.php dado que las barras se representan separadas por comas, debera representarlas en la tabla de 
+barras.
+*Debera representar tambien el caso cuando la barra no fue seleccion del sistema viendo el contenido cm.billets_manualmente, 
+observe como lo hace generar_requisicion.php.
+*La estructura de todo el modal ya esta listo, en los textos se representa la informacion que debe de extraerse y mostrarse de manera 
+dinamica.
+*Vea que hay clases de estilos en modal_maquinado_sellos.php que no se estan usando, elimine las que no se estan usando para mayor limpieza,
+ tambien agregar comentarios en las secciones importantes para mayor entendimiento. Evitar emojis en el codigo.
+
+El modal_maquinado_sellos.php debe ser corregido, la estructura debe ser exactamente igual a modal_maquinado_sellos.php, no cambiar la 
+estructura definida.
+*Usar jquery y ajax, vea el modal_perfil.php y el archivo perfiles.php muestran como se debe renderizar la imagen del componente correctamente.
+Dado que actualmente no se estan renderizando correctamente e incluso no se estan renderizando la cantidad correcta de componentes.
+*El truco es que cuando es un solo componente, termina en _0.jpg y cuando es mas de un componente empieza en _1.jpg, evitando el 0.
+*solo modificar modal_maquinado_sellos.php, dejar modal_maquinado_sellos2.php como respaldo y referencia. 
+*Actualmente el modal muestra siempre "No hay barras registradas" siendo que siempre hay una o mas de una, eso quiere decir que no 
+se esta trayendo correctamente los datos desde el backend, corrija ese bug.
+
+Hay un problema en modal_maquinado_sellos.php, tal que al intentar mostrar la imagen correspondiente del componente del perfil del 
+sello, no se esta mostrando debido a la ruta incorrecta, se observa que gran parte de la ruta esta "hardcodeada" 
+(mostrando siempre la carpeta incorrecta ".../piston/..."), lo cual no es 
+util, sin embargo, en la tabla cotizacion_materiales, tenemos el campo "img", del cual se puede extraer la ruta completa del componente, 
+pero, sea cuidadoso al renderizar dinamicamente, dado que las cotizaciones con unico componente, terminan en "_0.jpg", mientras 
+que los que son mas de uno, comienzan en "_1.jpg".
+
+Hay un problema en modal_maquinado_sellos.php, tal que al mostrar las nominales cuando es componente multiple, los datos son 
+incorrectos, dado que se esta generalizando siempre a lo total, siendo que cada componente tiene diferentes nominales, para generalizar 
+los campos correctos son; a_sello, di_sello y de_sello, pero para extraer sus nominales del componente individuales, los campos 
+correctos son; altura, diametro_int y diametro:ext.
+Ademas, resolver tambien el problema cuando se intenta mostrar las barras correspondientes al componente, dado que siempre 
+muestra "No hay barras registradas" y eso es incorrecto dado que nunca existe el caso donde no halla barras relacionadas a un 
+componente, siempre hay una o mas de una.
+Si lo desea, puede consultar functions/generar_requisicion.php para ver como se estan extrayendo las barras por componente tal como 
+se espera.
+
+He modificado la construirTablaBarras tabla de barras de manera que las barras se muestren de manera simplificada, sin embargo 
+en el backend en el caso donde son barras agregadas manualmente, solo tenemos los datos del lote tal string como "ABC-1,ABC-2" 
+Para este caso entonces vamos a tener que consultar el lote (cada uno) en la tabla inventario_cnc, si tiene duda de la estructura 
+de la tabla, vea el archivo proyecto/debug/dbdiagramio.txtm tal que ahi se muestran las tablas y columnas existentes. Al 
+consultar cada lote de manera individual, formar el dato de barra tal como lo hace cuando no son barras manualmente agregadas.
+Despues, elimine las lineas de error_log puesto que no son necesarias. Vea el backend get_maquinado_sellos.php.
+
+Ahora hay que hacer una adicion para mostrar los comentarios por cotizacion, vea el includes/modal_comentarios_adjuntos.php para 
+que vea como se estan renderizando los comentarios. En el backend get_maquinado_sellos.php aparentemente se estan consultando 
+los comentarios, pero en el frontend no se esta renderizando nada relacionado a los comentarios adjuntos. La idea es que 
+justo arriba de la seccion de la tabla "Barras", se muestre un contenedor que renderice de manera sencilla los comentarios 
+con su respectivo link al archivo, solo necesitamos mostrar los dos datos comentario y ruta_adjunto.
+
+Vamos a elaborar un script inyector de dependencias para importar las dependencias de codigo externo CDN vistas en las 
+etiquetas del head. Todos los archivos dentro de la carpeta modules contienen tales dependencias y en muchas ocasiones se repite 
+la dependencia entre archivos. La idea es hacer una funcion la cual le pasemos un listado de nombres clave para que el codigo 
+interprete tales asociaciones y con condicionales decida cuales dependencias inyectar. Por ejemplo si tubieramos una funcion 
+dependencesInyection({'bootstrap','jquery'}) le pasamos el objeto del listado de dependencias mediante un nombre clave, entonces 
+en este ejemplo inyectariamos en el documento las etiquetas de importacion correspondientes a bootstrap y a jquery. 
+Vea que en algunos archivos se importa alguna version diferente entre archivos, selecciona la mejor opcion en caso de que detectes 
+cuando son dependencias repetidas.
+
+En el archivo modules/all_dependences.txt he recopilado todas las dependencias encontradas en los archivos, tal que en el archivo 
+dependency_injector.js parece que faltan muchas de las dependencias. Su deber es agregar las que faltan muchas, Su deber sera 
+incluir tales dependencias para despues decidir si ya es factibe reemplazar e incluir la funcion en todos los archivos que 
+requieran dependencias.
+
+Vamos a reemplazar las dependencias externas CDN por simples importaciones directas de archivo vistas en las 
+etiquetas del head. Todos los archivos dentro de la carpeta modules contienen tales dependencias y en muchas ocasiones se repite 
+la dependencia entre archivos. La idea es hacer que la carga del sistema no dependa de externos de manera que cargar los archivos 
+descargados de los CDN aumentara la velocidad de carga en teoria. 
+Vea el ejemplo donde realizamoc una importacion directa:
+"<script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>}"
+Para mapear cuales son las dependencias descargadas localmente, puede ver la carpeta "assets/dependencies" en la cual se 
+encuentran todos los archivos. 
+En el archivo modules/all_dependences.txt he recopilado todas las dependencias encontradas en los archivos, tal que debera 
+hacer coincidir la dependencia que muestra la url, con el archivo que se encuentra en la carpeta dependencies.
+Entonces su deber simplemente sera realizar por ejemplo lo siguiente pero para todos los archivos que muestra all_dependences.txt.
+REEMPLAZAR:
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+POR:
+<script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+
+Necesitamos que el filtro de carga de tabla por default nunca sea 0 en cotizaciones.php, dado que el valor 0 trae todos los registros 
+siendo que el default debe ser el valor 1 (solo las de hoy), es decir, nunca guardar el valor 0, solo cuando el usuario selecicone 
+"Todas", ejecutarlo una sola vez sin guardarlo como preferencia de filtro, solo ejecutar "todas" si viene en el metodo get ese valor 
+pero sin guardarlo como default ni en el localstorage.
+
+en el modal_entregar_barras.php, tenemos la funcionalidad de hacer click al enlace 

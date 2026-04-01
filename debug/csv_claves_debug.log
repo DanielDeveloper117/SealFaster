@@ -1,0 +1,20 @@
+[24-Mar-2026 19:58:44 Europe/Berlin] PHP Warning:  Uncaught PDOException: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away in C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php:360
+Stack trace:
+#0 C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php(360): PDOStatement->execute()
+#1 C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php(298): sincronizarInventarioPorClaves(Object(PDO), Array)
+#2 {main}
+  thrown in C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php on line 360
+[24-Mar-2026 19:58:44 Europe/Berlin] PHP Fatal error:  Maximum execution time of 120 seconds exceeded in C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php on line 298
+[24-Mar-2026 20:56:55 Europe/Berlin] PHP Warning:  Uncaught PDOException: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away in C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php:215
+Stack trace:
+#0 C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php(215): PDOStatement->execute(Array)
+#1 {main}
+  thrown in C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php on line 215
+[24-Mar-2026 20:56:55 Europe/Berlin] PHP Fatal error:  Maximum execution time of 120 seconds exceeded in C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php on line 238
+[24-Mar-2026 20:56:55 Europe/Berlin] PHP Warning:  Uncaught PDOException: SQLSTATE[HY000]: General error: 2006 MySQL server has gone away in C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php:396
+Stack trace:
+#0 C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php(396): PDOStatement->execute()
+#1 C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php(257): sincronizarInventarioPorClaves(Object(PDO), Array, 'sync_ambas')
+#2 {main}
+  thrown in C:\xampp\htdocs\sealfaster\includes\functions\actualizar_inventario.php on line 396
+[24-Mar-2026 20:56:55 Europe/Berlin] PHP Fatal error:  Maximum execution time of 120 seconds exceeded in C:\xampp\htdocs\sealfaster\ajax\post_csv_claves.php on line 257
