@@ -1,0 +1,28 @@
+[2026-04-02 00:48:42] === INICIO PROCESO AUTORIZACIÓN ===
+[2026-04-02 00:48:42] ID Requisición: 2217
+[2026-04-02 00:48:42] Cotizaciones encontradas: 76976678
+[2026-04-02 00:48:42] IDs de cotizaciones: 76976678
+[2026-04-02 00:48:42] Procesando cotización ID: 76976678
+[2026-04-02 00:48:43] Actualización estado cotización 76976678: ÉXITO
+[2026-04-02 00:48:43] Cotización ID 76976678 tiene 1 estimaciones
+[2026-04-02 00:48:43] Estimación - a_sello: 7.3, material: ECOPUR
+[2026-04-02 00:48:43] Estimación - billets_lotes: PU231226-8 (25/59) 7 pz,PU240403-89 (25/59) 1 pz
+[2026-04-02 00:48:43] Material: ECOPUR -> Desbaste: 2
+[2026-04-02 00:48:43] Billets encontrados: 2
+[2026-04-02 00:48:43] Procesando billet 0: PU231226-8 (25/59) 7 pz
+[2026-04-02 00:48:43] LOTE PROCESADO - Lote: PU231226-8, Piezas: 7, Altura+pz: 9.3, Consumo: 65.1
+[2026-04-02 00:48:43] Procesando billet 1: PU240403-89 (25/59) 1 pz
+[2026-04-02 00:48:43] LOTE PROCESADO - Lote: PU240403-89, Piezas: 1, Altura+pz: 9.3, Consumo: 9.3
+[2026-04-02 00:48:43] Consumo total acumulado por lote: Array
+(
+    [PU231226-8] => 65.1
+    [PU240403-89] => 9.3
+)
+
+[2026-04-02 00:48:43] Intentando actualizar inventario - Lote: PU231226-8, Restar: 65.1
+[2026-04-02 00:48:43] Lote encontrado - Pre_stock actual: 74.00
+[2026-04-02 00:48:43] Actualización lote PU231226-8 - Rows affected: 1, Éxito: SI
+[2026-04-02 00:48:43] Intentando actualizar inventario - Lote: PU240403-89, Restar: 9.3
+[2026-04-02 00:48:43] Lote encontrado - Pre_stock actual: 53.00
+[2026-04-02 00:48:43] Actualización lote PU240403-89 - Rows affected: 1, Éxito: SI
+[2026-04-02 00:48:43] === FIN PROCESO AUTORIZACIÓN ===
