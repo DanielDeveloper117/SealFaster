@@ -1,12 +1,8 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'includes/functions/control_cache.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 
 // ============================================================
 // CONSULTA PRINCIPAL: perfiles con familia y grupo

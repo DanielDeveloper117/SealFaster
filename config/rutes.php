@@ -1,4 +1,4 @@
 <?php
-// Define la raíz del proyecto una vez
-define('ROOT_PATH', dirname(__DIR__) . '/');
+// Usamos realpath para obtener la ruta absoluta limpia sin puntos extra
+define('ROOT_PATH', realpath(dirname(__DIR__)) . DIRECTORY_SEPARATOR);
 ?>

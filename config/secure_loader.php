@@ -43,34 +43,38 @@ class SecureLoader {
      */
     private static function findSecureFile($filename) {
         $callerDir = dirname(debug_backtrace()[0]['file']);
-        $documentRoot = $_SERVER['DOCUMENT_ROOT'] ?? '';
+        $documentRoot = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/\\');
         
+        // Usamos DIRECTORY_SEPARATOR para que en Linux sea / y en Windows \
+        $ds = DIRECTORY_SEPARATOR;
+
         $possiblePaths = [
-            // Desde auth/login-script.php
-            $callerDir . '/../../../secure_config/' . $filename,
-            $callerDir . '/../../../../secure_config/' . $filename,
+            // 1. Basado en el archivo que llama (Subir niveles)
+            realpath($callerDir . '/../../../secure_config/' . $filename),
+            realpath($callerDir . '/../../../../secure_config/' . $filename),
             
-            // Rutas absolutas comunes
-            'C:/xampp/secure_config/' . $filename,
-            'C:/wamp/secure_config/' . $filename,
-            '/home/sellosyret/secure_config/' . $filename,
+            // 2. Basado en Document Root (La más segura en Linux)
+            $documentRoot . $ds . '..' . $ds . 'secure_config' . $ds . $filename,
             
-            // Desde document root
-            $documentRoot . '/../secure_config/' . $filename,
+            // 3. Ruta absoluta detectada automáticamente (Sustituye a /home/sellosyret/...)
+            dirname($documentRoot) . $ds . 'secure_config' . $ds . $filename,
+
+            // 4. Fallback de desarrollo (Windows)
+            'C:' . $ds . 'xampp' . $ds . 'secure_config' . $ds . $filename,
             
-            // Si ya se definió la ruta
-            defined('SECURE_CONFIG_PATH') ? SECURE_CONFIG_PATH . '/' . $filename : null,
+            // 5. Constante definida
+            defined('SECURE_CONFIG_PATH') ? SECURE_CONFIG_PATH . $ds . $filename : null,
         ];
         
-        $possiblePaths = array_filter($possiblePaths);
-        
-        foreach ($possiblePaths as $path) {
-            $cleanPath = str_replace('//', '/', $path);
-            if (file_exists($cleanPath) && is_readable($cleanPath)) {
+        foreach (array_filter($possiblePaths) as $path) {
+            // Normalizamos barras para el sistema operativo actual
+            $cleanPath = str_replace(['/', '\\'], $ds, $path);
+            
+            if (@file_exists($cleanPath) && is_readable($cleanPath)) {
                 if (!defined('SECURE_CONFIG_PATH')) {
                     define('SECURE_CONFIG_PATH', dirname($cleanPath));
                 }
-                return realpath($cleanPath) ?: $cleanPath;
+                return $cleanPath;
             }
         }
         

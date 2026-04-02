@@ -1,6 +1,17 @@
 <?php
+// 1. Configuración de errores para desarrollo
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+// 2. Forzar que el navegador no guarde el HTML en cache
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Cache-Control: post-check=0, pre-check=0', false);
+header('Pragma: no-cache');
+header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Fecha en el pasado
+
+// 3. Cargar configuraciones y funciones
 require_once(__DIR__ . '/config/rutes.php');
-require_once(ROOT_PATH . 'includes/functions/control_cache.php');
+require_once(ROOT_PATH . '/includes/functions/control_cache.php');
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -11,14 +22,13 @@ require_once(ROOT_PATH . 'includes/functions/control_cache.php');
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.0/jquery.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="<?= controlCache('./assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('./assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+    <script src="<?= controlCache('./assets/dependencies/jquery.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('./assets/dependencies/sweetalert2.min.css'); ?>">
+    <script src="<?= controlCache('./assets/dependencies/sweetalert2@11.js'); ?>"></script>
     <script src="<?= controlCache('./assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <link rel="stylesheet" href="<?= controlCache('assets/css/styles-login.css'); ?>">
+    <link rel="stylesheet" href="<?= controlCache('./assets/css/styles-login.css'); ?>">
   
     <title>Login | Sellos y Retenes</title>
 </head>

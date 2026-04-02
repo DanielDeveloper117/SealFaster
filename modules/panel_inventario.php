@@ -1,12 +1,8 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'includes/functions/control_cache.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -472,9 +468,10 @@ if (!isset($_SESSION['id'])) {
                         <thead class="table-active">
                             <tr>
                                 <th>Clave</th>
+                                <th>Clave alterna</th>
                                 <th>Proveedor</th>
-                                <th>Tipo</th>
                                 <th>Material</th>
+                                <th>Tipo</th>
                                 <th>Interior</th>
                                 <th>Exterior</th>
                                 <th>Disponibilidad</th>
@@ -620,9 +617,10 @@ if (!isset($_SESSION['id'])) {
                                 `
                                 <tr>
                                     <td>${item.clave}</td>
+                                    <td>${item.clave_alterna}</td>
                                     <td>${item.proveedor}</td>
-                                    <td>${item.tipo}</td>
                                     <td>${item.material}</td>
+                                    <td>${item.tipo}</td>
                                     <td>${item.interior}</td>
                                     <td>${item.exterior}</td>
                                     <td>${disponibilidad}</td>

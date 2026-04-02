@@ -1,15 +1,8 @@
 <?php
-// Incluir el archivo de conexión a la base de datos
-require 'db/config.php';
+require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
+require_once(ROOT_PATH . 'config/config.php');
 
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    header("Location: cerrar_sesion.php");
-    exit;
-} else {
-   // echo 'Usuario autenticado con ID: '.$_SESSION['id'];
-}
 
     $id_usuario=$_SESSION['id'];
     $sql = "SELECT lider FROM login WHERE id = :id_usuario";

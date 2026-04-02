@@ -1,4 +1,6 @@
 <?php
+require_once(__DIR__ . '/../../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 function showSweetAlertSuccess($c){
     echo "Swal.fire({
             title: 'Proceso exitoso',

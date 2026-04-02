@@ -23,7 +23,7 @@ define('MAX_USERNAME_LENGTH', 100);
  * Registrar intento de login en logs
  */
 function logLoginAttempt($username, $success, $reason = '') {
-    $logDir = __DIR__ . '/../../../logs';
+    $logDir = __DIR__ . '/../../../secure_config';
     $logFile = $logDir . '/login_security.log';
     
     if (!is_dir($logDir)) {
@@ -48,7 +48,7 @@ function logLoginAttempt($username, $success, $reason = '') {
  * Registrar intento sospechoso
  */
 function logSuspiciousAttempt($reason, $postData) {
-    $logDir = __DIR__ . '/../../../logs';
+    $logDir = __DIR__ . '/../../../secure_config';
     $logFile = $logDir . '/login_suspicious.log';
     
     if (!is_dir($logDir)) {
@@ -83,11 +83,6 @@ function validateLoginInput($input, $type = 'username') {
     
     switch ($type) {
         case 'username':
-            // Convertir usercnc si es necesario
-            if (strtolower($input) === 'usercnc') {
-                $input = 'usercnc@sellosyretenes.com';
-            }
-            
             // Validar formato de email
             if (!filter_var($input, FILTER_VALIDATE_EMAIL)) {
                 return false;
@@ -441,6 +436,7 @@ try {
         $_SERVER['REMOTE_ADDR']
     ]);
 
+    define('ACCESO_PERMITIDO', true);
     // 16. Enviar respuesta de éxito
     sendJsonResponse('success', 'Acceso correcto', 'Inicio de sesión exitoso. Redirigiendo...', 'includes/animacionsvg.php');
 
@@ -451,7 +447,6 @@ try {
     
     // Incrementar intentos fallidos
     incrementFailedAttempts();
-    
     // Mostrar error genérico
     sendJsonResponse('error', 'Error del Sistema', 'Ocurrió un error inesperado. Intenta más tarde'.$e->getMessage());
 }

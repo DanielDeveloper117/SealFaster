@@ -1,4 +1,6 @@
 <?php
+    require_once(__DIR__ . '/../../config/rutes.php');
+    require_once(ROOT_PATH . 'auth/session_manager.php');
     include(ROOT_PATH . 'includes/backend_info_user.php');
 ?>
 <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">

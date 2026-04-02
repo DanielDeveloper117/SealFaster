@@ -1,12 +1,8 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'includes/functions/control_cache.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -22,7 +18,6 @@ if (!isset($_SESSION['id'])) {
     <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
-    <!-- <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-table.css'); ?>">    -->
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>"> 
 
     <title>Usuarios</title>
