@@ -1,30 +1,28 @@
 <?php
-require_once(__DIR__ . '/../config/rutes.php');
-require_once(ROOT_PATH . 'config/config.php');
+// 1. Cargar rutas si es necesario para la redirección final
+// require_once(__DIR__ . '/../config/rutes.php');
 
-// Iniciar la sesión si no está iniciada
-session_start();
-// FUNCION CHISMOSA PARA GUARDAR ENCRIPTADAMENTE LO QUE VA HACIENDO EL USUARIO EN log_usuarios
-$sql_get_username = "SELECT usuario FROM login WHERE id = ?";
-$stmt_username = $conn->prepare($sql_get_username);
-$stmt_username->execute([$_SESSION['id']]);
-$username_row = $stmt_username->fetch(PDO::FETCH_ASSOC);
-
-if ($username_row) {
-    $username = $username_row['usuario'];
-    $sql_log = "INSERT INTO log_usuarios (Usuario, Accion, Instruccion) VALUES (?, 'Ha cerrado sesión', '')";
-    $stmt_log = $conn->prepare($sql_log);
-    $stmt_log->execute([$username]); 
-    
-} else {
-    // Si no se encuentra un usuario con el ID de sesión proporcionado
-    echo "No se encontró un usuario con el ID de sesión proporcionado.";
+// 2. Iniciar sesión para poder manipularla y luego borrarla
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
-//  FIN  FUNCION CHISMOSA PARA GUARDAR ENCRIPTADAMENTE LO QUE VA HACIENDO EL USUARIO EN log_usuarios
-// Destruir la sesión
+
+// 3. Limpiar todas las variables de sesión del array $_SESSION
+$_SESSION = array();
+
+// 4. DESTRUIR LA COOKIE DE SESIÓN (Crucial para seguridad)
+// Esto elimina el rastro del ID de sesión en el navegador del usuario.
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+
+// 5. Destruir la sesión en el servidor
 session_destroy();
 
-// Redirigir a index.php
+// 6. Redirigir al index o login
 header("Location: ../index.php");
-exit; // Asegurar que el script se detenga después de la redirección
-?>
+exit;
