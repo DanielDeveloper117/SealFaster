@@ -139,7 +139,8 @@ try {
                 estatus_completado, vendedor, img, cliente, tipo_cliente, codigo_cliente, correo_cliente,
                 a_sello_inch, di_sello_inch, de_sello_inch, a_sello2, di_sello2, de_sello2, a_sello_inch2, di_sello_inch2, de_sello_inch2, 
                 simulacion, 
-                fecha_insercion, fecha_vencimiento
+                fecha_insercion, fecha_vencimiento,
+                fecha, hora
                 ) 
             VALUES (
                 :id_cotizacion, :id_usuario, :familia_perfil, :perfil_sello, :cantidad_material, :material, :proveedor, 
@@ -151,13 +152,17 @@ try {
                 :estatus_completado, :vendedor, :img, :cliente, :tipo_cliente, :codigo_cliente, :correo_cliente, 
                 :a_sello_inch, :di_sello_inch, :de_sello_inch, :a_sello2, :di_sello2, :de_sello2, :a_sello_inch2, :di_sello_inch2, :de_sello_inch2, 
                 :simulacion, 
-                :fecha_insercion, :fecha_vencimiento
+                :fecha_insercion, :fecha_vencimiento,
+                :fecha, :hora
         )");
 
         // --- CALCULAR FECHAS DE VENCIMIENTO ---
         $fecha_actual = new DateTime('now', new DateTimeZone('America/Mexico_City'));
-        $fecha_insercion = $fecha_actual->format('Y-m-d H:i:s');
 
+        $fecha = $fecha_actual->format('Y-m-d'); // Formato DATE de MySQL
+        $hora  = $fecha_actual->format('H:i:s'); // Formato TIME de MySQL
+
+        $fecha_insercion = $fecha_actual->format('Y-m-d H:i:s');
         $fecha_vencimiento = clone $fecha_actual;
         $fecha_vencimiento->modify('+72 hours');
         $fecha_vencimiento = $fecha_vencimiento->format('Y-m-d H:i:s');
@@ -222,6 +227,9 @@ try {
 
         $stmt->bindParam(':fecha_insercion', $fecha_insercion);
         $stmt->bindParam(':fecha_vencimiento', $fecha_vencimiento);
+
+        $stmt->bindParam(':fecha', $fecha);
+        $stmt->bindParam(':hora', $hora);
         // Ejecutar la consulta
         $stmt->execute();
 

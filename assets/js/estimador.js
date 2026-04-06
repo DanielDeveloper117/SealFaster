@@ -313,7 +313,7 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
         $('#inputAlturaCajaInch').val('0.0000');
     }
 
-    if (window.ESCALON_EN != '0' && window.WIPER_ESPECIAL_EN === '0') {
+    if (window.ESCALON_EN != '0' && window.WIPER_ESPECIAL_EN == '0') {
         // const autoAlturaEscalon     = alturaBaseWiper * window.PORCENTAJE_H_ESCALON;
         // const autoAlturaEscalonInch = autoAlturaEscalon / 25.4;
         // $(`#inputAlturaEscalon_m${window.ESCALON_EN}`).val(autoAlturaEscalon.toFixed(2));
@@ -1458,7 +1458,7 @@ $(document).ready(function() {
         let aH3 = parseFloat($(`#inputAlturaH3`).val()).toFixed(2);
 
         $("#spanDimensiones").text(`${diResultante}/${deResultante}/${aResultante}`);
-        if(window.WIPER_EN != "0" && window.ESCALON_EN === "0"){
+        if(window.WIPER_EN != "0" && window.ESCALON_EN == "0"){
             $("#spanDimensiones2").text(`H caja: ${aCajaResultante}`);
         }
         if(window.ESCALON_EN != "0"){
@@ -1549,6 +1549,7 @@ $(document).ready(function() {
                     confirmButtonText: 'Ok',
                     confirmButtonColor: '#55AD9B',
                 });
+                $(this).removeClass("d-none");
             } else {
                 Swal.fire({
                     title: 'Proceso exitoso',
