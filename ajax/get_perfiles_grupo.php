@@ -11,11 +11,10 @@
 //       de entrega pero debe separarse en producción.
 // ============================================================
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-header('Content-Type: application/json');
 
-if (!isset($_SESSION['id'])) { echo json_encode([]); exit; }
+header('Content-Type: application/json');
 
 $tipo    = $_GET['tipo']     ?? 'asignados';
 $grupoId = (int)($_GET['grupo_id'] ?? 0);

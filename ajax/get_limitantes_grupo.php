@@ -6,11 +6,9 @@
 // GET params: grupo_id, dureza (blandos|duros)
 // ============================================================
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
 header('Content-Type: application/json');
-
-if (!isset($_SESSION['id'])) { echo json_encode([]); exit; }
 
 $grupoId = (int)($_GET['grupo_id'] ?? 0);
 $dureza  = in_array($_GET['dureza'] ?? '', ['blandos','duros']) ? $_GET['dureza'] : 'blandos';

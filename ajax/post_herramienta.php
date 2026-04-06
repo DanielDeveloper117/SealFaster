@@ -5,17 +5,11 @@
 // Acciones: insert | update | delete
 // ============================================================
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
+include(ROOT_PATH . 'includes/backend_info_user.php');
 
 header('Content-Type: application/json');
-
-// Verificar sesion activa
-if (!isset($_SESSION['id'])) {
-    echo json_encode(['success' => false, 'message' => 'Sesion no valida.']);
-    exit;
-}
-include(ROOT_PATH . 'includes/backend_info_user.php');
 // Verificar permiso: solo CNC Gerente, Administrador o Sistemas
 $tienePermiso = ($tipo_usuario === 'Administrador')
              || ($tipo_usuario === 'Sistemas')

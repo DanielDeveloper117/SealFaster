@@ -1,13 +1,6 @@
 <?php
 session_start();
 require_once(__DIR__ . '/../config/rutes.php');
-require_once(ROOT_PATH . 'config/config.php');
-// Cargar SecureLoader
-require_once(ROOT_PATH . 'config/secure_loader.php');
-
-// Importar sistemas de seguridad (fallará con mensaje simple si no existen)
-secure_require_once('rate_limiter.php');
-secure_require_once('ip_blocker.php');
 
 // ============ CONSTANTES DE SEGURIDAD ============
 define('MAX_LOGIN_ATTEMPTS', 3);
@@ -242,6 +235,10 @@ header("X-XSS-Protection: 1; mode=block");
 header("Content-Type: application/json");
 
 try {
+    require_once(ROOT_PATH . 'config/config.php');
+    // Importar sistemas de seguridad (fallará con mensaje simple si no existen)
+    secure_require_once('rate_limiter.php');
+    secure_require_once('ip_blocker.php');
     // 1. Verificar IP bloqueada
     if (!block_ip_check()) {
         logSuspiciousAttempt("IP bloqueada intentando acceso", $_POST);
@@ -299,7 +296,7 @@ try {
         
         sendJsonResponse('warning', 'Credenciales Inválidas', 'Usuario o contraseña incorrectos.');
     }
-    
+
     // 8. Usar la clave de encriptación de credentials.php
     $clave_encriptacion = $PASS_UNCRIPT  ?? 'clave_secreta_por_defecto';
     
@@ -436,7 +433,6 @@ try {
         $_SERVER['REMOTE_ADDR']
     ]);
 
-    define('ACCESO_PERMITIDO', true);
     // 16. Enviar respuesta de éxito
     sendJsonResponse('success', 'Acceso correcto', 'Inicio de sesión exitoso. Redirigiendo...', 'includes/animacionsvg.php');
 

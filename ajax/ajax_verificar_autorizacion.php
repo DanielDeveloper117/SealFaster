@@ -1,12 +1,9 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-header('Content-Type: application/json; charset=UTF-8');
 
-if (!isset($_GET['id_requisicion'], $_GET['autoriza'])) {
-    echo 'false';
-    exit;
-}
+header('Content-Type: application/json; charset=UTF-8');
 
 $id = $_GET['id_requisicion'];
 $autoriza = $_GET['autoriza'];

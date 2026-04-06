@@ -1,142 +1,91 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
+require_once(ROOT_PATH . 'includes/webp_conversor.php'); // Importamos tu Helper
 
 try {
     header('Content-Type: application/json');
     
-    // Verificar que sea una petición POST
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        echo json_encode(['success' => false, 'error' => 'Método no permitido']);
-        exit;
+        throw new Exception('Método no permitido');
     }
     
-    // Verificar datos requeridos
-    if (!isset($_POST['id_cotizacion']) || empty($_POST['id_cotizacion'])) {
-        echo json_encode(['success' => false, 'error' => 'ID de cotización requerido']);
-        exit;
-    }
+    $id_cotizacion = $_POST['id_cotizacion'] ?? null;
+    $comentario = trim($_POST['comentario'] ?? '');
     
-    if (!isset($_POST['comentario']) || empty(trim($_POST['comentario']))) {
-        echo json_encode(['success' => false, 'error' => 'Comentario requerido']);
-        exit;
-    }
+    if (!$id_cotizacion) throw new Exception('ID de cotización requerido');
+    if (empty($comentario)) throw new Exception('Comentario requerido');
     
-    $id_cotizacion = $_POST['id_cotizacion'];
-    $comentario = trim($_POST['comentario']);
-    
-    // Procesar archivo adjunto
     $ruta_adjunto = null;
     
     if (isset($_FILES['nombre_archivo']) && $_FILES['nombre_archivo']['error'] === UPLOAD_ERR_OK) {
         $archivo = $_FILES['nombre_archivo'];
         
-        // 1. Validar extensión
-        $extensiones_permitidas = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'xls', 'xlsx'];
-        $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
-        
-        if (!in_array($extension, $extensiones_permitidas)) {
-            echo json_encode([
-                'success' => false, 
-                'error' => 'Tipo de archivo no permitido. Extensiones permitidas: ' . implode(', ', $extensiones_permitidas)
-            ]);
-            exit;
-        }
-
-        // 2. Validar MIME type (Ciberseguridad)
-        $allowed_mime_types = [
-            'application/pdf',
-            'application/msword', // .doc
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-            'image/jpeg',
-            'image/png',
-            'application/vnd.ms-excel', // .xls
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' // .xlsx
-        ];
-        
+        // 1. Ciberseguridad: Validar MIME Type Real
         $finfo = finfo_open(FILEINFO_MIME_TYPE);
         $mime_type = finfo_file($finfo, $archivo['tmp_name']);
         finfo_close($finfo);
 
-        if (!in_array($mime_type, $allowed_mime_types)) {
-            echo json_encode([
-                'success' => false, 
-                'error' => 'El contenido del archivo no coincide con su extensión permitida (MIME type no válido: ' . $mime_type . ')'
-            ]);
-            exit;
+        $allowed_mimes = [
+            'image/jpeg', 'image/png', 'image/webp', 'image/gif',
+            'application/pdf',
+            'application/msword', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        if (!in_array($mime_type, $allowed_mimes)) {
+            throw new Exception("Tipo de archivo no permitido (MIME: $mime_type)");
         }
-        
-        // 3. Validar tamaño (máximo 10MB)
-        if ($archivo['size'] > 10 * 1024 * 1024) {
-            echo json_encode(['success' => false, 'error' => 'El archivo no puede ser mayor a 10MB']);
-            exit;
-        }
-        
-        // 4. Sanitizar y Renombrar (Ciberseguridad)
-        // Eliminamos caracteres extraños y prevenimos ataques de doble extensión
-        $nombre_limpio = preg_replace('/[^a-zA-Z0-9]/', '_', pathinfo($archivo['name'], PATHINFO_FILENAME));
-        // Generamos un nombre completamente único e impredecible
-        $nombre_unico = time() . '_' . bin2hex(random_bytes(4)) . '_' . $nombre_limpio . '.' . $extension;
-        
-        // 5. Crear directorio si no existe
+
+        // 2. Definir Directorio
         $directorio_base = ROOT_PATH . "files/adjuntos_cotizaciones/" . $id_cotizacion . "/";
-        if (!is_dir($directorio_base)) {
-            if (!mkdir($directorio_base, 0755, true)) {
-                echo json_encode(['success' => false, 'error' => 'No se pudo crear el directorio para archivos']);
-                exit;
+
+        // 3. Lógica Híbrida: ¿Es imagen o documento?
+        $es_imagen = strpos($mime_type, 'image/') === 0;
+
+        if ($es_imagen) {
+            // OPTIMIZACIÓN: Usar ImageHelper para convertir a WebP
+            $nombre_final = ImageHelper::processAndConvertToWebP(
+                $archivo, 
+                $directorio_base, 
+                'adjunto_img_' . bin2hex(random_bytes(4))
+            );
+        } else {
+            // SEGURIDAD DOCUMENTOS: Sanitización estricta
+            $extension = strtolower(pathinfo($archivo['name'], PATHINFO_EXTENSION));
+            $nombre_limpio = preg_replace('/[^a-zA-Z0-9]/', '_', pathinfo($archivo['name'], PATHINFO_FILENAME));
+            $nombre_final = time() . '_' . bin2hex(random_bytes(4)) . '_' . $nombre_limpio . '.' . $extension;
+            
+            if (!is_dir($directorio_base)) mkdir($directorio_base, 0755, true);
+            
+            if (!move_uploaded_file($archivo['tmp_name'], $directorio_base . $nombre_final)) {
+                throw new Exception('Error al guardar el documento');
             }
         }
         
-        $ruta_completa = $directorio_base . $nombre_unico;
-        
-        // 6. Mover archivo
-        if (!move_uploaded_file($archivo['tmp_name'], $ruta_completa)) {
-            echo json_encode(['success' => false, 'error' => 'Error al guardar el archivo']);
-            exit;
-        }
-        
-        // Guardar ruta relativa para la base de datos
-        $ruta_adjunto = "files/adjuntos_cotizaciones/" . $id_cotizacion . "/" . $nombre_unico;
+        $ruta_adjunto = "files/adjuntos_cotizaciones/" . $id_cotizacion . "/" . $nombre_final;
     }
-    // else {
-    //     echo json_encode(['success' => false, 'error' => 'Archivo adjunto requerido']);
-    //     exit;
-    // }
-    
-    // Insertar en base de datos
+
+    // 4. Inserción en BD
     $sql = "INSERT INTO comentarios_adjuntos (id_cotizacion, comentario, ruta_adjunto, fecha_creacion) 
             VALUES (:id_cotizacion, :comentario, :ruta_adjunto, NOW())";
     
     $stmt = $conn->prepare($sql);
-    $stmt->bindParam(':id_cotizacion', $id_cotizacion);
-    $stmt->bindParam(':comentario', $comentario);
-    $stmt->bindParam(':ruta_adjunto', $ruta_adjunto);
-    
-    if ($stmt->execute()) {
-        echo json_encode([
-            'success' => true,
-            'message' => 'Comentario agregado correctamente',
-            'id_registro' => $conn->lastInsertId()
-        ]);
-    } else {
-        // Si falla la inserción, eliminar el archivo subido
-        if ($ruta_adjunto && file_exists(ROOT_PATH . $ruta_adjunto)) {
-            unlink(ROOT_PATH . $ruta_adjunto);
-        }
-        echo json_encode(['success' => false, 'error' => 'Error al guardar en base de datos']);
-    }
-    
-} catch (PDOException $e) {
-    // Eliminar archivo si hubo error en BD
-    if (isset($ruta_adjunto) && $ruta_adjunto && file_exists(ROOT_PATH . $ruta_adjunto)) {
+    $stmt->execute([
+        ':id_cotizacion' => $id_cotizacion,
+        ':comentario' => $comentario,
+        ':ruta_adjunto' => $ruta_adjunto
+    ]);
+
+    echo json_encode(['success' => true, 'message' => 'Comentario y adjunto procesados con éxito']);
+
+} catch (Exception $e) {
+    // Limpieza en caso de error
+    if (isset($ruta_adjunto) && file_exists(ROOT_PATH . $ruta_adjunto)) {
         unlink(ROOT_PATH . $ruta_adjunto);
     }
-    
-    echo json_encode([
-        'success' => false, 
-        'error' => 'Error de base de datos: ' . $e->getMessage()
-    ]);
-} finally {
-    $conn = null;
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

@@ -1,12 +1,9 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 include(ROOT_PATH . 'includes/backend_info_user.php');
+
 header('Content-Type: application/json');
 
 try {

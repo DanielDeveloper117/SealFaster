@@ -1,14 +1,10 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-session_start();
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
@@ -18,39 +14,40 @@ try {
     header('Content-Type: application/json');
 
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'message' => 'Método no permitido.']);
-        exit;
+        throw new Exception('Método no permitido.', 405);
     }
 
-    // Validación básica del parámetro
     if (!isset($_POST['id_requisicion']) || !ctype_digit($_POST['id_requisicion'])) {
-        echo json_encode(['success' => false, 'message' => "Parámetros incompletos o inválidos."]);
-        exit;
+        throw new Exception("Parámetros incompletos o inválidos.");
     }
 
     $id_requisicion = intval($_POST['id_requisicion']);
 
-    // Actualizar estatus a Pendiente
-    $stmt = $conn->prepare("UPDATE requisiciones 
-                            SET estatus = 'Pendiente',
-                            ruta_firma = null,
-                            ruta_firma_admin = null,
-                            autorizo = null,
-                            fecha_autorizacion = null
-                            WHERE id_requisicion = :id_requisicion");
-    $stmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmt->execute();
+    // --- INICIO DE TRANSACCIÓN ---
+    $conn->beginTransaction();
 
-    if ($stmt->rowCount() === 0) {
-        echo json_encode([
-            'success' => false,
-            'message' => 'No se encontró la requisición o no se realizaron cambios.'
-        ]);
-        exit;
+    // 1. ELIMINAR registros en control_almacen coincidentes
+    // Borramos los registros que se crearon cuando la requisición fue autorizada.
+    $stmtDelControl = $conn->prepare("DELETE FROM control_almacen WHERE id_requisicion = :id_requisicion");
+    $stmtDelControl->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtDelControl->execute();
+
+    // 2. Actualizar estatus de la Requisición a Pendiente y limpiar firmas
+    $stmtReq = $conn->prepare("UPDATE requisiciones 
+                                SET estatus = 'Pendiente',
+                                    ruta_firma = null,
+                                    ruta_firma_admin = null,
+                                    autorizo = null,
+                                    fecha_autorizacion = null
+                                WHERE id_requisicion = :id_requisicion");
+    $stmtReq->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtReq->execute();
+
+    if ($stmtReq->rowCount() === 0) {
+        throw new Exception('No se encontró la requisición o no se realizaron cambios.');
     }
 
-    // 1. Obtener cotizaciones asociadas para actualizar inventario
+    // 3. Obtener cotizaciones para revertir inventario
     $sqlRequisicion = "SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion";
     $stmtRequisicion = $conn->prepare($sqlRequisicion);
     $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion);
@@ -60,51 +57,42 @@ try {
     if ($result && !empty($result['cotizaciones'])) {
         $cotizacion_ids = explode(', ', $result['cotizaciones']);
 
-        // 2. Actualizar estado de cada cotización
-        $sqlUpdateCotizacion = "UPDATE cotizacion_materiales SET estatus_completado = 'Cotización', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
-        $stmtUpdateCotizacion = $conn->prepare($sqlUpdateCotizacion);
+        // 4. Actualizar estado de cotizaciones
+        $sqlUpdateCot = "UPDATE cotizacion_materiales SET estatus_completado = 'Cotización', fecha_actualizacion = NOW() WHERE id_cotizacion = :id_cotizacion";
+        $stmtUpdateCot = $conn->prepare($sqlUpdateCot);
 
-        // 3. Obtener todos los lotes pedimento únicos de las cotizaciones
+        // 5. Revertir Inventario (pre_stock = stock)
         $placeholders = str_repeat('?,', count($cotizacion_ids) - 1) . '?';
         $sqlBillets = "SELECT DISTINCT billets FROM cotizacion_materiales WHERE id_cotizacion IN ($placeholders)";
         $stmtBillets = $conn->prepare($sqlBillets);
         $stmtBillets->execute($cotizacion_ids);
         $billetsResults = $stmtBillets->fetchAll(PDO::FETCH_ASSOC);
 
-        // 4. Extraer todos los lotes pedimento únicos
         $lotesUnicos = [];
         foreach ($billetsResults as $row) {
             if (!empty($row['billets'])) {
-                $billets = array_map('trim', explode(',', $row['billets']));
-                foreach ($billets as $billet) {
-                    $lotesUnicos[$billet] = true;
-                }
+                $billetsArr = array_map('trim', explode(',', $row['billets']));
+                foreach ($billetsArr as $billet) { $lotesUnicos[$billet] = true; }
             }
         }
 
-        // 5. Actualizar inventario para cada lote único
         if (!empty($lotesUnicos)) {
             $lotesArray = array_keys($lotesUnicos);
             $placeholdersLotes = str_repeat('?,', count($lotesArray) - 1) . '?';
-            
-            $sqlUpdateInventario = "UPDATE inventario_cnc 
-                                   SET pre_stock = stock, 
-                                       estatus = 'Disponible para cotizar', 
-                                       updated_at = NOW() 
-                                   WHERE lote_pedimento IN ($placeholdersLotes)";
-            
-            $stmtUpdateInventario = $conn->prepare($sqlUpdateInventario);
-            $stmtUpdateInventario->execute($lotesArray);
+            $sqlInv = "UPDATE inventario_cnc SET pre_stock = stock, estatus = 'Disponible para cotizar', updated_at = NOW() 
+                       WHERE lote_pedimento IN ($placeholdersLotes)";
+            $stmtInv = $conn->prepare($sqlInv);
+            $stmtInv->execute($lotesArray);
         }
 
-        // 6. Actualizar estado de cada cotización (esto se mantiene igual)
-        foreach ($cotizacion_ids as $id_cotizacion) {
-            $stmtUpdateCotizacion->bindValue(':id_cotizacion', $id_cotizacion);
-            $stmtUpdateCotizacion->execute();
+        foreach ($cotizacion_ids as $id_cot) {
+            $stmtUpdateCot->execute([':id_cotizacion' => $id_cot]);
         }
     }
 
-    // Preparar correo (esta parte se mantiene igual)
+    // Si todo salió bien hasta aquí, confirmamos los cambios
+    $conn->commit();
+
     $mail = null;
 
     try {
@@ -227,9 +215,12 @@ try {
     exit;
 
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Error de base de datos: ' . $e->getMessage()]);
+    if ($conn->inTransaction()) $conn->rollBack();
+    echo json_encode(['success' => false, 'message' => 'Error BD: ' . $e->getMessage()]);
 } catch (Throwable $e) {
-    echo json_encode(['success' => false, 'message' => 'Error inesperado: ' . $e->getMessage()]);
+    if ($conn->inTransaction()) $conn->rollBack();
+    echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 } finally {
     $conn = null;
 }
+?>

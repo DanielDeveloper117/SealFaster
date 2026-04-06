@@ -1,12 +1,8 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-// Verificar sesión activa
-session_start();
-if (!isset($_SESSION['id'])) {
-    echo json_encode(['success' => false, 'message' => 'Sesión no válida.']);
-    exit;
-}
+
 try{
     header('Content-Type: application/json');      
     // Preparar la consulta

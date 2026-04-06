@@ -1,6 +1,7 @@
 <?php
 // Cargar configuración
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {

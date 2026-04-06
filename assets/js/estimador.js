@@ -650,19 +650,11 @@ $(document).ready(function() {
                 console.log("Familia existe. Respuesta: ", data.familia_nombre);
                 console.log("Perfil existe. Respuesta: ", data.perfil);
             }
-            window.FAMILIA_PERFIL = data.familia_nombre;
+            window.FAMILIA_PERFIL = data.familia_nombre + " ("+data.familia_nombre2+")";
+            console.log(window.FAMILIA_PERFIL);
             window.DESCRIPCION_PERFIL = data.detalles;
             window.CON_RESORTE_EN = data.con_resorte_en;
             $(`#descripcionPerfil`).text(window.DESCRIPCION_PERFIL || "Sin detalles para este perfil");
-            switch (window.FAMILIA_PERFIL) {
-                case "rotary": window.FAMILIA_PERFIL = "Rotary (Rotativo)";  break;
-                case "piston": window.FAMILIA_PERFIL = "Piston (Pistón)";    break;
-                case "backup": window.FAMILIA_PERFIL = "Backup (Respaldo)";  break;
-                case "guide":  window.FAMILIA_PERFIL = "Guide (Guía)";       break;
-                case "wipers": window.FAMILIA_PERFIL = "Wiper (Limpiador)";  break;
-                case "rod":    window.FAMILIA_PERFIL = "Rod (Vástago)";      break;
-                default:       window.FAMILIA_PERFIL = "";                   break;
-            }
             $(".familia-perfil").val(window.FAMILIA_PERFIL);
             if(window.CON_RESORTE_EN != "0"){
                 console.log("Si tiene resorte");

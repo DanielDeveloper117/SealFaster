@@ -14,12 +14,6 @@ class SessionManager {
                 'use_only_cookies' => true,
             ]);
         }
-        if (!defined('ACCESO_PERMITIDO')) {
-            // Si alguien entra por URL, esto lo detiene de inmediato
-            header('HTTP/1.1 403 Forbidden');
-            die("Error: Acceso no permitido / Direct access is forbidden.");
-            self::redirect();
-        }
         // 2. ¿Existe el ID de usuario?
         if (!isset($_SESSION['id']) || empty($_SESSION['id'])) {
             self::redirect();

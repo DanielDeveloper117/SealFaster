@@ -115,13 +115,6 @@ class PDF extends FPDF {
 
 }
 
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    header("Location: ../../auth/cerrar_sesion.php");
-    exit;
-}
-
 $pdf = new PDF();
 $pdf->AddPage('P'); // orientación horizontal
 $pdf->AliasNbPages(); // muestra la página actual y el total de páginas

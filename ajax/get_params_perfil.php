@@ -14,11 +14,9 @@
 // GET params: perfil_id, tipo (porcentajes|tolerancias)
 // ============================================================
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
 header('Content-Type: application/json');
-
-if (!isset($_SESSION['id'])) { echo json_encode([]); exit; }
 
 $perfilId = (int)($_GET['perfil_id'] ?? 0);
 $tipo     = $_GET['tipo'] ?? '';

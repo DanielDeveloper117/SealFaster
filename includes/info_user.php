@@ -1,8 +1,4 @@
 <?php
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 
 $id_usuario2 = $_SESSION['id'];
 $sql2 = "SELECT * FROM login WHERE id = :id_usuario";

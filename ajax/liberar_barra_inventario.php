@@ -1,17 +1,9 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
+
 header('Content-Type: application/json');
-// Validar sesión
-if (!isset($_SESSION['id'])) {
-    http_response_code(401);
-    echo json_encode([
-        'error' => true,
-        'mensaje' => 'No autorizado. Por favor inicie sesión.'
-    ]);
-    exit;
-}
 try {
 
     $lote_pedimento = isset($_POST['lote_pedimento']) ? trim($_POST['lote_pedimento']) : '';

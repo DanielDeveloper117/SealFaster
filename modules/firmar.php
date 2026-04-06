@@ -1,8 +1,6 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'includes/functions/control_cache.php');
-require_once(ROOT_PATH . 'config/config.php');
-require_once(ROOT_PATH . 'vendor/autoload.php');
 header('Content-Type: text/html; charset=UTF-8');
 ?>
 <!DOCTYPE html>
@@ -25,6 +23,8 @@ use PHPMailer\PHPMailer\Exception;
 set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
+require_once(ROOT_PATH . 'config/config.php');
+        require_once(ROOT_PATH . 'vendor/autoload.php');
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $token = $_POST['token'] ?? '';
@@ -33,6 +33,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario = $_POST["id_usuario"] ?? null;
 
     try {
+        
+        
         // Validar token
         $stmtToken = $conn->prepare("SELECT COUNT(*) FROM tokens_autorizacion WHERE token = :token");
         $stmtToken->bindParam(':token', $token);

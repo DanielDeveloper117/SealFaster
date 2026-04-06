@@ -379,7 +379,6 @@
 
 <script src="<?= controlCache('../assets/js/estimador.js'); ?>"></script>
 <script src="<?= controlCache('../assets/js/'.$archivoEventos.''); ?>"></script>
-<script src="<?= controlCache('../assets/js/modal_comentarios_adjuntos.js'); ?>"></script>
 
 </body>
 </html>

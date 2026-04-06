@@ -5,17 +5,12 @@
 // Maneja 4 acciones: 'upload', 'process_chunk', 'finish', 'cancel'.
 // ============================================================
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'includes/functions/actualizar_inventario.php');
-
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    echo json_encode(['success' => false, 'message' => 'Sesión no válida.']);
-    exit;
-}
-$uid = (int)$_SESSION['id'];
 include(ROOT_PATH . 'includes/backend_info_user.php');
+
+$uid = (int)$_SESSION['id'];
 
 // ¡CRÍTICO PARA QUE FUNCIONE EL BOTÓN CANCELAR Y PETICIONES PARALELAS!
 // Libera el candado de sesión que PHP impone por defecto.

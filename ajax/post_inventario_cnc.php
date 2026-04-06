@@ -1,15 +1,11 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
 require_once(ROOT_PATH . 'vendor/autoload.php');
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
-session_start();
 
-if (!isset($_SESSION['id'])) {
-    header("Location: ../auth/cerrar_sesion.php");
-    exit;
-}
 header('Content-Type: application/json');
 
 try {
@@ -221,11 +217,6 @@ try {
     }
 
     if ($action === 'delete') {
-        // Validar que se haya subido una imagen
-        if (!isset($_FILES['foto_archivar']) || $_FILES['foto_archivar']['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception("Debe subir una fotografía de la barra para solicitar su archivado.");
-        }
-        
         $justificacion_archivado = $_POST['justificacion_archivado'];
         if (empty($id)) throw new Exception("ID requerido para archivar.");
         if (empty($justificacion_archivado)) throw new Exception("Justificación requerida para archivar.");
@@ -234,39 +225,39 @@ try {
         // Validar y procesar el archivo de imagen
         $file = $_FILES['foto_archivar'];
         
-        // Validar tipo de archivo
-        $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-        $file_type = mime_content_type($file['tmp_name']);
-        
-        if (!in_array($file_type, $allowed_types)) {
-            throw new Exception("Solo se permiten archivos de imagen (JPEG, PNG, GIF, WebP).");
+        // Validar que se haya subido una imagen
+        if (!isset($_FILES['foto_archivar']) || $_FILES['foto_archivar']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception("Debe subir una fotografía de la barra para solicitar su archivado.");
         }
-        
-        // Validar tamaño (máx. 5MB)
+
+        // 1. CIBERSEGURIDAD: Validar tamaño ANTES de procesar
         $max_size = 5 * 1024 * 1024; // 5MB
-        if ($file['size'] > $max_size) {
-            throw new Exception("La imagen no debe superar los 5MB.");
+        if ($_FILES['foto_archivar']['size'] > $max_size) {
+            throw new Exception("La imagen es demasiado pesada (Máx 5MB).");
         }
         
-        // Crear directorio si no existe
-        $upload_dir = ROOT_PATH . 'files/fotos/barras/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0775, true);
+        try {
+            // Importar la clase (ajusta la ruta según tu estructura)
+            require_once(ROOT_PATH . 'includes/webp_conversor.php');
+
+            $upload_dir = ROOT_PATH . 'files/fotos/barras/';
+            
+            // 2. USAR LA FUNCIÓN MODULAR
+            // Esto convierte a WebP, comprime y genera un nombre seguro automáticamente
+            $newFileName = ImageHelper::processAndConvertToWebP(
+                $_FILES['foto_archivar'], 
+                $upload_dir, 
+                'barra_' . $id
+            );
+
+            // 3. Ruta para la DB
+            $ruta_foto_barra = '../files/fotos/barras/' . $newFileName;
+            $file_path = $upload_dir . $newFileName; // Para PHPMailer
+
+        } catch (Exception $e) {
+            throw new Exception("Error procesando imagen: " . $e->getMessage());
         }
-        
-        // Generar nombre único para el archivo
-        $file_extension = pathinfo($file['name'], PATHINFO_EXTENSION);
-        $filename = 'barra_' . $id . '_' . time() . '.' . strtolower($file_extension);
-        $file_path = $upload_dir . $filename;
-        
-        // Mover archivo subido
-        if (!move_uploaded_file($file['tmp_name'], $file_path)) {
-            throw new Exception("Error al guardar la imagen en el servidor.");
-        }
-        
-        // Ruta relativa para guardar en la base de datos
-        $ruta_foto_barra = '../files/fotos/barras/' . $filename;
-        
+
         // Actualizar registro con la ruta de la foto
         $stmt = $conn->prepare("UPDATE inventario_cnc 
                                 SET estatus = 'Eliminado', 
@@ -341,7 +332,7 @@ try {
                     
                     $mail->Subject = $asunto;
                     $mail->Body = $cuerpo;
-                    $mail->AddEmbeddedImage($file_path, 'barra_foto', $filename);
+                    $mail->AddEmbeddedImage($file_path, 'barra_foto', $newFileName);
                     if($SEND_MAIL === true){
                         if (!$mail->send()) {
                             throw new Exception("No se pudo enviar el correo: " . $mail->ErrorInfo);

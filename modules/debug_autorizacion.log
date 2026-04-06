@@ -1,0 +1,22 @@
+[2026-04-06 18:21:53] === INICIO PROCESO AUTORIZACIÓN ===
+[2026-04-06 18:21:53] ID Requisición: 2218
+[2026-04-06 18:21:53] Cotizaciones encontradas: 98271769
+[2026-04-06 18:21:53] IDs de cotizaciones: 98271769
+[2026-04-06 18:21:53] Procesando cotización ID: 98271769
+[2026-04-06 18:21:53] Actualización estado cotización 98271769: ÉXITO
+[2026-04-06 18:21:53] Cotización ID 98271769 tiene 1 estimaciones
+[2026-04-06 18:21:53] Estimación - a_sello: 4.5, material: ECORUBBER 1
+[2026-04-06 18:21:53] Estimación - billets_lotes: R1SY065090-1 (65/90) 2 pz
+[2026-04-06 18:21:53] Material: ECORUBBER 1 -> Desbaste: 2
+[2026-04-06 18:21:53] Billets encontrados: 1
+[2026-04-06 18:21:53] Procesando billet 0: R1SY065090-1 (65/90) 2 pz
+[2026-04-06 18:21:53] LOTE PROCESADO - Lote: R1SY065090-1, Piezas: 2, Altura+pz: 6.5, Consumo: 13
+[2026-04-06 18:21:53] Consumo total acumulado por lote: Array
+(
+    [R1SY065090-1] => 13
+)
+
+[2026-04-06 18:21:53] Intentando actualizar inventario - Lote: R1SY065090-1, Restar: 13
+[2026-04-06 18:21:53] Lote encontrado - Pre_stock actual: 52.00
+[2026-04-06 18:21:53] Actualización lote R1SY065090-1 - Rows affected: 1, Éxito: SI
+[2026-04-06 18:21:53] === FIN PROCESO AUTORIZACIÓN ===

@@ -1,13 +1,8 @@
 <?php
 require_once(__DIR__ . '/../config/rutes.php');
+require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
-session_start();
-header('Content-Type: application/json');
-// Verificar sesión y permisos
-if (!isset($_SESSION['id'])) {
-    echo json_encode(['success' => false, 'message' => 'Sesión no válida.']);
-    exit;
-}
+
 try {
     if (!isset($_GET['id_cotizacion']) || !isset($_GET['componente'])) {
         throw new Exception("Faltan parámetros requeridos (id_cotizacion, componente).");

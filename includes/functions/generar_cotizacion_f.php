@@ -20,12 +20,6 @@ class PDF extends FPDF {
         $this->Cell(0, 15, "www.sellosyretenes.com", 0, 0, 'R');
     }
 }
-session_start();
-
-if (!isset($_SESSION['id'])) {
-    header("Location: ../../auth/cerrar_sesion.php");
-    exit;
-}
 
 $pdf = new PDF();
 $pdf->AddPage('L'); // orientación horizontal

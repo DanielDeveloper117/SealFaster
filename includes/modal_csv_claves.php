@@ -17,7 +17,7 @@
 
                 <div class="text-center mb-3">
                     <p class="mb-1 fw-semibold">Formato requerido del archivo CSV</p>
-                    <img src="../assets/img/general/formato_csv.jpg"
+                    <img src="../assets/img/general/formato_csv2.jpg"
                          class="img-fluid rounded border" alt="Formato CSV esperado"
                          style="max-height:160px;">
                 </div>
