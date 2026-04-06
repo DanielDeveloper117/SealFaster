@@ -8,6 +8,7 @@ header('Content-Type: text/html; charset=UTF-8');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
     <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
@@ -16,7 +17,9 @@ header('Content-Type: text/html; charset=UTF-8');
     <script src="<?= controlCache('../assets/dependencies/signature_pad.umd.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-firmar.css'); ?>">
+    
     <title>Firma de Requisición</title>
+
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;

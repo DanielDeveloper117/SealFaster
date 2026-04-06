@@ -9,7 +9,7 @@ require_once(ROOT_PATH . 'config/config.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Claves</title>
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
     <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
@@ -22,6 +22,9 @@ require_once(ROOT_PATH . 'config/config.php');
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>">
+
+    <title>Claves</title>
+    
 </head>
 <body>
 

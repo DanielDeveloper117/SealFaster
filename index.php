@@ -21,6 +21,7 @@ require_once(ROOT_PATH . '/includes/functions/control_cache.php');
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="./assets/img/general/favicon.ico?v=2" />
 
     <link href="<?= controlCache('./assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('./assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>

@@ -108,6 +108,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=yes">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/bootstrap-icons.min.css'); ?>">
     <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
@@ -127,7 +128,9 @@
 
     <link rel="stylesheet" href="<?= controlCache('../assets/css/styles-estimador2.css'); ?>">
     <link rel="stylesheet" href="<?= controlCache('../assets/css/select2-selector.css'); ?>">
+
     <title><?= $perfilOriginal ?></title>
+    
 </head>
 <body>
     

@@ -86,6 +86,7 @@ $arregloSelectModelos = $stmtModelos->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/font-awesome.min.css'); ?>">
     <link rel="stylessheet" href="<?= controlCache('../assets/dependencies/css2.css'); ?>">
     <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -96,7 +97,8 @@ $arregloSelectModelos = $stmtModelos->fetchAll(PDO::FETCH_ASSOC);
 
     <link rel="stylesheet" href="css/styles-formulario.css">
 
-    <title>Perfiles sellos</title>
+    <title>Ingresar</title>
+    
     <script>
         $(document).ready(function(){
           var table=  $('#modelosTable').DataTable({

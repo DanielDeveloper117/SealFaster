@@ -9,6 +9,7 @@ require_once(ROOT_PATH . 'config/config.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>

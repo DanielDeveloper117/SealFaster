@@ -9,6 +9,7 @@ require_once(ROOT_PATH . 'config/config.php');
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
     <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
@@ -16,7 +17,8 @@ require_once(ROOT_PATH . 'config/config.php');
     <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/select-familia.css'); ?>">
 
-    <title>Tipo de sello</title>
+    <title>Familias</title>
+
 </head>
 <body>
 

@@ -32,6 +32,7 @@ $arregloHerramientas = $stmtHerramientas->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
 
     <!-- jQuery -->
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
@@ -56,6 +57,7 @@ $arregloHerramientas = $stmtHerramientas->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css"'); ?>">
 
     <title>Catálogo Herramientas CNC</title>
+    
     <style>
         .dt-scroll {
             margin-top: 10px !important;
