@@ -1308,20 +1308,20 @@ $(document).ready(function() {
         modal.show();
     });
     // ESCUCHAR EL CHECK DE OMITIR ELEMENTO
-// for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
-// $(`#checkboxOmitirElemento_m${i}`).on('change', function() {
+    // for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
+    // $(`#checkboxOmitirElemento_m${i}`).on('change', function() {
 
-// }                    
-// $("#checkboxOmitirElemento_m1, #checkboxOmitirElemento_m2, #checkboxOmitirElemento_m3, #checkboxOmitirElemento_m4, #checkboxOmitirElemento_m5").on("change", function(){
-//         if ($(this).is(':checked')) {
-//             window.MATERIALES_COMPLETADOS += 1;
-//             habilitarCotizacion();
-//         } else {
-//             window.MATERIALES_COMPLETADOS -= 1;
-//             habilitarCotizacion();
-//         }
-//     });
-// }
+    // }                    
+    // $("#checkboxOmitirElemento_m1, #checkboxOmitirElemento_m2, #checkboxOmitirElemento_m3, #checkboxOmitirElemento_m4, #checkboxOmitirElemento_m5").on("change", function(){
+    //         if ($(this).is(':checked')) {
+    //             window.MATERIALES_COMPLETADOS += 1;
+    //             habilitarCotizacion();
+    //         } else {
+    //             window.MATERIALES_COMPLETADOS -= 1;
+    //             habilitarCotizacion();
+    //         }
+    //     });
+    // }
     // ESCUCHAR EL CLICK DE COMPLETAR UN MATERIAL
     $("#btnListo_m1, #btnListo_m2, #btnListo_m3, #btnListo_m4, #btnListo_m5").on("click", function(){
         window.MATERIALES_COMPLETADOS += 1;
@@ -1565,7 +1565,7 @@ $(document).ready(function() {
                     if (result.isConfirmed) {
 
                         //window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
-                        const savedDefault = localStorage.getItem('filtroDefault') || '0';
+                        const savedDefault = localStorage.getItem('filtroDefault') || '1';
                         window.location.href = `cotizaciones.php?cot=u&default=${savedDefault}`;
 
                         $.post("../ajax/ajax_notificacion.php", {
@@ -1589,111 +1589,5 @@ $(document).ready(function() {
         e.target.classList.add('pop');
         setTimeout(() => e.target.classList.remove('pop'), 220);
     });
-
-    async function mostrarNotificaciones() {
-        // Primer Modal
-        if (!localStorage.getItem("ocultarInfoFastSealMode")) {
-            const result1 = await Swal.fire({
-                title: 'Actualización Tipo de Inventario',
-                text: 'Posibilidad de seleccionar si la cotización estará sujeta al stock (de inventario cnc) o será estimación de costos sin tomar en cuenta existencia de billets (como el FastSeal).',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                toast: true,
-                width: '500px',
-                position: 'bottom-end',
-                input: 'checkbox',
-                inputPlaceholder: 'No mostrar nuevamente'
-            });
-
-            // Guardamos solo si el checkbox fue marcado
-            if (result1.value) {
-                localStorage.setItem("ocultarInfoFastSealMode", "1");
-            }
-        }
-
-        // Segundo Modal (Se ejecuta después del primero, independientemente del checkbox)
-        if (!localStorage.getItem("ocultarInfoFastSealMode2")) {
-            const result2 = await Swal.fire({
-                title: 'Actualización Omitir Elemento',
-                text: 'Capacidad para omitir de la cotización elementos que conforman un perfil de mas de 1 material.',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                toast: true,
-                width: '500px',
-                position: 'bottom-end',
-                input: 'checkbox',
-                inputPlaceholder: 'No mostrar nuevamente'
-            });
-
-            if (result2.value) {
-                localStorage.setItem("ocultarInfoFastSealMode2", "1");
-            }
-        }
-        if (!localStorage.getItem("ocultarInfoPdfUpdated")) {
-            const result2 = await Swal.fire({
-                title: 'Actualización Guía de Usuario',
-                text: 'Se incluyeron las nuevas funcionalidades en la guía de usuario vendedor.',
-                icon: 'info',
-                confirmButtonText: 'Entendido',
-                toast: true,
-                width: '500px',
-                position: 'bottom-end',
-                input: 'checkbox',
-                inputPlaceholder: 'No mostrar nuevamente'
-            });
-            
-            if (result2.value) {
-                localStorage.setItem("ocultarInfoPdfUpdated", "1");
-                $.post("../ajax/ajax_notificacion.php", {
-                    mensaje: "Ya lo vio"
-                }).done(function (response) {
-                    console.log("Notificación enviada:", response);
-                }).fail(function (error) {
-                    console.error("Error al enviar notificación:", error);
-                });
-            }
-        }
-    }
-
-    //mostrarNotificaciones();
-    // Verificar si ya existe la preferencia en localStorage
-    /*
-    if (!localStorage.getItem("ocultarInfoValidacion")) {
-        Swal.fire({
-            title: 'Informacion importante',
-            text: 'Actualmente se estan desarrollando las tolerancias y limitantes de dimensiónes. No todos los perfiles cuentan con tales validaciones.',
-            icon: 'info',
-            confirmButtonText: 'Entendido',
-            width: '400px',
-            padding: '10px',
-            position: 'bottom-end',
-            toast: true,
-            showConfirmButton: true,
-            showCloseButton: false,
-            input: 'checkbox',
-            inputPlaceholder: 'No mostrar nuevamente',
-            inputAttributes: {
-            id: 'noMostrarCheckbox'
-            }
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-            // Guardar preferencia en localStorage
-            localStorage.setItem("ocultarInfoValidacion", "1");
-            }
-        });
-    }
-    */
-    // Swal.fire({
-    //     title: 'Informacion importante',
-    //     text: 'Actualmente se estan realizando pruebas acerca de la validación de tolerancias y limitantes de dimensiones. No se asegura la precison de las mismas.',
-    //     icon: 'info',
-    //     confirmButtonText: 'Entendido',
-    //     width: '400px',  // Tamaño pequeño del modal
-    //     padding: '10px',  // Relleno para que se vea agradable
-    //     position: 'bottom-end', // Coloca el modal en la esquina superior derecha (puedes cambiarlo)
-    //     toast: true, // Mostrar como un "toast", que es una notificación pequeña
-    //     timer: 5300, // El modal desaparece automáticamente después de 5 segundos (opcional)
-    //     showConfirmButton: true // Mostrar el botón de confirmación
-    // });
 
 });

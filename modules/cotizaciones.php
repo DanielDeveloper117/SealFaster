@@ -11,10 +11,10 @@ require_once(ROOT_PATH . 'config/config.php');
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
     <script src="<?= controlCache('../assets/dependencies/jquery.min.js'); ?>"></script>
-    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
-    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/sweetalert2.min.css'); ?>">
     <script src="<?= controlCache('../assets/dependencies/sweetalert2@11.js'); ?>"></script>
+    <link href="<?= controlCache('../assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
+    <script src="<?= controlCache('../assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
     <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
