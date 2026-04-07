@@ -7,7 +7,7 @@
 
             <div class="modal-header">
                 <h5 id="titleModalCsvClaves" class="modal-title">
-                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Carga masiva de claves CSV
+                    <i class="bi bi-file-earmark-arrow-up me-1"></i> Carga masiva de claves CSV partir del excel
                 </h5>
                 <button id="btnCerrarModalCsvClaves" type="button"
                         class="btn-close" aria-label="Cerrar"></button>
@@ -18,8 +18,9 @@
                 <div class="text-center mb-3">
                     <p class="mb-1 fw-semibold">Formato requerido del archivo CSV</p>
                     <img src="../assets/img/general/formato_csv2.jpg"
-                         class="img-fluid rounded border" alt="Formato CSV esperado"
+                         class="img-fluid rounded border mb-1" alt="Formato CSV esperado"
                          style="max-height:160px;">
+                    <span class="text-muted mb-1" style="font-size:0.8rem;">Claves existentes serán actualizadas, las nuevas se agregan automáticamente</span>                
                 </div>
 
                 <form id="formCsvClaves" autocomplete="off" novalidate>
@@ -30,33 +31,37 @@
                     </div>
 
                     <div class="mb-3 p-3 rounded" style="background:#f8f9fa; border:1px solid #dee2e6;">
-                        <label class="lbl-general mb-2 d-block border-bottom pb-1">Seleccione cómo actualizar el Inventario (inventario_cnc)</label>
+                        <label class="lbl-general mb-1 d-block ">Seleccione método para actualizar el Inventario CNC</label>
+                        <span class="text-muted mb-1 pb-1" style="font-size:0.8rem;">Se actualizarán los datos: clave, material, proveedor, medida y max usable de las barras en el inventario.</span>                
+                        <div class="text-muted mb-2 border-bottom pb-1 w-100"></div>                
+
+
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="sync_mode" id="syncClave" value="sync_clave" checked>
                             <label class="form-check-label" for="syncClave">
                                 <strong>Mediante clave principal</strong><br>
-                                <span class="text-muted" style="font-size:0.8rem;">Actualiza registros en inventario usando únicamente la columna 'clave'.</span>
+                                <span class="text-muted" style="font-size:0.8rem;">Usar la columna 'clave' del excel.</span>
                             </label>
                         </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="sync_mode" id="syncAlterna" value="sync_alterna">
                             <label class="form-check-label" for="syncAlterna">
                                 <strong>Mediante clave alterna</strong><br>
-                                <span class="text-muted" style="font-size:0.8rem;">Actualiza registros en inventario usando únicamente la columna 'clave_alterna'.</span>
+                                <span class="text-muted" style="font-size:0.8rem;">Usar la columna 'clave_alterna' del excel para actualizar.</span>
                             </label>
                         </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="sync_mode" id="syncAmbas" value="sync_ambas">
                             <label class="form-check-label" for="syncAmbas">
                                 <strong>Mediante ambas</strong><br>
-                                <span class="text-muted" style="font-size:0.8rem;">Escanea el inventario buscando coincidencias tanto en clave principal como en clave alterna.</span>
+                                <span class="text-muted" style="font-size:0.8rem;">Primero buscar barras coincidentes mediante columna 'clave' y despues con columna 'clave_alterna' del excel.</span>
                             </label>
                         </div>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="sync_mode" id="syncNada" value="sync_nada">
                             <label class="form-check-label" for="syncNada">
                                 <strong>No actualizar el Inventario CNC</strong><br>
-                                <span class="text-muted" style="font-size:0.8rem;">Omitirá la actualización del inventario CNC por completo. El proceso solo actualizará la tabla de claves.</span>
+                                <span class="text-muted" style="font-size:0.8rem;">Omitirá la actualización del inventario CNC por completo.</span>
                             </label>
                         </div>
                     </div>
@@ -240,7 +245,7 @@
             var input = $('#inputCsvArchivo')[0];
             $('#pCsvError').addClass('d-none').text('');
 
-            if (!input.files || input.files.length === 0) {
+            if (!input.files || input.files.length == 0) {
                 $('#pCsvError').removeClass('d-none').text('Seleccione un archivo CSV.');
                 return;
             }

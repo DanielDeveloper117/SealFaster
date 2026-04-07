@@ -278,7 +278,7 @@ $(document).ready(function () {
                 const errores = fallos.map(f => f.reason).join('\n');
                 Swal.fire({
                     title: 'Ocurrió un problema',
-                    text: 'Hubo un error al actualizar alguna cotización. ' + errores + 'Si el problema persiste, contacte el área de sistemas.',
+                    text: 'Hubo un error al actualizar alguna cotización. ' + errores + ' Si el problema persiste, contacte el área de sistemas.',
                     icon: 'error',
                     allowOutsideClick: false,
                     allowEscapeKey: false,

@@ -175,7 +175,7 @@ require_once(ROOT_PATH . 'config/config.php');
                                         // CNC Gerente puede editar medidas
                                         //if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
                                         if ($tipo_usuario === "CNC" && $rol_usuario == "Gerente") {
-                                            echo '<button type="button" class="btn-thunder btn-editar-medidas" 
+                                            echo '<button type="button" class="btn-thunder d-none btn-editar-medidas" 
                                                     data-bs-toggle="modal" data-bs-target="#modalEditarMedidas"
                                                     data-id-requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
                                                     title="Editar medidas de las cotizaciones">
@@ -352,7 +352,7 @@ require_once(ROOT_PATH . 'config/config.php');
                                                     title="Retornar barras al inventario con nuevo stock">
                                                     <i class="bi bi-database-fill-down"></i>
                                                 </button>';
-                                        }else if ($tipo_usuario === "CNC") {
+                                        }else if ($tipo_usuario === "CNC" || $tipo_usuario === "Administrador") {
                                             if($row["fecha_revision_maquinado"] == Null){
                                                 $classBtnColor = "btn-amber";
                                                 $iconStatus = '<i class="bi bi-clipboard-check"></i>';

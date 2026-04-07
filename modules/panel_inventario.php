@@ -619,7 +619,7 @@ require_once(ROOT_PATH . 'config/config.php');
                                 `
                                 <tr>
                                     <td>${item.clave}</td>
-                                    <td>${item.clave_alterna}</td>
+                                    <td>${item.clave_alterna ?? "No existe"}</td>
                                     <td>${item.proveedor}</td>
                                     <td>${item.material}</td>
                                     <td>${item.tipo}</td>

@@ -161,23 +161,23 @@ require_once(ROOT_PATH . 'config/config.php');
     }else if (isset($_GET['pendientes'])) {
         
         $sqlInventario = 
-            "SELECT 
-                i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
-                i.material, i.max_usable, i.stock, i.lote_pedimento,
-                i.estatus, i.updated_at, a.almacen
-            FROM sellosyr_sellosctd.inventario_cnc AS i
-            INNER JOIN sellosyr_sellosctd.almacenes AS a 
-                ON i.almacen_id = a.id
-            WHERE 
-                -- Condición 1: El estatus es incorrecto
-                (i.estatus = 'Clave incorrecta' OR i.estatus = 'Clave nueva pendiente' OR i.estatus = 'Relación pendiente')
-                OR 
-                -- Condición 2: NO existe ni en clave ni en clave_alterna
-                NOT EXISTS (
-                    SELECT 1 FROM sellosyr_sellosctd.parametros p 
-                    WHERE p.clave = i.Clave OR p.clave_alterna = i.Clave
-                )
-            ORDER BY i.id DESC -- Cambiado de 'interior' a 'id' para usar índice primario
+            "
+                SELECT 
+                    i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
+                    i.material, i.max_usable, i.stock, i.lote_pedimento,
+                    i.estatus, i.updated_at, a.almacen
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a 
+                    ON i.almacen_id = a.id
+                LEFT JOIN sellosyr_sellosctd.parametros p1 
+                    ON i.Clave = p1.clave
+                LEFT JOIN sellosyr_sellosctd.parametros p2 
+                    ON i.Clave = p2.clave_alterna
+                WHERE 
+                    i.estatus IN ('Clave incorrecta', 'Clave nueva pendiente', 'Relación pendiente')
+                    OR 
+                    (p1.clave IS NULL AND p2.clave_alterna IS NULL)
+                ORDER BY i.id DESC;
         ";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->execute();
@@ -202,13 +202,17 @@ require_once(ROOT_PATH . 'config/config.php');
     }elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
 
         $sqlInventario = "
-            SELECT i.*, 
-                (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-            FROM sellosyr_sellosctd.inventario_cnc AS i
-            INNER JOIN sellosyr_sellosctd.almacenes AS a
-                ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen
-            ORDER BY i.interior DESC";
+                    SELECT 
+                    i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
+                    i.material, i.max_usable, i.stock, i.lote_pedimento,
+                    i.estatus, i.updated_at,
+                    a.almacen 
+                FROM sellosyr_sellosctd.inventario_cnc AS i
+                INNER JOIN sellosyr_sellosctd.almacenes AS a
+                    ON i.almacen_id = a.id
+                WHERE i.almacen_id = :origen
+                ORDER BY i.id DESC
+            ";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
         $stmtInventario->execute();
