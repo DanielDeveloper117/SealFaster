@@ -471,10 +471,7 @@ require_once(ROOT_PATH . 'config/config.php');
         <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
             <div class="row mb-3">
                 <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
-                    <button id="btnFiltrosBusqueda" type="button" 
-                            class="btn-purple" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalFiltrosBusqueda">
+                    <button id="btnFiltrosBusqueda" type="button" class="btn-purple">
                         <i class="bi bi-funnel"></i> Filtros de busqueda
                     </button>
                     <a id="btnInitFusionar" class="btn-unlink" href="#">
