@@ -297,14 +297,18 @@ require_once(ROOT_PATH . 'config/config.php');
             ";
 
         } else {
-            // FUSIONADAS: fila más reciente por id_fusion
+            // 1. DESACTIVAR EL MODO ESTRICTO PARA ESTA CONSULTA
+            // Esto evita que cm.* rompa el script por el modo only_full_group_by
+            $conn->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+
+            // 2. FUSIONADAS: fila más reciente por id_fusion
             $sqlCotizaciones = "
                 SELECT cm.*, COUNT(ca.id) AS total_comentarios
                 FROM cotizacion_materiales cm
                 INNER JOIN (
-                SELECT id_fusion, MAX(id_estimacion) as max_id
-                FROM cotizacion_materiales
-                WHERE id_fusion IS NOT NULL
+                    SELECT id_fusion, MAX(id_estimacion) as max_id
+                    FROM cotizacion_materiales
+                    WHERE id_fusion IS NOT NULL
             ";
 
             if (!$isAdmin) {
@@ -345,8 +349,8 @@ require_once(ROOT_PATH . 'config/config.php');
             }
 
             $sqlCotizaciones .= "
-                GROUP BY id_fusion
-                    ) t ON cm.id_estimacion = t.max_id
+                    GROUP BY id_fusion
+                ) t ON cm.id_estimacion = t.max_id
                 LEFT JOIN comentarios_adjuntos ca ON cm.id_cotizacion = ca.id_cotizacion
                 GROUP BY cm.id_estimacion
                 ORDER BY cm.id_estimacion DESC
@@ -471,7 +475,10 @@ require_once(ROOT_PATH . 'config/config.php');
         <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
             <div class="row mb-3">
                 <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
-                    <button id="btnFiltrosBusqueda" type="button" class="btn-purple">
+                    <button id="btnFiltrosBusqueda" type="button" 
+                            class="btn-purple" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modalFiltrosBusqueda">
                         <i class="bi bi-funnel"></i> Filtros de busqueda
                     </button>
                     <a id="btnInitFusionar" class="btn-unlink" href="#">

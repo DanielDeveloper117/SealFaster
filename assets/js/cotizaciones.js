@@ -336,13 +336,9 @@ $(document).ready(function () {
     });
 
     // Cargar filtros activos al abrir el modal
-    $('#btnFiltrosBusqueda').on('click', function () {
+    $('#modalFiltrosBusqueda').on('show.bs.modal', function () {
         cargarFiltrosActuales();
         mostrarFiltrosActivos();
-        
-        // Abrir el modal manualmente por código
-        const miModal = new bootstrap.Modal(document.getElementById('modalFiltrosBusqueda'));
-        miModal.show();
     });
     // Validación del formulario
     $('#formFiltros').on('submit', function (e) {
