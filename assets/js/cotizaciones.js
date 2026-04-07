@@ -1,24 +1,24 @@
 
-$(document).ready(function() {
+$(document).ready(function () {
     // *************** FUNCIONES ****************
     // Función para cargar filtros desde la URL
     function cargarFiltrosActuales() {
         var urlParams = new URLSearchParams(window.location.search);
-        
+
         // Cargar valores en el formulario
         $('#filtro_familia').val(urlParams.get('familia') || '');
         $('#filtro_tipo_medida').val(urlParams.get('tipo_medida') || '');
         $('#filtro_tipo_cliente').val(urlParams.get('tipo_cliente') || '');
         $('#filtro_fecha_inicio').val(urlParams.get('fecha_inicio') || '');
         $('#filtro_fecha_fin').val(urlParams.get('fecha_fin') || '');
-        $('#archivadas').prop('checked', urlParams.get('archivadas') === '1');
-        
+        $('#archivadas').prop('checked', urlParams.get('archivadas') == '1');
+
     }
     // Función para mostrar filtros activos
     function mostrarFiltrosActivos() {
         var urlParams = new URLSearchParams(window.location.search);
         var filtrosActivos = [];
-        
+
         // --- Familia ---
         const familiaSelect = document.getElementById('familia');
         if (urlParams.get('familia')) {
@@ -36,7 +36,7 @@ $(document).ready(function() {
 
             if (familiaSelect) familiaSelect.value = familiaValor;
         }
-        
+
         // --- Tipo de medida ---
         const tipoMedidaSelect = document.getElementById('tipo_medida');
         if (urlParams.get('tipo_medida')) {
@@ -50,7 +50,7 @@ $(document).ready(function() {
             filtrosActivos.push('Tipo cliente: ' + urlParams.get('tipo_cliente'));
             if (tipoClienteSelect) tipoClienteSelect.value = urlParams.get('tipo_cliente');
         }
-        
+
         // --- Fechas ---
         const fechaInicioInput = document.getElementById('fecha_inicio');
         const fechaFinInput = document.getElementById('fecha_fin');
@@ -63,62 +63,62 @@ $(document).ready(function() {
             if (fechaFinInput) fechaFinInput.value = urlParams.get('fecha_fin');
         }
 
-        if (urlParams.get('archivadas') === '0') {
+        if (urlParams.get('archivadas') == '0') {
             filtrosActivos.push('Solo activas');
         }
 
-        if (urlParams.get('archivadas') === '1') {
+        if (urlParams.get('archivadas') == '1') {
             filtrosActivos.push('Solo archivadas');
         }
 
         if (!fechaInicioInput && !fechaFinInput) {
             // Solo mostrar default si no hay fechas específicas
             const defaultVal = urlParams.get('default') || '2';
-            if (defaultVal === '1') filtrosActivos.push('Solo de hoy');
-            if (defaultVal === '2') filtrosActivos.push('Esta semana');
-            if (defaultVal === '3') filtrosActivos.push('Este mes');
+            if (defaultVal == '1') filtrosActivos.push('Solo de hoy');
+            if (defaultVal == '2') filtrosActivos.push('Esta semana');
+            if (defaultVal == '3') filtrosActivos.push('Este mes');
         }
-        
+
         // Mostrar los filtros activos
         if (filtrosActivos.length > 0) {
-            var tagsHtml = filtrosActivos.map(function(filtro) {
+            var tagsHtml = filtrosActivos.map(function (filtro) {
                 return '<span class="filtro-tag">' + filtro + '</span>';
             }).join(' ');
-            
+
             $('#filtrosActivosList').html(tagsHtml);
             $('#filtrosActivosContainer').show();
-            $('#btnFiltrosBusqueda').text(" Filtros de busqueda ("+filtrosActivos.length+")");
+            $('#btnFiltrosBusqueda').text(" Filtros de busqueda (" + filtrosActivos.length + ")");
         } else {
             $('#filtrosActivosContainer').hide();
         }
-        
+
     }
     // Función global para limpiar todos los filtros
-    window.limpiarTodosFiltros = function() {
+    window.limpiarTodosFiltros = function () {
         if (confirm('¿Estás seguro de que deseas limpiar todos los filtros?')) {
             window.location.href = window.location.pathname;
         }
-    };   
+    };
 
     // Función para crear href con el parámetro cot modificado
     function crearHrefConCot(valorCot) {
         let savedDefault = localStorage.getItem("filtroDefault") || 1;
-        if (savedDefault === "0") savedDefault = 1;
-        
+        if (savedDefault == "0") savedDefault = 1;
+
         const nuevaUrl = new URL(urlInicial);
         nuevaUrl.searchParams.set('cot', valorCot);
-        
+
         // Si venimos con default=0 explícito, lo pasamos al cambiar de tab,
         // de lo contrario usamos el guardado (que ya aseguramos que no es 0)
         let actualDefault = urlInicial.searchParams.get('default');
-        nuevaUrl.searchParams.set('default', actualDefault === "0" ? 0 : savedDefault);
-        
+        nuevaUrl.searchParams.set('default', actualDefault == "0" ? 0 : savedDefault);
+
         return nuevaUrl.toString();
     }
 
     // Función para mostrar/ocultar contenedores según cot
     function mostrarTablaPorCot(cot) {
-        if (cot === 'u') {
+        if (cot == 'u') {
             containerUnicas.classList.remove('d-none');
             containerFusionadas.classList.add('d-none');
             // DATATABLE PARA COTIZACIONES FUSIONADAS
@@ -130,28 +130,28 @@ $(document).ready(function() {
                     return: false
                 },
                 "autoWidth": true,
-                "language": { 
-                    "decimal" : "",
-                    "emptyTable":"No hay registros",
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "No hay registros",
                     "info": "Mostrando _END_ de _TOTAL_ registros",
                     "infoEmpty": "Mostrando 0 de 0 registros",
                     "infoFiltered": "(Se filtraron _MAX_ registros)",
-                    "infoPostFix":"",
+                    "infoPostFix": "",
                     "thousands": ", ",
                     "lengthMenu": "Mostrar _MENU_ registros",
-                    "loadingRecords":"Cargando...",
+                    "loadingRecords": "Cargando...",
                     "processing": "Procesando...",
                     "search": "Buscar: ",
-                    "zeroRecords":"No se encontraron resultados.",
-                    "paginate":{
-                    "first":"<<",
-                    "last":">>",
-                    "next": "Siguiente",
-                    "previous": "Anterior"
+                    "zeroRecords": "No se encontraron resultados.",
+                    "paginate": {
+                        "first": "<<",
+                        "last": ">>",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
                     }
                 },
                 "pageLength": 30,
-                "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+                "lengthMenu": [[10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000]],
                 "scrollY": "400px", // Altura del área de desplazamiento vertical
                 "scrollX": true,
                 initComplete: function () {
@@ -166,7 +166,7 @@ $(document).ready(function() {
                     }, 400);
                 }
             });
-        } else if (cot === 'f') {
+        } else if (cot == 'f') {
             containerFusionadas.classList.remove('d-none');
             containerUnicas.classList.add('d-none');
             // DATATABLE PARA COTIZACIONES FUSIONADAS
@@ -178,28 +178,28 @@ $(document).ready(function() {
                     return: false
                 },
                 "autoWidth": true,
-                "language": { 
-                    "decimal" : "",
-                    "emptyTable":"No hay registros",
+                "language": {
+                    "decimal": "",
+                    "emptyTable": "No hay registros",
                     "info": "Mostrando _END_ de _TOTAL_ registros",
                     "infoEmpty": "Mostrando 0 de 0 registros",
                     "infoFiltered": "(Se filtraron _MAX_ registros)",
-                    "infoPostFix":"",
+                    "infoPostFix": "",
                     "thousands": ", ",
                     "lengthMenu": "Mostrar _MENU_ registros",
-                    "loadingRecords":"Cargando...",
+                    "loadingRecords": "Cargando...",
                     "processing": "Procesando...",
                     "search": "Buscar: ",
-                    "zeroRecords":"No se encontraron resultados.",
-                    "paginate":{
-                    "first":"<<",
-                    "last":">>",
-                    "next": "Siguiente",
-                    "previous": "Anterior"
+                    "zeroRecords": "No se encontraron resultados.",
+                    "paginate": {
+                        "first": "<<",
+                        "last": ">>",
+                        "next": "Siguiente",
+                        "previous": "Anterior"
                     }
                 },
                 "pageLength": 30,
-                "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
+                "lengthMenu": [[10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000]],
                 "scrollY": "400px", // Altura del área de desplazamiento vertical
                 "scrollX": true,
                 initComplete: function () {
@@ -239,11 +239,11 @@ $(document).ready(function() {
         urlInicial.searchParams.set('cot', 'u');
 
         let savedDefault = localStorage.getItem("filtroDefault") || 1;
-        if (savedDefault === "0") {
+        if (savedDefault == "0") {
             savedDefault = 1;
             localStorage.setItem("filtroDefault", "1");
         }
-        
+
         if (savedDefault !== null) {
             // Buscar el input con ese valor
             const radio = document.querySelector(`input[name="default"][value="${savedDefault}"]`);
@@ -260,10 +260,10 @@ $(document).ready(function() {
         console.log("localstorage: ", savedDefault);
 
         history.replaceState({}, '', urlInicial.toString());
-        
+
     }
 
-    if (params.get('agru') === '1') {
+    if (params.get('agru') == '1') {
         document.querySelectorAll('.btn-check-cute').forEach(el => {
             el.classList.remove('d-none');
             // Forzar reflow para que la transición se aplique correctamente
@@ -281,9 +281,9 @@ $(document).ready(function() {
     // Inicializar tabs y mostrar la tabla correcta al cargar
     // Set active tab según cotActual
     tabs.forEach((tab, i) => {
-        const cotValue = i === 0 ? 'u' : 'f';
+        const cotValue = i == 0 ? 'u' : 'f';
         tab.href = crearHrefConCot(cotValue);
-        if (cotValue === cotActual) {
+        if (cotValue == cotActual) {
             tab.classList.add('active');
         } else {
             tab.classList.remove('active');
@@ -292,12 +292,12 @@ $(document).ready(function() {
 
     mostrarTablaPorCot(cotActual);
     mostrarFiltrosActivos();
-    
+
 
     // ************** EVENTOS DEL DOM **************
     // Evento click para cambiar active y mostrar tabla correcta
     tabs.forEach(tab => {
-        tab.addEventListener('click', function(e) {
+        tab.addEventListener('click', function (e) {
             e.preventDefault();
             // Cambiar active en tabs
             tabs.forEach(t => t.classList.remove('active'));
@@ -318,7 +318,7 @@ $(document).ready(function() {
         });
     });
     // COMENZAR LA FUNCIONALIDAD DE FUSIONAR 
-    document.getElementById('btnInitFusionar').addEventListener('click', function(e) {
+    document.getElementById('btnInitFusionar').addEventListener('click', function (e) {
         e.preventDefault();
         let url = new URL(window.location.href);
         url.searchParams.set('agru', '1');
@@ -336,15 +336,15 @@ $(document).ready(function() {
     });
 
     // Cargar filtros activos al abrir el modal
-    $('#modalFiltrosBusqueda').on('show.bs.modal', function() {
+    $('#modalFiltrosBusqueda').on('show.bs.modal', function () {
         cargarFiltrosActuales();
         mostrarFiltrosActivos();
     });
     // Validación del formulario
-    $('#formFiltros').on('submit', function(e) {
+    $('#formFiltros').on('submit', function (e) {
         var fechaInicio = $('#filtro_fecha_inicio').val();
         var fechaFin = $('#filtro_fecha_fin').val();
-        
+
         // Validar que la fecha de inicio no sea mayor que la fecha de fin
         if (fechaInicio && fechaFin && fechaInicio > fechaFin) {
             e.preventDefault();
@@ -354,15 +354,15 @@ $(document).ready(function() {
         }
     });
     // Limpiar formulario de filtros
-    $('#btnLimpiarFormulario').on('click', function() {
+    $('#btnLimpiarFormulario').on('click', function () {
         $('#formFiltros')[0].reset();
         $('#filtrosActivosContainer').hide();
     });
     // Auto-completar fecha fin cuando se selecciona fecha inicio
-    $('#filtro_fecha_inicio').on('change', function() {
+    $('#filtro_fecha_inicio').on('change', function () {
         var fechaInicio = $(this).val();
         var fechaFin = $('#filtro_fecha_fin').val();
-        
+
         if (fechaInicio && !fechaFin) {
             // Sugerir la fecha actual como fecha fin
             var hoy = new Date().toISOString().split('T')[0];
@@ -380,9 +380,9 @@ $(document).ready(function() {
 
         const valorSeleccionado = $('#formVersionCotizacion input[name="formato"]:checked').val();
 
-        if (valorSeleccionado === 'cliente') {
+        if (valorSeleccionado == 'cliente') {
             $(this).attr("action", "../includes/functions/generar_cotizacion.php");
-        } else if (valorSeleccionado === 'interno') {
+        } else if (valorSeleccionado == 'interno') {
             $(this).attr("action", "../includes/functions/generar_pdf.php");
         } else {
             alert("Selecciona una opción de formato.");
@@ -401,9 +401,9 @@ $(document).ready(function() {
 
         const valorSeleccionado2 = $('#formVersionCotizacionF input[name="formato"]:checked').val();
 
-        if (valorSeleccionado2 === 'cliente') {
+        if (valorSeleccionado2 == 'cliente') {
             $(this).attr("action", "../includes/functions/generar_cotizacion_f.php");
-        } else if (valorSeleccionado2 === 'interno') {
+        } else if (valorSeleccionado2 == 'interno') {
             $(this).attr("action", "../includes/functions/generar_pdf_f.php");
         } else {
             alert("Selecciona una opción de formato.");
@@ -414,7 +414,7 @@ $(document).ready(function() {
         this.submit();
     });
     //CLICK A Enviar correo modal
-    $(".btn-enviar-correo").on('click', function(){
+    $(".btn-enviar-correo").on('click', function () {
         //$dataId=$("#btnValidar").data('id');//lo toma y lo almacena en cache
         //$dataIdCotizacion=$(this).data('id-cotizacion');
         //$dataCorreoCliente=$(this).data('correo-cliente');
@@ -424,8 +424,8 @@ $(document).ready(function() {
         //$("#inputAsuntoCorreo").val("Cotizacion de sello SRS. ID: "+ $dataIdCotizacion);
     });
     //CLICK A Enviar a produccion
-    $(".btn-enviar-produccion").on('click', function(){
-        $dataIdCotizacionProduccion=$(this).data('id-cotizacion');
+    $(".btn-enviar-produccion").on('click', function () {
+        $dataIdCotizacionProduccion = $(this).data('id-cotizacion');
 
         $("#inputCotizacionProduccion").val($dataIdCotizacionProduccion);
     });
@@ -433,10 +433,10 @@ $(document).ready(function() {
     $("#cotizacionesTable").on('click', ".btn-archivar-cotizacion", function () {
         const dataIdCotizacionA = $(this).data('id-cotizacion');
         var dataArchivada = $(this).data('archivada');
-        if(dataArchivada == 0){
+        if (dataArchivada == 0) {
             dataArchivada = 1;
             $("#infoArchivada").text("Si archiva la cotización no podrá usarla al crear nuevas requisiciones. Las requisiciones existentes que ya tengan esta cotización no se verán afectadas.");
-        }else{
+        } else {
             dataArchivada = 0;
             $("#infoArchivada").text("Después de esta accion ya podrá usar la cotización al crear nuevas requisiciones.");
         }
@@ -444,7 +444,7 @@ $(document).ready(function() {
         $("#inputNextValor").val(dataArchivada);
     });
     // solicitud para archivar la cotizacion seleccionada
-    $("#btnArchivar").on("click", function(){
+    $("#btnArchivarConfirm").on("click", function () {
         var idCotizacionArchivar = $("#inputArchivar").val();
         var nextValue = $("#inputNextValor").val();
         $(this).addClass("d-none");
@@ -455,7 +455,7 @@ $(document).ready(function() {
                 id_cotizacion: idCotizacionArchivar,
                 archivada: nextValue
             },
-            success: function(data) {
+            success: function (data) {
                 if (data.success) {
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
                 } else {
@@ -470,11 +470,11 @@ $(document).ready(function() {
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
-            data: { mensaje: "Cotizacion archivada"},
-            success: function(response) {
+            data: { mensaje: "Cotizacion archivada" },
+            success: function (response) {
                 console.log("Notificacion enviada: ", response);
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
@@ -483,10 +483,10 @@ $(document).ready(function() {
     $("#cotizacionesTableFusionadas").on('click', ".btn-archivar-cotizacion2", function () {
         const dataIdFusionA = $(this).data('id-fusion');
         var dataArchivada2 = $(this).data('archivada');
-        if(dataArchivada2 == 0){
+        if (dataArchivada2 == 0) {
             dataArchivada2 = 1;
             $("#infoArchivada2").text("Ninguna de las cotizaciones de esta agrupación podrá ser usada al crear nuevas requisiciones.");
-        }else{
+        } else {
             dataArchivada2 = 0;
             $("#infoArchivada2").text("Despues de esta acción ya podrá usar las cotizaciones de la agrupación al crear nuevas requisiciones.");
         }
@@ -494,7 +494,7 @@ $(document).ready(function() {
         $("#inputNextValor2").val(dataArchivada2);
     });
     // solicitud para archivar la agrupacion seleccionada
-    $("#btnArchivar2").on("click", function(){
+    $("#btnArchivar2Confirm").on("click", function () {
         var idFusionArchivar = $("#inputArchivar2").val();
         var nextValue2 = $("#inputNextValor2").val();
         $(this).addClass("d-none");
@@ -505,7 +505,7 @@ $(document).ready(function() {
                 id_fusion: idFusionArchivar,
                 archivada: nextValue2
             },
-            success: function(data) {
+            success: function (data) {
                 if (data.success) {
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
                 } else {
@@ -520,11 +520,11 @@ $(document).ready(function() {
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
-            data: { mensaje: "Agrupación archivada"},
-            success: function(response) {
+            data: { mensaje: "Agrupación archivada" },
+            success: function (response) {
                 console.log("Notificacion enviada: ", response);
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
@@ -535,7 +535,7 @@ $(document).ready(function() {
         $("#inputIdRomperFusion").val(dataIdRomperFusion);
     });
     // ROMPER la agrupacion de las cotizaciones
-    $("#btnUnlink").on("click", function(){
+    $("#btnUnlinkConfirm").on("click", function () {
         var idRomperFusion = $("#inputIdRomperFusion").val();
         $(this).addClass("d-none");
         $.ajax({
@@ -544,7 +544,7 @@ $(document).ready(function() {
             data: {
                 id_fusion: idRomperFusion,
             },
-            success: function(data) {
+            success: function (data) {
                 if (data.success) {
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
                 } else {
@@ -559,29 +559,29 @@ $(document).ready(function() {
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
-            data: { mensaje: "Fusion destruida"},
-            success: function(response) {
+            data: { mensaje: "Fusion destruida" },
+            success: function (response) {
                 console.log("Notificacion enviada: ", response);
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
     });
     // CONTINUAR A FUSIONAR LAS COTIZACIONES SELECCIONADAS
-    $("#btnContinuarAgrupar").on("click", function(){
+    $("#btnContinuarAgrupar").on("click", function () {
 
         // Crear arreglo con las id_cotizacion seleccionadas
         let cotizacionesSeleccionadas = [];
-        $(".btn-check-cute:checked").each(function(){
+        $(".btn-check-cute:checked").each(function () {
             cotizacionesSeleccionadas.push($(this).attr("val"));
         });
 
-        if(cotizacionesSeleccionadas.length === 0){
+        if (cotizacionesSeleccionadas.length == 0) {
             sweetAlertResponse("warning", "Advertencia", "No seleccionaste ninguna cotización.", "none");
             return;
         }
-        if(cotizacionesSeleccionadas.length < 2){
+        if (cotizacionesSeleccionadas.length < 2) {
             sweetAlertResponse("warning", "Advertencia", "Selecciona mínimo 2 cotizaciones.", "none");
             return;
         }
@@ -593,7 +593,7 @@ $(document).ready(function() {
             data: {
                 ids_cotizaciones: cotizacionesSeleccionadas
             },
-            success: function(data) {
+            success: function (data) {
                 if (data.success) {
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "cotizaciones.php?cot=f&default=1");
                 } else {
@@ -608,32 +608,32 @@ $(document).ready(function() {
         $.ajax({
             url: "../ajax/ajax_notificacion.php",
             type: "POST",
-            data: { mensaje: "Ocurrio una fusion"},
-            success: function(response) {
+            data: { mensaje: "Ocurrio una fusion" },
+            success: function (response) {
                 console.log("Notificacion enviada: ", response);
             },
-            error: function(error) {
+            error: function (error) {
                 console.error("Error al enviar la notificacion: ", error);
             }
         });
     });
     // CLICK CERRAR MODAL 
-    $(".btn-close").on("click", function(){
+    $(".btn-close").on("click", function () {
         $("#formEnviarCorreo, #formEnviarAProduccion")[0].reset();
     });
     // CANCELAR AGRUPACION
-    $("#btnCancelFusion").on("click", function(){
+    $("#btnCancelFusion").on("click", function () {
         cancelarAgrupacion();
     });
     // AL CAMBIAR DE REMITENTE EN ENVIAR CORREO A CLIENTE
-    $("#correoRemitente").on("change", function(){
-        let valueRemitente =  $($(this)).val();
-        if(valueRemitente == "cotizador"){
+    $("#correoRemitente").on("change", function () {
+        let valueRemitente = $($(this)).val();
+        if (valueRemitente == "cotizador") {
             $("#pAsunto").removeClass("d-none");
             $("#inputAsuntoCorreo").addClass("d-none");
             $("#pCuerpo").removeClass("d-none");
             $("#inputCuerpoCorreo").addClass("d-none");
-        }else if(valueRemitente == "sesion"){
+        } else if (valueRemitente == "sesion") {
             $("#inputAsuntoCorreo").removeClass("d-none");
             $("#pAsunto").addClass("d-none");
             $("#inputCuerpoCorreo").removeClass("d-none");
@@ -648,16 +648,16 @@ $(document).ready(function() {
             url: '../ajax/vendedores.php',
             type: 'GET',
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 if (data) {
-                   
+
                     $('#inputIdVendedor').html(`<option value="" selected disabled>Seleccione un vendedor</option>`);
                     data.vendedores.forEach(element => {
                         $(`#inputIdVendedor`).append(
                             `<option value="${element.id}">${element.nombre}</option>`
                         );
                     });
-                    
+
                 } else {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "self");
                 }
@@ -676,11 +676,11 @@ $(document).ready(function() {
         let inputIdCotizacionAsignar = $("#inputIdCotizacionAsignar").val();
         let inputIdVendedor = $("#inputIdVendedor").val();
 
-        if(!inputIdCotizacionAsignar){
+        if (!inputIdCotizacionAsignar) {
             sweetAlertResponse("warning", "Faltan datos", "Falta la id de cotización", "none");
             return;
         }
-        if(!inputIdVendedor){
+        if (!inputIdVendedor) {
             sweetAlertResponse("warning", "Faltan datos", "Falta id de vendedor", "none");
             return;
         }
@@ -689,12 +689,12 @@ $(document).ready(function() {
         $.ajax({
             url: '../ajax/asignar_cotizacion.php',
             type: 'POST',
-            data: { 
+            data: {
                 id_cotizacion: inputIdCotizacionAsignar,
                 id_vendedor: inputIdVendedor
             },
             dataType: 'json',
-            success: function(data) {
+            success: function (data) {
                 if (data.success) {
                     $('#modalAsignarCotizacion').modal('hide');
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
@@ -720,7 +720,7 @@ $(document).ready(function() {
      */
     function detectarZoom() {
         // 1. Verificar si el usuario ya eligió ocultar este mensaje
-        if (localStorage.getItem('hideZoomAdvice') === 'true') {
+        if (localStorage.getItem('hideZoomAdvice') == 'true') {
             return;
         }
 
@@ -762,7 +762,7 @@ $(document).ready(function() {
     ////////////// EVENTO ZOOM/REDIMENSION DEL NAVEGADOR
     window.addEventListener('resize', detectarZoom);
     detectarZoom();
-    if(anchoPantallaInicial<= 991){
+    if (anchoPantallaInicial <= 991) {
         $("#btnFiltrosBusqueda").html('<i class="bi bi-funnel"></i>');
         $("#btnInitFusionar").html('<i class="bi bi-link" style="font-size:20px !important;"></i>');
         $("#btnEnviarCorreo").html('<i class="bi bi-envelope"></i>');

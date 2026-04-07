@@ -8,13 +8,27 @@ try{
 
     $id_usuario = $_SESSION['id'];
     
-    // Preparar la consulta - SIN CÁLCULO EN SQL
-    $sqlCotizaciones = "SELECT * FROM cotizacion_materiales 
+    $sqlCotizaciones = "SELECT 
+                            id_cotizacion, 
+                            MAX(perfil_sello) as perfil_sello, 
+                            MAX(di_sello) as di_sello, 
+                            MAX(di_sello2) as di_sello2, 
+                            MAX(de_sello) as de_sello, 
+                            MAX(de_sello2) as de_sello2, 
+                            MAX(a_sello) as a_sello, 
+                            MAX(a_sello2) as a_sello2, 
+                            MAX(tipo_medida) as tipo_medida,
+                            MAX(simulacion) as simulacion, 
+                            MAX(fecha_vencimiento) as fecha_vencimiento,
+                            MAX(fecha) as fecha, 
+                            MAX(hora) as hora
+                        FROM cotizacion_materiales 
                         WHERE id_usuario = :id  
                         AND archivada = 0 
                         GROUP BY id_cotizacion 
-                        ORDER BY fecha DESC, hora DESC LIMIT 50";
-    
+                        ORDER BY fecha DESC, hora DESC 
+                        LIMIT 50";
+
     $stmtCotizaciones = $conn->prepare($sqlCotizaciones);
     $stmtCotizaciones->bindParam(':id', $id_usuario);
     $stmtCotizaciones->execute();

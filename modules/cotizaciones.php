@@ -374,7 +374,6 @@ require_once(ROOT_PATH . 'config/config.php');
         echo $e->getMessage();
     }
 ?>
-
     
 </head>
 <body>
@@ -831,11 +830,11 @@ require_once(ROOT_PATH . 'config/config.php');
 
 
 <!-- ///////////MODAL SELECCIONAR FILTROS DE BUSQUEDA////////////////// -->
-<div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelFiltros" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h4 class="modal-title" id="modalLabel">
+                <h4 class="modal-title" id="modalLabelFiltros">
                     <i class="bi bi-funnel"></i> Filtros de búsqueda de cotizaciones
                 </h4>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1011,11 +1010,11 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- ///////////MODAL SELECCIONAR VERSION DE FORMATO DE UNA COTIZACION////////////////// -->
-<div class="modal fade" id="modalVersionCotizacion" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalVersionCotizacion" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelVersion" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Versión de cotización</h5>
+                <h5 class="modal-title" id="modalLabelVersion">Versión de cotización</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1044,11 +1043,11 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
  <!-- ///////////MODAL SELECCIONAR VERSION DE FORMATO DE UNA COTIZACIONES FUSIONADAS////////////////// -->
-<div class="modal fade" id="modalVersionCotizacionF" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalVersionCotizacionF" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelVersionF" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">Versión de cotización</h5>
+                <h5 class="modal-title" id="modalLabelVersionF">Versión de cotización</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1077,7 +1076,7 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- //////////////////////////MODAL ENVIAR CORREO/////////////////////// -->
-<div class="modal fade" id="modalEnviarCorreo" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalEnviarCorreo" tabindex="-1" aria-hidden="true" aria-labelledby="modalLabelEnviarCorreo" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -1127,11 +1126,11 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- ///////////MODAL DESEA ARCHIVAR COTIZACION////////////////// -->
-<div class="modal fade" id="modalArchivar" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalArchivar" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelArchivar" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">¿Desea continuar?</h5>
+                <h5 class="modal-title" id="modalLabelArchivar">¿Desea continuar?</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1139,7 +1138,7 @@ require_once(ROOT_PATH . 'config/config.php');
                 <input id="inputNextValor" type="hidden" name="archive">
                 <p id="infoArchivada"></p>
                 <div class="d-flex col-12 w-100 gap-3">
-                    <button id="btnArchivar" type="button" class="btn-general">Continuar</button>
+                    <button id="btnArchivarConfirm" type="button" class="btn-general">Continuar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                 </div>
             </div>
@@ -1148,11 +1147,11 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- ///////////MODAL DESEA ARCHIVAR FUSION////////////////// -->
-<div class="modal fade" id="modalArchivar2" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalArchivar2" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelArchivar2" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">¿Desea continuar?</h5>
+                <h5 class="modal-title" id="modalLabelArchivar2">¿Desea continuar?</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -1160,7 +1159,7 @@ require_once(ROOT_PATH . 'config/config.php');
                 <input id="inputNextValor2" type="hidden" name="archive">
                 <p id="infoArchivada2"></p>
                 <div class="d-flex col-12 w-100 gap-3">
-                    <button id="btnArchivar2" type="button" class="btn-general">Continuar</button>
+                    <button id="btnArchivar2Confirm" type="button" class="btn-general">Continuar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                 </div>
             </div>
@@ -1169,18 +1168,18 @@ require_once(ROOT_PATH . 'config/config.php');
 </div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- ///////////MODAL DESEA DESAGRUPAR/UNLINK COTIZACIONES ////////////////// -->
-<div class="modal fade" id="modalUnlink" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
+<div class="modal fade" id="modalUnlink" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabelUnlink" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalLabel">¿Desea continuar?</h5>
+                <h5 class="modal-title" id="modalLabelUnlink">¿Desea continuar?</h5>
                 <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <input id="inputIdRomperFusion" type="hidden" name="id_fusion">
                 <p>Esta acción desagrupará las cotizaciones de la fusión. Después las cotizaciones estarán disponibles de manera individual.</p>
                 <div class="d-flex col-12 w-100 gap-3">
-                    <button id="btnUnlink" type="button" class="btn-general">Continuar</button>
+                    <button id="btnUnlinkConfirm" type="button" class="btn-general">Continuar</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Cancelar</button>
                 </div>
             </div>
