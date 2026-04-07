@@ -36,8 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id_usuario = $_POST["id_usuario"] ?? null;
 
     try {
-        
-        
         // Validar token
         $stmtToken = $conn->prepare("SELECT COUNT(*) FROM tokens_autorizacion WHERE token = :token");
         $stmtToken->bindParam(':token', $token);
@@ -85,11 +83,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmtDeleteToken->bindParam(':token', $token);
         $stmtDeleteToken->execute();
 
-        // ... código anterior igual hasta después de eliminar el token ...
-
         // Función para escribir en el log
         function writeToLog($message) {
-            $logFile = __DIR__ . '/debug_autorizacion.log';
+            $logFile = ROOT_PATH . 'logs/debug_autorizacion.log';
             $timestamp = date('Y-m-d H:i:s');
             $formattedMessage = "[$timestamp] $message\n";
             file_put_contents($logFile, $formattedMessage, FILE_APPEND | LOCK_EX);
