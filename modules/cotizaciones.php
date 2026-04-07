@@ -226,6 +226,8 @@ require_once(ROOT_PATH . 'config/config.php');
         $params  = [];
 
         // --------- ARMADO SQL / SQL CONSTRUCTION ----------
+         // 1. DESACTIVAR EL MODO ESTRICTO PARA ESTA CONSULTA
+        $conn->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
         if ($cot === 'u') {
             // ÚNICAS: fila más reciente por id_cotizacion
             $sqlCotizaciones = "
@@ -235,7 +237,7 @@ require_once(ROOT_PATH . 'config/config.php');
                     cm.tipo_medida_de, cm.tipo_medida_h, cm.tipo_cliente, cm.fecha, 
                     cm.hora, cm.fecha_vencimiento, cm.archivada, cm.id_usuario,
                     COUNT(ca.id) AS total_comentarios
-                FROM cotizacion_materiales cm
+                FROM cotizacion_materiales cm 
                 INNER JOIN (
                 SELECT id_cotizacion, MAX(id_estimacion) as max_id
                 FROM cotizacion_materiales
@@ -290,18 +292,15 @@ require_once(ROOT_PATH . 'config/config.php');
 
             $sqlCotizaciones .= "
                 GROUP BY id_cotizacion
-                    ) t ON cm.id_estimacion = t.max_id
+                ) t ON cm.id_estimacion = t.max_id
                 LEFT JOIN comentarios_adjuntos ca ON cm.id_cotizacion = ca.id_cotizacion
                 GROUP BY cm.id_estimacion
                 ORDER BY cm.id_estimacion DESC
             ";
 
         } else {
-            // 1. DESACTIVAR EL MODO ESTRICTO PARA ESTA CONSULTA
-            // Esto evita que cm.* rompa el script por el modo only_full_group_by
-            $conn->exec("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
 
-            // 2. FUSIONADAS: fila más reciente por id_fusion
+            // FUSIONADAS: fila más reciente por id_fusion
             $sqlCotizaciones = "
                 SELECT cm.*, COUNT(ca.id) AS total_comentarios
                 FROM cotizacion_materiales cm
