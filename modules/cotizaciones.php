@@ -495,7 +495,6 @@ require_once(ROOT_PATH . 'config/config.php');
                             <th>Id cotización</th>
                             <th>Familia Perfil</th>
                             <th>Perfil</th>
-                            <!-- <th>Tipo medida</th> -->
                             <th>Diametro Interior</th>
                             <th>Diametro Exterior</th>
                             <th>Altura Total</th>
@@ -645,7 +644,6 @@ require_once(ROOT_PATH . 'config/config.php');
                             <th>Cotizaciónes</th>
                             <th>Familia Perfil</th>
                             <th>Perfil</th>
-                            <!-- <th>Tipo medida</th> -->
                             <th>Diametro Interior</th>
                             <th>Diametro Exterior</th>
                             <th>Altura Total</th>

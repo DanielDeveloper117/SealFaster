@@ -336,7 +336,7 @@ $(document).ready(function () {
     });
 
     // Cargar filtros activos al abrir el modal
-    $('#modalFiltrosBusqueda').on('show.bs.modal', function () {
+    $('#modalFiltrosBusqueda').on('click', function () {
         cargarFiltrosActuales();
         mostrarFiltrosActivos();
     });
@@ -744,7 +744,7 @@ $(document).ready(function () {
                 input: 'checkbox',
                 inputPlaceholder: 'No volver a mostrar',
                 inputAttributes: {
-                    id: 'stopShowingZoom'
+                    id: 'stopShowingZoom2'
                 }
             }).then((result) => {
                 // result.value contendrá true si el checkbox fue marcado
