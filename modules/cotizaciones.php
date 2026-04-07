@@ -230,7 +230,7 @@ require_once(ROOT_PATH . 'config/config.php');
             // ÚNICAS: fila más reciente por id_cotizacion
             $sqlCotizaciones = "
                 SELECT 
-                    cm.id_estimacion, cm.id_cotizacion, cm.familia_perfil, cm.perfil_sello, 
+                    cm.id_estimacion, cm.id_cotizacion, cm.id_fusion, cm.familia_perfil, cm.perfil_sello, 
                     cm.di_sello, cm.de_sello, cm.a_sello, cm.tipo_medida_di, 
                     cm.tipo_medida_de, cm.tipo_medida_h, cm.tipo_cliente, cm.fecha, 
                     cm.hora, cm.fecha_vencimiento, cm.archivada, cm.id_usuario,
