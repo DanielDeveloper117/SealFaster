@@ -407,6 +407,17 @@ Consulta: cotizacion_materiales basada en id_requisicion
             if (idRequisicion) {
                 cargarMaquinadoSellos(idRequisicion);
             }
+            $.ajax({
+                url: "../ajax/ajax_notificacion.php",
+                type: "POST",
+                data: { mensaje: "Se vio modal de maquinados"},
+                success: function(response) {
+                    console.log("Notificacion enviada: ", response);
+                },
+                error: function(error) {
+                    console.error("Error al enviar la notificacion: ", error);
+                }
+            });
         });
     });
 </script>

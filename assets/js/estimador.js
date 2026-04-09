@@ -177,48 +177,107 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
 
     const PERFILES_DI_INVERSO = ['K22', 'K32', 'S25', 'S32'];
     const PERFILES_DE_INVERSO = ['S22', 'K32', 'S25', 'S32'];
-
     const anchoSello = clienteDE - clienteDI;
 
-    // ---- ACUMULADOS PREVIOS AL CALCULO ----
-    let sumaPorcentajesActivos  = 0.0;
-    let sumaPorcentajesOmitidos = 0.0;
-    let cantidadActivos         = 0;
-    let hayMaterialEnvelope     = false; // algun activo tiene porcentajeH >= 1.00
+    // ************************************************************
+    // PRECALCULO SOLO PARA ALTURA (logica de redistribucion valida)
+    let sumaPorcentajesActivosH  = 0.0;
+    let sumaPorcentajesOmitidosH = 0.0;
+    let cantidadActivosH         = 0;
+    let hayMaterialEnvelopeH     = false; // algun activo tiene porcentajeH >= 1.00
 
     for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
-        const p       = parseFloat(window[`PORCENTAJE_H_m${i}`]) || 0.0;
-        const omitido = $(`#checkboxOmitirElemento_m${i}`).is(':checked');
+        const pH       = parseFloat(window[`PORCENTAJE_H_m${i}`]) || 0.0;
+        const omitidoH = $(`#checkboxOmitirElemento_m${i}`).is(':checked');
 
-        if (omitido) {
-            sumaPorcentajesOmitidos += p;
+        if (omitidoH) {
+            sumaPorcentajesOmitidosH += pH;
         } else {
-            sumaPorcentajesActivos += p;
-            cantidadActivos++;
-            if (p >= 1.0) {
-                hayMaterialEnvelope = true;
+            sumaPorcentajesActivosH += pH;
+            cantidadActivosH++;
+            if (pH >= 1.0) {
+                hayMaterialEnvelopeH = true;
             }
         }
     }
 
-    if (sumaPorcentajesActivos === 0) {
-        sumaPorcentajesActivos = 1.0;
+    if (sumaPorcentajesActivosH === 0) {
+        sumaPorcentajesActivosH = 1.0;
     }
 
     // Consecutivos: suma de activos <= 1.00 → normalizar (suma H = clienteH)
     // Solapados:    suma de activos >  1.00 → distribuir porcentaje omitido en partes iguales
-    const sonConsecutivos = sumaPorcentajesActivos <= 1.0;
+    const sonConsecutivosH = sumaPorcentajesActivosH <= 1.0;
 
     // Extra a sumar a cada material activo en caso de solapamiento sin envelope:
     //   suma_omitidos / cantidad_activos
     // Si hay envelope (algun activo tiene p >= 1.00) el extra es 0 y se
     // respetan los porcentajes originales porque ese material ya representa
     // la altura total del cliente y no puede crecer mas.
-    const extraPorMaterial = (!sonConsecutivos && !hayMaterialEnvelope && cantidadActivos > 0)
-        ? sumaPorcentajesOmitidos / cantidadActivos
+    const extraPorMaterialH = (!sonConsecutivosH && !hayMaterialEnvelopeH && cantidadActivosH > 0)
+        ? sumaPorcentajesOmitidosH / cantidadActivosH
         : 0.0;
 
-    // ---- CALCULO POR MATERIAL ----
+    // ============================================================
+    // PRECALCULO DIAMETROS: herencia de porcentaje 1.0
+
+    /**
+     * Calcula que materiales activos heredan el envelope (p=1.0)
+     * para un eje dado cuando el componente que lo tenia fue omitido.
+     *
+     * @param {string} eje - "DI" o "DE"
+     * @returns {Set<number>} indices de materiales activos que deben
+     *                        usar el diametro del cliente para ese eje
+     */
+    function calcularHerenciaEnvelope(eje) {
+        const clave = `PORCENTAJE_${eje}_m`;
+
+        const activos  = [];
+        const omitidos = [];
+        for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
+            const p       = parseFloat(window[`${clave}${i}`]) ?? 1.0;
+            const omitido = $(`#checkboxOmitirElemento_m${i}`).is(':checked');
+            if (omitido) {
+                omitidos.push({ i, p });
+            } else {
+                activos.push({ i, p });
+            }
+        }
+
+        const envelopeSet = new Set();
+
+        // Si ya hay un activo con p=1.0, el envelope sigue presente
+        // — marcarlo y no necesitar herencia
+        const activosConEnvelope = activos.filter(a => a.p === 1.0);
+        if (activosConEnvelope.length > 0) {
+            activosConEnvelope.forEach(a => envelopeSet.add(a.i));
+            return envelopeSet;
+        }
+
+        // Sin activo con envelope: verificar si algun omitido tenia p=1.0
+        const omitidoTeniaEnvelope = omitidos.some(o => o.p === 1.0);
+        if (!omitidoTeniaEnvelope || activos.length === 0) {
+            // Nadie tenia envelope o no hay activos: sin herencia,
+            // cada activo usara su porcentaje original
+            return envelopeSet;
+        }
+
+        // El envelope fue omitido → heredar al activo con MENOR porcentaje
+        // (el mas alejado del borde perdido, geometricamente el nuevo extremo)
+        let minP = Infinity;
+        activos.forEach(a => { if (a.p < minP) minP = a.p; });
+
+        // Todos los activos que comparten ese minimo heredan
+        // (pueden ser varios si tienen el mismo porcentaje)
+        activos.filter(a => a.p === minP).forEach(a => envelopeSet.add(a.i));
+        return envelopeSet;
+    }
+
+    const herenciaDI = calcularHerenciaEnvelope('DI');
+    const herenciaDE = calcularHerenciaEnvelope('DE');
+
+    // ************************************************************
+    // ---- CALCULO POR COMPONENTE ----
     for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
 
         const omitido = $(`#checkboxOmitirElemento_m${i}`).is(':checked');
@@ -228,38 +287,6 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
             $(`#diametro_exterior_mm_m${i}`).val('0.00').trigger('input');
             $(`#altura_mm_m${i}`).val('0.00').trigger('input');
             continue;
-        }
-
-        // ---- DIAMETRO INTERIOR ----
-        const porcentajeDI = parseFloat(window[`PORCENTAJE_DI_m${i}`]) ?? 1.0;
-        let autoDI;
-
-        if (porcentajeDI === 1.0) {
-            autoDI = clienteDI;
-        } else {
-            const pmmDI = anchoSello * porcentajeDI;
-            const esInverso = PERFILES_DI_INVERSO.some(p => window.PERFIL_SELLO.includes(p));
-            autoDI = esInverso ? clienteDI - pmmDI : clienteDI + pmmDI;
-        }
-
-        // ---- DIAMETRO EXTERIOR ----
-        const porcentajeDE = parseFloat(window[`PORCENTAJE_DE_m${i}`]) ?? 1.0;
-        let autoDE;
-
-        if (porcentajeDE === 1.0) {
-            autoDE = clienteDE;
-        } else {
-            const pmmDE = anchoSello * porcentajeDE;
-            const esInverso = PERFILES_DE_INVERSO.some(p => window.PERFIL_SELLO.includes(p));
-            autoDE = esInverso ? clienteDE + pmmDE : clienteDE - pmmDE;
-        }
-
-        // ---- CASO ESPECIAL R13 y R16----
-        if (window.PERFIL_SELLO.includes('R13') || window.PERFIL_SELLO.includes('R16')) {
-            const deOring = clienteDI + (clienteH * 2);
-            $('#diametro_exterior_mm_cliente').val(deOring.toFixed(2));
-            $('#diametro_exterior_inch_cliente').val((deOring / 25.4).toFixed(4));
-            autoDE = deOring;
         }
 
         // ---- ALTURA ----
@@ -278,10 +305,44 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
         const porcentajeH = parseFloat(window[`PORCENTAJE_H_m${i}`]) || 1.0;
         let autoH;
 
-        if (sonConsecutivos) {
-            autoH = clienteH * (porcentajeH / sumaPorcentajesActivos);
+        if (sonConsecutivosH) {
+            autoH = clienteH * (porcentajeH / sumaPorcentajesActivosH);
         } else {
-            autoH = clienteH * (porcentajeH + extraPorMaterial);
+            autoH = clienteH * (porcentajeH + extraPorMaterialH);
+        }
+
+        // ---- DIAMETRO INTERIOR ----
+        let autoDI;
+        if (herenciaDI.has(i)) {
+            // Hereda (o ya tenia) el borde interior → DI del cliente exacto
+            autoDI = clienteDI;
+        } else {
+            const porcentajeDI = parseFloat(window[`PORCENTAJE_DI_m${i}`]) ?? 1.0;
+            const pmmDI        = anchoSello * porcentajeDI;
+            //const esInverso    = PERFILES_DI_INVERSO.some(p => window.PERFIL_SELLO.includes(p));
+            //autoDI = esInverso ? clienteDI - pmmDI : clienteDI + pmmDI;
+            autoDI = clienteDI + pmmDI;
+        }
+
+        // ---- DIAMETRO EXTERIOR ----
+        let autoDE;
+        if (herenciaDE.has(i)) {
+            // Hereda (o ya tenia) el borde exterior → DE del cliente exacto
+            autoDE = clienteDE;
+        } else {
+            const porcentajeDE = parseFloat(window[`PORCENTAJE_DE_m${i}`]) ?? 1.0;
+            const pmmDE        = anchoSello * porcentajeDE;
+            //const esInverso    = PERFILES_DE_INVERSO.some(p => window.PERFIL_SELLO.includes(p));
+            //autoDE = esInverso ? clienteDE + pmmDE : clienteDE - pmmDE;
+            autoDE = clienteDE - pmmDE;
+        }
+
+        // ---- CASO ESPECIAL R13 y R16----
+        if (window.PERFIL_SELLO.includes('R13') || window.PERFIL_SELLO.includes('R16')) {
+            const deOring = clienteDI + (clienteH * 2);
+            $('#diametro_exterior_mm_cliente').val(deOring.toFixed(2));
+            $('#diametro_exterior_inch_cliente').val((deOring / 25.4).toFixed(4));
+            autoDE = deOring;
         }
 
         // ---- ASIGNACION AL DOM ----
@@ -291,7 +352,9 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
         $(`#calculoTeoricoDI_m${i}`).text(autoDI.toFixed(2));
         $(`#calculoTeoricoDE_m${i}`).text(autoDE.toFixed(2));
         $(`#calculoTeoricoH_m${i}`).text(autoH.toFixed(2));
-        console.log("material ", i, ": % = ", porcentajeH, ", H = ", autoH.toFixed(2));
+        console.log("material ", i, ": % DI =", parseFloat(window[`PORCENTAJE_DI_m${i}`]), ", DI =", autoDI.toFixed(2), herenciaDI.has(i) ? "(heredado)" : "");
+        console.log("material ", i, ": % DE =", parseFloat(window[`PORCENTAJE_DE_m${i}`]), ", DE =", autoDE.toFixed(2), herenciaDE.has(i) ? "(heredado)" : "");
+        //console.log("material ", i, ": % = ", porcentajeH, ", H = ", autoH.toFixed(2));
     }
 
     // ---- ALTURAS COMPLEMENTARIAS (wipers) ----

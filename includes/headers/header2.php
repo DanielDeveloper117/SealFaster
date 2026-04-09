@@ -244,6 +244,16 @@
                         Requisiciones
                     </a>
                 </li>
+
+                <!-- Guia de usuario -->
+                <li role="none">
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_VENTAS.pdf").'" target="_blank" class=" nav-item-simple ">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario vendedor" style="height:38px;">
+                            </a>'; 
+                    ?>
+                </li>
+                            
             <?php break; ?>  
 
             <?php case 2: /* CNC */ ?>
@@ -393,6 +403,16 @@
                         Producción
                     </a>
                 </li>
+                <?php if($rol_usuario == "Gerente"): ?>
+                <!-- Guia de usuario -->
+                <li role="none">
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_VENTAS.pdf").'" target="_blank" class=" nav-item-simple ">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario" style="height:38px;">
+                            </a>'; 
+                    ?>
+                </li>
+                <?php endif; ?>
             <?php break; ?>
 
             <?php case 4: /* Compras */ ?>

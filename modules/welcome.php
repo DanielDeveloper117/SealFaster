@@ -159,7 +159,31 @@ require_once(ROOT_PATH . 'config/config.php');
                 ';
             }
         ?>
-
+        if (!localStorage.getItem("welcomeUpdateGuia")) {
+            Swal.fire({
+                title: 'Aviso',
+                text: 'Guía de usuario ha sido actualizada.',
+                icon: 'info',
+                confirmButtonText: 'Entendido',
+                width: '500px',
+                padding: '10px',
+                position: 'bottom-end',
+                toast: true,
+                //timer: 5000, // El modal desaparece automáticamente después de 5 segundos (opcional)
+                showConfirmButton: true,
+                showCloseButton: false,
+                input: 'checkbox',
+                inputPlaceholder: 'No mostrar nuevamente',
+                inputAttributes: {
+                id: 'noMostrarCheckboxG'
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                // Guardar preferencia en localStorage
+                localStorage.setItem('welcomeUpdateGuia', '1');
+                }
+            });
+        }
         // Verificar si ya existe la preferencia en localStorage    
         /*
         if (!localStorage.getItem("welcomeUpdate2ToastShown")) {
@@ -216,7 +240,7 @@ require_once(ROOT_PATH . 'config/config.php');
         }
         */
         <?php
-             if($SEND_MAIL === false){
+             if($SEND_MAIL === false && $DEV_MODE === true){
                 echo "
                     if (!localStorage.getItem('welcomeUpdateNoEmail')) {
                         Swal.fire({

@@ -759,7 +759,7 @@ require_once(ROOT_PATH . 'config/config.php');
                 <!-- Sección de justificar la cancelacion del maquinado -->
                 <div class="my-3">
                     <hr>
-                    <div class="">
+                    <div class="mb-2">
                         <label for="inputRazonDetener" class="lbl-general">Razón *</label>
                         <select id="inputRazonDetener" class="selector" required >
                             <option value="" selected disabled>Seleccione una opción</option>

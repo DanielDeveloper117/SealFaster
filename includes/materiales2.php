@@ -86,13 +86,13 @@
                                 <div class="d-flex flex-column mb-1 p-2 font-monospace border border-dark-subtitle bg-white bg-opacity-10 rounded-2">
                                     <label for="ulDiametrosTeoricos_m<?= $i ?>" class="label-estimador">Diámetros Teóricos</label>
                                     <ul id="ulDiametrosTeoricos_m<?= $i ?>">
-                                        <li>DI - Tolerancia: 
-                                            <span id="calculoTeoricoDI_m<?= $i ?>" class="fw-bold">0</span> -
-                                            <span id="toleranciaBarraDI_m<?= $i ?>" class="fw-bold">0</span> mm
-                                        </li>
                                         <li>DE + Tolerancia: 
                                             <span id="calculoTeoricoDE_m<?= $i ?>" class="fw-bold">0</span> +
                                             <span id="toleranciaBarraDE_m<?= $i ?>" class="fw-bold">0</span> mm
+                                        </li>
+                                        <li>DI - Tolerancia: 
+                                            <span id="calculoTeoricoDI_m<?= $i ?>" class="fw-bold">0</span> -
+                                            <span id="toleranciaBarraDI_m<?= $i ?>" class="fw-bold">0</span> mm
                                         </li>
                                     </ul>
                                     <label for="ulAlturaTeorica_m<?= $i ?>" class="label-estimador">Altura Teórica/pz</label>

@@ -202,17 +202,17 @@ require_once(ROOT_PATH . 'config/config.php');
     }elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
 
         $sqlInventario = "
-                    SELECT 
-                    i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
-                    i.material, i.max_usable, i.stock, i.lote_pedimento,
-                    i.estatus, i.updated_at,
-                    a.almacen 
-                FROM sellosyr_sellosctd.inventario_cnc AS i
-                INNER JOIN sellosyr_sellosctd.almacenes AS a
-                    ON i.almacen_id = a.id
-                WHERE i.almacen_id = :origen
-                ORDER BY i.id DESC
-            ";
+                SELECT 
+                i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
+                i.material, i.max_usable, i.stock, i.lote_pedimento,
+                i.estatus, i.updated_at,
+                a.almacen 
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE i.almacen_id = :origen
+            ORDER BY i.id DESC
+        ";
         $stmtInventario = $conn->prepare($sqlInventario);
         $stmtInventario->bindParam(':origen', $_GET['origen'], PDO::PARAM_STR);
         $stmtInventario->execute();
