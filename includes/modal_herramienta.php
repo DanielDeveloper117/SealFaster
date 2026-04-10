@@ -103,6 +103,17 @@
                 if (data.success) {
                     $("#modalHerramienta").modal("hide");
                     sweetAlertResponse("success", "Proceso exitoso", data.message, "self");
+                    $.ajax({
+                        url: "../ajax/ajax_notificacion.php",
+                        type: "POST",
+                        data: { mensaje: "Formulario de herramienta"},
+                        success: function(response) {
+                            console.log("Notificacion enviada: ", response);
+                        },
+                        error: function(error) {
+                            console.error("Error al enviar la notificacion: ", error);
+                        }
+                    });
                 } else {
                     sweetAlertResponse("warning", "Hubo un problema", data.message, "none");
                 }

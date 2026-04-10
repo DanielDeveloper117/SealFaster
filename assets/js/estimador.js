@@ -3,6 +3,7 @@
 // ============================================================
 console.log("CANTIDAD DE MATERIALES: ", window.CANTIDAD_MATERIALES);
 window.FAMILIA_PERFIL = "";
+window.ES_CHEVRON = "0";
 window.CON_RESORTE = "0";
 window.WIPER_EN = "0";
 window.ESCALON_EN = "0";
@@ -716,6 +717,7 @@ $(document).ready(function() {
             window.FAMILIA_PERFIL = data.familia_nombre + " ("+data.familia_nombre2+")";
             console.log(window.FAMILIA_PERFIL);
             window.DESCRIPCION_PERFIL = data.detalles;
+            window.ES_CHEVRON = data.es_chevron;
             window.CON_RESORTE_EN = data.con_resorte_en;
             $(`#descripcionPerfil`).text(window.DESCRIPCION_PERFIL || "Sin detalles para este perfil");
             $(".familia-perfil").val(window.FAMILIA_PERFIL);
@@ -729,6 +731,11 @@ $(document).ready(function() {
 
             if(window.PERFIL_SELLO.includes("R13") || window.PERFIL_SELLO.includes('R16')){
                 $("#labelAlturaMM_cliente").text("Altura (H)/Sección radial");
+            }
+            if(window.ES_CHEVRON != "0"){
+                console.log("Es chevron");
+            }else{
+                console.log("No es chevron");
             }    
             if(window.CON_RESORTE_EN != "0"){
                 console.log("Si tiene resorte");
@@ -781,8 +788,6 @@ $(document).ready(function() {
             }else{
                 console.log("No es wisper especial");
             }
-
-
             // ****** PORCENTAJES DE MATERIALES ******
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 window[`PORCENTAJE_H_m${i}`]  = data.porcentajes.H[i]  ?? 1.0;
@@ -790,8 +795,6 @@ $(document).ready(function() {
                 window[`PORCENTAJE_DE_m${i}`] = data.porcentajes.DE[i] ?? 1.0;
                 console.log(`Porcentajes material ${i} - H: ${window[`PORCENTAJE_H_m${i}`]}, DI: ${window[`PORCENTAJE_DI_m${i}`]}, DE: ${window[`PORCENTAJE_DE_m${i}`]}`);
             }
-
-
             // ****** TOLERANCIAS DE DIAMETROS EN LA BARRA ******
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 const tolDI = data.tolerancias.DI[i] ?? 4.00;
@@ -802,9 +805,7 @@ $(document).ready(function() {
                 $(`#toleranciaBarraDE_m${i}`).text(tolDE);
                 console.log(`Tolerancias material ${i} - DI: ${tolDI}, DE: ${tolDE}`);
             }
-
-
-            // ****** ITERACIONES DE MATERIALES ******
+            // ****** ITERACIONES DE IMAGENES DE COMPONENTES ******
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 let imagen = $(`#imagenMaterial_m${i}`);
                 let imagenUrl = imagen.attr('src');
@@ -816,14 +817,17 @@ $(document).ready(function() {
                     $(`#imagenMaterialTabla_m${i}`).attr("src", imagenUrl);
                     $(`#seraEnviado_m${i}`).val("si");
                 };
-                
+                if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i == 1 || i == window.CANTIDAD_MATERIALES)){
+             
+                    $(`#inputCantidad_m${i}`).val("1").attr("max", "1").addClass("pe-none").attr("tabindex", "-1");
+                    
+                }
             }  
             // ---- LISTENER DE CHECKBOXES DE OMISION DE MATERIALES ----
             // Se registra de forma dinamica al terminar de cargar los datos del perfil,
             // momento en que window.CANTIDAD_MATERIALES ya tiene el valor correcto.
             // Se coloca dentro del callback success del AJAX de ajax_perfil.php,
             // al final de ese bloque, despues de todas las asignaciones.
-
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 $(`#checkboxOmitirElemento_m${i}`).on('change', function() {
                     const di = parseFloat($('#diametro_interior_mm_cliente').val()) || 0;
@@ -833,7 +837,7 @@ $(document).ready(function() {
                     resetear_materiales_completados();
                 });
             }
-
+            // *** INICIALIZAR AREGLOS PARA SELECCION DE BILLETS
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 window[`BILLETS_SELECCIONADOS_m${i}`] = [];
                 window[`BILLETS_SELECCIONADOS_LOTES_m${i}`] = [];

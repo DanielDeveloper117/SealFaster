@@ -722,28 +722,7 @@ require_once(ROOT_PATH . 'config/config.php');
 <?php include(ROOT_PATH . 'includes/modal_retornar_barras.php'); ?>
 <?php include(ROOT_PATH . 'includes/modal_ver_componente.php'); ?>
 <?php include(ROOT_PATH . "includes/modal_estatus_requisicion.php"); ?>
-<!-- //////////////////////////MODAL FINALIZAR REQUISICION /////////////////////// -->
-<!-- <div class="modal fade" id="modalFinalizar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">¿Desea continuar?</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Esta acción cambiará el estatus de la requisicion a Finalizada.</p>
-                <form action="" method="POST">
-                    <input id="inputRequisicion" type="hidden" name="id_requisicion" >
-                    <input type="hidden" name="action" value="finalizar">
-                    <button type="submit" class="btn-general">Continuar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div> -->
-
-
-<!-- /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+<?php include(ROOT_PATH . "includes/modal_barras_pendientes.php"); ?>
 
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <!-- ////////////////////////// DETENER LA PRODUCCION DE LA REQUISICION /////////////////////// -->
@@ -779,95 +758,7 @@ require_once(ROOT_PATH . 'config/config.php');
         </div>
     </div>
 </div>
-<!-- ///////////////////////MODAL TABLA DE BARRAS PENDIENTES POR AUTORIZAR /////////////////////// -->
-<div class="modal fade" id="modalTableBarrasPendientes" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog" style="max-width: 85% !important;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form d-flex gap-2 align-items-center"><span>Barras pendientes por autorizar. Folio de requisición: </span>                    
-                    <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                        <input id="hiddenIdRequisicionBarrasPendientes" type="hidden" name="id_requisicion">
-                        <button type="submit" class="btn btn-link p-0 border-0 text-decoration-underline fs-5"></button>
-                    </form>
-                </span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
-                    <table id="tableBarrasPendientes" class="table table-bordered border border-2 tabla-billets mb-3" style="table-layout: fixed; width: max-content;">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">ACCIONES</th>
-                                <th style="width: 130px;">PERFIL</th>
-                                <th style="width: 160px;">MATERIAL</th>
-                                <th style="width: 280px;">CLAVE</th>
-                                <th style="width: 220px;">LOTE PEDIMENTO</th>
-                                <th style="width: 130px;">MEDIDA</th>
-                                <th style="width: 80px;">PZ TEÓRICAS</th>
-                                <th style="width: 100px;">ALTURA DE PZ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
 
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL CONFIRMAR AUTORIZAR BARRA /////////////////////// -->
-<div class="modal fade" id="modalAutorizarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-autorizar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="label-modal-autorizar-barra">Confirmar autorización</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p></p>
-                <form id="formAutorizarBarra">
-                    <input type="hidden" name="id_requisicion" id="autorizarIdRequisicion" value="">
-                    <input type="hidden" name="id_control" id="autorizarIdControl" value="">
-                    <input type="hidden" name="accion" id="autorizarAccion" value="">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnConfirmAutorizarBarra" class="btn-auth">Si, continuar</button>
-                <button type="button" id="btnCancelAutorizarBarra" class="btn-cancel" data-bs-dismiss="modal">No, cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL CONFIRMAR RECHAZAR BARRA /////////////////////// -->
-<div class="modal fade" id="modalRechazarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-rechazar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="label-modal-rechazar-barra">Rechazar barra</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formRechazarBarra">
-                    <input type="hidden" id="idRequisicionRechazo" name="id_requisicion" value="">
-                    <input type="hidden" id="inputControlRechazo" name="id_control" value="">
-                    <input type="hidden" id="inputAccionRechazo" name="accion" value="">
-
-                    <div class="mb-3">
-                        <label for="inputRazonRechazo" class="form-label">Razón del rechazo</label>
-                        <textarea id="inputRazonRechazo" name="razon" class="form-control" rows="3" required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnEnviarRechazo" class="btn-general">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
 <!-- //////////////////////////////////////////////////////////////////////// -->
 <script>
 // Mostrar filtros activos al cargar la página

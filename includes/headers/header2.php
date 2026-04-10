@@ -245,7 +245,7 @@
                     </a>
                 </li>
 
-                <!-- Guia de usuario -->
+                <!-- Guia Ventas -->
                 <li role="none">
                     <?php 
                         echo '<a href="'.controlCache("../files/GUIA_VENTAS.pdf").'" target="_blank" class=" nav-item-simple ">
@@ -342,6 +342,17 @@
                     </a>
                 </li>
 
+                <?php if($rol_usuario == "Gerente"): ?>
+                <!-- Guia CNC -->
+                <li role="none">
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_CNC.pdf").'" target="_blank" class=" nav-item-simple ">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario" style="height:38px;">
+                            </a>'; 
+                    ?>
+                </li>
+                <?php endif; ?>
+
             <?php break; ?>
 
             <?php case 6: /* Inventarios */ ?>
@@ -403,16 +414,16 @@
                         Producción
                     </a>
                 </li>
-                <?php if($rol_usuario == "Gerente"): ?>
-                <!-- Guia de usuario -->
+                <?php //if($rol_usuario == "Gerente"): ?>
+                <!-- Guia Inventarios -->
                 <li role="none">
                     <?php 
-                        echo '<a href="'.controlCache("../files/GUIA_VENTAS.pdf").'" target="_blank" class=" nav-item-simple ">
+                        echo '<a href="'.controlCache("../files/GUIA_INVENTARIOS.pdf").'" target="_blank" class=" nav-item-simple ">
                                 <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario" style="height:38px;">
                             </a>'; 
                     ?>
                 </li>
-                <?php endif; ?>
+                <?php //endif; ?>
             <?php break; ?>
 
             <?php case 4: /* Compras */ ?>
@@ -506,6 +517,26 @@
                 <a href="../modules/configuracion.php#config" role="menuitem">
                     <i class="bi bi-gear"></i> Configuración
                 </a>
+                <?php if($lider_usuario == 0 || $lider_usuario == 1): ?>
+                    <!-- Guia Ventas -->
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_VENTAS.pdf").'" target="_blank" role="menuitem">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario vendedor" style="height:25px;"> Ventas
+                            </a>'; 
+                    ?>
+                    <!-- Guia CNC -->
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_CNC.pdf").'" target="_blank" role="menuitem">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario CNC" style="height:25px;"> CNC
+                            </a>'; 
+                    ?>
+                    <!-- Guia Inventarios -->
+                    <?php 
+                        echo '<a href="'.controlCache("../files/GUIA_INVENTARIOS.pdf").'" target="_blank" role="menuitem">
+                                <img id="imgGuia" class="" src="../assets/img/general/ug.png" title="Ver guía de usuario Inventarios" style="height:25px;"> Inventarios
+                            </a>'; 
+                    ?>
+                <?php endif; ?>
                 <div class="user-dropdown-divider"></div>
                 <a href="../auth/cerrar_sesion.php" class="logout" role="menuitem">
                     <i class="bi bi-box-arrow-right"></i> Cerrar sesión

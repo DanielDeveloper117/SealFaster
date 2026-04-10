@@ -112,7 +112,8 @@ $arregloSelectTraspasos = [];
                             <div class="d-flex gap-2 container-actions">
                                 <?php
                                 if($row['recibido'] == "0"
-                                    && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                    // && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                    && (($tipo_usuario === "Inventarios") 
                                     || ($tipo_usuario === "Administrador") 
                                     || ($tipo_usuario == "Sistemas"))){                                      
                                     echo '
@@ -139,7 +140,8 @@ $arregloSelectTraspasos = [];
                                     </button>';
                                 ?>
                                 <?php if ($row['recibido']=="0"
-                                    && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                    // && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                    && (($tipo_usuario === "Inventarios") 
                                     || ($tipo_usuario === "Administrador") 
                                     || ($tipo_usuario == "Sistemas"))): ?>
                                     <button type="button" class="btn-auth btn-recibir" 

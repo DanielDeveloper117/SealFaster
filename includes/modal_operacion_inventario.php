@@ -432,6 +432,18 @@
             contentType: false,
             success: function(response) {
                 if (response.success) {
+                    
+                    $.ajax({
+                        url: "../ajax/ajax_notificacion.php",
+                        type: "POST",
+                        data: { mensaje: "Nueva operacion de inventarios"},
+                        success: function(response) {
+                            console.log("Notificacion enviada: ", response);
+                        },
+                        error: function(error) {
+                            console.error("Error al enviar la notificacion: ", error);
+                        }
+                    });
                     Swal.fire({
                         icon: 'success',
                         title: 'Éxito',

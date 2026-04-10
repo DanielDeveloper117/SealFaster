@@ -305,6 +305,18 @@ function renderTabLimitantes(string $dureza): string {
             if (data.success) {
                 cargarLimitantes(dureza);
                 sweetAlertResponse("success", "Limitante actualizada", data.message, "none");
+                
+                $.ajax({
+                    url: "../ajax/ajax_notificacion.php",
+                    type: "POST",
+                    data: { mensaje: "Limitante actualizada"},
+                    success: function(response) {
+                        console.log("Notificacion enviada: ", response);
+                    },
+                    error: function(error) {
+                        console.error("Error al enviar la notificacion: ", error);
+                    }
+                });
             } else {
                 sweetAlertResponse("warning", "No se pudo guardar", data.message, "none");
             }
@@ -401,6 +413,18 @@ function renderTabLimitantes(string $dureza): string {
                         limpiarFormAgregar();
                         cargarLimitantes(limDurezaActiva);
                         sweetAlertResponse("success", "Limitante agregada", data.message, "none");
+                        
+                        $.ajax({
+                            url: "../ajax/ajax_notificacion.php",
+                            type: "POST",
+                            data: { mensaje: "Nueva limitante de herramienta"},
+                            success: function(response) {
+                                console.log("Notificacion enviada: ", response);
+                            },
+                            error: function(error) {
+                                console.error("Error al enviar la notificacion: ", error);
+                            }
+                        });
                     } else {
                         sweetAlertResponse("warning", "No se pudo agregar", data.message, "none");
                     }
@@ -454,6 +478,17 @@ function renderTabLimitantes(string $dureza): string {
                             if (data.success) {
                                 cargarLimitantes(dureza);
                                 sweetAlertResponse("success", "Limitante eliminada", data.message, "none");
+                                $.ajax({
+                                    url: "../ajax/ajax_notificacion.php",
+                                    type: "POST",
+                                    data: { mensaje: "Limitante eliminada"},
+                                    success: function(response) {
+                                        console.log("Notificacion enviada: ", response);
+                                    },
+                                    error: function(error) {
+                                        console.error("Error al enviar la notificacion: ", error);
+                                    }
+                                });
                             } else {
                                 sweetAlertResponse("warning", "No se pudo eliminar", data.message, "none");
                             }

@@ -270,7 +270,8 @@ require_once(ROOT_PATH . 'config/config.php');
                             && !isset($_GET['archivados']) 
                             && !isset($_GET['traspaso'])
                             && !isset($_GET['venta'])  
-                            && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                            // && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                            && (($tipo_usuario === "Inventarios") 
                                 || ($tipo_usuario === "Administrador") 
                                 || ($tipo_usuario == "Sistemas"))): ?>
                     <a id="btnInitOperacion" class="btn-unlink d-flex justify-content-center align-items-center gap-2" href="#">
@@ -347,7 +348,8 @@ require_once(ROOT_PATH . 'config/config.php');
                                         && $_GET['oper'] == '1' 
                                         && $row['estatus'] == "Disponible para cotizar" 
                                         && $row['stock']!=0
-                                        && (($tipo_usuario == "Inventarios" && $rol_usuario == "Gerente")
+                                        // && (($tipo_usuario === "Inventarios" && $rol_usuario == "Gerente") 
+                                        && (($tipo_usuario === "Inventarios") 
                                             || $tipo_usuario == "Administrador") ): ?>
                                     <div class="checkbox-wrapper">
                                         <input

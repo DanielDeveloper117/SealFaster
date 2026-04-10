@@ -266,6 +266,18 @@
                         'El traspaso ha sido recibido correctamente. Se han actualizado ' + response.barras_actualizadas + ' barra(s).',
                         'success'
                     );
+                    
+                    $.ajax({
+                        url: "../ajax/ajax_notificacion.php",
+                        type: "POST",
+                        data: { mensaje: "traspaso recibido"},
+                        success: function(response) {
+                            console.log("Notificacion enviada: ", response);
+                        },
+                        error: function(error) {
+                            console.error("Error al enviar la notificacion: ", error);
+                        }
+                    });
                 } else {
                     Swal.fire('Error', response.error || 'Error al procesar la recepción', 'error');
                 }

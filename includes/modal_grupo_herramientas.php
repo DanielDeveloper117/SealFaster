@@ -28,7 +28,7 @@
                     </div>
                     <div class="d-flex gap-2 mt-3">
                         <button type="button" class="btn-general" id="btnGuardarGrupo">
-                            <i class="bi bi-floppy me-1"></i> Crear
+                            <i class="bi bi-floppy me-1"></i> Enviar
                         </button>
                         <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancelar</button>
                     </div>

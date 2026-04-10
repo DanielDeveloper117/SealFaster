@@ -14,14 +14,45 @@ try {
         $stmt->execute([$id]);
         $requisicion = $stmt->fetch(PDO::FETCH_ASSOC);
 
+        if (!$requisicion) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Requisición no encontrada'
+            ]);
+            exit;
+        }
+
         // 2. Obtener los detalles de las cotizaciones asociadas
         // Convertimos la cadena "101, 102" en un array para la consulta
         $ids = array_map('trim', explode(',', $requisicion['cotizaciones']));
-        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $ids = array_filter($ids, function($v) { return $v !== ''; });
         
-        $stmtCot = $conn->prepare("SELECT * FROM cotizacion_materiales WHERE id_cotizacion IN ($placeholders)");
-        $stmtCot->execute($ids);
-        $detallesCot = $stmtCot->fetchAll(PDO::FETCH_ASSOC);
+        if (count($ids) > 0) {
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            
+            // AGRUPAMOS por id_cotizacion para que no se repitan
+            // Una cotización puede tener múltiples estimaciones (componentes),
+            // pero en el selector solo necesitamos ver 1 entrada por id_cotizacion
+            $stmtCot = $conn->prepare("
+                SELECT 
+                    id_cotizacion,
+                    MAX(perfil_sello) as perfil_sello,
+                    MAX(di_sello) as di_sello,
+                    MAX(di_sello2) as di_sello2,
+                    MAX(de_sello) as de_sello,
+                    MAX(de_sello2) as de_sello2,
+                    MAX(a_sello) as a_sello,
+                    MAX(a_sello2) as a_sello2,
+                    MAX(tipo_medida) as tipo_medida
+                FROM cotizacion_materiales 
+                WHERE id_cotizacion IN ($placeholders)
+                GROUP BY id_cotizacion
+            ");
+            $stmtCot->execute(array_values($ids));
+            $detallesCot = $stmtCot->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            $detallesCot = [];
+        }
 
         echo json_encode([
             'success' => true,

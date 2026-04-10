@@ -20,3 +20,51 @@
 [2026-04-06 18:21:53] Lote encontrado - Pre_stock actual: 52.00
 [2026-04-06 18:21:53] Actualización lote R1SY065090-1 - Rows affected: 1, Éxito: SI
 [2026-04-06 18:21:53] === FIN PROCESO AUTORIZACIÓN ===
+[2026-04-10 23:35:36] === INICIO PROCESO AUTORIZACIÓN ===
+[2026-04-10 23:35:36] ID Requisición: 2269
+[2026-04-10 23:35:36] Cotizaciones encontradas: 20496005
+[2026-04-10 23:35:36] IDs de cotizaciones: 20496005
+[2026-04-10 23:35:36] Procesando cotización ID: 20496005
+[2026-04-10 23:35:36] Actualización estado cotización 20496005: ÉXITO
+[2026-04-10 23:35:36] Cotización ID 20496005 tiene 3 estimaciones
+[2026-04-10 23:35:36] Estimación - a_sello: 100, material: ECORUBBER 2
+[2026-04-10 23:35:36] Estimación - billets_lotes: R2T037079-4 (37/79) 1 pz
+[2026-04-10 23:35:36] Material: ECORUBBER 2 -> Desbaste: 2
+[2026-04-10 23:35:36] Billets encontrados: 1
+[2026-04-10 23:35:36] Procesando billet 0: R2T037079-4 (37/79) 1 pz
+[2026-04-10 23:35:36] LOTE PROCESADO - Lote: R2T037079-4, Piezas: 1, Altura+pz: 102, Consumo: 102
+[2026-04-10 23:35:36] Estimación - a_sello: 100, material: ECORUBBER 1
+[2026-04-10 23:35:36] Estimación - billets_lotes: R1T037087-A1 (37/87) 3 pz,R1T022072-A4 (22/72) 1 pz
+[2026-04-10 23:35:36] Material: ECORUBBER 1 -> Desbaste: 2
+[2026-04-10 23:35:36] Billets encontrados: 2
+[2026-04-10 23:35:36] Procesando billet 0: R1T037087-A1 (37/87) 3 pz
+[2026-04-10 23:35:36] LOTE PROCESADO - Lote: R1T037087-A1, Piezas: 3, Altura+pz: 102, Consumo: 306
+[2026-04-10 23:35:36] Procesando billet 1: R1T022072-A4 (22/72) 1 pz
+[2026-04-10 23:35:36] LOTE PROCESADO - Lote: R1T022072-A4, Piezas: 1, Altura+pz: 102, Consumo: 102
+[2026-04-10 23:35:36] Estimación - a_sello: 100, material: ECORUBBER 1
+[2026-04-10 23:35:36] Estimación - billets_lotes: R1YK045080-1 (45/80) 1 pz
+[2026-04-10 23:35:36] Material: ECORUBBER 1 -> Desbaste: 2
+[2026-04-10 23:35:36] Billets encontrados: 1
+[2026-04-10 23:35:36] Procesando billet 0: R1YK045080-1 (45/80) 1 pz
+[2026-04-10 23:35:36] LOTE PROCESADO - Lote: R1YK045080-1, Piezas: 1, Altura+pz: 102, Consumo: 102
+[2026-04-10 23:35:36] Consumo total acumulado por lote: Array
+(
+    [R2T037079-4] => 102
+    [R1T037087-A1] => 306
+    [R1T022072-A4] => 102
+    [R1YK045080-1] => 102
+)
+
+[2026-04-10 23:35:36] Intentando actualizar inventario - Lote: R2T037079-4, Restar: 102
+[2026-04-10 23:35:36] Lote encontrado - Pre_stock actual: 140.00
+[2026-04-10 23:35:36] Actualización lote R2T037079-4 - Rows affected: 1, Éxito: SI
+[2026-04-10 23:35:36] Intentando actualizar inventario - Lote: R1T037087-A1, Restar: 306
+[2026-04-10 23:35:36] Lote encontrado - Pre_stock actual: 142.00
+[2026-04-10 23:35:36] Actualización lote R1T037087-A1 - Rows affected: 1, Éxito: SI
+[2026-04-10 23:35:36] Intentando actualizar inventario - Lote: R1T022072-A4, Restar: 102
+[2026-04-10 23:35:36] Lote encontrado - Pre_stock actual: 66.00
+[2026-04-10 23:35:36] Actualización lote R1T022072-A4 - Rows affected: 1, Éxito: SI
+[2026-04-10 23:35:36] Intentando actualizar inventario - Lote: R1YK045080-1, Restar: 102
+[2026-04-10 23:35:36] Lote encontrado - Pre_stock actual: 115.00
+[2026-04-10 23:35:37] Actualización lote R1YK045080-1 - Rows affected: 1, Éxito: SI
+[2026-04-10 23:35:37] === FIN PROCESO AUTORIZACIÓN ===

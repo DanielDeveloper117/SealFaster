@@ -321,6 +321,18 @@
                         executeDomRefresh();
                         sweetAlertResponse('success', 'Completado', resp.message, 'none');
                     }
+                    
+                    $.ajax({
+                        url: "../ajax/ajax_notificacion.php",
+                        type: "POST",
+                        data: { mensaje: "Accion en alguna clave"},
+                        success: function(response) {
+                            console.log("Notificacion enviada: ", response);
+                        },
+                        error: function(error) {
+                            console.error("Error al enviar la notificacion: ", error);
+                        }
+                    });
                 } else {
                     sweetAlertResponse('warning', 'Hubo un problema', resp.message, 'none');
                 }

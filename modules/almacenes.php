@@ -48,17 +48,22 @@ require_once(ROOT_PATH . 'config/config.php');
 
 <?php
     $arregloSelectAlmacenes = [];
-    // *** METODO GET DE FILTROS RECIBIDOS ***
 
+    // Usamos LEFT JOIN para incluir almacenes sin inventario
+    // Agrupamos por id para obtener el total de registros en inventario_cnc
     $sqlAlmacenes = "
-        SELECT *
-        FROM almacenes
-        ORDER BY created_at DESC
+        SELECT 
+            a.id, a.almacen, a.descripcion, a.updated_at, a.created_at,
+            COUNT(ic.id) as t_barras
+        FROM almacenes as a
+        LEFT JOIN inventario_cnc as ic ON ic.almacen_id = a.id
+        GROUP BY a.id
+        ORDER BY a.created_at DESC
     ";
+    
     $stmtAlmacenes = $conn->prepare($sqlAlmacenes);
     $stmtAlmacenes->execute();
     $arregloSelectAlmacenes = $stmtAlmacenes->fetchAll(PDO::FETCH_ASSOC);
-
 ?>
 <div id="overlay">
     <div class="loading-message">
@@ -93,6 +98,7 @@ require_once(ROOT_PATH . 'config/config.php');
                         <th>Id</th>
                         <th>Nombre</th>
                         <th>Descripción</th>
+                        <th>Barras en almacén</th>
                         <th>Actualización</th>
                         <th>Fecha Creación</th>
                     </tr>
@@ -120,6 +126,9 @@ require_once(ROOT_PATH . 'config/config.php');
                         <td class="td-id" ><?= htmlspecialchars($row['id']); ?></td>
                         <td class="td-almacen" ><?= htmlspecialchars($row['almacen']); ?></td>
                         <td class="td-justificacion" ><?= htmlspecialchars($row['descripcion']); ?></td>
+                        <td class="td-total-barras text-center">
+                            <strong><?= number_format($row['t_barras']); ?></strong>
+                        </td>
                         <td class="td-updated" > 
                             <?php
                                 if (!empty($row['updated_at'])) {

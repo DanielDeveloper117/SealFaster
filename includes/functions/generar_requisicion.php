@@ -251,7 +251,7 @@ if (isset($_GET['id_requisicion'])) {
         $cotGeneral = $cotizacionData[0];
         
         // Query para información del perfil
-        $sqlPerfil = "SELECT * FROM perfiles WHERE perfil = :perfil";
+        $sqlPerfil = "SELECT * FROM perfiles2 WHERE nombre = :perfil";
         $stmtPerfil = $conn->prepare($sqlPerfil);
         $stmtPerfil->bindParam(':perfil', $cotGeneral['perfil_sello']);
         $stmtPerfil->execute();
@@ -435,7 +435,7 @@ if (isset($_GET['id_requisicion'])) {
                             if ($primerBloqueEnPagina) {
                                 // Primera fila en la página: mostrar cantidad, perfil, material
                                 $pdf->Cell(10, $heightAcumulada, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
-                                $pdf->Cell(15, $heightAcumulada, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                                $pdf->Cell(15, $heightAcumulada, utf8_decode($cot['perfil_sello'] . "-" . $cot['cantidad_material']), 1, 0, 'C');
                                 $pdf->Cell(23, $heightAcumulada, utf8_decode($cot['material']), 1, 0, 'C');
                                 // Diámetro Interior (vacío)
                                 $pdf->Cell(33, $heightAcumulada, "", 1, 0, 'C');
@@ -485,7 +485,7 @@ if (isset($_GET['id_requisicion'])) {
                     $pdf->Cell(10, $rowHeightIndividual, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
                     
                     // Celda 2: Perfil (dato real)
-                    $pdf->Cell(15, $rowHeightIndividual, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                    $pdf->Cell(15, $rowHeightIndividual, utf8_decode($cot['perfil_sello'] . "-" . $cot['cantidad_material']), 1, 0, 'C');
                     
                     // Celda 3: Material (dato real)
                     $pdf->Cell(23, $rowHeightIndividual, utf8_decode($cot['material']), 1, 0, 'C');
@@ -723,7 +723,7 @@ if (isset($_GET['id_requisicion'])) {
                 $pdf->Cell(10, $finalRowHeight, utf8_decode($cot['cantidad']." pz"), 1, 0, 'C');
                 
                 // Celda 2: Perfil (dato real)
-                $pdf->Cell(15, $finalRowHeight, utf8_decode($cot['perfil_sello']), 1, 0, 'C');
+                $pdf->Cell(15, $finalRowHeight, utf8_decode($cot['perfil_sello'] . "-" . $cot['cantidad_material']), 1, 0, 'C');
                 
                 // Celda 3: Material (dato real)
                 $pdf->Cell(23, $finalRowHeight, utf8_decode($cot['material']), 1, 0, 'C');

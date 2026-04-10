@@ -227,11 +227,11 @@ Consulta: cotizacion_materiales basada en id_requisicion
                 '<div class="mms-grid mb-2">' +
                 '<div class="mms-field">' +
                 '<span class="mms-field-label">Cantidad:</span>' +
-                '<p class="mms-field-value">' + cotizacion.cantidad + '</p>' +
+                '<p class="mms-field-value">' + componente.cantidad_pz + '</p>' +
                 '</div>' +
                 '<div class="mms-field">' +
                 '<span class="mms-field-label">Material:</span>' +
-                '<p class="mms-field-value">' + cotizacion.material + '</p>' +
+                '<p class="mms-field-value">' + componente.material + '</p>' +
                 '</div>' +
                 '</div>' +
                 '<div>' +

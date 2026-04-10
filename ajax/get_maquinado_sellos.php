@@ -91,6 +91,8 @@ foreach ($cotizacion_ids as $id_cotizacion) {
             'cantidad_material' => $componente['cantidad_material'],
             'billets_claves_lotes' => $componente['billets_claves_lotes'],
             'billets_manualmente' => $componente['billets_manualmente'] ?? '',
+            'cantidad_pz' => $componente['cantidad'],
+            'material' => $componente['material'],
             'nominales' => [
                 'a_sello' => $componente['altura'],
                 'di_sello' => $componente['diametro_int'],

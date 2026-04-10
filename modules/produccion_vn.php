@@ -20,7 +20,6 @@ require_once(ROOT_PATH . 'config/config.php');
     <link rel="stylesheet" href="<?= controlCache('../assets/dependencies/chosen.min.css'); ?>">
     <script src="<?= controlCache('../assets/dependencies/chosen.jquery.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
-    <script src="<?= controlCache('../assets/js/produccion_vn.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/middleware_deteccion_cambios.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
@@ -324,7 +323,7 @@ require_once(ROOT_PATH . 'config/config.php');
         </div>
     </div>
 </section>
-<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
+
 <!-- ///////////MODAL SELECCIONAR FILTROS DE BUSQUEDA////////////////// -->
 <div class="modal fade" id="modalFiltrosBusqueda" tabindex="-1" aria-hidden="false" aria-labelledby="modalLabel" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-lg">
@@ -457,353 +456,14 @@ require_once(ROOT_PATH . 'config/config.php');
         </div>
     </div>
 </div>
-<!-- //////////////////////////////////////////////////////////////////////// -->
-<!-- Modal para agregar/editar registro -->
-<div class="modal fade" id="modalAgregarEditar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 id="titleModalAddEdit" class="modal-title" id="modalLabel"></h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formCrearRequisicion" class="form-post" action="" method="POST">                        
-                    <input type="hidden" id="inputAction" name="action">
-                    <input type="hidden" id="inputIdRequisicion" name="id_requisicion" >
-                    <input type="hidden" id="inputId" value="<?= $_SESSION['id'] ?>" name="id_vendedor" >
-                    <input type="hidden" id="estatusPendiente" value="Pendiente" name="estatus">
-                    <input id="inputCotizaciones" type="hidden" name="cotizaciones">
-                    <input id="inputVendedor" type="hidden" name="nombre_vendedor" value="<?= $nombreUser ?>" readonly tabindex="-1">
 
-                    <div class="d-flex justify-content-between ">
-                        <div style="width:48%;">
-                            <label for="inputSucursal" class="lbl-general">Sucursal/origen *</label>
-                            <select id="inputSucursal" class="selector" name="sucursal" required >
-                                <option value="" selected disabled>Seleccionar</option>
-                                <option value="Ventas Nacionales">Ventas Nacionales</option>
-                                <option value="Ventas Internacionales">Ventas Internacionales</option>
-                                <option value="Ventas Industriales">Ventas Industriales</option>
-                                <option value="Sucursal Industrias">Sucursal Industrias</option>
-                                <option value="Sucursal Monterrey">Sucursal Monterrey</option>
-                                <option value="Sucursal Queretaro">Sucursal Queretaro</option>
-                                <option value="Sucursal Saltillo">Sucursal Saltillo</option>
-                                <option value="Sucursal Toluca">Sucursal Toluca</option>
-                                <option value="Sucursal Veracruz">Sucursal Veracruz</option>
-                                <option value="Taller">Taller</option>
-                            </select>
-                        </div>
-                        <div style="width:48%;">
-                            <label for="inputCliente" class="lbl-general">Cliente *</label>
-                            <input id="inputCliente" type="text" class="input-text" name="cliente" required>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between ">
-                        <div style="width:48%;">
-                            <label for="inputPedido" class="lbl-general">Num. Pedido *</label>
-                            <input id="inputPedido" type="text" class="input-text" name="num_pedido" required>
-                        </div>
-                        <div style="width:48%;">
-                            <label for="inputPaqueteria" class="lbl-general">Paqueteria *</label>
-                            <select id="inputPaqueteria" class="selector" name="paqueteria" required >
-                                <option value="" selected disabled>Seleccionar</option>
-                                <option value="INBOX">INBOX</option>
-                                <option value="PAQUETE EXPRESS">PAQUETE EXPRESS</option>
-                                <option value="PRIMERA PLUS">PRIMERA PLUS</option>
-                                <option value="DHL">DHL</option>
-                                <option value="ESTRELLA BLANCA">ESTRELLA BLANCA</option>
-                                <option value="VENCEDOR">VENCEDOR</option>
-                                <option value="TRES GUERRAS">TRES GUERRAS</option>
-                                <option value="FEDEX">FEDEX</option>
-                                <option value="ODM">ODM</option>
-                                <option value="ESTAFETA">ESTAFETA</option>
-                                <option value="CASTORES">CASTORES</option>
-                                <option value="FUTURA">FUTURA</option>
-                                <option value="JR">JR</option>
-                                <option value="POTOSINOS">POTOSINOS</option>
-                            </select>
-                        </div>                        
-                    </div>
-                    <div class="d-flex justify-content-between ">
-                        <div style="width:48%;">
-                            <label for="inputFactura" class="lbl-general text-break">Factura/remision/nota <?php if($tipo_usuario == "Vendedor" && $areaUser != "Ventas Nacionales"){ echo "*"; } ?></label>
-                            <input id="inputFactura" type="text" class="input-text" name="factura" <?php if($tipo_usuario == "Vendedor" && $areaUser != "Ventas Nacionales"){ echo "required"; } ?>>
-                        </div>
-                        <div style="width:48%;">
-                            <label for="inputComentario" class="lbl-general">Comentario (opcional)</label>
-                            <input id="inputComentario" type="text" maxlength="50" class="input-text" name="comentario" placeholder="Solo comentarios generales...">
-                            <small id="contadorComentario" style="display:block; text-align:right; font-size:12px; color:#555;">0 / 50 caracteres</small>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-center mb-3">
-                        <div style="width:100%;">
-                            <div id="alertaAdjunto" class="mt-2 p-2" style="display:none; background-color: #fff3cd; border: 1px solid #ffe69c; border-radius: 5px; font-size: 16px; color: #856404;">
-                                <i class="bi bi-exclamation-triangle-fill"></i> 
-                                <strong>¿Vas a adjuntar algo?</strong> Parece que mencionas adjuntar algun archivo, recuerda subirlo después de crear la requisición haciendo clic en el icono <i class="bi bi-chat-left-text"></i>.
-                            </div>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <div style="width:100%;">
-                            <label for="buscadorCotizaciones" class="lbl-general">Agregar cotizaciones *</label>
-                            <select id="buscadorCotizaciones">
-                                <option value="" selected disabled>Seleccione una cotización</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between ">
-                        <div class="mb-3" style="width:100%;overflow-x:auto;">
-                            <table id="miniTableCotizaciones" class="table table-bordered border border-2 tabla-billets">
-                                <thead>
-                                    <tr>
-                                        <th scope="col">Remover</th>
-                                        <th scope="col">Id cotizacion</th>
-                                        <th scope="col">Perfil</th>
-                                        <!-- <th scope="col">Tipo medida</th> -->
-                                        <th scope="col">Medidas</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <button id="btnGuardar" type="submit" class="btn-general">Guardar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- //////////////////////////MODAL GERENTE DEBE AUTORIZAR /////////////////////// -->
-<div class="modal fade" id="modalGerenteAutoriza" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">Siga las instrucciónes para autorizar</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma para autorizar. Caducará en 5 minutos.</p>
-                <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
-                    <!-- CONTENEDOR QR -->
-                    <div id="containerQRLink" 
-                        class="d-flex flex-column align-items-center text-center p-2"
-                        >
-                        
-                        <div id="ContainerQR" 
-                            class="d-none d-md-flex justify-content-center align-items-center"
-                            >
-                        </div>
-
-                        <div id="qrLinkContainer" 
-                            class="d-flex d-md-flex justify-content-center text-break mb-md-3"
-                            style="word-break: break-all;">
-                        </div>
-                    </div>
-                    <?php 
-                        $id_usuario = $_SESSION['id'];
-                        $nombreArchivo = $id_usuario . ".png";
-                        $carpeta = '../files/signatures/';
-                        $rutaCompleta = $carpeta . $nombreArchivo;
-                        if(file_exists($rutaCompleta)){
-                            echo '
-                                <div class="d-flex flex-column justify-content-center">
-                                    <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
-                                    <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-auth d-none" 
-                                    data-id-requisicion="" data-autoriza="">Aceptar</button>
-                                </div>                            
-                            ';
-                        }
-                    ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- //////////////////////////////////////////////////////////////////////// -->
-<!-- //////////////////////////MODAL ADMIN DEBE AUTORIZAR /////////////////////// -->
-<div class="modal fade" id="modalAdminAutoriza" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">Siga las instrucciónes para autorizar maquinado</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Escanea el código QR con tu dispositivo movil o haz click en el enlace, luego en el recuadro dibuja tu firma para autorizar. Caducará en 5 minutos.</p>
-                <div class="d-flex flex-column flex-md-row justify-content-evenly justify-content-md-center align-items-center">
-                    <!-- CONTENEDOR QR -->
-                    <div id="containerQRLink" 
-                        class="d-flex flex-column align-items-center text-center p-2"
-                        >
-                        
-                        <div id="ContainerQR2" 
-                            class="d-none d-md-flex justify-content-center align-items-center"
-                            >
-                        </div>
-
-                        <div id="qrLinkContainer2" 
-                            class="d-flex d-md-flex justify-content-center text-break mb-md-3"
-                            style="word-break: break-all;">
-                        </div>
-                    </div>
-                    <?php 
-                        $id_usuario = $_SESSION['id'];
-                        $nombreArchivo = $id_usuario . ".png";
-                        $carpeta = '../files/signatures/';
-                        $rutaCompleta = $carpeta . $nombreArchivo;
-                        if(file_exists($rutaCompleta)){
-                            echo '
-                                <div class="d-flex flex-column justify-content-center">
-                                    <h5 class="text-center text-md-start">¿Autorizar con firma predeterminada?</h5>
-                                    <img src="'.$rutaCompleta.'?v='.time().'" width="150" height="100" class="align-self-center mb-3">
-                                    <button type="button" class="btnFirmaPredeterminada btn-auth d-none" 
-                                    data-id-requisicion="" data-autoriza="">Aceptar</button>
-                                </div>                            
-                            ';
-                        }
-                    ?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- //////////////////////////////////////////////////////////////////////// -->
-<!-- //////////////////////////MODAL: ENVIAR ESTAS SEGURO DE CANCELAR? /////////////////////// -->
-<div class="modal fade" id="modalCancelar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">¿Desea continuar?</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Esta acción cancelará la requisición con Folio: <strong></strong></p>
-                <form action="" method="POST">
-                    <input id="inputRequisicionCancelar" type="hidden" name="id_requisicion">
-                    <button id="btnContinuarCancelar" type="button" class="btn-cancel">Continuar</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL TABLA DE BARRAS PENDIENTES POR AUTORIZAR /////////////////////// -->
-<div class="modal fade" id="modalTableBarrasPendientes" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog" style="max-width: 85% !important;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form d-flex gap-2 align-items-center"><span>Barras pendientes por autorizar. Folio de requisición: </span>                    
-                    <form action="../includes/functions/generar_requisicion.php" method="GET" target="_blank">
-                        <input id="hiddenIdRequisicionBarrasPendientes" type="hidden" name="id_requisicion">
-                        <button type="submit" class="btn btn-link p-0 border-0 text-decoration-underline fs-5"></button>
-                    </form>
-                </span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div style="overflow-x: auto; width: 100%; max-height:300px !important; overflow-y:auto;">
-                    <table id="tableBarrasPendientes" class="table table-bordered border border-2 tabla-billets mb-3" style="table-layout: fixed; width: max-content;">
-                        <thead>
-                            <tr>
-                                <th style="width: 50px;">ACCIONES</th>
-                                <th style="width: 130px;">PERFIL</th>
-                                <th style="width: 160px;">MATERIAL</th>
-                                <th style="width: 280px;">CLAVE</th>
-                                <th style="width: 220px;">LOTE PEDIMENTO</th>
-                                <th style="width: 130px;">MEDIDA</th>
-                                <th style="width: 80px;">PZ TEÓRICAS</th>
-                                <th style="width: 100px;">ALTURA DE PZ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL CONFIRMAR AUTORIZAR BARRA /////////////////////// -->
-<div class="modal fade" id="modalAutorizarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-autorizar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="label-modal-autorizar-barra">Confirmar autorización</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p></p>
-                <form id="formAutorizarBarra">
-                    <input type="hidden" name="id_requisicion" id="autorizarIdRequisicion" value="">
-                    <input type="hidden" name="id_control" id="autorizarIdControl" value="">
-                    <input type="hidden" name="accion" id="autorizarAccion" value="">
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnConfirmAutorizarBarra" class="btn-auth">Si, continuar</button>
-                <button type="button" id="btnCancelAutorizarBarra" class="btn-cancel" data-bs-dismiss="modal">No, cancelar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ///////////////////////MODAL CONFIRMAR RECHAZAR BARRA /////////////////////// -->
-<div class="modal fade" id="modalRechazarBarra" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-rechazar-barra" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="label-modal-rechazar-barra">Rechazar barra</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form id="formRechazarBarra">
-                    <input type="hidden" id="idRequisicionRechazo" name="id_requisicion" value="">
-                    <input type="hidden" id="inputControlRechazo" name="id_control" value="">
-                    <input type="hidden" id="inputAccionRechazo" name="accion" value="">
-
-                    <div class="mb-3">
-                        <label for="inputRazonRechazo" class="form-label">Razón del rechazo</label>
-                        <textarea id="inputRazonRechazo" name="razon" class="form-control" rows="3" required></textarea>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" id="btnEnviarRechazo" class="btn-general">Enviar</button>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- ////////////////////////// ARCHIVAR LA REQUISICION, ES IRREVERSIBLE /////////////////////// -->
-<div class="modal fade" id="modalArchivar" tabindex="-1" aria-hidden="true" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="title-form">¿Desea continuar?</span>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p>Esta acción cambiará el estatus de la requisición a "Archivada", esta acción es irreversible y el folio solo se mostrará filtrando por requisiciones archivadas.</p>
-                <div class="my-3">
-                    <hr>
-                    <h6>Justificación *</h6>
-                    <textarea id="justificacionArchivar" class="form-control" rows="3" placeholder="Ingrese justificación para archivar..." required></textarea>
-                </div>
-                <div>
-                    <input id="inputRequisicionArchivar" type="hidden" name="id_requisicion" >
-                    <button id="btnConfirmarArchivar" type="button" class="btn-general">Continuar</button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-<!-- //////////////////////////////////////////////////////////////////////// -->
+<?php include(ROOT_PATH . "includes/modal_acciones_requisicion.php"); ?>
+<?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
 <?php include(ROOT_PATH . 'includes/modal_maquinado_sellos.php'); ?>
 <?php include(ROOT_PATH . "includes/modal_estatus_requisicion.php"); ?>
+<?php include(ROOT_PATH . "includes/modal_barras_pendientes.php"); ?>
+
+
 <script>
     // JavaScript para mostrar filtros activos
     function mostrarFiltrosActivos() {
@@ -872,10 +532,6 @@ require_once(ROOT_PATH . 'config/config.php');
 
     // Mostrar filtros activos al cargar la página
     document.addEventListener('DOMContentLoaded', function() {
-        // 1. Manejo del Overlay (jQuery)
-        // if (typeof $ !== 'undefined') {
-        //     $("#overlay").addClass("d-none");
-        // }
         
         // 2. Lógica de Filtros (Solo si existen en el DOM)
         const estatusElem = document.getElementById('estatus');
@@ -889,30 +545,6 @@ require_once(ROOT_PATH . 'config/config.php');
                 radio.addEventListener('change', mostrarFiltrosActivos);
             });
             document.getElementById('orden')?.addEventListener('change', mostrarFiltrosActivos);
-        }
-
-        // 3. Lógica del Contador y Alerta (Aseguramos que existan)
-        const inputComentario = document.getElementById('inputComentario');
-        const contador = document.getElementById('contadorComentario');
-        const alertaAdjunto = document.getElementById('alertaAdjunto');
-
-        if (inputComentario && contador) {
-            const keywords = [/adjunto/i, /imagen/i, /dibujo/i, /plano/i, /foto/i, /archivo/i];
-
-            inputComentario.addEventListener('input', function() {
-                const valor = this.value;
-                contador.textContent = `${valor.length} / 50 caracteres`;
-
-                const tieneKeyword = keywords.some(regex => regex.test(valor));
-                if (tieneKeyword) {
-                    //alertaAdjunto.style.display = tieneKeyword ? 'block' : 'none';
-                    alertaAdjunto.style.display = 'block';
-                    setTimeout(() => {
-                        $("#inputComentario").val("");
-                        $("#inputComentario").attr("placeholder","Archivos adjuntos van por cotización individual..");
-                    }, 500);
-                }
-            });
         }
 
         // 4. SweetAlert (Solo si no se ha aceptado antes)

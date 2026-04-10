@@ -271,6 +271,18 @@
                 success: function(resp) {
                     if (resp.success) {
                         _procesarChunks(resp.upload_id, resp.total_lines, sync_mode);
+                        
+                        $.ajax({
+                            url: "../ajax/ajax_notificacion.php",
+                            type: "POST",
+                            data: { mensaje: "se envio un csv de claves"},
+                            success: function(response) {
+                                console.log("Notificacion enviada: ", response);
+                            },
+                            error: function(error) {
+                                console.error("Error al enviar la notificacion: ", error);
+                            }
+                        });
                     } else {
                         _mostrarError(resp.message);
                     }

@@ -102,6 +102,18 @@
 
         cargarPerfilesAsignados();
         $("#modalPerfilesGrupo").modal("show");
+        
+        $.ajax({
+            url: "../ajax/ajax_notificacion.php",
+            type: "POST",
+            data: { mensaje: "Se vio modal de perfiles del grupo"},
+            success: function(response) {
+                console.log("Notificacion enviada: ", response);
+            },
+            error: function(error) {
+                console.error("Error al enviar la notificacion: ", error);
+            }
+        });
     };
     // CARGAR PERFILES ASIGNADOS AL GRUPO ACTUAL
     function cargarPerfilesAsignados() {

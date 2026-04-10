@@ -504,11 +504,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     console.log(`Tolerancia aplicada DE = `, window[`DE_TOLERANCIA_m${i}`]);    
 
                     dInteriorNecesario = Math.abs(parseFloat((dInteriorSeleccionado  - window[`DI_TOLERANCIA_m${i}`]))).toFixed(2);
-                    
-                    if(dInteriorNecesario >= dInteriorSeleccionado){
-                        dInteriorNecesario = 0.00;
-                    }
-
+                    //if(dInteriorNecesario >= dInteriorSeleccionado){
+                    //    dInteriorNecesario = 0.00;
+                    //}
                     dExteriorNecesario = Math.abs(parseFloat((dExteriorSeleccionado + window[`DE_TOLERANCIA_m${i}`]))).toFixed(2);
 
                     $(`#spanAlturaCliente_m${i}`).text(alturaSeleccionada);

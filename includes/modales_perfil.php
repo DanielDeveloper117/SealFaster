@@ -182,9 +182,9 @@
                         <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px;">
                             <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
                             <span>Los porcentajes representan la fracción que se aplica a cada componente para calcular las dimensiones teóricas y mejorar la seleccion de barras.
-                                Al DI se le suma el % en milimetros y al DE se le resta el % en milimetros.
-                            El porcentaje H indica la fraccion de la altura total del sello (Si no se omiten los componentes al cotizar). 
-                            <strong>Ninguno puede superar 1.000 y H no puede ser 0.</strong></span>
+                                Al DI se le suma el % en milímetros y al DE se le resta el % en milímetros.
+                            El porcentaje H indica la fracción de la altura total del sello (Si no se omiten los componentes al cotizar). 
+                            <strong>Ninguno puede superar 1.000 y H no puede ser 0. </strong>Tales porcentajes se redistribuyen al omitir/activar componentes o al modificar las medidas en el cotizador.</span>
                         </div>
                         <div class="mdt-table-wrapper mdt-section">
                             <table class="table-striped table-bordered  mdt-table">
@@ -209,8 +209,8 @@
                     <div class="tab-pane fade" id="content-tolerancias" role="tabpanel">
                         <div class="alert alert-info d-flex gap-2 align-items-start mb-3" style="font-size:13px;">
                             <i class="bi bi-info-circle-fill flex-shrink-0 mt-1"></i>
-                            <span>Indica cuántos mm se restan/agregan al diámetro teórico para la tolerancia de barra.
-                            <strong>Deben ser mayores o iguales a 0. Si no existe registro se usa el valor por defecto 4.00 mm.</strong></span>
+                            <span>Indica cuántos mm se restan al diámetro interior teórico y cuántos mm se suman al diámetro exterior teórico para mejorar la selección de billets al cotizar.
+                            <strong>Deben ser mayores o iguales a 0. Algunos tienen por defecto 4.00 mm. Asegúrese de revisar que las tolerancias sean correctas.</strong></span>
                         </div>
                         <div class="mdt-table-wrapper mdt-section">
                             <table class=" table-striped table-bordered  mdt-table">
@@ -422,6 +422,18 @@
                 if (tipo === "pct") cargarPorcentajes();
                 else cargarTolerancias();
                 sweetAlertResponse("success", "Guardado", resp.message, "none");
+                
+                $.ajax({
+                    url: "../ajax/ajax_notificacion.php",
+                    type: "POST",
+                    data: { mensaje: "Se edito una tolerancia o un porcentaje"},
+                    success: function(response) {
+                        console.log("Notificacion enviada: ", response);
+                    },
+                    error: function(error) {
+                        console.error("Error al enviar la notificacion: ", error);
+                    }
+                });
             } else {
                 sweetAlertResponse("warning", "No se pudo guardar", resp.message, "none");
             }
@@ -550,6 +562,18 @@
                     if (resp.success) {
                         $("#modalEditarPerfil").modal("hide");
                         sweetAlertResponse("success", "Perfil actualizado", resp.message, "self");
+                        
+                        $.ajax({
+                            url: "../ajax/ajax_notificacion.php",
+                            type: "POST",
+                            data: { mensaje: "Perfil actualizado"},
+                            success: function(response) {
+                                console.log("Notificacion enviada: ", response);
+                            },
+                            error: function(error) {
+                                console.error("Error al enviar la notificacion: ", error);
+                            }
+                        });
                     } else {
                         sweetAlertResponse("warning", "Hubo un problema", resp.message, "none");
                     }
