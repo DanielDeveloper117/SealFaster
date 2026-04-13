@@ -145,7 +145,7 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220); // gris claro
         $pdf->SetFont('Arial', 'B', 10);
-        $pdf->Cell(43, 6, utf8_decode('Num. material'), 1, 0, 'C', true);
+        $pdf->Cell(43, 6, utf8_decode('Componente'), 1, 0, 'C', true);
         $pdf->Cell(46, 6, 'Cantidad de piezas', 1, 0, 'C', true);
         $pdf->Cell(46, 6, 'Material', 1, 0, 'C', true);
         $pdf->Cell(46, 6, 'Total unitarios', 1, 0, 'C', true);

@@ -42,12 +42,19 @@ foreach ($cotizacion_ids as $id_cotizacion) {
     $cotGeneral = $cotizacionMateriales[0];
     
     // Obtener información del perfil
-    $sqlPerfil = "SELECT * FROM perfiles WHERE perfil = :perfil";
+    $sqlPerfil = "
+        SELECT p.familia_id, p.nombre, 
+                f.id, f.nombre as familia
+        FROM perfiles2 as p 
+        INNER JOIN familias as f
+        ON p.familia_id = f.id 
+        WHERE p.nombre = :perfil
+    ";
     $stmtPerfil = $conn->prepare($sqlPerfil);
     $stmtPerfil->bindParam(':perfil', $cotGeneral['perfil_sello']);
     $stmtPerfil->execute();
     $arregloPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-    $familiaPerfil = $arregloPerfil["tipo"] ?? '';
+    $familiaPerfil = $arregloPerfil["familia"] ?? '';
     
     // Estructura de datos de una cotización
     $cotizacionInfo = [

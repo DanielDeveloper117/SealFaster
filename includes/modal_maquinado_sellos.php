@@ -90,7 +90,7 @@ Consulta: cotizacion_materiales basada en id_requisicion
                 console.error('  Error:', error);
                 console.error('  Response Text:', xhr.responseText);
                 console.error('  HTTP Status Code:', xhr.status);
-                modalBody.html('<div class="alert alert-danger">Error al cargar la información. Verifique la consola del navegador.</div>');
+                modalBody.html('<div class="alert alert-danger">Error al cargar la información. Contactar a sistemas.</div>');
             }
         });
     }
