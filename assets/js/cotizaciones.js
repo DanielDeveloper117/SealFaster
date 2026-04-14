@@ -73,7 +73,7 @@ $(document).ready(function () {
 
         if (!fechaInicioInput && !fechaFinInput) {
             // Solo mostrar default si no hay fechas específicas
-            const defaultVal = urlParams.get('default') || '2';
+            const defaultVal = urlParams.get('default') || '1';
             if (defaultVal == '1') filtrosActivos.push('Solo de hoy');
             if (defaultVal == '2') filtrosActivos.push('Esta semana');
             if (defaultVal == '3') filtrosActivos.push('Este mes');
@@ -236,7 +236,7 @@ $(document).ready(function () {
 
     if (!urlInicial.searchParams.has('cot')) {
         // Agregar cot=u sin eliminar otros parametros
-        urlInicial.searchParams.set('cot', 'u');
+        urlInicial.searchParams.set('cot', cotActual);
 
         let savedDefault = localStorage.getItem("filtroDefault") || 1;
         if (savedDefault == "0") {
@@ -404,7 +404,7 @@ $(document).ready(function () {
         if (valorSeleccionado2 == 'cliente') {
             $(this).attr("action", "../includes/functions/generar_cotizacion_f.php");
         } else if (valorSeleccionado2 == 'interno') {
-            $(this).attr("action", "../includes/functions/generar_pdf_f.php");
+            $(this).attr("action", "../includes/functions/generar_cotizacion_f.php");
         } else {
             alert("Selecciona una opción de formato.");
             return;

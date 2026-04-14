@@ -9,7 +9,7 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 16); //tipo fuente, negrita(B-I-U-BIU), tamañoTexto
         $this->Cell(45); // Movernos a la derecha
         $this->SetTextColor(0, 0, 0); //color
-        $this->Cell(190, 12, utf8_decode('Cotización'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
+        $this->Cell(190, 12, utf8_decode('Cotización maquinado de sellos'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
         $this->Ln(3); // Salto de línea
     } 
     function Footer() {
@@ -25,6 +25,9 @@ $pdf = new PDF();
 $pdf->AddPage('L'); // orientación horizontal
 $pdf->AliasNbPages(); // muestra la página actual y el total de páginas
 
+function mm_a_pulgadas($mm) {
+    return round($mm / 25.4, 4);
+}
 if (isset($_GET['id_fusion'])) {
     $id_fusion = $_GET['id_fusion'];
     $sql = "SELECT DISTINCT id_cotizacion FROM cotizacion_materiales WHERE id_fusion = :id_fusion";
@@ -39,7 +42,7 @@ if (isset($_GET['id_fusion'])) {
     $conteoCotizaciones = 1;
 
     foreach ($arregloCotizaciones as $cotizacion) {
-        $sql = "SELECT * FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion";
+        $sql = "SELECT * FROM cotizacion_materiales WHERE id_cotizacion = :id_cotizacion ORDER BY cantidad_material ASC";
         $stmt = $conn->prepare($sql);
         $stmt->bindParam(':id_cotizacion', $cotizacion["id_cotizacion"], PDO::PARAM_INT);
         $stmt->execute();
@@ -102,12 +105,11 @@ if (isset($_GET['id_fusion'])) {
             $pdf->SetFillColor(220, 220, 220); // gris claro
             $pdf->SetFont('Arial', 'B', 10);
             $pdf->Cell(40, 6, 'Familia', 1, 0, 'C', true);
-            //$pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
-            $pdf->Cell(37, 6, 'D. Interior', 1, 0, 'C', true);
-            $pdf->Cell(37, 6, 'D. Exterior', 1, 0, 'C', true);
+            $pdf->Cell(48, 6, 'D. Interior', 1, 0, 'C', true);
+            $pdf->Cell(48, 6, 'D. Exterior', 1, 0, 'C', true);
             // altura normal total
-            $pdf->Cell(37, 6, 'Altura total', 1, 1, 'C', true);
-
+            $pdf->Cell(48, 6, 'Altura total', 1, 1, 'C', true);
+            $pdf->SetFont('Arial', '', 10);
             $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
             //$pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
             $di_sello = 0.00;
@@ -116,19 +118,10 @@ if (isset($_GET['id_fusion'])) {
             $di_sello = $arregloCotizacion[0]["di_sello"];
             $de_sello = $arregloCotizacion[0]["de_sello"];
             $a_sello = $arregloCotizacion[0]["a_sello"];
-            // if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
-            //     $di_sello = $arregloCotizacion[0]["di_sello"];
-            //     $de_sello = $arregloCotizacion[0]["de_sello"];
-            //     $a_sello = $arregloCotizacion[0]["a_sello"];
-            // }else{
-            //     $di_sello = $arregloCotizacion[0]["di_sello2"];
-            //     $de_sello = $arregloCotizacion[0]["de_sello2"];
-            //     $a_sello = $arregloCotizacion[0]["a_sello2"];                               
-            // }
-            $pdf->Cell(37, 6, utf8_decode($di_sello.' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
-            $pdf->Cell(37, 6, utf8_decode($de_sello.' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
+            $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
+            $pdf->Cell(48, 6, utf8_decode($de_sello."mm/".mm_a_pulgadas($de_sello).' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
             // altura normal total
-            $pdf->Cell(37, 6, utf8_decode($a_sello.' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
+            $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
 
             $pdf->Ln(8);
             $pdf->SetTextColor(0, 0, 0);
@@ -139,13 +132,13 @@ if (isset($_GET['id_fusion'])) {
             $pdf->SetTextColor(0, 0, 0);
             $pdf->SetFillColor(220, 220, 220); // gris claro
             $pdf->SetFont('Arial', 'B', 10);
-            $pdf->Cell(43, 6, utf8_decode('Num. material'), 1, 0, 'C', true);
+            $pdf->Cell(43, 6, utf8_decode('Componente'), 1, 0, 'C', true);
             $pdf->Cell(46, 6, 'Cantidad de piezas', 1, 0, 'C', true);
             $pdf->Cell(46, 6, 'Material', 1, 0, 'C', true);
             $pdf->Cell(46, 6, 'Total unitarios', 1, 0, 'C', true);
             $pdf->Cell(46, 6, 'Descuentos', 1, 0, 'C', true);
             $pdf->Cell(50, 6, 'Total', 1, 1, 'C', true);
-
+            $pdf->SetFont('Arial', '', 10);
             $totalCotizacion = 0;
 
             foreach ($arregloCotizacion as $cotizacion) {
@@ -233,16 +226,15 @@ if (isset($_GET['id_fusion'])) {
     $pdf->SetFont('Arial', 'B', 10);
     $pdf->Cell(36, 6, utf8_decode('Id cotización'), 1, 0, 'C', true);
     $pdf->Cell(36, 6, 'Familia', 1, 0, 'C', true);
-    $pdf->Cell(34, 6, 'Perfil', 1, 0, 'C', true);
-    //$pdf->Cell(34, 6, 'Tipo de medida', 1, 0, 'C', true);
-    $pdf->Cell(42, 6, 'D. Interior', 1, 0, 'C', true);
-    $pdf->Cell(42, 6, 'D. Exterior', 1, 0, 'C', true);
-    $pdf->Cell(42, 6, 'Altura', 1, 0, 'C', true);
-    $pdf->Cell(45, 6, utf8_decode('Total cotización'), 1, 1, 'C', true);
+    $pdf->Cell(28, 6, 'Perfil', 1, 0, 'C', true);
+    $pdf->Cell(46, 6, 'D. Interior', 1, 0, 'C', true);
+    $pdf->Cell(46, 6, 'D. Exterior', 1, 0, 'C', true);
+    $pdf->Cell(46, 6, 'Altura', 1, 0, 'C', true);
+    $pdf->Cell(44, 6, utf8_decode('Total cotización'), 1, 1, 'C', true);
 
     $GRAN_TOTAL = 0.0;
     $procesados = []; // set de ids ya mostrados
-
+    $pdf->SetFont('Arial', '', 10);
     foreach ($arregloCotizaciones as $cotizacion) {
         $idCot = (int)$cotizacion['id_cotizacion'];
 
@@ -268,16 +260,6 @@ if (isset($_GET['id_fusion'])) {
         $di = $r0['di_sello'];
         $de = $r0['de_sello'];
         $a  = $r0['a_sello'];
-        // elegir medidas segun tipo_medida
-        // if ($r0['tipo_medida'] === 'Sello') {
-        //     $di = $r0['di_sello'];
-        //     $de = $r0['de_sello'];
-        //     $a  = $r0['a_sello'];
-        // } else {
-        //     $di = $r0['di_sello2'];
-        //     $de = $r0['de_sello2'];
-        //     $a  = $r0['a_sello2'];
-        // }
 
         // calcular subtotal correcto: suma de total_material (sin IVA por material)
         $subtotal = 0.0;
@@ -292,12 +274,12 @@ if (isset($_GET['id_fusion'])) {
         // imprimir fila del resumen
         $pdf->Cell(36, 6, utf8_decode($r0['id_cotizacion']), 1, 0, 'C');
         $pdf->Cell(36, 6, utf8_decode($r0['familia_perfil']), 1, 0, 'C');
-        $pdf->Cell(34, 6, utf8_decode($r0['perfil_sello']), 1, 0, 'C');
+        $pdf->Cell(28, 6, utf8_decode($r0['perfil_sello']), 1, 0, 'C');
         //$pdf->Cell(34, 6, utf8_decode($r0['tipo_medida']), 1, 0, 'C');
-        $pdf->Cell(42, 6, utf8_decode($di.' '.$r0["tipo_medida_di"]), 1, 0, 'C');
-        $pdf->Cell(42, 6, utf8_decode($de.' '.$r0["tipo_medida_de"]), 1, 0, 'C');
-        $pdf->Cell(42, 6, utf8_decode($a.' '.$r0["tipo_medida_h"]), 1, 0, 'C');
-        $pdf->Cell(45, 6, "$" . number_format($total, 2), 1, 1, 'C');
+        $pdf->Cell(46, 6, utf8_decode($di."mm/".mm_a_pulgadas($di).' '.$r0["tipo_medida_di"]), 1, 0, 'C');
+        $pdf->Cell(46, 6, utf8_decode($de."mm/".mm_a_pulgadas($de).' '.$r0["tipo_medida_de"]), 1, 0, 'C');
+        $pdf->Cell(46, 6, utf8_decode($a."mm/".mm_a_pulgadas($a).' '.$r0["tipo_medida_h"]), 1, 0, 'C');
+        $pdf->Cell(44, 6, "$" . number_format($total, 2), 1, 1, 'C');
 
         // acumular gran total (incluye IVA por cotizacion)
         $GRAN_TOTAL += $total;

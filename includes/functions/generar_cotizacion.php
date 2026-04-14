@@ -10,7 +10,7 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 16); //tipo fuente, negrita(B-I-U-BIU), tamañoTexto
         $this->Cell(45); // Movernos a la derecha
         $this->SetTextColor(0, 0, 0); //color
-        $this->Cell(190, 12, utf8_decode('Cotización'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
+        $this->Cell(190, 12, utf8_decode('Cotización maquinado de sello'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
         $this->Ln(3); // Salto de línea
     } 
 
@@ -35,6 +35,9 @@ $pdf = new PDF();
 $pdf->AddPage('L'); // orientación horizontal
 $pdf->AliasNbPages(); // muestra la página actual y el total de páginas
 
+function mm_a_pulgadas($mm) {
+    return round($mm / 25.4, 4);
+}
 // Obtener los datos de la cotización
 if (isset($_GET['id_cotizacion'])) {
     $id_cotizacion = $_GET['id_cotizacion'];
@@ -92,26 +95,16 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Line(10, 53, $pageWidth - 10, 53); // linea horizontal
         $pdf->SetLineWidth(0.2);
 
-        // query para informacion del perfil
-        $sqlPerfil = "SELECT * FROM perfiles WHERE perfil = :perfil";
-        $stmtPerfil = $conn->prepare($sqlPerfil);
-        $stmtPerfil->bindParam(':perfil', $perfil_sello);
-        $stmtPerfil->execute();
-        $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-        // DEFINIR VARIABLES DEL SELLO RESULTANTE
-        $familiaPerfil = $arregoPerfil["tipo"];
-
         // tabla informacion del sello CLIENTE
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220); // gris claro
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->Cell(40, 6, 'Familia', 1, 0, 'C', true);
-        //$pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
-        $pdf->Cell(37, 6, 'D. Interior', 1, 0, 'C', true);
-        $pdf->Cell(37, 6, 'D. Exterior', 1, 0, 'C', true);
+        $pdf->Cell(48, 6, 'D. Interior', 1, 0, 'C', true);
+        $pdf->Cell(48, 6, 'D. Exterior', 1, 0, 'C', true);
         // altura normal total
-        $pdf->Cell(37, 6, 'Altura total', 1, 1, 'C', true);
-        
+        $pdf->Cell(48, 6, 'Altura total', 1, 1, 'C', true);
+        $pdf->SetFont('Arial', '', 10);
         $pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["familia_perfil"]), 1, 0, 'C');
         //$pdf->Cell(40, 6, utf8_decode($arregloCotizacion[0]["tipo_medida"]), 1, 0, 'C');
         $di_sello = 0.00;
@@ -121,24 +114,15 @@ if (isset($_GET['id_cotizacion'])) {
         $de_sello = $arregloCotizacion[0]["de_sello"];
         $a_sello = $arregloCotizacion[0]["a_sello"];
 
-        // if($arregloCotizacion[0]["tipo_medida"] == "Sello"){
-        //     $di_sello = $arregloCotizacion[0]["di_sello"];
-        //     $de_sello = $arregloCotizacion[0]["de_sello"];
-        //     $a_sello = $arregloCotizacion[0]["a_sello"];
-        // }else{
-        //     $di_sello = $arregloCotizacion[0]["di_sello2"];
-        //     $de_sello = $arregloCotizacion[0]["de_sello2"];
-        //     $a_sello = $arregloCotizacion[0]["a_sello2"];                               
-        // }
-        $pdf->Cell(37, 6, utf8_decode($di_sello.' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
-        $pdf->Cell(37, 6, utf8_decode($de_sello.' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
+        $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
+        $pdf->Cell(48, 6, utf8_decode($de_sello."mm/".mm_a_pulgadas($de_sello).' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
         // altura normal total
-        $pdf->Cell(37, 6, utf8_decode($a_sello.' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
+        $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
         
         $pdf->Ln(8);
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFont('Arial', 'B', 12);
-        $pdf->Cell(100, 8, utf8_decode("Materiales del perfil"), 0, 0, '', 0);
+        $pdf->Cell(100, 8, utf8_decode("Componentes del perfil"), 0, 0, '', 0);
         $pdf->Ln(8);
 
         // Cabecera de la tabla de materiales
@@ -151,7 +135,7 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Cell(46, 6, 'Total unitarios', 1, 0, 'C', true);
         $pdf->Cell(46, 6, 'Descuentos', 1, 0, 'C', true);
         $pdf->Cell(50, 6, 'Total', 1, 1, 'C', true);
-
+        $pdf->SetFont('Arial', '', 10);
         $elTotal = 0;
 
         foreach ($arregloCotizacion as $cotizacion) {

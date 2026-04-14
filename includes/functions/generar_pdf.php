@@ -10,7 +10,7 @@ class PDF extends FPDF {
         $this->SetFont('Arial', 'B', 16); //tipo fuente, negrita(B-I-U-BIU), tamañoTexto
         $this->Cell(45); // Movernos a la derecha
         $this->SetTextColor(0, 0, 0); //color
-        $this->Cell(190, 12, utf8_decode('Cotización'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
+        $this->Cell(190, 12, utf8_decode('Cotización maquinado de sello'), 0, 1, 'C', 0); // AnchoCelda, AltoCelda, titulo, borde(1-0), saltoLinea(1-0), posicion(L-C-R), ColorFondo(1-0)
         $this->Ln(3); // Salto de línea
     } 
 
@@ -114,13 +114,6 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Line(10, 64, $pageWidth - 10, 64); // linea horizontal
         $pdf->SetLineWidth(0.2);
 
-        // query para informacion del perfil
-        $sqlPerfil = "SELECT * FROM perfiles2 WHERE nombre = :perfil";
-        $stmtPerfil = $conn->prepare($sqlPerfil);
-        $stmtPerfil->bindParam(':perfil', $perfil_sello);
-        $stmtPerfil->execute();
-        $arregoPerfil = $stmtPerfil->fetch(PDO::FETCH_ASSOC);
-
         // tabla informacion del sello CLIENTE
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220); // gris claro
@@ -128,10 +121,10 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Cell(34, 6, 'Familia', 1, 0, 'C', true);
         $pdf->Cell(20, 6, 'Perfil', 1, 0, 'C', true);
         //$pdf->Cell(40, 6, 'Tipo de medida', 1, 0, 'C', true);
-        $pdf->Cell(36, 6, 'D. Interior', 1, 0, 'C', true);
-        $pdf->Cell(36, 6, 'D. Exterior', 1, 0, 'C', true);
+        $pdf->Cell(42, 6, 'D. Interior', 1, 0, 'C', true);
+        $pdf->Cell(42, 6, 'D. Exterior', 1, 0, 'C', true);
         // altura normal total
-        $pdf->Cell(36, 6, 'Altura', 1, 0, 'C', true);
+        $pdf->Cell(42, 6, 'Altura', 1, 0, 'C', true);
 
         // headers de alturas solo para wipers
         $alturasAdicionales = [
@@ -148,7 +141,7 @@ if (isset($_GET['id_cotizacion'])) {
                 $valorActual = $item[$campo];
                 if ($valorActual !== "0.00" && $valorActual !== "0" && !empty($valorActual)) {
                     // Imprimimos la etiqueta de la primera altura válida que detectamos
-                    $pdf->Cell(36, 6, utf8_decode($etiqueta), 1, 0, 'C', true);
+                    $pdf->Cell(30, 6, utf8_decode($etiqueta), 1, 0, 'C', true);
                     $alturaEncontrada = true; // Marcamos que ya cumplimos la misión
                     break; // Salimos del ciclo de items para pasar al break del ciclo de etiquetas
                 }
@@ -167,10 +160,10 @@ if (isset($_GET['id_cotizacion'])) {
         $de_sello = $arregloCotizacion[0]["de_sello"];
         $a_sello = $arregloCotizacion[0]["a_sello"];
 
-        $pdf->Cell(36, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
-        $pdf->Cell(36, 6, utf8_decode($de_sello."mm/".mm_a_pulgadas($de_sello).' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($de_sello."mm/".mm_a_pulgadas($de_sello).' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
         // altura normal total
-        $pdf->Cell(36, 6, utf8_decode($a_sello."mm/".mm_a_pulgadas($a_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
+        $pdf->Cell(42, 6, utf8_decode($a_sello."mm/".mm_a_pulgadas($a_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
 
         // valores de alturas solo para wipers
         foreach ($alturasAdicionales as $campo => $etiqueta) {
@@ -181,9 +174,9 @@ if (isset($_GET['id_cotizacion'])) {
                 $valorActual = $item[$campo];
                 if ($valorActual !== "0.00" && $valorActual !== "0" && !empty($valorActual)) {
                     // Imprimimos la etiqueta de la primera altura válida que detectamos
-                    $tipo_mh = $item["tipo_medida_h"];
-                    $altura = $item[$campo]."mm/".mm_a_pulgadas($item[$campo]).'';
-                    $pdf->Cell(36, 6, utf8_decode($altura . ' ' . $tipo_mh), 1, 0, 'C');
+                    //$tipo_mh = $item["tipo_medida_h"];
+                    $altura = $item[$campo]."mm/".mm_a_pulgadas($item[$campo]);
+                    $pdf->Cell(30, 6, utf8_decode($altura), 1, 0, 'C');
                     $alturaEncontrada = true; // Marcamos que ya cumplimos la misión
                     break; // Salimos del ciclo de items para pasar al break del ciclo de etiquetas
                 }
@@ -201,19 +194,20 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->SetTextColor(0, 0, 0);
         $pdf->SetFillColor(220, 220, 220); // gris claro
         $pdf->SetFont('Arial', 'B', 9);
-        $pdf->Cell(20, 6, utf8_decode('Componente'), 1, 0, 'C', true);
+        $pdf->Cell(22, 6, utf8_decode('Componente'), 1, 0, 'C', true);
         $pdf->Cell(20, 6, 'Cantidad', 1, 0, 'C', true);
-        $pdf->Cell(42, 6, 'Material', 1, 0, 'C', true);
+        $pdf->Cell(40, 6, 'Material', 1, 0, 'C', true);
         $pdf->Cell(93, 6, 'Billets(s)', 1, 0, 'C', true);
         $pdf->Cell(34, 6, 'Total unitarios', 1, 0, 'C', true);
         $pdf->Cell(29, 6, 'Descuentos', 1, 0, 'C', true);
         $pdf->Cell(39, 6, 'Total', 1, 1, 'C', true);
 
+        $pdf->SetFont('Arial', '', 9);
         $elTotal = 0;
 
         foreach ($arregloCotizacion as $cotizacion) {
             
-            $clavesFormateadas = array_map('trim', explode(',', $cotizacion['billets_string2']));
+            $clavesFormateadas = array_map('trim', explode(',', $cotizacion['billets_claves_lotes']));
             // Unimos las claves con saltos de línea para mostrarlas en vertical
             $clavesVertical = utf8_decode(implode("\n", $clavesFormateadas));
             // Calculamos la altura necesaria según número de líneas
@@ -223,9 +217,9 @@ if (isset($_GET['id_cotizacion'])) {
             // Determinamos la altura máxima entre Claves y Descuentos para el renglón
             $maxRowHeight = $rowHeightClaves;
             // Fila #, Material, Claves (con MultiCell)
-            $pdf->Cell(20, $maxRowHeight, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
+            $pdf->Cell(22, $maxRowHeight, utf8_decode($cotizacion['cantidad_material']), 1, 0, 'C');
             $pdf->Cell(20, $maxRowHeight, $cotizacion['cantidad'] . " pz", 1, 0, 'C');            
-            $pdf->Cell(42, $maxRowHeight, utf8_decode($cotizacion['material']), 1, 0, 'C');
+            $pdf->Cell(40, $maxRowHeight, utf8_decode($cotizacion['material']), 1, 0, 'C');
             // Guardamos la posición antes de usar MultiCell en Claves
             $x = $pdf->GetX();
             $y = $pdf->GetY();

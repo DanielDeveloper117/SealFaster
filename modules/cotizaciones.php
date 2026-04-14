@@ -848,6 +848,7 @@ require_once(ROOT_PATH . 'config/config.php');
                 </div>
 
                 <form id="formFiltros" action="" method="GET">
+                    
                     <!-- Sección: Filtros por categoría -->
                     <div class="form-section mb-3">
                         <h5>Filtros por categoría</h5>
@@ -927,7 +928,7 @@ require_once(ROOT_PATH . 'config/config.php');
                                 <label class="form-check-label" >
                                     <i class="bi bi-table"></i> <strong>Default al cargar la tabla</strong>
                                 </label>
-                                <?php $default = $_GET['default'] ?? '2'; // valor por defecto ?>
+                                <?php $default = $_GET['default'] ?? '1'; // valor por defecto ?>
                                 <div class="form-check">
                                     <div class="form-check mb-2">
                                         <input class="form-check-input" type="radio" name="default" id="radioDefault0" value="0" 
@@ -1062,12 +1063,14 @@ require_once(ROOT_PATH . 'config/config.php');
                                 Formato para cliente
                             </label>
                         </div>
+                        <?php if($_GET['cot'] != 'f'): ?>
                         <div class="form-check">
                             <input class="form-check-input" type="radio" name="formato" id="formatoInternoF" value="interno">
                             <label class="form-check-label" for="formatoInternoF">
                                 Formato interno
                             </label>
                         </div>
+                        <?php endif; ?>
                     </div>
                     <button type="submit" class="btn-general">Generar PDF</button>
                 </form>
