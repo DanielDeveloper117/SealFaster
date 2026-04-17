@@ -18,6 +18,7 @@ require_once(ROOT_PATH . 'config/config.php');
     <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/dependencies/xlsx.full.min.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>">
     
     <title>Panel | Inventario</title>
@@ -269,6 +270,19 @@ require_once(ROOT_PATH . 'config/config.php');
                     <p class="function-description">Llena el formulario y agrega nuevas barras al inventario CNC.</p>
                     <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalInventario">
                         Abrir formulario
+                    </button>
+                </div>
+
+                <!-- Carga masiva CSV: ahora asincrona via modal -->
+                <div class="function-card">
+                    <div class="function-icon"><i class="bi bi-file-earmark-arrow-up"></i></div>
+                    <h3 class="function-title">Carga Masiva CSV</h3>
+                    <p class="function-description">
+                        Sube un archivo .csv con multiples barras para dar de alta. El proceso podría tardar dependiendo del volumen de datos.
+                    </p>
+                    <button type="button" class="function-button"
+                            data-bs-toggle="modal" data-bs-target="#modalCsvBarras">
+                        Comenzar
                     </button>
                 </div>
 
@@ -524,6 +538,10 @@ require_once(ROOT_PATH . 'config/config.php');
 <?php include(ROOT_PATH . 'includes/modales_actions_billet.php'); ?>
 <script src="<?= controlCache('../assets/js/modales_actions_billet.js'); ?>"></script>
 <?php include(ROOT_PATH . 'includes/modal_almacen.php'); ?>
+<!-- ============================================================
+     MODAL CSV (asincrono con barra de progreso)
+     ============================================================ -->
+<?php include(ROOT_PATH . 'includes/modal_csv_barras.php'); ?>
 
 <script>
     // ============================================================

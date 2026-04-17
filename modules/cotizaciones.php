@@ -220,7 +220,7 @@ require_once(ROOT_PATH . 'config/config.php');
         $fecha_inicio = isset($_GET['fecha_inicio']) && $_GET['fecha_inicio'] !== '' ? trim($_GET['fecha_inicio']) : null;
         $fecha_fin    = isset($_GET['fecha_fin']) && $_GET['fecha_fin'] !== '' ? trim($_GET['fecha_fin']) : null;
         $archivadas   = isset($_GET['archivadas']) && $_GET['archivadas'] !== '' ? trim($_GET['archivadas']) : null;
-        $default      = isset($_GET['default']) ? (int)$_GET['default'] : 2;
+        $default      = isset($_GET['default']) ? (int)$_GET['default'] : 1; // 1: hoy, 2: semana actual, 3: mes actual
 
         $isAdmin = (($_SESSION['id'] ?? null) == 71);
         $params  = [];
