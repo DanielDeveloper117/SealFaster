@@ -7,6 +7,7 @@ require_once(ROOT_PATH . 'auth/session_manager.php');
 <html lang="es" >
 <head>
   <meta charset="UTF-8">
+  <link rel="icon" type="image/svg+xml" href="../assets/img/general/favicon.ico?v=2" />
   <title>Animacion svg</title>
 <style>
 /*****************************************

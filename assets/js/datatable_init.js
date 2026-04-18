@@ -64,114 +64,70 @@ $(document).ready(function(){
     //          ***** INICIALIZACIONES *****
     window.NOMBRE_TABLA = $('.mainTable').attr("id");
     console.log(window.NOMBRE_TABLA);
+    // 1. Definimos la configuración BASE para todas las tablas
+    var dtConfig = {
+        "ordering": false,
+        "order": [],
+        "searching": true, // función de búsqueda activada
+        search: {
+            return: false
+        },
+        "autoWidth": false, // Cambiado a false para que scrollX funcione mejor
+        "deferRender": true, // <--- CRUCIAL para no crashear
+        "pageLength": 10,
+        "lengthMenu": [[10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000]],
+        "scrollY": "300px",
+        "scrollX": true,
+        "language": { 
+            "decimal" : "",
+            "emptyTable":"No hay registros",
+            "info": "Mostrando _END_ de _TOTAL_ registros",
+            "infoEmpty": "Mostrando 0 de 0 registros",
+            "infoFiltered": "(Se filtraron _MAX_ registros)",
+            "infoPostFix":"",
+            "thousands": ", ",
+            "lengthMenu": "Mostrar _MENU_ registros",
+            "loadingRecords":"Cargando...",
+            "processing": "Procesando...",
+            "search": "Buscar: ",
+            "zeroRecords":"No se encontraron resultados.",
+            "paginate":{
+            "first":"<<",
+            "last":">>",
+            "next": "Siguiente",
+            "previous": "Anterior"
+            }
+        },
+        initComplete: function () {
+            var api = this.api();
+            setTimeout(function () {
+                api.columns.adjust().draw();
+                $("#overlay").addClass("d-none");
+                if(window.NOMBRE_TABLA == "inventarioTable"){
+                    $(".badge-checkbox").removeClass("d-none");
+                }
+            }, 400);
+        }
+    };
+
     // TABLAS QUE TIENEN BOTON DE EXPORTAR TABLA A EXCEL
+    // 2. Si es una tabla especial, añadimos los botones de Excel
     if(window.NOMBRE_TABLA == "inventarioTable" || window.NOMBRE_TABLA == "clavesTable"){
-        $(`#${NOMBRE_TABLA}`).DataTable({
-            "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
-            "order": [],
-            "searching": true, // función de búsqueda activada
-            search: {
-                return: false
-            },
-            "autoWidth": true,
-            "language": { 
-                "decimal" : "",
-                "emptyTable":"No hay registros",
-                "info": "Mostrando _END_ de _TOTAL_ registros",
-                "infoEmpty": "Mostrando 0 de 0 registros",
-                "infoFiltered": "(Se filtraron _MAX_ registros)",
-                "infoPostFix":"",
-                "thousands": ", ",
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "loadingRecords":"Cargando...",
-                "processing": "Procesando...",
-                "search": "Buscar: ",
-                "zeroRecords":"No se encontraron resultados.",
-                "paginate":{
-                "first":"<<",
-                "last":">>",
-                "next": "Siguiente",
-                "previous": "Anterior"
-                }
-            },
-            "pageLength": 30,
-            "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-            "scrollY": "300px", // Altura del área de desplazamiento vertical
-            "scrollX": true,
-            dom: 'Blfrtip',
-            buttons: [
-                {
-                    extend: 'excelHtml5',
-                    title: 'Inventario CNC',
-                    text: 'Exportar a Excel',
-                    exportOptions: {
-                        columns: ':visible',
-                        modifier: {
-                            search: 'none',
-                            order: 'applied',
-                            page: 'all'
-                        }
-                    }
-                }
-            ],
-            initComplete: function () {
-                var api = this.api();
-                setTimeout(function () {
-                    api.columns.adjust().draw();
-                    if (typeof $ !== 'undefined') {
-                        console.log($);
-                        $("#overlay").addClass("d-none");
-                        $(".badge-checkbox").removeClass("d-none");
-                    }
-                }, 400);
-          
+        dtConfig.dom = 'Blfrtip';
+        dtConfig.buttons = [
+            {
+                extend: 'excelHtml5',
+                title: 'Inventario CNC - Sealfaster',
+                text: 'Exportar a Excel',
+                exportOptions: { columns: ':visible' }
             }
-        });
-    }else{
-        $(`#${NOMBRE_TABLA}`).DataTable({
-            "ordering": false, // Desactiva la capacidad de ordenar y quita los botones (flechas)
-            "order": [],
-            "searching": true, // función de búsqueda activada
-            search: {
-                return: false
-            },
-            "autoWidth": true,
-            "language": { 
-                "decimal" : "",
-                "emptyTable":"No hay registros",
-                "info": "Mostrando _END_ de _TOTAL_ registros",
-                "infoEmpty": "Mostrando 0 de 0 registros",
-                "infoFiltered": "(Se filtraron _MAX_ registros)",
-                "infoPostFix":"",
-                "thousands": ", ",
-                "lengthMenu": "Mostrar _MENU_ registros",
-                "loadingRecords":"Cargando...",
-                "processing": "Procesando...",
-                "search": "Buscar: ",
-                "zeroRecords":"No se encontraron resultados.",
-                "paginate":{
-                "first":"<<",
-                "last":">>",
-                "next": "Siguiente",
-                "previous": "Anterior"
-                }
-            },
-            "pageLength": 30,
-            "lengthMenu": [ [10, 20, 30, 40, 50, 100, 1000], [10, 20, 30, 40, 50, 100, 1000] ],
-            "scrollY": "300px", // Altura del área de desplazamiento vertical
-            "scrollX": true,
-            initComplete: function () {
-                var api = this.api();
-                setTimeout(function () {
-                    api.columns.adjust().draw();
-                    if (typeof $ !== 'undefined') {
-                        console.log($);
-                        $("#overlay").addClass("d-none");
-                    }
-                }, 400);
-            }
-        });
+        ];
     }
+
+    // 3. Inicializamos una sola vez
+    $(`#${NOMBRE_TABLA}`).DataTable(dtConfig);
+
+
     // Detector del zoom y resize
     detectarZoom();
     // Add hover and click effects to action buttons

@@ -206,13 +206,13 @@ require_once(ROOT_PATH . 'config/config.php');
         <div class="dashboard-section">
             <h2 class="section-title">Funciones Principales</h2>
             <div class="functions-grid">
-                <!-- Búsqueda por Material -->
+                <!-- Constructor de consultas -->
                 <div class="function-card">
                     <div class="function-icon">
-                        <i class="bi bi-card-list"></i>
+                        <i class="bi bi-funnel"></i>
                     </div>
-                    <h3 class="function-title">Búsqueda por Material</h3>
-                    <p class="function-description">Consulta el inventario filtrando por tipo de material y proveedor específico.</p>
+                    <h3 class="function-title">Constructor de consultas</h3>
+                    <p class="function-description">Construye una consulta personalizada con múltiples filtros disponibles.</p>
                     <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalConsultar">
                         Ver filtros
                     </button>
@@ -243,7 +243,7 @@ require_once(ROOT_PATH . 'config/config.php');
                 </div>
                 
                 <!-- Inventario Completo -->
-                <div class="function-card">
+                <!-- <div class="function-card">
                     <div class="function-icon">
                         <i class="bi bi-table"></i>
                     </div>
@@ -252,7 +252,7 @@ require_once(ROOT_PATH . 'config/config.php');
                     <button type="button" class="function-button" data-bs-toggle="modal" data-bs-target="#modalQueAlmacen">
                         Ver almacenes
                     </button>
-                </div>
+                </div> -->
             </div>
         </div>
         
@@ -344,49 +344,6 @@ require_once(ROOT_PATH . 'config/config.php');
         </div>
     </div>
 </section>
-
-<!-- Modal para crear query material y proveedor -->
-<div class="modal fade" id="modalConsultar" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Consultar el inventario CNC</h5>
-                <button type="button" class="btn-close btnCerrar" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="<?php
-                        if($tipoUsuario == "CNC" || $tipoUsuario == "Vendedor"){
-                            echo 'inventario_vn.php';
-                        }else{
-                            echo 'inventario.php';
-                        }
-                    ?>" method="GET" target="_blank" id="formMaterial"> 
-                    
-                    <div class="mb-3">
-                        <label for="inputAlmacenId1" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
-                        <select id="inputAlmacenId1" class="inputAlmacenIdClass selector" name="origen" required>
-                            <option value="" disabled selected>Seleccionar un almacén</option>
-                        </select>
-                    </div>                        
-                    <div id="containerSelectorMaterial" class="mb-3">
-                        <label for="selectorMaterial" class="lbl-general">Material <span class="text-danger">*</span></label>
-                        <select id="selectorMaterial" class="form-select selectorMaterialesInventario" name="material" required >
-                            <option value="" disabled selected>Seleccionar...</option>
-                        </select>
-                    </div> 
-                    <div id="containerSelectorProveedor" class="mb-3">
-                        <label for="selectorProveedor" class="lbl-general">Proveedor</label>
-                        <select id="selectorProveedor" class="form-select selectorProveedoresInventario" name="proveedor">
-                            <option value="all" selected>Todos</option>
-                        </select>
-                    </div> 
-
-                    <button type="submit" class="btn-general">Consultar<i class="bi bi-arrow-up-right mx-2"></i></button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Modal para buscar por clave -->
 <div class="modal fade" id="modalClave" tabindex="-1" aria-hidden="false" aria-labelledby="label-modal-1" data-bs-backdrop="static" data-bs-keyboard="false">
@@ -523,7 +480,7 @@ require_once(ROOT_PATH . 'config/config.php');
                     <input type="hidden" name="data" value="all">
                     <div class="mb-3">
                         <label for="inputAlmacenId2" class="form-label fw-bold">Almacén <span class="text-danger">*</span></label>
-                        <select id="inputAlmacenId2" class="inputAlmacenIdClass selector" name="origen" required>
+                        <select id="inputAlmacenId2" class=" selector" name="origen" required>
                             <option value="" disabled selected>Seleccionar un almacén</option>
                         </select>
                     </div>     
@@ -537,6 +494,7 @@ require_once(ROOT_PATH . 'config/config.php');
 
 <?php include(ROOT_PATH . 'includes/modales_actions_billet.php'); ?>
 <script src="<?= controlCache('../assets/js/modales_actions_billet.js'); ?>"></script>
+<?php include(ROOT_PATH . 'includes/modal_constructor_consulta.php'); ?>
 <?php include(ROOT_PATH . 'includes/modal_almacen.php'); ?>
 <!-- ============================================================
      MODAL CSV (asincrono con barra de progreso)

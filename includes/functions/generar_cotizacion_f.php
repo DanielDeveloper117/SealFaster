@@ -224,7 +224,7 @@ if (isset($_GET['id_fusion'])) {
     $pdf->SetTextColor(0, 0, 0);
     $pdf->SetFillColor(220, 220, 220);
     $pdf->SetFont('Arial', 'B', 10);
-    $pdf->Cell(36, 6, utf8_decode('Id cotización'), 1, 0, 'C', true);
+    $pdf->Cell(31, 6, utf8_decode('Id cotización'), 1, 0, 'C', true);
     $pdf->Cell(36, 6, 'Familia', 1, 0, 'C', true);
     $pdf->Cell(28, 6, 'Perfil', 1, 0, 'C', true);
     $pdf->Cell(46, 6, 'D. Interior', 1, 0, 'C', true);
@@ -272,7 +272,7 @@ if (isset($_GET['id_fusion'])) {
         $total = round($subtotal + $iva, 2);
 
         // imprimir fila del resumen
-        $pdf->Cell(36, 6, utf8_decode($r0['id_cotizacion']), 1, 0, 'C');
+        $pdf->Cell(31, 6, utf8_decode($r0['id_cotizacion']), 1, 0, 'C');
         $pdf->Cell(36, 6, utf8_decode($r0['familia_perfil']), 1, 0, 'C');
         $pdf->Cell(28, 6, utf8_decode($r0['perfil_sello']), 1, 0, 'C');
         //$pdf->Cell(34, 6, utf8_decode($r0['tipo_medida']), 1, 0, 'C');

@@ -25,9 +25,9 @@ require_once(ROOT_PATH . 'config/config.php');
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
 
     <?php 
-          include(ROOT_PATH . 'includes/backend_info_user.php');
-          include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
-          ?>
+        include(ROOT_PATH . 'includes/backend_info_user.php');
+        include(ROOT_PATH . 'includes/backend/produccion_vn.php'); 
+    ?>
 
     <title>Requisiciones</title>
 
@@ -120,8 +120,6 @@ require_once(ROOT_PATH . 'config/config.php');
                                 $estatusClass = "span-status";
                                 if ($row['estatus'] === "Pendiente" && $row['id_vendedor'] == $_SESSION['id']) {
                                     $esMia = "1";
-                                    // Definimos el icono y el titulo antes para limpiar el echo
-
                                     echo '
                                         <button class="btn-thunder edit-btn"
                                             data-id_requisicion="' . htmlspecialchars($row['id_requisicion']) . '"
@@ -136,15 +134,7 @@ require_once(ROOT_PATH . 'config/config.php');
                                             <i class="bi bi-archive"></i>
                                         </button>
                                     ';
-                                        
-                                }else{
-                                    // echo '<button class="btn-disabled2"
-                                    //         title="No se puede editar esta requisición">
-                                    //         <i class="bi bi-pencil-square"></i>
-                                    //     </button>';                                    
                                 }
-
-                                
                                 echo '<div class="comentarios-wrapper">';
                                     echo '  <button type="button" class="btn-general btn-modal-comentarios-adjuntos"
                                                 data-origen="requi"
@@ -159,8 +149,8 @@ require_once(ROOT_PATH . 'config/config.php');
                                                 . (int)$row['total_comentarios'] .
                                             '</span>';
                                     }
-
                                 echo '</div>';
+
                                 switch ($row['estatus']) {
                                     case "Pendiente":
                                         $estatusString = "Pendiente";
@@ -181,7 +171,6 @@ require_once(ROOT_PATH . 'config/config.php');
                                                     title="Autorizar maquinado de sellos">
                                                     <i class="bi bi-check-circle"></i>
                                                 </button>';
-                                        } else {
                                         }
                                         break;
                                     case "Autorizada":
@@ -206,10 +195,6 @@ require_once(ROOT_PATH . 'config/config.php');
                                     case "Producción":
                                         $estatusString = "Producción";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            // echo '<button type="button" class="btn-disabled2" 
-                                            //         title="No se puede cancelar una requisición en producción">
-                                            //         <i class="bi bi-ban"></i>
-                                            //     </button>';
                                             if($row['barra_pendiente']==1){
                                                 echo '<button class="btn-amber btn-barras-pendientes" 
                                                         data-bs-toggle="modal" data-bs-target="#modalTableBarrasPendientes"
@@ -218,18 +203,12 @@ require_once(ROOT_PATH . 'config/config.php');
                                                         <i class="bi bi-clock"></i>
                                                     </button>';
                                             }
-                                        }else{
-
                                         }
                                         break;
 
                                     case "En producción":
                                         $estatusString = "En maquinado";
                                         if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            // echo '<button type="button" class="btn-disabled2" 
-                                            //         title="No se puede cancelar una requisición en producción">
-                                            //         <i class="bi bi-ban"></i>
-                                            //     </button>';
                                             if($row['barra_pendiente']==1){
                                                 echo '<button class="btn-amber btn-barras-pendientes" 
                                                         data-bs-toggle="modal" data-bs-target="#modalTableBarrasPendientes"
@@ -238,20 +217,11 @@ require_once(ROOT_PATH . 'config/config.php');
                                                         <i class="bi bi-clock"></i>
                                                     </button>';
                                             }
-                                        }else{
-
                                         }
                                         break;
                                     case "Finalizada":
                                         $estatusString = "Finalizada";
-                                        if ($tipo_usuario === "Administrador" || $rol_usuario === "Gerente") {
-                                            // echo '<button type="button" class="btn-disabled2" 
-                                            //         title="No se puede cancelar una requisición en producción">
-                                            //         <i class="bi bi-ban"></i>
-                                            //     </button>';
-                                        }else{
-
-                                        }
+                                        
                                         break;
                                     case "Completada":
                                         $estatusString = "Completada";
@@ -267,7 +237,6 @@ require_once(ROOT_PATH . 'config/config.php');
                                                     title="Finalizar maquinado">
                                                     <i class="bi bi-flag"></i>
                                                 </button>';
-                                        } elseif ($tipo_usuario === "Inventarios") {
                                         }
                                         break;
                                     case "Archivada":

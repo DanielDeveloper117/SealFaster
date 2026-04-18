@@ -817,10 +817,17 @@ $(document).ready(function() {
                     $(`#imagenMaterialTabla_m${i}`).attr("src", imagenUrl);
                     $(`#seraEnviado_m${i}`).val("si");
                 };
+                // condicional para las tapas del chevron, cantidad solo puede ser una pieza
                 if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i == 1 || i == window.CANTIDAD_MATERIALES)){
-             
                     $(`#inputCantidad_m${i}`).val("1").attr("max", "1").addClass("pe-none").attr("tabindex", "-1");
-                    
+                }
+                // dejar solo un intermedio en el chevron
+                if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i > 2 && i != window.CANTIDAD_MATERIALES)){
+                    $(`#checkboxOmitirElemento_m${i}`).trigger("click").attr("disabled", true);
+                } 
+                // condicional para componentes intermedios del chevron, limite de 7 intermedios
+                if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i == 2 && i != window.CANTIDAD_MATERIALES)){
+                    $(`#inputCantidad_m${i}`).attr("max", "7").attr("placeholder", "Máximo 7 intermedios");
                 }
             }  
             // ---- LISTENER DE CHECKBOXES DE OMISION DE MATERIALES ----

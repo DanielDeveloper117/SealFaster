@@ -32,6 +32,7 @@
                                             <option value="Sello">Sello</option>
                                             <option value="Metal">Metal</option>
                                             <option value="Muestra">Muestra</option>
+                                            <option value="Plano">Plano</option>
                                         </select>
                                      
                                     </div>
@@ -59,6 +60,7 @@
                                             <option value="Sello">Sello</option>
                                             <option value="Metal">Metal</option>
                                             <option value="Muestra">Muestra</option>
+                                            <option value="Plano">Plano</option>
                                         </select>
                                     </div>
                                     <div class="d-flex flex-column col-12">
@@ -85,6 +87,7 @@
                                             <option value="Sello">Sello</option>
                                             <option value="Metal">Metal</option>
                                             <option value="Muestra">Muestra</option>
+                                            <option value="Plano">Plano</option>
                                         </select>
                                     </div>
                                     <div class="d-flex flex-column col-12">

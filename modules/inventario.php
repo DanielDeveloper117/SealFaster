@@ -79,38 +79,66 @@ require_once(ROOT_PATH . 'config/config.php');
 <?php
     // *** METODO GET DE FILTROS RECIBIDOS ***
     $arregloSelectInventario = [];
-    if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['material']) && !empty($_GET['material']) && isset($_GET['proveedor']) && !empty($_GET['proveedor'])) {
+    if (isset($_GET['origen']) && !empty($_GET['origen']) && isset($_GET['cc']) ) {
 
-        $origen = $_GET['origen'];
-        $material = $_GET['material'];
-        $proveedor = $_GET['proveedor'];
+        $origen   = $_GET['origen'];
+        $material = isset($_GET['material']) && !empty($_GET['material']) ? $_GET['material'] : 'all';
+        $proveedor = isset($_GET['proveedor']) && !empty($_GET['proveedor']) ? $_GET['proveedor'] : 'all';
+        $estatus   = isset($_GET['estatus'])   && !empty($_GET['estatus'])   ? $_GET['estatus']   : 'all';
+        $medida    = isset($_GET['medida'])     && !empty($_GET['medida'])    ? $_GET['medida']    : 'all';
+        $omitirSinStock = isset($_GET['omitir_sin_stock']) && $_GET['omitir_sin_stock'] === '1';
 
-        if($proveedor == "all"){
-            $sqlInventario = "
-                SELECT i.*, 
-                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-                FROM sellosyr_sellosctd.inventario_cnc AS i
-                INNER JOIN sellosyr_sellosctd.almacenes AS a
-                    ON i.almacen_id = a.id
-                WHERE i.almacen_id = :origen AND i.material = :material ORDER BY i.stock ASC
-            ";
-            $stmtInventario = $conn->prepare($sqlInventario);
-            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-        }else{
-            $sqlInventario = "
-                SELECT i.*, 
-                        (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
-                FROM sellosyr_sellosctd.inventario_cnc AS i
-                INNER JOIN sellosyr_sellosctd.almacenes AS a
-                    ON i.almacen_id = a.id
-                WHERE i.almacen_id = :origen AND i.material = :material AND i.proveedor = :proveedor 
-                ORDER BY i.stock ASC
-            ";        
-            $stmtInventario = $conn->prepare($sqlInventario);
-            $stmtInventario->bindParam(':origen', $origen, PDO::PARAM_STR);
-            $stmtInventario->bindParam(':material', $material, PDO::PARAM_STR);
-            $stmtInventario->bindParam(':proveedor', $proveedor, PDO::PARAM_STR);
+        // Campos de ordenamiento permitidos (whitelist)
+        $camposOrdenValidos = ['created_at', 'updated_at', 'stock'];
+        $ordenCampo = isset($_GET['orden_campo']) && in_array($_GET['orden_campo'], $camposOrdenValidos) 
+                      ? $_GET['orden_campo'] : 'created_at';
+        $ordenDir   = isset($_GET['orden_dir']) && strtoupper($_GET['orden_dir']) === 'ASC' ? 'ASC' : 'DESC';
+
+        // Construcción dinámica de la consulta
+        $where  = "i.almacen_id = :origen AND NOT (i.estatus = 'Eliminado' AND i.solicita_archivado = 1)";
+        $params = [':origen' => $origen];
+
+        // Material
+        if ($material !== 'all') {
+            $where .= " AND i.material = :material";
+            $params[':material'] = $material;
+        }
+
+        // Proveedor
+        if ($proveedor !== 'all') {
+            $where .= " AND i.proveedor = :proveedor";
+            $params[':proveedor'] = $proveedor;
+        }
+
+        // Estatus
+        if ($estatus !== 'all') {
+            $where .= " AND i.estatus = :estatus";
+            $params[':estatus'] = $estatus;
+        }
+
+        // Medida
+        if ($medida !== 'all') {
+            $where .= " AND i.Medida = :medida";
+            $params[':medida'] = $medida;
+        }
+
+        // Omitir sin stock
+        if ($omitirSinStock) {
+            $where .= " AND i.stock > 0";
+        }
+
+        $sqlInventario = "
+            SELECT i.*, 
+                    (CASE WHEN i.almacen_id = a.id THEN a.almacen ELSE 'Desconocido' END) AS almacen
+            FROM sellosyr_sellosctd.inventario_cnc AS i
+            INNER JOIN sellosyr_sellosctd.almacenes AS a
+                ON i.almacen_id = a.id
+            WHERE $where
+            ORDER BY i.$ordenCampo $ordenDir
+        ";
+        $stmtInventario = $conn->prepare($sqlInventario);
+        foreach ($params as $k => $v) {
+            $stmtInventario->bindValue($k, $v, PDO::PARAM_STR);
         }
         $stmtInventario->execute();
         $arregloSelectInventario = $stmtInventario->fetchAll(PDO::FETCH_ASSOC);
@@ -202,15 +230,12 @@ require_once(ROOT_PATH . 'config/config.php');
     }elseif(isset($_GET['data']) && $_GET['data'] == "all" && isset($_GET['origen']) && !empty($_GET['origen'])){
 
         $sqlInventario = "
-                SELECT 
-                i.id, i.almacen_id, i.Clave, i.Medida, i.proveedor, 
-                i.material, i.max_usable, i.stock, i.lote_pedimento,
-                i.estatus, i.updated_at,
+                SELECT i.*, 
                 a.almacen 
             FROM sellosyr_sellosctd.inventario_cnc AS i
             INNER JOIN sellosyr_sellosctd.almacenes AS a
                 ON i.almacen_id = a.id
-            WHERE i.almacen_id = :origen
+            WHERE i.almacen_id = :origen AND (i.estatus != 'Eliminado' OR i.solicita_archivado != 1)
             ORDER BY i.id DESC
         ";
         $stmtInventario = $conn->prepare($sqlInventario);
