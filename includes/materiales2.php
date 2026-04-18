@@ -239,7 +239,7 @@
         <textarea id="inputBilletsLotes_m<?= $i ?>" class="d-none" name="billets_lotes" readonly></textarea>
         <textarea id="inputBilletsString_m<?= $i ?>" class="d-none" name="billets_string" readonly></textarea>
         <textarea id="inputBilletsManualmente_m<?= $i ?>" class="d-none" name="billets_manualmente" readonly></textarea>
-        <input type="hidden" value="<?php echo $selloOriginal; ?>" name="perfil_sello">
+        <input type="hidden" value="<?php echo $perfilOriginal; ?>" name="perfil_sello">
         <input type="hidden" id="seraEnviado_m<?= $i ?>" value="no">
         <input type="hidden" class="id-cotizacion" name="id_cotizacion">
         <input id="cantidadMaterial_m<?= $i ?>" type="hidden" value="<?= $i ?>" name="cantidad_material">

@@ -18,6 +18,7 @@ require_once(ROOT_PATH . 'config/config.php');
     <link href="<?= controlCache('../assets/dependencies/datatables.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('../assets/dependencies/datatables.min.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/alerts_sweet_alert.js'); ?>"></script>
+    <script src="<?= controlCache('../assets/js/datatable_init.js'); ?>"></script>
     <script src="<?= controlCache('../assets/js/cotizaciones.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('../assets/css/datatable1.css'); ?>"> 
 
@@ -473,16 +474,23 @@ require_once(ROOT_PATH . 'config/config.php');
 
         <div class="table-container" style="border-top-left-radius: 0px !important; border-top-right-radius: 0px !important;">
             <div class="row mb-3">
-                <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
-                    <button id="btnFiltrosBusqueda" type="button" 
-                            class="btn-purple" 
-                            data-bs-toggle="modal" 
-                            data-bs-target="#modalFiltrosBusqueda">
-                        <i class="bi bi-funnel"></i> Filtros de busqueda
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8 container-general-actions">
+                   
+                        <button id="btnFiltrosBusqueda" type="button" 
+                                class="btn-purple" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalFiltrosBusqueda">
+                            <i class="bi bi-funnel"></i> Filtros de busqueda
+                        </button>
+                    
+                        <a id="btnInitFusionar" class="btn-unlink" href="#">
+                            <i class="bi bi-link" style="font-size:20px !important;"></i> Fusionar/agrupar cotizaciones
+                        </a>
+                  
+                    <button id="btnArchivarVenciadas" type="button" class="btn-general d-none" 
+                        title="Archivar todas las cotizaciones vencidas" style="width:auto !important;">
+                        <i class="bi bi-archive"></i> Archivar venciadas (<span id="contadorVenciadas">0</span>)
                     </button>
-                    <a id="btnInitFusionar" class="btn-unlink" href="#">
-                        <i class="bi bi-link" style="font-size:20px !important;"></i> Fusionar/agrupar cotizaciones
-                    </a>
                     <button id="btnEnviarCorreo" type="button" class="btn-thunder btn-enviar-correo d-none" 
                         data-bs-toggle='modal' data-bs-target='#modalEnviarCorreo'
                         title="Enviar correo a cliente" style="width:auto !important;">
@@ -1221,58 +1229,69 @@ require_once(ROOT_PATH . 'config/config.php');
 <?php include(ROOT_PATH . 'includes/modal_comentarios_adjuntos.php'); ?>
 <?php include(ROOT_PATH . 'includes/footer.php'); ?>
 <script>
-// ============================================================
-//          ******** EVENTOS DEL DOM ********
-// ============================================================ 
-$(document).ready(function(){    
-    // Add hover and click effects to action buttons
-    const actionButtons = document.querySelectorAll('.container-actions button');
-    actionButtons.forEach(button => {
-        button.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-3px) scale(1.05)';
-        });
-        
-        button.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0) scale(1)';
-        });
-        
-        // Add ripple effect on click
-        button.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            const rect = this.getBoundingClientRect();
-            const size = Math.max(rect.width, rect.height);
-            const x = e.clientX - rect.left - size / 2;
-            const y = e.clientY - rect.top - size / 2;
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================
+
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================ 
+
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
+    $(document).ready(function(){    
+        // =================================
+        //  ****** INICIALIZACIONES ****** 
+        // Add hover and click effects to action buttons
+        const actionButtons = document.querySelectorAll('.container-actions button');
+        actionButtons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px) scale(1.05)';
+            });
             
-            ripple.style.width = ripple.style.height = size + 'px';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.style.position = 'absolute';
-            ripple.style.borderRadius = '50%';
-            ripple.style.background = 'rgba(255, 255, 255, 0.3)';
-            ripple.style.transform = 'scale(0)';
-            ripple.style.animation = 'ripple 0.6s linear';
-            ripple.style.pointerEvents = 'none';
+            button.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
             
-            this.appendChild(ripple);
-            
-            setTimeout(() => {
-                ripple.remove();
-            }, 600);
-        });
-    });
-    // Add CSS for ripple animation
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes ripple {
-            to {
-                transform: scale(4);
-                opacity: 0;
+            // Add ripple effect on click
+            button.addEventListener('click', function(e) {
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.width = ripple.style.height = size + 'px';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.position = 'absolute';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.pointerEvents = 'none';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });        
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
             }
-        }
-    `;
-    document.head.appendChild(style);
-});
+        `;
+        document.head.appendChild(style);        
+        // =================================
+    });
 </script>
 </body>
 </html>

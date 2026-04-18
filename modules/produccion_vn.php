@@ -66,7 +66,7 @@ require_once(ROOT_PATH . 'config/config.php');
         </div>
         <div class="table-container">
             <div class="row mb-3">
-                <div class="d-flex justify-content-start gap-3 col-12 col-md-8">
+                <div class="d-flex justify-content-start gap-3 col-12 col-md-8 container-general-actions">
                     <button id="btnFiltrosBusqueda" type="button" 
                             class="btn-purple" 
                             data-bs-toggle="modal" 

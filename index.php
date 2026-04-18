@@ -25,6 +25,7 @@ require_once(ROOT_PATH . '/includes/functions/control_cache.php');
 
     <link href="<?= controlCache('./assets/dependencies/bootstrap.min.css'); ?>" rel="stylesheet">
     <script src="<?= controlCache('./assets/dependencies/bootstrap.bundle.min.js'); ?>"></script>
+    <link rel="stylesheet" href="<?= controlCache('./assets/dependencies/bootstrap-icons.min.css'); ?>">
     <script src="<?= controlCache('./assets/dependencies/jquery.min.js'); ?>"></script>
     <link rel="stylesheet" href="<?= controlCache('./assets/dependencies/sweetalert2.min.css'); ?>">
     <script src="<?= controlCache('./assets/dependencies/sweetalert2@11.js'); ?>"></script>
@@ -44,7 +45,7 @@ require_once(ROOT_PATH . '/includes/functions/control_cache.php');
     <div class="slide-overlay"></div>
     
     <div class="slides-container">
-      </div>
+    </div>
   </div>
 
   <header class="login-header d-none d-md-block">
@@ -106,85 +107,28 @@ require_once(ROOT_PATH . '/includes/functions/control_cache.php');
   </footer>
 
 <script>
-// Array de imágenes (Configuración)
-const backgroundImages = [
-  'assets/img/general/background_login.jpg', // Imagen Default
-  'assets/img/general/sellos.png',
-  'assets/img/general/midiendo.jpg',
-  'assets/img/general/maquinado2.jpg',
-  'assets/img/general/sello12.jpg',
-  'assets/img/general/maquinado.jpg',
-  'assets/img/general/sello14.jpg',
-  'assets/img/general/sello13.jpg',
-];
-
-$(document).ready(function(){
-    // 1. Inicializar Slider
-    initBackgroundSlider();
-    
-    // 2. Lógica del Input Usuario (Tu lógica original preservada)
-    $("#inputUsuario").on("change input", function(){
-        let usuario = $(this).val();
-        if(usuario == "usercnc"){
-            usuario = "usercnc@sellosyretenes.com";
-        }
-        $(this).val(usuario);
-    });
-  
-    // 3. Toggle Password
-    $("#btnEye").on("click", function(){
-        togglePassword();
-    });
-    
-    // 4. NUEVO: Manejo del formulario con AJAX
-    $("#formLogin").on("submit", function(e){
-        e.preventDefault(); // Prevenir envío tradicional
-        
-        const usuario = $("#inputUsuario").val().trim();
-        const password = $("#inputPass").val().trim();
-        
-        // Validación básica
-        if(!usuario || !password) {
-            sweetAlertResponse('warning', 'Advertencia', 'Por favor, complete todos los campos.');
-            return;
-        }
-        
-        // Deshabilitar botón para evitar múltiples envíos
-        const btnIngresar = $("#btnIngresar");
-        const originalText = btnIngresar.html();
-        btnIngresar.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...');
-        
-        // Enviar datos por AJAX
-        $.ajax({
-            url: 'auth/login-script.php',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                usuario: usuario,
-                password: password
-            },
-            success: function(response) {
-                if(response.status === 'success') {
-                    // Login exitoso - redirigir
-                    //sweetAlertResponse(response.status, response.title, response.message, response.redirect);
-                    window.location.href =  response.redirect;
-                } else {
-                    // Error en login
-                    sweetAlertResponse(response.status, response.title, response.message);
-                    btnIngresar.prop('disabled', false).html(originalText);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error("Error en la solicitud:", error);
-                sweetAlertResponse('error', 'Error', 'Error de conexión con el servidor. Intente nuevamente');
-                btnIngresar.prop('disabled', false).html(originalText);
-            }
-        });
-    });
+    // ============================================================
+    //          ******** VARIABLES GLOBALES ********
+    // ============================================================
+    // Array de imágenes (Configuración)
+    const backgroundImages = [
+        'assets/img/general/background_login.jpg', // Imagen Default
+        'assets/img/general/sellos.png',
+        'assets/img/general/midiendo.jpg',
+        'assets/img/general/maquinado2.jpg',
+        'assets/img/general/sello12.jpg',
+        'assets/img/general/maquinado.jpg',
+        'assets/img/general/sello14.jpg',
+        'assets/img/general/sello13.jpg',
+    ];
     var anchoVentanaInicial = window.innerWidth;
     var anchoPantallaInicial = screen.width;
     var zoomInicial = anchoVentanaInicial / anchoPantallaInicial * 100;
 
+
+    // ============================================================
+    //              ******** FUNCIONES ********
+    // ============================================================  
     function detectarZoom() {
         var anchoVentana = window.innerWidth;
         var anchoPantalla = screen.width;
@@ -200,101 +144,164 @@ $(document).ready(function(){
             }
         }
     }
-    ////////////// EVENTO ZOOM/REDIMENSION DEL NAVEGADOR
-    window.addEventListener('resize', detectarZoom);
-    detectarZoom();
-});
-
-function togglePassword() {
-    const input = document.getElementById("inputPass");
-    const icon = document.getElementById("iconEye");
-    if (input.type === "password") {
-        input.type = "text";
-        icon.classList.remove("bi-eye");
-        icon.classList.add("bi-eye-slash");
-    } else {
-        input.type = "password";
-        icon.classList.remove("bi-eye-slash");
-        icon.classList.add("bi-eye");
+    // --- Lógica del Toggle Password ---
+    function togglePassword() {
+        const input = document.getElementById("inputPass");
+        const icon = document.getElementById("iconEye");
+        if (input.type === "password") {
+            input.type = "text";
+            icon.classList.remove("bi-eye");
+            icon.classList.add("bi-eye-slash");
+        } else {
+            input.type = "password";
+            icon.classList.remove("bi-eye-slash");
+            icon.classList.add("bi-eye");
+        }
     }
-}
 
-// --- Lógica del Slider Espectacular ---
-function initBackgroundSlider() {
-    const container = $('.slides-container');
-    const progressBar = $('.progress-bar');
-    const duration = 3500; // 3.5 segundos por slide
-    let currentIndex = 0;
+    // --- Lógica del Slider Espectacular ---
+    function initBackgroundSlider() {
+        const container = $('.slides-container');
+        const progressBar = $('.progress-bar');
+        const duration = 3500; // 3.5 segundos por slide
+        let currentIndex = 0;
 
-    // Crear elementos DOM para las slides
-    backgroundImages.forEach((url, index) => {
-        const slide = $('<div class="slide"></div>');
-        slide.css('background-image', `url(${url})`);
-        if(index === 0) slide.addClass('active');
-        container.append(slide);
-    });
-
-    const slides = $('.slide');
-    
-    // Función para animar una slide (Efecto Ken Burns Aleatorio)
-    function animateSlide(slideElement) {
-        // Generar valores aleatorios para movimiento suave
-        // Random values for smooth movement (Zoom 1.0 -> 1.1 + Pan)
-        const scale = 1.1 + (Math.random() * 0.1); // Escala entre 1.1 y 1.2
-        const xDir = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5); // +/- 0% a 5%
-        const yDir = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5);
-        
-        // Aplicar transición CSS dinámica
-        slideElement.css({
-            'transition': `transform ${duration + 500}ms linear, opacity 500ms ease`,
-            'transform': `scale(${scale}) translate(${xDir}%, ${yDir}%)`
+        // Crear elementos DOM para las slides
+        backgroundImages.forEach((url, index) => {
+            const slide = $('<div class="slide"></div>');
+            slide.css('background-image', `url(${url})`);
+            if(index === 0) slide.addClass('active');
+            container.append(slide);
         });
-    }
 
-    // Iniciar animación en la primera slide
-    animateSlide(slides.eq(0));
-    runProgressBar();
+        const slides = $('.slide');
+        
+        // Función para animar una slide (Efecto Ken Burns Aleatorio)
+        function animateSlide(slideElement) {
+            // Generar valores aleatorios para movimiento suave
+            // Random values for smooth movement (Zoom 1.0 -> 1.1 + Pan)
+            const scale = 1.1 + (Math.random() * 0.1); // Escala entre 1.1 y 1.2
+            const xDir = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5); // +/- 0% a 5%
+            const yDir = (Math.random() > 0.5 ? 1 : -1) * (Math.random() * 5);
+            
+            // Aplicar transición CSS dinámica
+            slideElement.css({
+                'transition': `transform ${duration + 500}ms linear, opacity 500ms ease`,
+                'transform': `scale(${scale}) translate(${xDir}%, ${yDir}%)`
+            });
+        }
 
-    // Intervalo de cambio
-    setInterval(() => {
-        const currentSlide = slides.eq(currentIndex);
-        const nextIndex = (currentIndex + 1) % slides.length;
-        const nextSlide = slides.eq(nextIndex);
-
-        // 1. Resetear slide actual (Fade out)
-        currentSlide.removeClass('active');
-        // Reset transform después del fade para que esté lista la próxima vez
-        setTimeout(() => {
-            currentSlide.css({'transform': 'scale(1) translate(0,0)', 'transition': 'none'});
-        }, 500);
-
-        // 2. Preparar siguiente slide (Fade in + Start Move)
-        // Forzamos un reflow para asegurar que el transform inicie desde 0
-        nextSlide.css({'transform': 'scale(1) translate(0,0)', 'transition': 'none'});
-        nextSlide[0].offsetHeight; // Trigger reflow
-
-        nextSlide.addClass('active');
-        animateSlide(nextSlide);
-
-        // 3. Reiniciar Barra de Progreso
+        // Iniciar animación en la primera slide
+        animateSlide(slides.eq(0));
         runProgressBar();
 
-        currentIndex = nextIndex;
-    }, duration);
+        // Intervalo de cambio
+        setInterval(() => {
+            const currentSlide = slides.eq(currentIndex);
+            const nextIndex = (currentIndex + 1) % slides.length;
+            const nextSlide = slides.eq(nextIndex);
 
-    function runProgressBar() {
-        progressBar.css('transition', 'none');
-        progressBar.css('width', '0%');
-        
-        // Pequeño timeout para permitir que el navegador registre el ancho 0%
-        setTimeout(() => {
-            progressBar.css({
-                'transition': `width ${duration}ms linear`,
-                'width': '100%'
-            });
-        }, 50);
+            // 1. Resetear slide actual (Fade out)
+            currentSlide.removeClass('active');
+            // Reset transform después del fade para que esté lista la próxima vez
+            setTimeout(() => {
+                currentSlide.css({'transform': 'scale(1) translate(0,0)', 'transition': 'none'});
+            }, 500);
+
+            // 2. Preparar siguiente slide (Fade in + Start Move)
+            // Forzamos un reflow para asegurar que el transform inicie desde 0
+            nextSlide.css({'transform': 'scale(1) translate(0,0)', 'transition': 'none'});
+            nextSlide[0].offsetHeight; // Trigger reflow
+
+            nextSlide.addClass('active');
+            animateSlide(nextSlide);
+
+            // 3. Reiniciar Barra de Progreso
+            runProgressBar();
+
+            currentIndex = nextIndex;
+        }, duration);
+
+        function runProgressBar() {
+            progressBar.css('transition', 'none');
+            progressBar.css('width', '0%');
+            
+            // Pequeño timeout para permitir que el navegador registre el ancho 0%
+            setTimeout(() => {
+                progressBar.css({
+                    'transition': `width ${duration}ms linear`,
+                    'width': '100%'
+                });
+            }, 50);
+        }
     }
-}
+
+
+    // ============================================================
+    //          ******** EVENTOS DEL DOM ********
+    // ============================================================ 
+    $(document).ready(function(){
+        // =================================
+        //  ****** INICIALIZACIONES ****** 
+        // 1. Inicializar Slider
+        initBackgroundSlider();
+        detectarZoom();
+        // =================================
+        // 3. Toggle Password
+        $("#btnEye").on("click", function(){
+            togglePassword();
+        });
+        // 4. NUEVO: Manejo del formulario con AJAX
+        $("#formLogin").on("submit", function(e){
+            e.preventDefault(); // Prevenir envío tradicional
+            
+            const usuario = $("#inputUsuario").val().trim();
+            const password = $("#inputPass").val().trim();
+            
+            // Validación básica
+            if(!usuario || !password) {
+                sweetAlertResponse('warning', 'Advertencia', 'Por favor, complete todos los campos.');
+                return;
+            }
+            
+            // Deshabilitar botón para evitar múltiples envíos
+            const btnIngresar = $("#btnIngresar");
+            const originalText = btnIngresar.html();
+            btnIngresar.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Procesando...');
+            
+            // Enviar datos por AJAX
+            $.ajax({
+                url: 'auth/login-script.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    usuario: usuario,
+                    password: password
+                },
+                success: function(response) {
+                    if(response.status === 'success') {
+                        // Login exitoso - redirigir
+                        //sweetAlertResponse(response.status, response.title, response.message, response.redirect);
+                        window.location.href =  response.redirect;
+                    } else {
+                        // Error en login
+                        sweetAlertResponse(response.status, response.title, response.message);
+                        btnIngresar.prop('disabled', false).html(originalText);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error en la solicitud:", error);
+                    sweetAlertResponse('error', 'Error', 'Error de conexión con el servidor. Intente nuevamente');
+                    btnIngresar.prop('disabled', false).html(originalText);
+                }
+            });
+        });
+        ////////////// EVENTO ZOOM/REDIMENSION DEL NAVEGADOR
+        window.addEventListener('resize', detectarZoom);
+        
+    });
+
+
 </script>
 </body>
 </html>

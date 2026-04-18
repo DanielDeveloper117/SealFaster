@@ -103,7 +103,7 @@ $(document).ready(function(){
             setTimeout(function () {
                 api.columns.adjust().draw();
                 $("#overlay").addClass("d-none");
-                if(window.NOMBRE_TABLA == "inventarioTable"){
+                if(window.NOMBRE_TABLA == "inventarioTable" || window.NOMBRE_TABLA == "cotizacionesTable"){
                     $(".badge-checkbox").removeClass("d-none");
                 }
             }, 400);
