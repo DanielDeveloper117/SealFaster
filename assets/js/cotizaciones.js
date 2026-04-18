@@ -688,6 +688,17 @@
                                     icon: 'success',
                                     confirmButtonText: 'Aceptar'
                                 }).then(() => {
+                                    $.ajax({
+                                        url: "../ajax/ajax_notificacion.php",
+                                        type: "POST",
+                                        data: { mensaje: "Se archivaron las vencidas"},
+                                        success: function(response) {
+                                            console.log("Notificacion enviada: ", response);
+                                        },
+                                        error: function(error) {
+                                            console.error("Error al enviar la notificacion: ", error);
+                                        }
+                                    });
                                     // Recargar la página para actualizar la tabla
                                     window.location.reload();
                                 });
