@@ -7,6 +7,7 @@ window.ES_CHEVRON = "0";
 window.CON_RESORTE = "0";
 window.WIPER_EN = "0";
 window.ESCALON_EN = "0";
+window.CON_ANGULO_EN = "0";
 window.WIPER_ESPECIAL_EN = "0";
 
 window.DI_TOLERANCIA_DEFAULT = 3.00;
@@ -85,7 +86,27 @@ function idRandom(){
     const numeroAleatorio = Math.floor(10000000 + Math.random() * 90000000);
     return numeroAleatorio;
 }
+/**
+ * @param {string} tipo - error o success (define el color del mensaje: rojo para error, verde para success)
+ * @param {string} mensaje - cadena de texto a mostrar en el contenedor de validacion dimensiones cliente
+ * @param {boolean} wiper  - Indica si el mensaje tambien se mostrara en el componente wiper (true/false)
+ */
+// poner contenido y color al texto del contenedor de validacion dimensiones cliente
+function mensajeValidacionDimensiones(tipo = "error", mensaje = "", wiper = false){
+    if(tipo === "error"){
+        $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
+        window.DIMENSIONES_VALIDAS = false;
+    }else if(tipo === "success"){
+        $("#containerErrorDimensiones_cliente span").css("color", "#28a745");        
+        window.DIMENSIONES_VALIDAS = true;
+    }
 
+    if(wiper && window.WIPER_EN != "0"){
+        $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text(mensaje);
+        window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+    }
+    $("#containerErrorDimensiones_cliente span").html(mensaje);
+}
 /**
  * Unites selected billets from all material sources dynamically.
  * Une los billets seleccionados de todas las fuentes de materiales dinámicamente.
@@ -101,7 +122,6 @@ window.unirBilletsSeleccionados = function () {
     }
     window.BILLETS_SELECCIONADOS = result;
 };
-
 /**
  * Unites selected billet lots from all material sources.
  * Une los lotes de billets seleccionados de todas las fuentes de materiales.
@@ -117,7 +137,6 @@ window.unirStringBilletsLotes = function () {
     window.BILLETS_SELECCIONADOS_LOTES = result;
     console.log("STRING DE BILLETS LOTES: ", window.BILLETS_SELECCIONADOS_LOTES);
 };
-
 /**
  * Unites selected billet strings from all material sources.
  * Une los strings de billets seleccionados de todas las fuentes de materiales.
@@ -410,14 +429,14 @@ function autoCalculoDimensiones(clienteDI, clienteDE, clienteH) {
     }
 }
 
-function obtenerHerramientaSegunDimensiones(limitantesHerramientas, dureza, DI_R, DE_R, ALTURA_R, SECCION) {
+function obtenerHerramientaSegunDimensiones(limitantesHerramientas, dureza, DI_R, DE_R, H_TOTAL, SECCION) {
     const herramientas = limitantesHerramientas[dureza];
     for (const numHerramienta in herramientas) {
         const lim = herramientas[numHerramienta];
         if (DI_R >= lim.DI_MIN && DI_R <= lim.DI_MAX &&
             DE_R >= lim.DE_MIN && DE_R <= lim.DE_MAX &&
             SECCION >= lim.SECCION_MIN && SECCION <= lim.SECCION_MAX &&
-            ALTURA_R >= lim.H_MIN && ALTURA_R <= lim.H_MAX) {
+            H_TOTAL >= lim.H_MIN && H_TOTAL <= lim.H_MAX) {
             return { numHerramienta, limitante: lim };
         }
     }
@@ -437,20 +456,22 @@ function validarCamposDimensiones() {
     ];
 
     let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
+    let H_TOTAL = valores[0] || 0.00;
     let DI_R     = valores[1] || 0.00;
     let DE_R     = valores[2] || 0.00;
-    let ALTURA_R = valores[0] || 0.00;
+    let H_CAJA   = valores[3] || 0.00;
+    let H_ESCALON = valores[4] || 0.00;
+    let H_H2     = valores[5] || 0.00;
+    let H_H3     = valores[6] || 0.00;
     let SECCION  = (parseFloat(DE_R) - parseFloat(DI_R)) / 2;
 
     // ---- VALIDACIONES BASICAS PRIMERO ----
-    if (parseFloat(ALTURA_R) == 0 || parseFloat(ALTURA_R) < 0 || parseFloat(DE_R) == 0 || parseFloat(DE_R) < 0) {
-        $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-        $("#containerErrorDimensiones_cliente span").text('La altura y el DE no puede ser 0');
+    if (parseFloat(H_TOTAL) == 0 || parseFloat(H_TOTAL) < 0 || parseFloat(DE_R) == 0 || parseFloat(DE_R) < 0) {
+        mensajeValidacionDimensiones("error", 'La altura y el DE no puede ser 0');
         return false;
     }
     if (parseFloat(DI_R) >= parseFloat(DE_R)) {
-        $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-        $("#containerErrorDimensiones_cliente span").text('El DI no puede ser mayor o igual al DE');
+        mensajeValidacionDimensiones("error", 'El DI no puede ser mayor o igual al DE');
         return false;
     }
     let hayValoresInvalidos = valores.some(function(valor) {
@@ -458,88 +479,84 @@ function validarCamposDimensiones() {
         return valor === null || valor === "" || isNaN(valor) || valor === ".";
     });
     if (hayValoresInvalidos) {
-        $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-        $("#containerErrorDimensiones_cliente span").text('Ingrese las dimensiones solicitadas correctamente');
-        if (window.WIPER_EN != "0") {
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Ingrese las dimensiones solicitadas correctamente');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
-        }
-        window.DIMENSIONES_VALIDAS = false;
+        mensajeValidacionDimensiones("error", 'Ingrese las dimensiones solicitadas correctamente', true);
         return false;
     }
 
     // ---- VALIDACIONES DE WIPER ----
     if (window.WIPER_EN != "0") {
-        if (parseFloat(valores[3]) > parseFloat(ALTURA_R)) {
-            $("#containerErrorDimensiones_cliente span").text('Altura de caja no debe ser mayor a la total');
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Altura de caja no debe ser mayor a la total');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+        if (parseFloat(H_CAJA) > parseFloat(H_TOTAL)) {
+            mensajeValidacionDimensiones("error", 'Altura de caja no debe ser mayor a la total', true);
             return false;
         }
-        if (parseFloat(valores[3]) <= 0 || isNaN(parseFloat(valores[3]))) {
-            $("#containerErrorDimensiones_cliente span").text('Medida de altura de caja no valida');
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Medida de altura de caja no valida');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+        if (parseFloat(H_CAJA) <= 0 || isNaN(parseFloat(H_CAJA))) {
+            mensajeValidacionDimensiones("error", 'Altura de caja no valida', true);
             return false;
         }
     }
 
     // ---- VALIDACIONES DE ESCALON ----
     if (window.ESCALON_EN != "0" && window.WIPER_ESPECIAL_EN == "0") {
-        if ((parseFloat(valores[3]) > parseFloat(valores[4])) || (parseFloat(valores[4]) > parseFloat(ALTURA_R))) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('Altura caja + escalón no puede ser menor a la altura de caja o mayor a la total');
-            $(`#containerErrorDimensiones_m${window.ESCALON_EN} span`).text('Altura escalón no puede ser menor a la altura de caja o mayor a la total');
-            window[`DIMENSIONES_VALIDAS_m${window.ESCALON_EN}`] = false;
+        if ((parseFloat(H_CAJA) > parseFloat(H_ESCALON))) {
+            if(window.PERFIL_SELLO.includes("A07-A")){
+                mensajeValidacionDimensiones("error", 'Altura caja no puede ser mayor a la altura de caja + ángulo', true);
+            } else {
+                mensajeValidacionDimensiones("error", 'Altura caja no puede ser mayor a la altura de caja + escalón', true);
+            }
             return false;
         }
-        if (parseFloat(valores[4]) <= 0 || isNaN(parseFloat(valores[4]))) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('Medida de altura de escalón no valida');
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Medida de altura de escalón no valida');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+        if ((parseFloat(H_ESCALON) > parseFloat(H_TOTAL))) {
+            if(window.PERFIL_SELLO.includes("A07-A")){
+                mensajeValidacionDimensiones("error", 'Altura caja + ángulo no puede ser mayor a la altura total', true);
+            } else {
+                mensajeValidacionDimensiones("error", 'Altura caja + escalón no puede ser mayor a la altura total', true);
+            }
+            return false;
+        }
+        if (parseFloat(H_ESCALON) <= 0 || isNaN(parseFloat(H_ESCALON))) {
+            if(window.PERFIL_SELLO.includes("A07-A")){
+                mensajeValidacionDimensiones("error", 'Altura de ángulo no valida', true);
+            } else {
+                mensajeValidacionDimensiones("error", 'Altura de escalón no valida', true);
+            }
             return false;
         }
     }
 
     // ---- VALIDACIONES DE WIPER ESPECIAL H2 Y H3 ----
     if (window.WIPER_ESPECIAL_EN != "0") {
-        let H2MasH3 = parseFloat(valores[5]) + parseFloat(valores[6]);
-        if ((parseFloat(valores[5]) > parseFloat(valores[3])) || (parseFloat(valores[5]) > parseFloat(ALTURA_R)) ||
-            (parseFloat(valores[6]) > parseFloat(valores[3])) || (parseFloat(valores[6]) > parseFloat(ALTURA_R))) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-            $(`#containerErrorDimensiones_m${window.WIPER_ESPECIAL_EN} span`).text('Altura H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_ESPECIAL_EN}`] = false;
+        let H2MasH3 = parseFloat(H_H2) + parseFloat(H_H3);
+        if ((parseFloat(H_H2) > parseFloat(H_CAJA)) ||
+            (parseFloat(H_H3) > parseFloat(H_CAJA))) {
+            mensajeValidacionDimensiones("error", 'Altura H2 y H3 no pueden ser mayor a la altura de caja', true);
             return false;
         }
-        if (H2MasH3 > parseFloat(valores[3]) || H2MasH3 > parseFloat(ALTURA_R)) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-            $(`#containerErrorDimensiones_m${window.WIPER_ESPECIAL_EN} span`).text('La suma de H2 y H3 no puede ser mayor a la altura de caja o mayor a la total');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_ESPECIAL_EN}`] = false;
+        if ((parseFloat(H_H2) > parseFloat(H_TOTAL)) ||
+            (parseFloat(H_H3) > parseFloat(H_TOTAL))) {
+            mensajeValidacionDimensiones("error", 'Altura H2 y H3 no puede ser mayor a la altura total', true);
             return false;
         }
-        if (parseFloat(valores[5]) <= 0 || isNaN(parseFloat(valores[5]))) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('Medida de altura H2 no valida');
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Medida de altura H2 no valida');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+        if (H2MasH3 > parseFloat(H_CAJA)) {
+            mensajeValidacionDimensiones("error", 'La suma de H2 y H3 no puede ser mayor a la altura de caja', true);
             return false;
         }
-        if (parseFloat(valores[6]) <= 0 || isNaN(parseFloat(valores[6]))) {
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").text('Medida de altura H3 no valida');
-            $(`#containerErrorDimensiones_m${window.WIPER_EN} span`).text('Medida de altura H3 no valida');
-            window[`DIMENSIONES_VALIDAS_m${window.WIPER_EN}`] = false;
+        if (H2MasH3 > parseFloat(H_TOTAL)) {
+            mensajeValidacionDimensiones("error", 'La suma de H2 y H3 no puede ser mayor a la altura total', true);
+            return false;
+        }
+        if (parseFloat(H_H2) <= 0 || isNaN(parseFloat(H_H2))) {
+            mensajeValidacionDimensiones("error", 'Altura H2 no valida', true);
+            return false;
+        }
+        if (parseFloat(H_H3) <= 0 || isNaN(parseFloat(H_H3))) {
+            mensajeValidacionDimensiones("error", 'Altura H3 no valida', true);
             return false;
         }
     }
 
     // ---- VALIDACION DE HERRAMIENTA (al final, con dimensiones ya validadas) ----
     if (tipoDurezaMateriales == "duros" && window.PERFIL_SELLO == "R16") {
-        $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-        $("#containerErrorDimensiones_cliente span").text('No es posible maquinar con materiales duros.');
+        mensajeValidacionDimensiones("error", 'No es posible maquinar R16 con materiales duros.');
         return false;
     }
 
@@ -547,13 +564,13 @@ function validarCamposDimensiones() {
 
         const resultado = obtenerHerramientaSegunDimensiones(
             window.LIMITANTES_PERFIL, tipoDurezaMateriales,
-            DI_R, DE_R, ALTURA_R, SECCION
+            DI_R, DE_R, H_TOTAL, SECCION
         );
 
         if (!resultado) {
             let mensajeTecnico = "No se encontró herramienta para maquinar tales dimensiones.<br>";
             mensajeTecnico += `Material: ${tipoDurezaMateriales}<br>`;
-            mensajeTecnico += `Dimensiones dadas: DI=${DI_R}, DE=${DE_R}, Seccion=${SECCION}, H=${ALTURA_R}<br><br>`;
+            mensajeTecnico += `Dimensiones dadas: DI=${DI_R}, DE=${DE_R}, Seccion=${SECCION}, H=${H_TOTAL}<br><br>`;
             mensajeTecnico += "Rangos de herramientas disponibles:<br>";
 
             const herramientas = window.LIMITANTES_PERFIL[tipoDurezaMateriales];
@@ -565,9 +582,7 @@ function validarCamposDimensiones() {
                 mensajeTecnico += `Seccion [${lim.SECCION_MIN}-${lim.SECCION_MAX}], `;
                 mensajeTecnico += `H [${lim.H_MIN}-${lim.H_MAX}]<br>`;
             }
-            $("#containerErrorDimensiones_cliente span").css("color", "#ff0400de");
-            $("#containerErrorDimensiones_cliente span").html(mensajeTecnico);
-            window.DIMENSIONES_VALIDAS = false;
+            mensajeValidacionDimensiones("error", mensajeTecnico);
             return false;
         }
 
@@ -577,10 +592,9 @@ function validarCamposDimensiones() {
         mensajeTecnicoValidadas += `Rango de dimensiones permitido por esta herramienta:<br>`;
         mensajeTecnicoValidadas += `DI [${limitante.DI_MIN}-${limitante.DI_MAX}], `;
         mensajeTecnicoValidadas += `DE [${limitante.DE_MIN}-${limitante.DE_MAX}], `;
-        mensajeTecnicoValidadas += `H [${limitante.H_MIN}-${limitante.H_MAX}], `;
-        mensajeTecnicoValidadas += `Seccion [${limitante.SECCION_MIN}-${limitante.SECCION_MAX}]`;
-        $("#containerErrorDimensiones_cliente span").css("color", "#28a745");
-        $("#containerErrorDimensiones_cliente span").html(mensajeTecnicoValidadas);
+        mensajeTecnicoValidadas += `Seccion [${limitante.SECCION_MIN}-${limitante.SECCION_MAX}], `;
+        mensajeTecnicoValidadas += `H [${limitante.H_MIN}-${limitante.H_MAX}]`;
+        mensajeValidacionDimensiones("success", mensajeTecnicoValidadas);
     }
 
     // ---- LIMPIAR ERRORES DE CONTENEDORES SECUNDARIOS ----
@@ -590,8 +604,7 @@ function validarCamposDimensiones() {
 
     // ---- MENSAJE FINAL SI NO TIENE LIMITANTES DE HERRAMIENTA ----
     if (!window.TIENE_LIMITANTES) {
-        $("#containerErrorDimensiones_cliente span").css("color", "#28a745");
-        $("#containerErrorDimensiones_cliente span").text('Dimensiones validas');
+        mensajeValidacionDimensiones("success", 'Dimensiones validas');
     }
 
     window.DIMENSIONES_VALIDAS = true;
@@ -693,12 +706,12 @@ function pushPromise(numeroMaterial) {
 
 
 // ============================================================
-// EVENTOS DEL DOM
+//          ********* DOM CARGADO ********
 // ============================================================
 $(document).ready(function() {
 
     // ============================================================
-    // INICIALIZACION DE VARIABLES Y DEPENDIENTES DEL DOM
+    // **** INICIALIZACION DE VARIABLES Y DEPENDIENTES DEL DOM ****
     // ============================================================
     // llamada ajax para obtener la informacion del PERFIL
     $.ajax({
@@ -737,11 +750,6 @@ $(document).ready(function() {
             }else{
                 console.log("No es chevron");
             }    
-            if(window.CON_RESORTE_EN != "0"){
-                console.log("Si tiene resorte");
-            }else{
-                console.log("No tiene resorte");
-            }
 
             window.TIENE_LIMITANTES  = data.tiene_limitantes;
             window.LIMITANTES_PERFIL = data.limitantes;
@@ -774,7 +782,7 @@ $(document).ready(function() {
                 console.log("No es wiper");
             }
 
-            if(window.ESCALON_EN != "0" && window.WIPER_ESPECIAL_EN == "0"){
+            if((window.ESCALON_EN != "0" && window.WIPER_ESPECIAL_EN == "0") || window.PERFIL_SELLO.includes("A07-A")){
                 $(`#divAlturaEscalon, #containerWiperEscalon`).removeClass("d-none");
                 console.log("Tiene escalon");
             }else{
@@ -1040,20 +1048,36 @@ $(document).ready(function() {
         const blandos = ["H-ECOPUR","ECOSIL","ECORUBBER 1","ECORUBBER 2","ECORUBBER 3","ECOPUR"];
         const duros = ["ECOTAL","ECOMID","ECOFLON 1","ECOFLON 2","ECOFLON 3"];
         const todosMateriales = [...blandos, ...duros];
-        for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
-            $(`#inputCantidad_m${i}`).trigger("input");
+        let htmlMateriales = `<option value="" disabled selected>Seleccione una opcion</option>`;
+        if(window.CANTIDAD_MATERIALES == 1){
+            if(durezaMateriales == "blandos"){ 
+                blandos.forEach(element => {
+                    htmlMateriales += `<option value="${element}">${element}</option>`;
+                });
+            }else if(durezaMateriales == "duros"){
+                duros.forEach(element => {
+                    htmlMateriales += `<option value="${element}">${element}</option>`;
+                });
+            }
+            $(`#selectorMaterial_m1`).html(htmlMateriales);
+        }else{
 
-            todosMateriales.forEach(element => {
-                $(`#selectorMaterial_m${i}`).html(
-                    `<option value="" disabled selected>Seleccione una opcion</option>`
-                );
-            });
-            todosMateriales.forEach(element => {
-                $(`#selectorMaterial_m${i}`).append(
-                    `<option value="${element}">${element}</option>`
-                );
-            });
+            for(i=1; i<=window.CANTIDAD_MATERIALES; i++){
+                $(`#inputCantidad_m${i}`).trigger("input");
+    
+                todosMateriales.forEach(element => {
+                    $(`#selectorMaterial_m${i}`).html(
+                        `<option value="" disabled selected>Seleccione una opcion</option>`
+                    );
+                });
+                todosMateriales.forEach(element => {
+                    $(`#selectorMaterial_m${i}`).append(
+                        `<option value="${element}">${element}</option>`
+                    );
+                });
+            }
         }
+
     });  
     // AL SELECCIONAR LAS 3 COSAS MUESTRA LA SECCION DE DIMENSIONES
     $("#selectorCliente, #selectorTipoInventario, #selectorDurezaMateriales").on("change", function(){
@@ -1366,36 +1390,16 @@ $(document).ready(function() {
     });
 
     // EVENTO CUANDO EL USUARIO CAMBIA LA ALTURA DE CAJA
-    setTimeout(() => {
-        $(`#inputAlturaCaja_m${window.WIPER_EN}`).on("input", function(){
-            if(window.PERFIL_SELLO.includes("A03") || window.PERFIL_SELLO.includes("A06")) {
-                console.log("es wiper en el dos, y es un a03 o a06");
-                // esto esta bien porque la altura de caja es la misma que la altura siempre en el material 1
-                $(`#altura_mm_m1`).val($("#altura_mm_cliente").val());
-            }
-        });
-    }, 1000);
-
-    // WIPER ESPECIAL QUESTION ICON MODAL
-    $("#questionIconSpecialWiper").on("click", function(){
-        const modal = new bootstrap.Modal(document.getElementById('modalSpecialWiper'));
-        modal.show();
-    });
-    // ESCUCHAR EL CHECK DE OMITIR ELEMENTO
-    // for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
-    // $(`#checkboxOmitirElemento_m${i}`).on('change', function() {
-
-    // }                    
-    // $("#checkboxOmitirElemento_m1, #checkboxOmitirElemento_m2, #checkboxOmitirElemento_m3, #checkboxOmitirElemento_m4, #checkboxOmitirElemento_m5").on("change", function(){
-    //         if ($(this).is(':checked')) {
-    //             window.MATERIALES_COMPLETADOS += 1;
-    //             habilitarCotizacion();
-    //         } else {
-    //             window.MATERIALES_COMPLETADOS -= 1;
-    //             habilitarCotizacion();
+    // setTimeout(() => {
+    //     $(`#inputAlturaCaja_m${window.WIPER_EN}`).on("input", function(){
+    //         if(window.PERFIL_SELLO.includes("A03") || window.PERFIL_SELLO.includes("A06")) {
+    //             console.log("es wiper en el dos, y es un a03 o a06");
+    //             // esto esta bien porque la altura de caja es la misma que la altura siempre en el material 1
+    //             $(`#altura_mm_m1`).val($("#altura_mm_cliente").val());
     //         }
     //     });
-    // }
+    // }, 1000);
+
     // ESCUCHAR EL CLICK DE COMPLETAR UN MATERIAL
     $("#btnListo_m1, #btnListo_m2, #btnListo_m3, #btnListo_m4, #btnListo_m5").on("click", function(){
         window.MATERIALES_COMPLETADOS += 1;
@@ -1536,7 +1540,11 @@ $(document).ready(function() {
             $("#spanDimensiones2").text(`H caja: ${aCajaResultante}`);
         }
         if(window.ESCALON_EN != "0"){
-            $("#spanDimensiones2").text(`H caja: ${aCajaResultante}, H escalon: ${aEscalon}`);
+            if(window.PERFIL_SELLO.includes("A07-A")){
+                $("#spanDimensiones2").text(`H caja: ${aCajaResultante}, H ángulo: ${aEscalon}`);
+            } else {
+                $("#spanDimensiones2").text(`H caja: ${aCajaResultante}, H escalón: ${aEscalon}`);
+            }
         }
         if(window.WIPER_ESPECIAL_EN != "0"){
              $("#spanDimensiones2").text(`H caja: ${aCajaResultante}, H2: ${aH2}, H3: ${aH3}`);

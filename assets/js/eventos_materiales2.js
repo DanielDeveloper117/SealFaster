@@ -250,7 +250,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     // }
 
                     // 5. ÉXITO: Si llega aquí, todo es válido
-                    errorSpan.text(''); // Limpiamos mensajes de error
                     window[`DIMENSIONES_VALIDAS_m${i}`] = true;
                     return true; 
                 };
@@ -404,8 +403,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     
                     // Si todas las validaciones pasan, proceder con la habilitación y la solicitud AJAX
                     // console.log(`Todos los campos tienen valores válidos.`);
-                    $(`#containerErrorDimensiones_m${i} span`).text('');
-                    $(`#containerErrorDimensiones_cliente span`).text('');
+                    if(window.DIMENSIONES_VALIDAS = true){
+                        $(`#containerErrorDimensiones_m${i} span`).text('');
+                    }
+                    //$(`#containerErrorDimensiones_cliente span`).text('');
                     setTimeout(() => {
                         $(`#inputCantidad_m${i}`).trigger(`change`);
                     }, 400);

@@ -189,19 +189,20 @@
                 <div id="sectionDureza" class="">
                     <div class="d-flex col-12 flex-column">
                         <div class="d-flex col-12 flex-row mb-3">
-                            <div class="d-flex col-11 col-md-11 flex-column">
-
+                            <div class="d-flex col-12 col-md-12 flex-column">
                                 <h5 class="mb-3">Dureza de materiales *</h5>
-                                <select id="selectorDurezaMateriales" class="" name="material" required>
-                                    <option value="" disabled selected>Seleccione una opción</option>
-                                    <option value="blandos">Limitantes para materiales Blandos</option>
-                                    <option value="duros">Limitantes para materiales Duros</option>
-                                    <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
-                                </select>
+                                <div class="d-flex align-items-center gap-1">
+                                    <select id="selectorDurezaMateriales" class="" name="material" required>
+                                        <option value="" disabled selected>Seleccione una opción</option>
+                                        <option value="blandos">Limitantes para materiales Blandos</option>
+                                        <option value="duros">Limitantes para materiales Duros</option>
+                                        <option id="todosMaterialesOption" value="todos">Todos los materiales</option>
+                                    </select>
+                                    <div class="align-self-end">
+                                        <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:30px;"></i>
+                                    </div>                                
+                                </div>
                             </div>
-                            <div class="align-self-end">
-                                <i id="btnQuestionMaterials" class="bi bi-question-circle-fill" data-bs-toggle="modal" data-bs-target="#modalQuestionMaterials" style="padding-left:5px;font-size:30px;"></i>
-                            </div>                                
 
                         </div>
                         <div class="d-flex col-11 col-md-12 flex-column gap-2">

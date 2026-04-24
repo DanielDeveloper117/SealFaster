@@ -1,7 +1,7 @@
 <form method="post"> 
     <!-- PRIMER FORMULARIO DE DIMENSIONES DEL CLIENTE -->
     <section id="sectionDimensionesSello" class="d-none section-container" style="backdrop-filter:none !important;">
-        <h2 class="pt-2">Ingrese dimensiones del sello deseadas por el cliente</h2>
+        <h2 class="pt-2">Ingrese dimensiones totales del perfil excluyendo componentes omitidos</h2>
         
         <div class="d-flex col-12 flex-column flex-md-row justify-content-between align-items-md-start align-items-center">
             <div class="controles d-flex col-12 flex-column border-gray" style="backdrop-filter:none !important;">
@@ -106,6 +106,21 @@
                             <button id="btnOtrasAlturas" type="button" class="btn-disabled d-none" data-bs-toggle="modal" data-bs-target="#modalOtrasAlturas">Otras alturas</button>
                         </div>
                     </div>
+                    <?php if((int)$cantidadMateriales > 1): ?>
+                    <div class="info-note-container d-flex align-items-center shadow-sm">
+                        <div class="info-note-icon">
+                            <i class="bi bi-info-circle-fill"></i>
+                        </div>
+                        <div class="info-note-content">
+                            <span class="info-note-badge">NOTA</span>
+                            <p class="info-note-text">
+                                Considerar como medidas totales del perfil solo los componentes no omitidos. La redistribución teórica
+                                ocurre automáticamente al editar estas dimensiones y al omitir elementos para obtener
+                                la selección de barras óptima.
+                            </p>
+                        </div>
+                    </div>
+                    <?php endif; ?>
                     <div id="containerErrorDimensiones_cliente" class="text-faltan mt-3 py-2 px-3 px-md-5 border border-dark-subtitle bg-white bg-opacity-10 font-monospace rounded-2">
                         <span></span>
                     </div>   
@@ -179,10 +194,11 @@
             <div class="modal-body text-center">
                 <div class="d-flex col-12 flex-column justify-content-between" >
                     <div id="containerWiperEscalon" class="d-none d-flex col-12 flex-column justify-content-between align-items-center">
-                        <img src="../assets/img/general/wiper_escalon.jpg" class="img-fluid col-8 col-md-4" alt="Wiper con Escalon">
+                        <img src="<?php if($perfilOriginal=="A07-A"){ echo "../assets/img/general/wiper_angulo.jpg"; } else { echo "../assets/img/general/wiper_escalon.jpg"; } ?>" 
+                            class="img-fluid col-8 col-md-4" alt="Wiper con escalon o angulo">
                     </div>
                     <div id="containerWiperEspecial" class="d-none d-flex col-12 flex-column justify-content-between align-items-center">
-                        <img src="../assets/img/general/wisper_especial3.jpg" class="img-fluid col-8 col-md-4" alt="Wiper Especial">
+                        <img src="../assets/img/general/wiper_especial3.jpg" class="img-fluid col-8 col-md-4" alt="Wiper Especial">
                     </div>
                     <div class="col-12 col-md-12 d-flex flex-column flex-md-row gap-4 justify-content-center">
                         <div id="divAlturaCaja" class="d-flex flex-column d-none">
@@ -192,9 +208,11 @@
                             <input type="number" id="inputAlturaCajaInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaEscalon" class="d-flex flex-column d-none">
-                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="lbl-general mt-3">Altura caja + escalón (mm)</label>
+                            <label for="inputAlturaEscalon" id="labelAlturaEscalonMM" class="lbl-general mt-3"
+                            >Altura caja + <?php if($perfilOriginal=="A07-A"){ echo "ángulo"; } else { echo "escalón"; } ?> (mm)</label>
                             <input type="number" id="inputAlturaEscalon" class="input-text" step="0.01" min="0" required placeholder="">
-                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="lbl-general mt-2">Altura caja + escalón (inches)</label>
+                            <label for="inputAlturaEscalonInch" id="labelAlturaEscalonInch" class="lbl-general mt-2"
+                            >Altura caja + <?php if($perfilOriginal=="A07-A"){ echo "ángulo"; } else { echo "escalón"; } ?> (inches)</label>
                             <input type="number" id="inputAlturaEscalonInch" class="input-text" step="0.0001" min="0" required placeholder="">
                         </div>
                         <div id="divAlturaH2" class="d-flex flex-column d-none">
@@ -215,21 +233,6 @@
         <div class="modal-footer col-3 align-self-center">
             <button id="btnOtrasAlturasClose" type="button" class="btn-general" data-bs-dismiss="modal">Ok</button>
         </div>
-    </div>
-  </div>
-</div>
-
-<!-- Modal Question Wiper Especial-->
-<div class="modal fade" id="modalSpecialWiper" tabindex="-1" aria-labelledby="modalSpecialWiperLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-md"> <!-- puedes usar modal-md o modal-lg -->
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalSpecialWiperLabel">Alturas de los Wipers especiales</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-      </div>
-      <div class="modal-body text-center">
-        <img src="../assets/img/general/wisper_especial3.jpg" class="img-fluid" alt="Wiper Especial">
-      </div>
     </div>
   </div>
 </div>

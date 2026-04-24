@@ -274,12 +274,22 @@ if (isset($_GET['id_requisicion'])) {
         $arrayDE[] = $cotGeneral['de_sello']."mm/".mm_a_pulgadas($cotGeneral['de_sello']).'"';
         
         // Agregar alturas adicionales si existen
-        $alturasAdicionales = [
-            'altura_caja' => 'Caja:',
-            'altura_escalon' => 'Caja + Escalón:', 
-            'altura_h2' => 'H2:',
-            'altura_h3' => 'H3:'
-        ];
+        if($cotGeneral['perfil_sello']=="A07-A"){
+            $alturasAdicionales = [
+                'altura_caja' => 'Caja:',
+                'altura_escalon' => 'Caja + Ángulo:', 
+                'altura_h2' => 'H2:',
+                'altura_h3' => 'H3:'
+            ];
+        }else{
+            $alturasAdicionales = [
+                'altura_caja' => 'Caja:',
+                'altura_escalon' => 'Caja + Escalón:', 
+                'altura_h2' => 'H2:',
+                'altura_h3' => 'H3:'
+            ];
+        }
+        
         
         foreach ($alturasAdicionales as $campo => $etiqueta) {
             if ($cotGeneral[$campo] !== "0.00" && $cotGeneral[$campo] !== "0") {

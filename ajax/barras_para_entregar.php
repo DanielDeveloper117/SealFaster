@@ -14,31 +14,199 @@ try {
         exit;
     }
 
-    $id_requisicion = $_GET['id_requisicion'];
+    // ============================================================
+    // FUNCIONES AUXILIARES
+    // ============================================================
 
-    // 1. PRIMERO consultar control_almacen
-    $stmtControlAlmacen = $conn->prepare("
-        SELECT * FROM control_almacen 
-        WHERE id_requisicion = :id_requisicion
-        AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
-    ");
-    $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmtControlAlmacen->execute();
-    $registrosControlAlmacen = $stmtControlAlmacen->fetchAll(PDO::FETCH_ASSOC);
+    /**
+     * Procesa un array de cotizaciones y extrae los registros únicos
+     */
+    function procesarCotizacionesARegistros($cotizaciones) {
+        $registros = [];
+        
+        foreach ($cotizaciones as $cotizacion) {
+            if (empty($cotizacion['billets_claves_lotes'])) {
+                continue;
+            }
 
-    // 2. Si HAY registros en control_almacen, retornarlos directamente
-    if ($registrosControlAlmacen && count($registrosControlAlmacen) > 0) {
-        echo json_encode([
-            'success' => true,
-            'id_requisicion' => $id_requisicion,
-            'total_registros' => count($registrosControlAlmacen),
-            'billets' => $registrosControlAlmacen,
-            'fuente' => 'control_almacen'
-        ]);
-        exit;
+            $billets = explode(',', $cotizacion['billets_claves_lotes']);
+            
+            foreach ($billets as $billetItem) {
+                $billetItem = trim($billetItem);
+                
+                if (empty($billetItem)) {
+                    continue;
+                }
+
+                $lote_pedimento = '';
+                $clave = '';
+                $medida = '';
+                $pz_teoricas = null;
+                $di_sello = null;
+                $de_sello = null;
+
+                if (preg_match('/^([A-Z0-9\-\.]+)\s+([A-Z0-9\-\.]+)\s+\(([^)]+)\)\s+(\d+)\s+pz$/i', $billetItem, $matches)) {
+                    $lote_pedimento = trim($matches[1]);
+                    $clave = trim($matches[2]);
+                    $medida = trim($matches[3]);
+                    $pz_teoricas = intval($matches[4]);
+                    
+                    if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
+                        $di_sello = floatval($medida_matches[1]);
+                        $de_sello = floatval($medida_matches[2]);
+                    }
+                }
+                elseif (preg_match('/^([^\s]+)\s+([^\s]+)\s+\(([^)]+)\)\s+(\d+)\s+pz$/i', $billetItem, $matches)) {
+                    $lote_pedimento = trim($matches[1]);
+                    $clave = trim($matches[2]);
+                    $medida = trim($matches[3]);
+                    $pz_teoricas = intval($matches[4]);
+                    
+                    if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
+                        $di_sello = floatval($medida_matches[1]);
+                        $de_sello = floatval($medida_matches[2]);
+                    }
+                }
+                else {
+                    $parts = preg_split('/\s+/', $billetItem);
+                    if (count($parts) >= 5) {
+                        $lote_pedimento = $parts[0];
+                        $clave = $parts[1];
+                        
+                        if (preg_match('/\(([^)]+)\)/', $billetItem, $parentesis_matches)) {
+                            $medida = $parentesis_matches[1];
+                            if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
+                                $di_sello = floatval($medida_matches[1]);
+                                $de_sello = floatval($medida_matches[2]);
+                            }
+                        }
+                        
+                        foreach ($parts as $part) {
+                            if (is_numeric($part)) {
+                                $pz_teoricas = intval($part);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if ($di_sello === null) $di_sello = $cotizacion['di_sello'];
+                if ($de_sello === null) $de_sello = $cotizacion['de_sello'];
+
+                $registro = [
+                    'id_estimacion' => $cotizacion['id_estimacion'],
+                    'id_cotizacion' => $cotizacion['id_cotizacion'],
+                    'perfil_sello' => $cotizacion['perfil_sello'],
+                    'componente' => $cotizacion['cantidad_material'],
+                    'material' => $cotizacion['material'],
+                    'clave' => $clave,
+                    'lote_pedimento' => $lote_pedimento,
+                    'medida' => $medida,
+                    'pz_teoricas' => $pz_teoricas,
+                    'di_sello' => $di_sello,
+                    'de_sello' => $de_sello,
+                    'a_sello' => $cotizacion['a_sello'],
+                    'h_componente' => $cotizacion['altura']
+                ];
+
+                $registros[] = $registro;
+            }
+        }
+        
+        return $registros;
     }
 
-    // 3. Si NO HAY registros en control_almacen, proceder con cotizaciones
+    /**
+     * Compara registros esperados con los actuales para detectar cambios
+     * Retorna true si hay discrepancia, false si son iguales
+     */
+    function verificarDiscrepancia($registrosEsperados, $registrosActuales) {
+        // Si la cantidad es diferente, hay discrepancia
+        if (count($registrosEsperados) !== count($registrosActuales)) {
+            return true;
+        }
+
+        // Comparar cada registro por lote_pedimento (el identificador único)
+        $lotesEsperados = [];
+        foreach ($registrosEsperados as $reg) {
+            $lotesEsperados[$reg['lote_pedimento']] = [
+                'clave' => $reg['clave'],
+                'pz_teoricas' => $reg['pz_teoricas'],
+                'di_sello' => $reg['di_sello'],
+                'de_sello' => $reg['de_sello']
+            ];
+        }
+
+        $lotesActuales = [];
+        foreach ($registrosActuales as $reg) {
+            $lotesActuales[$reg['lote_pedimento']] = [
+                'clave' => $reg['clave'],
+                'pz_teoricas' => $reg['pz_teoricas'],
+                'di_sello' => $reg['di_sello'],
+                'de_sello' => $reg['de_sello']
+            ];
+        }
+
+        // Comparar si las claves son iguales
+        if (array_keys($lotesEsperados) !== array_keys($lotesActuales)) {
+            return true;
+        }
+
+        // Comparar los datos de cada lote
+        foreach ($lotesEsperados as $lote => $datos) {
+            if (!isset($lotesActuales[$lote])) {
+                return true;
+            }
+            if ($datos !== $lotesActuales[$lote]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Inserta registros en control_almacen
+     */
+    function insertarRegistrosControlAlmacen($conn, $id_requisicion, $registros) {
+        $insertStmt = $conn->prepare("
+            INSERT INTO control_almacen (
+                id_requisicion, id_estimacion, id_cotizacion, perfil_sello, componente, material, 
+                clave, lote_pedimento, medida, pz_teoricas, di_sello, de_sello, altura_pz, h_componente,
+                fecha_registro
+            ) VALUES (
+                :id_requisicion, :id_estimacion, :id_cotizacion, :perfil_sello, :componente, :material,
+                :clave, :lote_pedimento, :medida, :pz_teoricas, :di_sello, :de_sello, :altura_pz, :h_componente,
+                NOW()
+            )
+        ");
+
+        foreach ($registros as $registro) {
+            $insertStmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $insertStmt->bindParam(':id_estimacion', $registro['id_estimacion']);
+            $insertStmt->bindParam(':id_cotizacion', $registro['id_cotizacion']);
+            $insertStmt->bindParam(':perfil_sello', $registro['perfil_sello']);
+            $insertStmt->bindParam(':componente', $registro['componente']);
+            $insertStmt->bindParam(':material', $registro['material']);
+            $insertStmt->bindParam(':clave', $registro['clave']);
+            $insertStmt->bindParam(':lote_pedimento', $registro['lote_pedimento']);
+            $insertStmt->bindParam(':medida', $registro['medida']);
+            $insertStmt->bindParam(':pz_teoricas', $registro['pz_teoricas'], PDO::PARAM_INT);
+            $insertStmt->bindParam(':di_sello', $registro['di_sello']);
+            $insertStmt->bindParam(':de_sello', $registro['de_sello']);
+            $insertStmt->bindParam(':altura_pz', $registro['a_sello']);
+            $insertStmt->bindParam(':h_componente', $registro['h_componente']);
+            $insertStmt->execute();
+        }
+    }
+
+    // ============================================================
+    // FIN FUNCIONES AUXILIARES
+    // ============================================================
+
+    $id_requisicion = $_GET['id_requisicion'];
+
+    // 1. Obtener cotizaciones actuales de la requisición
     $stmtRequisicion = $conn->prepare("SELECT cotizaciones FROM requisiciones WHERE id_requisicion = :id_requisicion LIMIT 1");
     $stmtRequisicion->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
     $stmtRequisicion->execute();
@@ -53,7 +221,7 @@ try {
         exit;
     }
 
-    // 4. Convertir IDs de cotizaciones a array y obtener datos completos
+    // 2. Convertir IDs de cotizaciones a array y obtener datos completos
     $cotizacion_ids = explode(', ', $requisicion['cotizaciones']);
     $placeholders = str_repeat('?,', count($cotizacion_ids) - 1) . '?';
     $sqlCotizaciones = "SELECT * FROM cotizacion_materiales WHERE id_cotizacion IN ($placeholders)";
@@ -61,194 +229,92 @@ try {
     $stmtCotizaciones->execute($cotizacion_ids);
     $cotizaciones = $stmtCotizaciones->fetchAll(PDO::FETCH_ASSOC);
 
-    // 5. Procesar cada cotización y separar los billets_claves_lotes en registros únicos
-    $registros_unicos = [];
+    // 3. Procesar las cotizaciones actuales
+    $registros_unicos_esperados = procesarCotizacionesARegistros($cotizaciones);
 
-    foreach ($cotizaciones as $cotizacion) {
-        if (empty($cotizacion['billets_claves_lotes'])) {
-            continue;
-        }
+    // 4. Consultar registros actuales en control_almacen
+    $stmtControlAlmacen = $conn->prepare("
+        SELECT * FROM control_almacen 
+        WHERE id_requisicion = :id_requisicion
+        AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
+        ORDER BY id_control ASC
+    ");
+    $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtControlAlmacen->execute();
+    $registrosControlAlmacen = $stmtControlAlmacen->fetchAll(PDO::FETCH_ASSOC);
 
-        // Separar los billets_claves_lotes por comas
-        $billets = explode(',', $cotizacion['billets_claves_lotes']);
-        
-        foreach ($billets as $billetItem) {
-            $billetItem = trim($billetItem);
-            
-            if (empty($billetItem)) {
-                continue;
-            }
+    // 5. Comparar si hay cambios entre lo esperado y lo actual
+    $hayDiscrepancia = verificarDiscrepancia($registros_unicos_esperados, $registrosControlAlmacen);
 
-            // Extraer información del formato: "lote-pedimento clave (di/de) N pz"
-            $lote_pedimento = '';
-            $clave = '';
-            $medida = '';
-            $pz_teoricas = null;
-            $di_sello = null;
-            $de_sello = null;
-
-            if (preg_match('/^([A-Z0-9\-\.]+)\s+([A-Z0-9\-\.]+)\s+\(([^)]+)\)\s+(\d+)\s+pz$/i', $billetItem, $matches)) {
-                $lote_pedimento = trim($matches[1]);
-                $clave = trim($matches[2]);
-                $medida = trim($matches[3]);
-                $pz_teoricas = intval($matches[4]);
-                
-                // Si la medida está en formato "di/de", extraer los valores individuales
-                if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
-                    $di_sello = floatval($medida_matches[1]);
-                    $de_sello = floatval($medida_matches[2]);
-                }
-            }
-            // Patrón alternativo más flexible
-            elseif (preg_match('/^([^\s]+)\s+([^\s]+)\s+\(([^)]+)\)\s+(\d+)\s+pz$/i', $billetItem, $matches)) {
-                $lote_pedimento = trim($matches[1]);
-                $clave = trim($matches[2]);
-                $medida = trim($matches[3]);
-                $pz_teoricas = intval($matches[4]);
-                
-                // Intentar extraer di/de de la medida
-                if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
-                    $di_sello = floatval($medida_matches[1]);
-                    $de_sello = floatval($medida_matches[2]);
-                }
-            }
-            // Último intento: patrón muy flexible
-            else {
-                // Dividir por espacios y analizar los componentes
-                $parts = preg_split('/\s+/', $billetItem);
-                if (count($parts) >= 5) {
-                    $lote_pedimento = $parts[0];
-                    $clave = $parts[1];
-                    
-                    // Buscar el patrón (X/Y) en el string
-                    if (preg_match('/\(([^)]+)\)/', $billetItem, $parentesis_matches)) {
-                        $medida = $parentesis_matches[1];
-                        if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $medida_matches)) {
-                            $di_sello = floatval($medida_matches[1]);
-                            $de_sello = floatval($medida_matches[2]);
-                        }
-                    }
-                    
-                    // Buscar el número de piezas
-                    foreach ($parts as $part) {
-                        if (is_numeric($part)) {
-                            $pz_teoricas = intval($part);
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Usar valores de la cotización si no se extrajeron del billet_item
-            if ($di_sello === null) $di_sello = $cotizacion['di_sello'];
-            if ($de_sello === null) $de_sello = $cotizacion['de_sello'];
-
-            // Crear registro único
-            $registro = [
-                'id_estimacion' => $cotizacion['id_estimacion'],
-                'id_cotizacion' => $cotizacion['id_cotizacion'],
-                'perfil_sello' => $cotizacion['perfil_sello'],
-                'componente' => $cotizacion['cantidad_material'],
-                'material' => $cotizacion['material'],
-                'clave' => $clave,
-                'lote_pedimento' => $lote_pedimento,
-                'medida' => $medida,
-                'pz_teoricas' => $pz_teoricas,
-                'di_sello' => $di_sello,
-                'de_sello' => $de_sello,
-                'a_sello' => $cotizacion['a_sello'],
-                'h_componente' => $cotizacion['altura'],
-                'billet_item_original' => $billetItem
-            ];
-
-            $registros_unicos[] = $registro;
-        }
-    }
-
-    // 6. INSERTAR registros únicos en control_almacen (evitando duplicados)
-    if (count($registros_unicos) > 0) {
+    // 6. Si hay discrepancia, eliminar los registros antiguos y reinsertar
+    if ($hayDiscrepancia && count($registrosControlAlmacen) > 0) {
         $conn->beginTransaction();
         
         try {
-            $insertStmt = $conn->prepare("
-                INSERT INTO control_almacen (
-                    id_requisicion, id_estimacion, id_cotizacion, perfil_sello, componente, material, 
-                    clave, lote_pedimento, medida, pz_teoricas, di_sello, de_sello, altura_pz, h_componente,
-                    fecha_registro
-                ) VALUES (
-                    :id_requisicion, :id_estimacion, :id_cotizacion, :perfil_sello, :componente, :material,
-                    :clave, :lote_pedimento, :medida, :pz_teoricas, :di_sello, :de_sello, :altura_pz, :h_componente,
-                    NOW()
-                )
+            // Eliminar registros anteriores para esta requisición
+            $stmtDelete = $conn->prepare("
+                DELETE FROM control_almacen 
+                WHERE id_requisicion = :id_requisicion
+                AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
             ");
+            $stmtDelete->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $stmtDelete->execute();
 
-            foreach ($registros_unicos as $registro) {
-                // Verificar si ya existe el registro para evitar duplicados
-                $checkStmt = $conn->prepare("
-                    SELECT id_control FROM control_almacen 
-                    WHERE id_requisicion = :id_requisicion 
-                    AND lote_pedimento = :lote_pedimento 
-                    LIMIT 1
-                ");
-                $checkStmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-                $checkStmt->bindParam(':lote_pedimento', $registro['lote_pedimento']);
-                $checkStmt->execute();
-                
-                $existe = $checkStmt->fetch(PDO::FETCH_ASSOC);
-                
-                //if (!$existe) {
-                    // Insertar solo si no existe
-                    $insertStmt->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-                    $insertStmt->bindParam(':id_estimacion', $registro['id_estimacion']);
-                    $insertStmt->bindParam(':id_cotizacion', $registro['id_cotizacion']);
-                    $insertStmt->bindParam(':perfil_sello', $registro['perfil_sello']);
-                    $insertStmt->bindParam(':componente', $registro['componente']);
-                    $insertStmt->bindParam(':material', $registro['material']);
-                    $insertStmt->bindParam(':clave', $registro['clave']);
-                    $insertStmt->bindParam(':lote_pedimento', $registro['lote_pedimento']);
-                    $insertStmt->bindParam(':medida', $registro['medida']);
-                    $insertStmt->bindParam(':pz_teoricas', $registro['pz_teoricas'], PDO::PARAM_INT);
-                    $insertStmt->bindParam(':di_sello', $registro['di_sello']);
-                    $insertStmt->bindParam(':de_sello', $registro['de_sello']);
-                    $insertStmt->bindParam(':altura_pz', $registro['a_sello']);
-                    $insertStmt->bindParam(':h_componente', $registro['h_componente']);
-                    $insertStmt->execute();
-                //}
+            // Insertar los nuevos registros
+            if (count($registros_unicos_esperados) > 0) {
+                insertarRegistrosControlAlmacen($conn, $id_requisicion, $registros_unicos_esperados);
             }
-            
+
             $conn->commit();
             
+            // Actualizar referencia de registros para retornar
+            $stmtControlAlmacen = $conn->prepare("
+                SELECT * FROM control_almacen 
+                WHERE id_requisicion = :id_requisicion
+                AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
+            ");
+            $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $stmtControlAlmacen->execute();
+            $registrosControlAlmacen = $stmtControlAlmacen->fetchAll(PDO::FETCH_ASSOC);
+
         } catch (Exception $e) {
             $conn->rollBack();
             throw $e;
         }
+    } 
+    // 7. Si NO hay registros en control_almacen, insertar los nuevos
+    elseif (count($registrosControlAlmacen) === 0 && count($registros_unicos_esperados) > 0) {
+        $conn->beginTransaction();
+        
+        try {
+            insertarRegistrosControlAlmacen($conn, $id_requisicion, $registros_unicos_esperados);
+            $conn->commit();
 
-        // 7. FINALMENTE, consultar los registros recién insertados en control_almacen
-        $stmtFinal = $conn->prepare("
-            SELECT * FROM control_almacen 
-            WHERE id_requisicion = :id_requisicion
-            AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
-        ");
-        $stmtFinal->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-        $stmtFinal->execute();
-        $registrosFinales = $stmtFinal->fetchAll(PDO::FETCH_ASSOC);
+            // Actualizar referencia de registros para retornar
+            $stmtControlAlmacen = $conn->prepare("
+                SELECT * FROM control_almacen 
+                WHERE id_requisicion = :id_requisicion
+                AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)
+            ");
+            $stmtControlAlmacen->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+            $stmtControlAlmacen->execute();
+            $registrosControlAlmacen = $stmtControlAlmacen->fetchAll(PDO::FETCH_ASSOC);
 
-        $response = [
-            'success' => true,
-            'id_requisicion' => $id_requisicion,
-            'total_registros' => count($registrosFinales),
-            'billets' => $registrosFinales,
-            'fuente' => 'control_almacen_insertado'
-        ];
-    } else {
-        $response = [
-            'success' => true,
-            'id_requisicion' => $id_requisicion,
-            'total_registros' => 0,
-            'billets' => [],
-            'message' => 'No se encontraron registros en las cotizaciones'
-        ];
+        } catch (Exception $e) {
+            $conn->rollBack();
+            throw $e;
+        }
     }
+
+    // 8. Retornar los registros finales
+    $response = [
+        'success' => true,
+        'id_requisicion' => $id_requisicion,
+        'total_registros' => count($registrosControlAlmacen),
+        'billets' => $registrosControlAlmacen,
+        'discrepancia_detectada' => $hayDiscrepancia,
+        'fuente' => count($registrosControlAlmacen) > 0 ? 'control_almacen' : 'vacio'
+    ];
 
     echo json_encode($response);
 
