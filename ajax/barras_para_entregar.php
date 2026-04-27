@@ -13,6 +13,12 @@ try {
 
     $id_requisicion = intval($_GET['id_requisicion']);
 
+    // INICIALIZACIÓN DE VARIABLES (Crucial para evitar Warnings)
+    $agregados = 0;
+    $eliminados = 0;
+    $barrasProtegidas = 0;
+    $hayDiscrepancia = false;
+
     // ============================================================
     // FUNCIONES AUXILIARES (MODIFICADAS)
     // ============================================================
@@ -27,46 +33,79 @@ try {
                 $billetItem = trim($billetItem);
                 if (empty($billetItem)) continue;
 
-                $lote_pedimento = ''; $clave = ''; $medida = '';
-                $pz_teoricas = 0; $di_sello = null; $de_sello = null;
+                /**
+                 * EXPLICACIÓN DEL REGEX AJUSTADO:
+                 * ^(\S+)           -> 1. Lote (Hasta el primer espacio)
+                 * \s+              -> Espacio
+                 * (.*?)            -> 2. Clave (Texto hasta encontrar el paréntesis)
+                 * \s* -> Espacios opcionales
+                 * \((.*?)\)        -> 3. Medida (Lo que esté dentro de los paréntesis)
+                 * \s+              -> Espacio
+                 * (\d+)\s*pz$      -> 4. Cantidad (Número antes de "pz")
+                 */
+                $pattern = '/^(\S+)\s+(.*?)\s*\((.*?)\)\s+(\d+)\s*pz$/i';
 
-                // Regex mejorada para capturar lote, clave, medida y piezas
-                if (preg_match('/^([A-Z0-9\-\.]+)\s+([A-Z0-9\-\.]+)\s+\(([^)]+)\)\s+(\d+)\s+pz$/i', $billetItem, $matches)) {
-                    $lote_pedimento = trim($matches[1]);
-                    $clave = trim($matches[2]);
-                    $medida = trim($matches[3]);
-                    $pz_teoricas = intval($matches[4]);
-                    if (preg_match('/(\d+)\s*\/\s*(\d+)/', $medida, $m)) {
-                        $di_sello = floatval($m[1]); $de_sello = floatval($m[2]);
-                    }
+                if (preg_match($pattern, $billetItem, $matches)) {
+                    $registros[] = [
+                        'id_cotizacion'   => $cotizacion['id_cotizacion'],
+                        'id_estimacion'   => $cotizacion['id_estimacion'],
+                        'perfil_sello'    => $cotizacion['perfil_sello'],
+                        'componente'      => $cotizacion['cantidad_material'],
+                        'material'        => $cotizacion['material'],
+                        'altura_pz'         => $cotizacion['a_sello'],
+                        'di_sello'        => $cotizacion['diametro_int'],
+                        'de_sello'        => $cotizacion['diametro_ext'],
+                        'h_componente'    => $cotizacion['altura'],
+                        // ASIGNACIÓN CORRECTA SEGÚN TU EXPLICACIÓN:
+                        'lote_pedimento'  => trim($matches[1]), // "F1C000038-C25"
+                        'clave'           => trim($matches[2]), // "TEF/VIR0/38"
+                        'medida'          => trim($matches[3]), // "0/38"
+                        'pz_teoricas'     => intval($matches[4]) // 8
+                    ];
+                } else {
+                    // ALERTA: Si el formato no coincide, lanzamos error inmediatamente
+                    // Esto evita los registros "fantasma" con campos vacíos.
+                    throw new Exception("Formato inválido en la cotización {$cotizacion['id_cotizacion']}. Texto detectado: '$billetItem'. Se esperaba: 'LOTE CLAVE (MEDIDA) CANTIDAD pz'");
                 }
-
-                if ($di_sello === null) $di_sello = $cotizacion['di_sello'];
-                if ($de_sello === null) $de_sello = $cotizacion['de_sello'];
-
-                // Creamos una llave única por barra para comparar
-                $unique_key = $cotizacion['id_cotizacion'] . '_' . $lote_pedimento;
-
-                $registros[$unique_key] = [
-                    'id_estimacion' => $cotizacion['id_estimacion'],
-                    'id_cotizacion' => $cotizacion['id_cotizacion'],
-                    'perfil_sello' => $cotizacion['perfil_sello'],
-                    'componente' => $cotizacion['cantidad_material'],
-                    'material' => $cotizacion['material'],
-                    'clave' => $clave,
-                    'lote_pedimento' => $lote_pedimento,
-                    'medida' => $medida,
-                    'pz_teoricas' => $pz_teoricas,
-                    'di_sello' => $di_sello,
-                    'de_sello' => $de_sello,
-                    'a_sello' => $cotizacion['a_sello'],
-                    'h_componente' => $cotizacion['altura']
-                ];
             }
         }
         return $registros;
     }
-
+    /**
+     * Inserta registros procesados en la tabla control_almacen
+     */
+    function insertarRegistrosControlAlmacen($conn, $id_requisicion, $registros) {
+        $sqlInsert = "INSERT INTO control_almacen (
+            id_requisicion, id_estimacion, id_cotizacion, perfil_sello, 
+            componente, material, clave, lote_pedimento, medida, 
+            pz_teoricas, di_sello, de_sello, altura_pz, h_componente, fecha_registro
+        ) VALUES (
+            :id_req, :id_est, :id_cot, :perfil, 
+            :comp, :mat, :clave, :lote, :medida, 
+            :pz_t, :di, :de, :alt, :h_comp, NOW()
+        )";
+        
+        $stmt = $conn->prepare($sqlInsert);
+        
+        foreach ($registros as $reg) {
+            $stmt->execute([
+                ':id_req'   => $id_requisicion,
+                ':id_est'   => $reg['id_estimacion'],
+                ':id_cot'   => $reg['id_cotizacion'],
+                ':perfil'   => $reg['perfil_sello'],
+                ':comp'     => $reg['componente'],
+                ':mat'      => $reg['material'],
+                ':clave'    => $reg['clave'],
+                ':lote'     => $reg['lote_pedimento'],
+                ':medida'   => $reg['medida'],
+                ':pz_t'     => $reg['pz_teoricas'],
+                ':di'       => $reg['di_sello'],
+                ':de'       => $reg['de_sello'],
+                ':alt'      => $reg['altura_pz'],
+                ':h_comp'   => $reg['h_componente']
+            ]);
+        }
+    }
     // ============================================================
     // PROCESAMIENTO
     // ============================================================
@@ -87,71 +126,105 @@ try {
     $stmtCot->execute($cotizacion_ids);
     $cotizacionesData = $stmtCot->fetchAll(PDO::FETCH_ASSOC);
 
-    // 2. Determinar qué registros DEBEN existir (Esperados)
-    $esperados = procesarCotizacionesARegistros($cotizacionesData);
+// 2. Determinar qué registros DEBEN existir (Esperados)
+$esperadosRaw = procesarCotizacionesARegistros($cotizacionesData);
+$registros_unicos_esperados = [];
 
-    // 3. Obtener qué registros EXISTEN actualmente en control_almacen
-    $stmtActual = $conn->prepare("SELECT * FROM control_almacen WHERE id_requisicion = ? AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)");
-    $stmtActual->execute([$id_requisicion]);
-    $actualesEnDB = $stmtActual->fetchAll(PDO::FETCH_ASSOC);
+// IMPORTANTE: Mapear los esperados con la misma llave compuesta que los existentes
+foreach ($esperadosRaw as $reg) {
+    $key = $reg['id_cotizacion'] . '_' . $reg['lote_pedimento'];
+    $registros_unicos_esperados[$key] = $reg;
+}
 
-    $existentesMapping = [];
-    foreach ($actualesEnDB as $row) {
-        // Llave: id_cotizacion + lote_pedimento
-        $key = $row['id_cotizacion'] . '_' . $row['lote_pedimento'];
-        $existentesMapping[$key] = $row;
+// 3. Obtener registros EXISTENTES en control_almacen
+// (Mantenemos tu lógica de filtrado para proteger extras)
+$stmtActual = $conn->prepare("SELECT * FROM control_almacen WHERE id_requisicion = :id_req AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)");
+$stmtActual->bindParam(':id_req', $id_requisicion, PDO::PARAM_INT);
+$stmtActual->execute();
+$actualesEnDB = $stmtActual->fetchAll(PDO::FETCH_ASSOC);
+
+$existentesMapping = [];
+$barrasProtegidas = 0;
+
+foreach ($actualesEnDB as $row) {
+    if ($row['es_extra'] == 1 || $row['es_remplazo'] == 1 || $row['es_merma'] == 1) {
+        $barrasProtegidas++;
+        continue;
     }
+    // Misma lógica de llave: id_cotizacion + lote
+    $key = $row['id_cotizacion'] . '_' . $row['lote_pedimento'];
+    $existentesMapping[$key] = $row;
+}
 
-    // 4. Lógica de Sincronización Incremental (SIN DELETE BRUTO)
-    $conn->beginTransaction();
-    $agregados = 0; $eliminados = 0;
+// 4. Lógica de Discrepancia (Ahora las llaves coinciden)
+$hayDiscrepancia = false;
 
-    // A. INSERTAR lo que falta
-    $sqlInsert = "INSERT INTO control_almacen (id_requisicion, id_estimacion, id_cotizacion, perfil_sello, componente, material, clave, lote_pedimento, medida, pz_teoricas, di_sello, de_sello, altura_pz, h_componente, fecha_registro) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
-    $stmtIns = $conn->prepare($sqlInsert);
+foreach ($registros_unicos_esperados as $key => $esperado) {
+    if (!isset($existentesMapping[$key])) {
+        $hayDiscrepancia = true;
+        break;
+    }
+}
 
-    foreach ($esperados as $key => $reg) {
-        if (!isset($existentesMapping[$key])) {
-            $stmtIns->execute([
-                $id_requisicion, $reg['id_estimacion'], $reg['id_cotizacion'], $reg['perfil_sello'], 
-                $reg['componente'], $reg['material'], $reg['clave'], $reg['lote_pedimento'], 
-                $reg['medida'], $reg['pz_teoricas'], $reg['di_sello'], $reg['de_sello'], 
-                $reg['a_sello'], $reg['h_componente']
-            ]);
-            $agregados++;
+if (!$hayDiscrepancia) {
+    foreach ($existentesMapping as $key => $actual) {
+        if (!isset($registros_unicos_esperados[$key])) {
+            $hayDiscrepancia = true;
+            break;
+        }
+    }
+}
+
+    // 5. Sincronización Incremental (Si hay discrepancia)
+    if ($hayDiscrepancia) {
+        $conn->beginTransaction();
+        try {
+            // A. Insertar solo lo que falta de la cotización
+            foreach ($registros_unicos_esperados as $key => $reg) {
+                if (!isset($existentesMapping[$key])) {
+                    insertarRegistrosControlAlmacen($conn, $id_requisicion, [$reg]);
+                    $agregados++;
+                }
+            }
+
+            // B. Eliminar solo lo que ya no existe en la cotización Y NO ES EXTRA
+            foreach ($existentesMapping as $key => $row) {
+                if (!isset($registros_unicos_esperados[$key])) {
+                    $stmtDel = $conn->prepare("DELETE FROM control_almacen WHERE id_control = ?");
+                    $stmtDel->execute([$row['id_control']]);
+                    if ($stmtDel->rowCount() > 0) {
+                        $eliminados++;
+                    }
+                }
+            }
+            $conn->commit();
+        } catch (Exception $e) {
+            if ($conn->inTransaction()) $conn->rollBack();
+            throw $e;
         }
     }
 
-    // B. ELIMINAR lo que ya no está en la requisición (pero solo lo que sobra)
-    foreach ($existentesMapping as $key => $row) {
-        if (!isset($esperados[$key])) {
-            $stmtDel = $conn->prepare("DELETE FROM control_almacen WHERE id_control = ?");
-            $stmtDel->execute([$row['id_control']]);
-            $eliminados++;
-        }
-    }
-
-    $conn->commit();
-
-    // 5. Retornar los datos finales (ya sincronizados)
+    // 6. Obtener lista final para el frontend
     $stmtFinal = $conn->prepare("SELECT * FROM control_almacen WHERE id_requisicion = ? AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1) ORDER BY id_control ASC");
     $stmtFinal->execute([$id_requisicion]);
-    $resultadoFinal = $stmtFinal->fetchAll(PDO::FETCH_ASSOC);
+    $registrosFinales = $stmtFinal->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         'success' => true,
-        'id_requisicion' => $id_requisicion,
-        'total_registros' => count($resultadoFinal),
-        'billets' => $resultadoFinal,
+        'billets' => $registrosFinales,
         'sincronizacion' => [
             'nuevos_agregados' => $agregados,
             'obsoletos_eliminados' => $eliminados,
-            'preservados' => count($resultadoFinal) - $agregados
+            'extras_protegidos' => $barrasProtegidas
         ]
     ]);
 
-} catch (Exception $e) {
-    if (isset($conn)) $conn->rollBack();
+} catch (Throwable $e) {
+    if (isset($conn) && $conn->inTransaction()) {
+        $conn->rollBack();
+    }
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+} finally {
+    $conn = null;
 }
+?>

@@ -68,7 +68,7 @@ try {
     $conn->commit();
     echo json_encode([
         'success' => true,
-        'message' => "Actualizados: $registrosActualizados, Omitidos: $registrosOmitidos",
+        'message' => "Barras actualizadas: $registrosActualizados",
         'actualizados' => $registrosActualizados,
         'errores' => $errores
     ]);

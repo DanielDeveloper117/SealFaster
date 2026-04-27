@@ -106,37 +106,37 @@ try {
         }
 
         // 2. Insertar en control_almacen
-    // Cast valores a tipos correctos ANTES de binding
-    $pz_teoricas_int = (int)$pz_teoricas;
-    $altura_pz_float = (float)$altura_pz;
-    $h_componente_float = (float)$_POST['h_componente'];
-    $mm_entrega_float = (float)$mm_entrega;
-    $componente_int = (int)$_POST['componente'];
+        // Cast valores a tipos correctos ANTES de binding
+        $pz_teoricas_int = (int)$pz_teoricas;
+        $altura_pz_float = (float)$altura_pz;
+        $h_componente_float = (float)$_POST['h_componente'];
+        $mm_entrega_float = (float)$mm_entrega;
+        $componente_int = (int)$_POST['componente'];
 
-    $stmtInsert = $conn->prepare("
-        INSERT INTO control_almacen (
-            id_requisicion, material, clave, lote_pedimento, medida, 
-            perfil_sello, pz_teoricas, altura_pz, componente, h_componente, mm_entrega, justificacion_extra, 
-            es_extra, fecha_registro
-        ) VALUES (
-            :id_requisicion, :material, :clave, :lote_pedimento, :medida,
-            :perfil_sello, :pz_teoricas, :altura_pz, :componente, :h_componente, :mm_entrega, :justificacion_extra, 
-            1, NOW()
-        )
-    ");
+        $stmtInsert = $conn->prepare("
+            INSERT INTO control_almacen (
+                id_requisicion, material, clave, lote_pedimento, medida, 
+                perfil_sello, pz_teoricas, altura_pz, componente, h_componente, mm_entrega, justificacion_extra, 
+                es_extra, fecha_registro
+            ) VALUES (
+                :id_requisicion, :material, :clave, :lote_pedimento, :medida,
+                :perfil_sello, :pz_teoricas, :altura_pz, :componente, :h_componente, :mm_entrega, :justificacion_extra, 
+                1, NOW()
+            )
+        ");
 
-    $stmtInsert->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-    $stmtInsert->bindParam(':material', $inventario_cnc['material'], PDO::PARAM_STR);
-    $stmtInsert->bindParam(':clave', $inventario_cnc['Clave'], PDO::PARAM_STR);
-    $stmtInsert->bindParam(':lote_pedimento', $lote_pedimento, PDO::PARAM_STR);
-    $stmtInsert->bindParam(':medida', $inventario_cnc['Medida'], PDO::PARAM_STR);
-    $stmtInsert->bindParam(':perfil_sello', $perfil, PDO::PARAM_STR);
-    $stmtInsert->bindParam(':pz_teoricas', $pz_teoricas_int, PDO::PARAM_INT);
-    $stmtInsert->bindParam(':altura_pz', $altura_pz_float, PDO::PARAM_STR);
-    $stmtInsert->bindParam(':componente', $componente_int, PDO::PARAM_INT);
-    $stmtInsert->bindParam(':h_componente', $h_componente_float, PDO::PARAM_STR);
-    $stmtInsert->bindParam(':mm_entrega', $mm_entrega_float, PDO::PARAM_STR);
-    $stmtInsert->bindParam(':justificacion_extra', $justificacion_extra, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':material', $inventario_cnc['material'], PDO::PARAM_STR);
+        $stmtInsert->bindParam(':clave', $inventario_cnc['Clave'], PDO::PARAM_STR);
+        $stmtInsert->bindParam(':lote_pedimento', $lote_pedimento, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':medida', $inventario_cnc['Medida'], PDO::PARAM_STR);
+        $stmtInsert->bindParam(':perfil_sello', $perfil, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':pz_teoricas', $pz_teoricas_int, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':altura_pz', $altura_pz_float, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':componente', $componente_int, PDO::PARAM_INT);
+        $stmtInsert->bindParam(':h_componente', $h_componente_float, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':mm_entrega', $mm_entrega_float, PDO::PARAM_STR);
+        $stmtInsert->bindParam(':justificacion_extra', $justificacion_extra, PDO::PARAM_STR);
         if (!$stmtInsert->execute()) {
             throw new Exception("Error al insertar la barra extra en control_almacen");
         }
