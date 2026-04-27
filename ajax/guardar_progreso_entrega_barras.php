@@ -3,72 +3,77 @@ require_once(__DIR__ . '/../config/rutes.php');
 require_once(ROOT_PATH . 'auth/session_manager.php');
 require_once(ROOT_PATH . 'config/config.php');
 
+function esDecimalValido($valor) {
+    if ($valor === '' || $valor === null) return true;
+    return preg_match('/^\d+(\.\d{1,2})?$/', (string)$valor);
+}
+
 try {
     header('Content-Type: application/json');
+    $data = json_decode($_POST['registros'] ?? '[]', true);
 
-    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-        http_response_code(405);
-        echo json_encode(['success' => false, 'error' => 'Método no permitido']);
-        exit();
-    }
-
-    if (!isset($_POST['registros']) || empty($_POST['registros'])) {
+    if (empty($data)) {
         echo json_encode(['success' => false, 'error' => 'No se recibieron registros']);
         exit();
     }
 
-    $data = json_decode($_POST['registros'], true);
-
-    if (!is_array($data) || count($data) === 0) {
-        echo json_encode(['success' => false, 'error' => 'Formato de datos inválido']);
-        exit();
-    }
-
     $conn->beginTransaction();
-
-    $sqlUpdate = "UPDATE control_almacen 
-                  SET pz_teoricas = :pz_teoricas,
-                      mm_entrega = :mm_entrega
-                  WHERE id_control = :id_control";
-    $stmtUpdate = $conn->prepare($sqlUpdate);
-
     $registrosActualizados = 0;
+    $registrosOmitidos = 0;
     $errores = [];
 
     foreach ($data as $fila) {
         try {
-            $stmtUpdate->execute([
-                ':pz_teoricas' => $fila['pz_teoricas'] ?? 0,
-                ':mm_entrega' => $fila['mm_entrega'] ?? 0,
-                ':id_control' => $fila['id_control']
-            ]);
+            $id_control = isset($fila['id_control']) ? (int)$fila['id_control'] : 0;
+            $pz_raw = $fila['pz_teoricas'] ?? '';
+            $mm_raw = $fila['mm_entrega'] ?? '';
 
-            if ($stmtUpdate->rowCount() > 0) {
-                $registrosActualizados++;
+            // EVALUACIÓN DE CAMBIOS: ¿Se envió al menos uno de los dos?
+            $tiene_pz = ($pz_raw !== '' && $pz_raw !== null);
+            $tiene_mm = ($mm_raw !== '' && $mm_raw !== null);
+
+            if (!$tiene_pz && !$tiene_mm) {
+                $registrosOmitidos++;
+                continue;
             }
+
+            // CONSTRUCCIÓN DINÁMICA DE LA CONSULTA
+            $campos = [];
+            $params = [':id' => $id_control];
+
+            if ($tiene_pz) {
+                $campos[] = "pz_teoricas = :pz";
+                $params[':pz'] = (int)$pz_raw;
+            }
+            if ($tiene_mm && esDecimalValido($mm_raw)) {
+                $campos[] = "mm_entrega = :mm";
+                $params[':mm'] = (float)$mm_raw;
+            }
+
+            if (!empty($campos)) {
+                $sql = "UPDATE control_almacen SET " . implode(', ', $campos) . " WHERE id_control = :id";
+                $stmt = $conn->prepare($sql);
+                $stmt->execute($params);
+                
+                if ($stmt->rowCount() > 0) {
+                    $registrosActualizados++;
+                }
+            }
+
         } catch (PDOException $e) {
-            $errores[] = "Error al actualizar id_control {$fila['id_control']}: " . $e->getMessage();
+            $errores[] = "ID $id_control: " . $e->getMessage();
         }
     }
 
     $conn->commit();
-
-    $mensaje = "Progreso guardado correctamente. Registros actualizados: $registrosActualizados";
-    if (count($errores) > 0) {
-        $mensaje .= ". Errores: " . implode(', ', $errores);
-    }
-
     echo json_encode([
         'success' => true,
-        'message' => $mensaje,
-        'registros_actualizados' => $registrosActualizados,
+        'message' => "Actualizados: $registrosActualizados, Omitidos: $registrosOmitidos",
+        'actualizados' => $registrosActualizados,
         'errores' => $errores
     ]);
 
 } catch (Throwable $e) {
-    if ($conn->inTransaction()) $conn->rollBack();
-    echo json_encode(['success' => false, 'error' => 'Error al guardar progreso: ' . $e->getMessage()]);
-} finally {
-    $conn = null;
+    if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

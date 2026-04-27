@@ -437,7 +437,7 @@
                                     <input type="number" class="input-disabled h_componente" name="h_componente" value="${billet.h_componente || ''}" readonly tabindex="-1">
                                 </td>
                                 <td><input type="text" class="input-disabled mm_teoricos" value="${mmTeoricos}" readonly tabindex="-1"></td>
-                                <td><input type="number" class="input-text mm_entrega" name="mm_entrega" value="${(billet.mm_entrega !== undefined && billet.mm_entrega !== null && billet.mm_entrega !== '' && isFinite(Number(billet.mm_entrega))) ? Number(billet.mm_entrega).toFixed(2) : ''}" step="0.01" min="0" required></td>                        
+                                <td><input type="number" class="input-text mm_entrega" name="mm_entrega" value="${billet.mm_entrega != undefined  ? billet.mm_entrega : ''}" step="0.01" min="0" required></td>                        
                             </tr>
                             <tr class="row-justificar-remplazo ${billet.justificacion_remplazo && billet.justificacion_remplazo.trim() !== '' ? '' : 'd-none'}">
                                 <td colspan="12">
@@ -813,17 +813,12 @@
             const registros = [];
             $('#tableEntregarBarras tbody tr.data-row').each(function () {
                 const $row = $(this);
-                const idControl = $row.find('.id_control').val();
-                const pzTeoricas = $row.find('.pz_teoricas').val();
-                const mmEntrega = $row.find('.mm_entrega').val();
-
-                if (idControl) {
-                    registros.push({
-                        id_control: idControl,
-                        pz_teoricas: pzTeoricas || 0,
-                        mm_entrega: mmEntrega || 0
-                    });
-                }
+                registros.push({
+                    id_control: $row.find('.id_control').val(),
+                    lote_pedimento: $row.find('.lote_pedimento').val(),
+                    pz_teoricas: $row.find('.pz_teoricas').val(),
+                    mm_entrega: $row.find('.mm_entrega').val()
+                });
             });
 
             if (registros.length === 0) {

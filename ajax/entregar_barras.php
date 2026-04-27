@@ -11,6 +11,15 @@ set_error_handler(function($severity, $message, $file, $line) {
     throw new ErrorException($message, 0, $severity, $file, $line);
 });
 
+/**
+ * Valida que un valor sea un decimal válido con máximo 2 decimales
+ * @param mixed $valor Valor a validar
+ * @return bool True si es un decimal válido (ej: 50, 50.5, 50.25)
+ */
+function esDecimalValido($valor) {
+    return preg_match('/^\d+(\.\d{1,2})?$/', (string)$valor);
+}
+
 try {
     header('Content-Type: application/json');
 
@@ -65,6 +74,23 @@ try {
         if (!is_array($registros)) {
             $conn->rollBack();
             throw new Exception('Formato de registros inválido.');
+        }
+
+        // Validar todos los registros ANTES de procesarlos
+        foreach ($registros as $index => $reg) {
+            // Validar campos numéricos si están presentes
+            if (isset($reg['pz_teoricas']) && $reg['pz_teoricas'] !== '' && !esDecimalValido($reg['pz_teoricas'])) {
+                throw new Exception("Registro $index: pz_teoricas inválido (valor: {$reg['pz_teoricas']})");
+            }
+            if (isset($reg['altura_pz']) && $reg['altura_pz'] !== '' && !esDecimalValido($reg['altura_pz'])) {
+                throw new Exception("Registro $index: altura_pz inválido (valor: {$reg['altura_pz']})");
+            }
+            if (isset($reg['mm_entrega']) && $reg['mm_entrega'] !== '' && !esDecimalValido($reg['mm_entrega'])) {
+                throw new Exception("Registro $index: mm_entrega inválido (valor: {$reg['mm_entrega']})");
+            }
+            if (isset($reg['mm_teoricos']) && $reg['mm_teoricos'] !== '' && !esDecimalValido($reg['mm_teoricos'])) {
+                throw new Exception("Registro $index: mm_teoricos inválido (valor: {$reg['mm_teoricos']})");
+            }
         }
 
         $sqlUpdate = "UPDATE control_almacen SET perfil_sello = :perfil_sello, material = :material, clave = :clave, lote_pedimento = :lote_pedimento, medida = :medida, pz_teoricas = :pz_teoricas, altura_pz = :altura_pz, mm_entrega = :mm_entrega, mm_teoricos = :mm_teoricos WHERE id_control = :id_control";

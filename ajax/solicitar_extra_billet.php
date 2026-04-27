@@ -6,6 +6,15 @@ require_once(ROOT_PATH . 'vendor/autoload.php');
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+/**
+ * Valida que un valor sea un decimal válido con máximo 2 decimales
+ * @param mixed $valor Valor a validar
+ * @return bool True si es un decimal válido (ej: 50, 50.5, 50.25)
+ */
+function esDecimalValido($valor) {
+    return preg_match('/^\d+(\.\d{1,2})?$/', (string)$valor);
+}
+
 try {
     header('Content-Type: application/json');
 
@@ -41,26 +50,26 @@ try {
     $justificacion_extra = trim($_POST['justificacion_extra']);
 
     // Validaciones específicas
-    if (!is_numeric($pz_teoricas) || $pz_teoricas <= 0) {
+    if (!esDecimalValido($pz_teoricas) || (float)$pz_teoricas <= 0) {
         echo json_encode([
             'success' => false,
-            'message' => "Las piezas teóricas deben ser un número mayor a 0"
+            'message' => "Las piezas teóricas deben ser un número válido mayor a 0 (recibido: $pz_teoricas)"
         ]);
         exit;
     }
 
-    if (!is_numeric($altura_pz) || $altura_pz <= 0) {
+    if (!esDecimalValido($altura_pz) || (float)$altura_pz <= 0) {
         echo json_encode([
             'success' => false,
-            'message' => "La altura de pieza debe ser un número mayor a 0"
+            'message' => "La altura de pieza debe ser un número válido mayor a 0 (recibido: $altura_pz)"
         ]);
         exit;
     }
 
-    if (!is_numeric($mm_entrega) || $mm_entrega < 0) {
+    if (!esDecimalValido($mm_entrega) || (float)$mm_entrega < 0) {
         echo json_encode([
             'success' => false,
-            'message' => "MM entrega debe ser un número mayor o igual a 0"
+            'message' => "MM entrega debe ser un número válido mayor o igual a 0 (recibido: $mm_entrega)"
         ]);
         exit;
     }
@@ -97,31 +106,37 @@ try {
         }
 
         // 2. Insertar en control_almacen
-        $stmtInsert = $conn->prepare("
-            INSERT INTO control_almacen (
-                id_requisicion, material, clave, lote_pedimento, medida, 
-                perfil_sello, pz_teoricas, altura_pz, componente, h_componente, mm_entrega, justificacion_extra, 
-                es_extra, fecha_registro
-            ) VALUES (
-                :id_requisicion, :material, :clave, :lote_pedimento, :medida,
-                :perfil_sello, :pz_teoricas, :altura_pz, :componente, :h_componente, :mm_entrega, :justificacion_extra, 
-                1, NOW()
-            )
-        ");
+    // Cast valores a tipos correctos ANTES de binding
+    $pz_teoricas_int = (int)$pz_teoricas;
+    $altura_pz_float = (float)$altura_pz;
+    $h_componente_float = (float)$_POST['h_componente'];
+    $mm_entrega_float = (float)$mm_entrega;
+    $componente_int = (int)$_POST['componente'];
 
-        $stmtInsert->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
-        $stmtInsert->bindParam(':material', $inventario_cnc['material']);
-        $stmtInsert->bindParam(':clave', $inventario_cnc['Clave']);
-        $stmtInsert->bindParam(':lote_pedimento', $lote_pedimento);
-        $stmtInsert->bindParam(':medida', $inventario_cnc['Medida']);
-        $stmtInsert->bindParam(':perfil_sello', $perfil);
-        $stmtInsert->bindParam(':pz_teoricas', $pz_teoricas, PDO::PARAM_INT);
-        $stmtInsert->bindParam(':altura_pz', $altura_pz);
-        $stmtInsert->bindParam(':componente', $_POST['componente'], PDO::PARAM_INT);
-        $stmtInsert->bindParam(':h_componente', $_POST['h_componente']);
-        $stmtInsert->bindParam(':mm_entrega', $mm_entrega);
-        $stmtInsert->bindParam(':justificacion_extra', $justificacion_extra);
+    $stmtInsert = $conn->prepare("
+        INSERT INTO control_almacen (
+            id_requisicion, material, clave, lote_pedimento, medida, 
+            perfil_sello, pz_teoricas, altura_pz, componente, h_componente, mm_entrega, justificacion_extra, 
+            es_extra, fecha_registro
+        ) VALUES (
+            :id_requisicion, :material, :clave, :lote_pedimento, :medida,
+            :perfil_sello, :pz_teoricas, :altura_pz, :componente, :h_componente, :mm_entrega, :justificacion_extra, 
+            1, NOW()
+        )
+    ");
 
+    $stmtInsert->bindParam(':id_requisicion', $id_requisicion, PDO::PARAM_INT);
+    $stmtInsert->bindParam(':material', $inventario_cnc['material'], PDO::PARAM_STR);
+    $stmtInsert->bindParam(':clave', $inventario_cnc['Clave'], PDO::PARAM_STR);
+    $stmtInsert->bindParam(':lote_pedimento', $lote_pedimento, PDO::PARAM_STR);
+    $stmtInsert->bindParam(':medida', $inventario_cnc['Medida'], PDO::PARAM_STR);
+    $stmtInsert->bindParam(':perfil_sello', $perfil, PDO::PARAM_STR);
+    $stmtInsert->bindParam(':pz_teoricas', $pz_teoricas_int, PDO::PARAM_INT);
+    $stmtInsert->bindParam(':altura_pz', $altura_pz_float, PDO::PARAM_STR);
+    $stmtInsert->bindParam(':componente', $componente_int, PDO::PARAM_INT);
+    $stmtInsert->bindParam(':h_componente', $h_componente_float, PDO::PARAM_STR);
+    $stmtInsert->bindParam(':mm_entrega', $mm_entrega_float, PDO::PARAM_STR);
+    $stmtInsert->bindParam(':justificacion_extra', $justificacion_extra, PDO::PARAM_STR);
         if (!$stmtInsert->execute()) {
             throw new Exception("Error al insertar la barra extra en control_almacen");
         }
