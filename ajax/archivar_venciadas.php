@@ -29,6 +29,7 @@ try {
         FROM cotizacion_materiales
         WHERE id_usuario = :id_usuario 
         AND archivada = 0 
+        AND id_fusion IS NULL
         AND fecha_vencimiento IS NOT NULL 
         AND fecha_vencimiento < :fecha_actual
     ";
@@ -45,6 +46,7 @@ try {
             SET archivada = 1
             WHERE id_usuario = :id_usuario 
             AND archivada = 0 
+            AND id_fusion IS NULL
             AND fecha_vencimiento IS NOT NULL 
             AND fecha_vencimiento < :fecha_actual";
 

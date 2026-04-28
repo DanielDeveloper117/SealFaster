@@ -449,10 +449,10 @@ function validarCamposDimensiones() {
         $("#altura_mm_cliente").val(),
         $("#diametro_interior_mm_cliente").val(),
         $("#diametro_exterior_mm_cliente").val(),
-        $("#inputAlturaCaja").val() || "0.00",
-        $("#inputAlturaEscalon").val() || "0.00",
-        $("#inputAlturaH2").val() || "0.00",
-        $("#inputAlturaH3").val() || "0.00",
+        $("#inputAlturaCaja").val(),
+        $("#inputAlturaEscalon").val(),
+        $("#inputAlturaH2").val(),
+        $("#inputAlturaH3").val(),
     ];
 
     let tipoDurezaMateriales = $("#selectorDurezaMateriales").val();
@@ -813,6 +813,21 @@ $(document).ready(function() {
                 $(`#toleranciaBarraDE_m${i}`).text(tolDE);
                 console.log(`Tolerancias material ${i} - DI: ${tolDI}, DE: ${tolDE}`);
             }
+            // ---- LISTENER DE CHECKBOXES DE OMISION DE MATERIALES ----
+            // Se registra de forma dinamica al terminar de cargar los datos del perfil,
+            // momento en que window.CANTIDAD_MATERIALES ya tiene el valor correcto.
+            // Se coloca dentro del callback success del AJAX de ajax_perfil.php,
+            // al final de ese bloque, despues de todas las asignaciones.
+            for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
+                $(`#checkboxOmitirElemento_m${i}`).on('click', function() {
+                    const di = parseFloat($('#diametro_interior_mm_cliente').val()) || 0;
+                    const de = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0;
+                    const h  = parseFloat($('#altura_mm_cliente').val()) || 0;
+                    autoCalculoDimensiones(di, de, h);
+                    resetear_materiales_completados();
+                    $(`#imagenMaterialTabla_m${i}`).toggleClass('d-none', this.checked);
+                });
+            }            
             // ****** ITERACIONES DE IMAGENES DE COMPONENTES ******
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 let imagen = $(`#imagenMaterial_m${i}`);
@@ -831,27 +846,17 @@ $(document).ready(function() {
                 }
                 // dejar solo un intermedio en el chevron
                 if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i > 2 && i != window.CANTIDAD_MATERIALES)){
-                    $(`#checkboxOmitirElemento_m${i}`).trigger("click").attr("disabled", true);
+                    setTimeout(() => {
+                        $(`#checkboxOmitirElemento_m${i}`).trigger("click").attr("disabled", true);
+                    }, 300);
+                    $(`#seraEnviado_m${i}`).val("no");
                 } 
                 // condicional para componentes intermedios del chevron, limite de 7 intermedios
                 if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i == 2 && i != window.CANTIDAD_MATERIALES)){
                     $(`#inputCantidad_m${i}`).attr("max", "7").attr("placeholder", "Máximo 7 intermedios");
                 }
             }  
-            // ---- LISTENER DE CHECKBOXES DE OMISION DE MATERIALES ----
-            // Se registra de forma dinamica al terminar de cargar los datos del perfil,
-            // momento en que window.CANTIDAD_MATERIALES ya tiene el valor correcto.
-            // Se coloca dentro del callback success del AJAX de ajax_perfil.php,
-            // al final de ese bloque, despues de todas las asignaciones.
-            for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
-                $(`#checkboxOmitirElemento_m${i}`).on('change', function() {
-                    const di = parseFloat($('#diametro_interior_mm_cliente').val()) || 0;
-                    const de = parseFloat($('#diametro_exterior_mm_cliente').val()) || 0;
-                    const h  = parseFloat($('#altura_mm_cliente').val()) || 0;
-                    autoCalculoDimensiones(di, de, h);
-                    resetear_materiales_completados();
-                });
-            }
+
             // *** INICIALIZAR AREGLOS PARA SELECCION DE BILLETS
             for (let i = 1; i <= window.CANTIDAD_MATERIALES; i++) {
                 window[`BILLETS_SELECCIONADOS_m${i}`] = [];
@@ -1617,7 +1622,7 @@ $(document).ready(function() {
         }
 
         Promise.all(promises).then((resultados) => {
-        const hayErrores = resultados.some(r => !r.ok);
+            const hayErrores = resultados.some(r => !r.ok);
 
             if (hayErrores) {
                 Swal.fire({
@@ -1630,6 +1635,21 @@ $(document).ready(function() {
                     showConfirmButton: true,
                     confirmButtonText: 'Ok',
                     confirmButtonColor: '#55AD9B',
+                }).then((result) => {
+                    if (result.isConfirmed) {
+
+                        //window.open("../includes/functions/generar_pdf.php?id_cotizacion=" + idCotizacion, "_blank");
+                        const savedDefault = localStorage.getItem('filtroDefault') || '1';
+                        window.location.href = `cotizaciones.php?cot=u&default=${savedDefault}`;
+
+                        $.post("../ajax/ajax_notificacion.php", {
+                            mensaje: "Error en una cotizacion: " + idCotizacion
+                        }).done(function (response) {
+                            console.log("Notificación enviada:", response);
+                        }).fail(function (error) {
+                            console.error("Error al enviar notificación:", error);
+                        });
+                    }
                 });
                 $(this).removeClass("d-none");
             } else {

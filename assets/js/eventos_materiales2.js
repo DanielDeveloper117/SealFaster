@@ -451,6 +451,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
                 // CUANDO DIGITA CANTIDAD llamar reiniciar los milimetros necesarios
                 $(`#inputCantidad_m${i}`).on(`input`, function() {
+                    // condicional para componentes intermedios del chevron, limite de 7 intermedios
+                    if((window.ES_CHEVRON == "1" || window.ES_CHEVRON == 1) && (i == 2 && i != window.CANTIDAD_MATERIALES)){
+                        let value = parseInt($(this).val());
+                        if(value > 7) {
+                            $(this).val("7");
+                        }
+                    }
                     reiniciarMilimetrosNecesarios();
                 });
                 // EVENTOS ESCUCHAR material y cantidad para reiniciar arreglos, selecciones y minitablas

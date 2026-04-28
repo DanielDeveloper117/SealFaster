@@ -308,8 +308,8 @@
         <div class="mb-3 d-flex col-12 flex-column flex-md-row justify-content-between">
             <div class="d-flex flex-column col-md-7">
                 <div class="d-flex">
-                    <img id="imagenMaterialTabla_m2" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                     <img id="imagenMaterialTabla_m1" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
+                    <img id="imagenMaterialTabla_m2" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                     <img id="imagenMaterialTabla_m3" class="col-4 img-sello-tabla d-none" src="../assets/img/general/blanco.jpg" alt="">
                 </div>
                 <div class="d-flex">
