@@ -29,7 +29,6 @@ try {
             WHERE id_usuario = :id_usuario 
             AND archivada = 0 
             AND fecha_vencimiento IS NOT NULL 
-            AND fecha_vencimiento != '0000-00-00 00:00:00'
             AND fecha_vencimiento < :fecha_actual";
 
     $stmt = $conn->prepare($sql);
