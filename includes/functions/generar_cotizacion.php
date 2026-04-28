@@ -117,7 +117,7 @@ if (isset($_GET['id_cotizacion'])) {
         $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_di"]), 1, 0, 'C');
         $pdf->Cell(48, 6, utf8_decode($de_sello."mm/".mm_a_pulgadas($de_sello).' '.$arregloCotizacion[0]["tipo_medida_de"]), 1, 0, 'C');
         // altura normal total
-        $pdf->Cell(48, 6, utf8_decode($di_sello."mm/".mm_a_pulgadas($di_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
+        $pdf->Cell(48, 6, utf8_decode($a_sello."mm/".mm_a_pulgadas($a_sello).' '.$arregloCotizacion[0]["tipo_medida_h"]), 1, 0, 'C');
         
         $pdf->Ln(8);
         $pdf->SetTextColor(0, 0, 0);
