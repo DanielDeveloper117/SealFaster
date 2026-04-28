@@ -14,6 +14,9 @@ try {
     $id_requisicion = intval($_GET['id_requisicion']);
 
     // INICIALIZACIÓN DE VARIABLES (Crucial para evitar Warnings)
+    $totalBarras = 0;
+    $barrasNormales = 0;
+    $barrasRemplazo = 0;
     $agregados = 0;
     $eliminados = 0;
     $barrasProtegidas = 0;
@@ -126,54 +129,58 @@ try {
     $stmtCot->execute($cotizacion_ids);
     $cotizacionesData = $stmtCot->fetchAll(PDO::FETCH_ASSOC);
 
-// 2. Determinar qué registros DEBEN existir (Esperados)
-$esperadosRaw = procesarCotizacionesARegistros($cotizacionesData);
-$registros_unicos_esperados = [];
+    // 2. Determinar qué registros DEBEN existir (Esperados)
+    $esperadosRaw = procesarCotizacionesARegistros($cotizacionesData);
+    $registros_unicos_esperados = [];
 
-// IMPORTANTE: Mapear los esperados con la misma llave compuesta que los existentes
-foreach ($esperadosRaw as $reg) {
-    $key = $reg['id_cotizacion'] . '_' . $reg['lote_pedimento'];
-    $registros_unicos_esperados[$key] = $reg;
-}
-
-// 3. Obtener registros EXISTENTES en control_almacen
-// (Mantenemos tu lógica de filtrado para proteger extras)
-$stmtActual = $conn->prepare("SELECT * FROM control_almacen WHERE id_requisicion = :id_req AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)");
-$stmtActual->bindParam(':id_req', $id_requisicion, PDO::PARAM_INT);
-$stmtActual->execute();
-$actualesEnDB = $stmtActual->fetchAll(PDO::FETCH_ASSOC);
-
-$existentesMapping = [];
-$barrasProtegidas = 0;
-
-foreach ($actualesEnDB as $row) {
-    if ($row['es_extra'] == 1 || $row['es_remplazo'] == 1 || $row['es_merma'] == 1) {
-        $barrasProtegidas++;
-        continue;
+    // IMPORTANTE: Mapear los esperados con la misma llave compuesta que los existentes
+    foreach ($esperadosRaw as $reg) {
+        $key = $reg['id_cotizacion'] . '_' . $reg['lote_pedimento'];
+        $registros_unicos_esperados[$key] = $reg;
     }
-    // Misma lógica de llave: id_cotizacion + lote
-    $key = $row['id_cotizacion'] . '_' . $row['lote_pedimento'];
-    $existentesMapping[$key] = $row;
-}
 
-// 4. Lógica de Discrepancia (Ahora las llaves coinciden)
-$hayDiscrepancia = false;
+    // 3. Obtener registros EXISTENTES en control_almacen
+    // (Mantenemos tu lógica de filtrado para proteger extras)
+    $stmtActual = $conn->prepare("SELECT * FROM control_almacen WHERE id_requisicion = :id_req AND NOT (es_eliminacion = 1 AND es_eliminacion_auth = 1)");
+    $stmtActual->bindParam(':id_req', $id_requisicion, PDO::PARAM_INT);
+    $stmtActual->execute();
+    $actualesEnDB = $stmtActual->fetchAll(PDO::FETCH_ASSOC);
 
-foreach ($registros_unicos_esperados as $key => $esperado) {
-    if (!isset($existentesMapping[$key])) {
-        $hayDiscrepancia = true;
-        break;
+    $existentesMapping = [];
+    $barrasProtegidas = 0;
+
+    foreach ($actualesEnDB as $row) {
+        if ($row['es_extra'] == 1 || $row['es_merma'] == 1) {
+            $barrasProtegidas++;
+            continue;
+        }elseif($row['es_remplazo'] == 1){
+            $barrasRemplazo++;
+        }else{
+            $barrasNormales++;
+        }
+        // Misma lógica de llave: id_cotizacion + lote
+        $key = $row['id_cotizacion'] . '_' . $row['lote_pedimento'];
+        $existentesMapping[$key] = $row;
     }
-}
 
-if (!$hayDiscrepancia) {
-    foreach ($existentesMapping as $key => $actual) {
-        if (!isset($registros_unicos_esperados[$key])) {
+    // 4. Lógica de Discrepancia (Ahora las llaves coinciden)
+    $hayDiscrepancia = false;
+
+    foreach ($registros_unicos_esperados as $key => $esperado) {
+        if (!isset($existentesMapping[$key])) {
             $hayDiscrepancia = true;
             break;
         }
     }
-}
+
+    if (!$hayDiscrepancia) {
+        foreach ($existentesMapping as $key => $actual) {
+            if (!isset($registros_unicos_esperados[$key])) {
+                $hayDiscrepancia = true;
+                break;
+            }
+        }
+    }
 
     // 5. Sincronización Incremental (Si hay discrepancia)
     if ($hayDiscrepancia) {
@@ -213,9 +220,12 @@ if (!$hayDiscrepancia) {
         'success' => true,
         'billets' => $registrosFinales,
         'sincronizacion' => [
+            'todas' => count($registrosFinales),
+            'normales' => $barrasNormales,
             'nuevos_agregados' => $agregados,
             'obsoletos_eliminados' => $eliminados,
-            'extras_protegidos' => $barrasProtegidas
+            'barras_extras' => $barrasProtegidas,
+            'barras_remplazo' => $barrasRemplazo
         ]
     ]);
 

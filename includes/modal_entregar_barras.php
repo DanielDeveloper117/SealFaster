@@ -299,7 +299,7 @@
                                         ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 0 && billet.es_extra_auth == 0 && billet.es_eliminacion == 0
                                             ? `
                                                     <button type="button" class="btn-thunder btn-remplazar-barra"
-                                                                data-id-requisicion="${data.id_requisicion}"
+                                                                data-id-requisicion="${billet.id_requisicion}"
                                                                 data-id-control="${billet.id_control}"
                                                                 data-clave="${billet.clave}"
                                                                 data-lp="${billet.lote_pedimento}"
@@ -313,7 +313,7 @@
                                         ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 0 && billet.es_extra_auth == 0 && billet.es_eliminacion == 0 && hayMasDeUnaActiva
                                             ? `
                                                     <button type="button" class="btn-eliminar btn-solicitar-eliminacion-barra"
-                                                                data-id-requisicion="${data.id_requisicion}"
+                                                                data-id-requisicion="${billet.id_requisicion}"
                                                                 data-id-control="${billet.id_control}"
                                                                 data-lp="${billet.lote_pedimento}"
                                                                 title="Solicitar eliminación de barra">
@@ -336,7 +336,7 @@
                                     }
                                     ${billet.es_remplazo == 0 && billet.es_remplazo_auth == 0 && billet.es_extra == 1 && billet.es_extra_auth == 1
                                         ? `<button type="button" class="btn-thunder btn-remplazar-barra"
-                                                    data-id-requisicion="${data.id_requisicion}"
+                                                    data-id-requisicion="${billet.id_requisicion}"
                                                     data-id-control="${billet.id_control}"
                                                     data-clave="${billet.clave}"
                                                     data-lp="${billet.lote_pedimento}"
@@ -512,7 +512,6 @@
                             });
                         })(material, desbasteMaterial);
                     });
-                    console.log(data.fuente);
 
                     // Si la requisición NO es Producción, convertir TODOS los inputs de la tabla a solo lectura
                     // y quitar el atributo required para que no bloqueen validaciones posteriores.
