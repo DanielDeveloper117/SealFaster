@@ -24,12 +24,15 @@ try {
     $fecha_actual = date('Y-m-d H:i:s');
 
     // Contar cotizaciones vencidas no archivadas del usuario
-    $sql = "SELECT COUNT(*) as total_vencidas 
-            FROM cotizacion_materiales 
-            WHERE id_usuario = :id_usuario 
-            AND archivada = 0 
-            AND fecha_vencimiento IS NOT NULL 
-            AND fecha_vencimiento < :fecha_actual";
+    $sql = "
+        SELECT COUNT(DISTINCT id_cotizacion) as total_vencidas
+        FROM cotizacion_materiales
+        WHERE id_usuario = :id_usuario
+        AND archivada = 0
+        AND fecha_vencimiento IS NOT NULL
+        AND fecha_vencimiento < :fecha_actual
+    ";
+
 
     $stmt = $conn->prepare($sql);
     $stmt->bindParam(':id_usuario', $id_usuario);
