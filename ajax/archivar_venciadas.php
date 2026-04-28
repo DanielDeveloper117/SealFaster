@@ -23,6 +23,23 @@ try {
     date_default_timezone_set('America/Mexico_City');
     $fecha_actual = date('Y-m-d H:i:s');
 
+    // Contar cotizaciones vencidas no archivadas del usuario antes de archivar
+    $sql_count = "
+        SELECT COUNT(DISTINCT id_cotizacion) as total
+        FROM cotizacion_materiales
+        WHERE id_usuario = :id_usuario 
+        AND archivada = 0 
+        AND fecha_vencimiento IS NOT NULL 
+        AND fecha_vencimiento < :fecha_actual
+    ";
+
+    $stmt_count = $conn->prepare($sql_count);
+    $stmt_count->bindValue(':id_usuario', $id_usuario, PDO::PARAM_INT);
+    $stmt_count->bindValue(':fecha_actual', $fecha_actual);
+    $stmt_count->execute();
+
+    $total_archivadas = (int)$stmt_count->fetch(PDO::FETCH_ASSOC)['total'];
+
     // Archivar todas las cotizaciones vencidas no archivadas del usuario
     $sql = "UPDATE cotizacion_materiales 
             SET archivada = 1
@@ -41,7 +58,7 @@ try {
     echo json_encode([
         'success' => true,
         'message' => 'Cotizaciones vencidas archivadas exitosamente',
-        'registros_archivados' => (int)$registros_archivados
+        'registros_archivados' => $total_archivadas
     ]);
 
 } catch (PDOException $e) {
